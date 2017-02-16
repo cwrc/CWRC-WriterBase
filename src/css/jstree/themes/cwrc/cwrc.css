@@ -1,0 +1,92 @@
+/* jstree overrides */
+#vakata-dnd {
+	display: block;
+	overflow: hidden;
+	background-color: #fff;
+	border: 1px solid #D4D0C8;
+	border-radius: 4px;
+	padding: 4px !important;
+}
+
+.vakata-context, .vakata-context .submenu ul {
+	border: 1px solid #D4D0C8 !important;
+	background-color: #fff !important;
+	/*box-shadow: 1px 1px 2px #ccc;*/
+	min-width: 165px !important;
+	z-index: 100;
+}
+
+.vakata-context .submenu ul {
+	overflow: auto;
+}
+
+.vakata-context li ins, #jqContextMenu li ins {
+	margin: 2px 2px 0 2px !important;
+}
+
+/*
+.vakata-context .submenu > a span {
+    background-image: url("../img/menu_arrow.gif");
+    color: #fff;
+    display: block;
+    float: right;
+    width: 20px;
+    height: 20px;
+}
+*/
+.vakata-context .submenu .filterParent {
+	position: absolute;
+	display: none;
+	height: 26px;
+	padding-top: 2px;
+	background-color: #fff !important;
+	border: 1px solid #D4D0C8 !important;
+	box-shadow: 2px 2px 2px #999999;
+}
+
+.vakata-context .submenu .filterParent span {
+	margin: 2px 0.5em;
+	font-size: 11px;
+}
+
+.vakata-context .submenu .filterParent input {
+	margin: 2px 3px 2px 0;
+	width: 90px;
+	position: relative;
+	font-size: 11px;
+	border: 1px solid #D4D0C8;
+}
+
+.vakata-context li>a, .vakata-context .submenu .filterParent span {
+	font-family: Tahoma, Verdana, Arial, Helvetica !important;
+	font-size: 11px !important;
+	line-height: 22px !important;
+}
+
+.vakata-context li a:hover, .vakata-context li.vakata-hover>a {
+	color: #000 !important;
+	background-color: #DBECF3 !important;
+}
+
+.jstree .jstree-wholerow {
+	/*height: 22px;*/
+	border: none;
+	border-bottom: 1px solid #d3d3d3;
+}
+
+.jstree .jstree-wholerow-hovered {
+	background: #eeeeee !important;
+}
+
+.jstree .jstree-wholerow-clicked {
+	background: #d3d3d3 !important;
+}
+
+.jstree a.nodeSelected {
+	font-weight: bold;
+}
+
+.jstree a.contentsSelected {
+	font-weight: bold;
+	font-style: italic;
+}

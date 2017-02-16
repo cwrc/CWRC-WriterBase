@@ -1,0 +1,12 @@
+/.project
+/.settings
+/.classpath
+/.tomcatplugin
+/WebContent
+.externalToolBuilders
+/src/js/lib/tinymce_src
+/node_modules
+/docs
+/build
+/node_modules
+

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Unit tests template</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<script type="text/javascript" src="config.js"></script>
+<script type="text/javascript" src="../src/js/lib/require/require.js"></script>
+<script type="text/javascript" src="../src/js/layout.js"></script>
+
+<link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-git.css" type="text/css" />
+
+<link type="text/css" rel="stylesheet" href="../src/css/style.css" />
+<link type="text/css" rel="stylesheet" href="../src/css/islandora_style.css" />
+
+<link type="text/css" rel="stylesheet" href="../src/smoothness/jquery-ui-1.10.3.custom.css" />
+<link type="text/css" rel="stylesheet" href="../src/css/layout-default-latest.css" />
+<link type="text/css" rel="stylesheet" href="../src/js/lib/snippet/jquery.snippet.css" />
+
+<link type="text/css" rel="stylesheet" href="../src/css/style.css" />
+<link type="text/css" rel="stylesheet" href="../src/css/islandora_style.css" />
+		
+<link type="text/css" rel="stylesheet" href="../src/smoothness/jquery-ui-1.10.3.custom.css" />
+<link type="text/css" rel="stylesheet" href="../src/css/layout-default-latest.css" />
+<link type="text/css" rel="stylesheet" href="../src/js/lib/snippet/jquery.snippet.css" />
+
+<script type="text/javascript">
+function cwrcWriterInit(Writer, Delegator) {
+	cwrc_params = {};
+	
+	writer = null;
+	
+	var baseUrl = window.location.protocol+'//'+window.location.host;
+	var config = {
+		id: 'editor',
+		delegator: Delegator,
+		cwrcRootUrl: baseUrl+'/cwrc/src/',
+		schemas: {
+			tei: {
+				name: 'CWRC Basic TEI Schema',
+				url: baseUrl+'/cwrc/src/schema/CWRC-TEIBasic.rng',
+				cssUrl: baseUrl+'/cwrc/src/css/tei_converted.css'
+			},
+			events: {
+				name: 'Events Schema',
+				url: baseUrl+'/cwrc/src/schema/events.rng',
+				cssUrl: baseUrl+'/cwrc/src/css/orlando_converted.css'
+			},
+			biography: {
+				name: 'Biography Schema',
+				url: baseUrl+'/cwrc/src/schema/biography.rng',
+				cssUrl: baseUrl+'/cwrc/src/css/orlando_converted.css'
+			},
+			writing: {
+				name: 'Writing Schema',
+				url: baseUrl+'/cwrc/src/schema/writing.rng',
+				cssUrl: baseUrl+'/cwrc/src/css/orlando_converted.css'
+			}
+		}
+	};
+	
+	writer = new Writer(config);
+	writer.event('writerInitialized').subscribe(function(writer) {
+		require([
+		         // modules
+		         'modules/entitiesList', 'modules/relations', 'modules/selection',
+		         'modules/structureTree', 'modules/validation',
+		         // tests
+		         '../../tests/delegator_tests','../../tests/dialogManager_tests','../../tests/entitiesModel_tests',
+		         '../../tests/eventManager_tests'
+		         //,'../../tests/fileManager_tests','../../tests/schemaManager_tests',
+		         //'../../tests/tagger_tests','../../tests/utilities_tests','../../tests/writer_tests'
+		], function(EntitiesList, Relations, Selection, StructureTree, Validation) {
+			setupLayoutAndModules(writer, EntitiesList, Relations, Selection, StructureTree, Validation);
+			QUnit.start();
+		});
+	});
+};
+</script>
+</head>
+<body>
+<h1 id="qunit-header">Unit tests template</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="cwrc_wrapper">
+	<div id="cwrc_header" class="cwrc ui-layout-north">
+		<h1>CWRCWriter v0.6</h1>
+		<div id="headerButtons">
+		</div>
+	</div>
+	<div class="cwrc ui-layout-west">
+		<div id="westTabs" class="tabs">
+			<ul>
+				<li><a href="#entities">Entities</a></li>
+				<li><a href="#structure">Structure</a></li>
+				<li><a href="#relations">Relations</a></li>
+				<!-- li id="annotation_tab"><a href="#image-annotations">Image Annotations</a></li -->
+			</ul>
+			<div id="westTabsContent" class="ui-layout-content">
+				<!-- div id="image-annotations">
+					<div id="comment_annos_block"></div>
+				</div -->
+			</div>
+		</div>
+	</div>
+	<div id="cwrc_main" class="ui-layout-center">
+		<div class="ui-layout-center">
+			<form method="post" action="">
+				<textarea id="editor" name="editor" class="tinymce"></textarea>
+			</form>
+		</div>
+		<div class="cwrc ui-layout-south">
+			<div id="southTabs" class="tabs">
+				<ul>
+					<li><a href="#validation">Validation</a></li>
+					<li><a href="#selection">Selection</a></li>
+				</ul>
+				<div id="southTabsContent" class="ui-layout-content"></div>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>
