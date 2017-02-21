@@ -78,10 +78,7 @@
     "moment": "^2.13.0",
     "octokit": "^0.10.4",
     "tinymce": "^4.5.0",
-    "prismjs": "^1.6.0",
-    "objtree": "./src/js/lib/objtree/ObjTree.js",
-    "writer": "./writer.js",
-    "delegator": "./delegator.js"
+    "prismjs": "^1.6.0"
   },
   "devDependencies": {
     "commitizen": "2.9.6",

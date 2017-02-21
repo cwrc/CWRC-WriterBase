@@ -1,9 +1,9 @@
 ![Picture](http://www.cwrc.ca/wp-content/uploads/2010/12/CWRC_Dec-2-10_smaller.png)
 
-CWRC-Writer
-===========
+CWRC-Writer-Base
+================
 
-The Canadian Writing Research Collaboratory (CWRC) is developing an in-browser text markup editor (CWRC-Writer) for use by collaborative scholarly editing projects.  [Project Site](http://www.cwrc.ca/projects/infrastructure-projects/technical-projects/cwrc-writer/)
+The Canadian Writing Research Collaboratory (CWRC) is developing an in-browser text markup editor (CWRC-Writer) for use by collaborative scholarly editing projects.  [Project Site](http://www.cwrc.ca/projects/infrastructure-projects/technical-projects/cwrc-writer/).  This package is the base code that builds on the TinyMCE javascript editor, meant to be packaged together, using Browserify, with a CWRC Delegator to communicate with a running instance of a CWRC Server that provides document and entity management.
 
 
 ## Table of Contents
@@ -41,46 +41,6 @@ Most of the work in setting up CWRCWriter for your project will be implementing 
 
 ## Setup
 
-### RequireJS
-
-CWRC-Writer uses RequireJS to load its files. The dependencies are defined in https://github.com/cwrc/CWRC-Writer/blob/development/src/js/config.js. See https://github.com/cwrc/CWRC-Writer/blob/development/src/editor_dev.htm for a working example.
-
-#### Set RequireJS baseUrl
-
-```
-require.config({baseUrl: 'js'});
-```
-
-#### Load the initial dependencies
-```
-require(['jquery', 'knockout'], function($, knockout) {
-    window.ko = knockout; // requirejs shim isn't working for knockout
-    
-    require(['writer',
-             'delegator',
-             'jquery.layout',
-             'jquery.tablayout'
-    ], function(Writer, Delegator) {
-        $(function() {
-            // initialize the Writer
-        });
-    });
-});
-```
-
-#### Initialize the Writer and any modules
-```
-writer = new Writer(config);
-writer.init('editor'); // convert the textarea with id "editor" to the CWRC-Writer
-writer.event('writerInitialized').subscribe(function(writer) {
-  // load modules then do the setup
-  require(['modules/entitiesList','modules/relations','modules/selection',
-           'modules/structureTree','modules/validation'
-  ], function(EntitiesList, Relations, Selection, StructureTree, Validation) {
-    // initialize modules and do layout
-  });
-});
-```
 
 ### Customize Layout
 
@@ -148,43 +108,6 @@ where allowable values for `cw:mode` are:
 **[Back to top](#table-of-contents)**
 
 ## Usage
-
-### XML/RDF modes
-
-**[Back to top](#table-of-contents)**
-
-## Customization
-
-The CWRCWriter menus and layout can be customized.
-
-**[Back to top](#table-of-contents)**
-
-## Demo
-
-**[Back to top](#table-of-contents)**
-
-## Contributing
-
-Please contact us, or open an issue.
-
-**[Back to top](#table-of-contents)**
-
-## FAQ
-
-### How do I add a schema?
-
-### How do I add or remove a menu item?
-
-### How do I change the layout of the editor?
-
-
-
-**[Back to top](#table-of-contents)**
-
-## License
-
-#### (The License)
-
 
 
 **[Back to top](#table-of-contents)**
