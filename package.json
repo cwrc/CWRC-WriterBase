@@ -24,7 +24,6 @@
   },
   "homepage": "https://github.com/jchartrand/CWRC-WriterBase#readme",
   "dependencies": {
-    "app-module-path": "2.2.0",
     "css-parse": "^2.0.0",
     "css-stringify": "^2.0.0",
     "cwrcDialogs": "cwrc/CWRC-Dialogs#npm",
