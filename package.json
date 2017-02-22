@@ -23,48 +23,7 @@
     "url": "https://github.com/jchartrand/CWRC-WriterBase/issues"
   },
   "homepage": "https://github.com/jchartrand/CWRC-WriterBase#readme",
-  "browserify-shim": {
-    "jquery": "$",
-    "jquery-layout": {
-      "exports": "$.fn.layout",
-      "depends": [
-        "jquery:jQuery"
-      ]
-    },
-    "jquery-xpath": {
-      "exports": "$.fn.xpath",
-      "depends": [
-        "jquery:jQuery"
-      ]
-    },
-    "jquery-watermark": {
-      "exports": "$.fn.watermark",
-      "depends": [
-        "jquery:jQuery"
-      ]
-    },
-    "prismjs": {
-      "exports": "Prism"
-    },
-    "objtree": {
-      "exports": "ObjTree"
-    }
-  },
-  "browser": {
-    "jquery": "./node_modules/jquery/dist/jquery.js",
-    "jquery-xpath": "./node_modules/jquery-xpath/jquery.xpath.js",
-    "jquery-ui-core": "./src/js/lib/jquery/jquery-ui-core.js",
-    "jquery-layout": "./src/js/lib/jquery/plugins/jquery.layout-latest.js",
-    "jquery-contextmenu": "./src/js/lib/jquery/plugins/jquery.contextmenu.min.js",
-    "jquery-watermark": "./src/js/lib/jquery/plugins/jquery.watermark.min.js",
-    "jquery-popup": "./src/js/lib/jquery/plugins/jquery.popup.js",
-    "objtree": "./src/js/lib/objtree/ObjTree.js",
-    "cwrc-contextmenu": "./src/js/tinymce_plugins/cwrc_contextmenu.js",
-    "cwrc-path": "./src/js/tinymce_plugins/cwrc_path.js",
-    "schematags": "./src/js/tinymce_plugins/schematags.js",
-    "treepaste": "./src/js/tinymce_plugins/treepaste.js",
-    "cwrcDialogs": "./node_modules/cwrc-dialogs/js/cD.js"
-  },
+  
   "dependencies": {
     "css-parse": "^2.0.0",
     "css-stringify": "^2.0.0",
