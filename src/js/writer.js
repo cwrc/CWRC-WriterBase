@@ -3,8 +3,8 @@
 var $ = require('jquery');
 
 var tinymce = require('tinymce');
-require('./tinymce_plugins/cwrc-contextmenu.js');
-require('./tinymce_plugins/cwrc-path.js');
+require('./tinymce_plugins/cwrc_contextmenu.js');
+require('./tinymce_plugins/cwrc_path.js');
 require('./tinymce_plugins/schematags.js');
 require('./tinymce_plugins/treepaste.js');
 
