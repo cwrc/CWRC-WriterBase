@@ -23,7 +23,6 @@
     "url": "https://github.com/jchartrand/CWRC-WriterBase/issues"
   },
   "homepage": "https://github.com/jchartrand/CWRC-WriterBase#readme",
-  
   "dependencies": {
     "css-parse": "^2.0.0",
     "css-stringify": "^2.0.0",
@@ -42,6 +41,7 @@
   "devDependencies": {
     "commitizen": "2.9.6",
     "cz-conventional-changelog": "1.2.0",
+    "objtree": "0.1.24",
     "semantic-release": "^6.3.2"
   },
   "scripts": {
