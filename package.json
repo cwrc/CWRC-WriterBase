@@ -27,6 +27,7 @@
     "jquery-ui-core": "./src/js/lib/jquery/jquery-ui-core.js"
   },
   "dependencies": {
+    "app-module-path": "2.2.0",
     "css-parse": "^2.0.0",
     "css-stringify": "^2.0.0",
     "cwrc-dialogs": "cwrc/CWRC-Dialogs#npm",

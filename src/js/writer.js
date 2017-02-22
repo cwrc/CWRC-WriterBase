@@ -1,5 +1,7 @@
 'use strict';
 
+require('app-module-path').addPath(__dirname + '/src/js/lib/jquery');
+
 var $ = require('jquery');
 
 var tinymce = require('tinymce');
