@@ -23,6 +23,9 @@
     "url": "https://github.com/jchartrand/CWRC-WriterBase/issues"
   },
   "homepage": "https://github.com/jchartrand/CWRC-WriterBase#readme",
+  "browser": {
+    "jquery-ui-core": "./src/js/lib/jquery/jquery-ui-core.js"
+  },
   "dependencies": {
     "css-parse": "^2.0.0",
     "css-stringify": "^2.0.0",

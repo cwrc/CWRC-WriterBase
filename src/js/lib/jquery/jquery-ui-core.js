@@ -20,3 +20,4 @@ require('jquery-ui/ui/widget');
 // required for jquery layout
 require('jquery-ui/ui/widgets/mouse');
 require('jquery-ui/ui/widgets/draggable');
+
