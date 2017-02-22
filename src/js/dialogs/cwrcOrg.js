@@ -3,7 +3,7 @@
 
 var $ = require('jquery');
 
-var cD = require('cwrcDialogs');
+var cD = require('cwrc-dialogs');
 var cwrcDialogBridge = require('./cwrcDialogBridge.js');
 
 function CwrcOrg(writer) {

@@ -8,7 +8,7 @@ require('lib/jquery/plugins/jquery.popup.js');
 
 var DialogForm = require('./dialogs/dialogForm.js');
 
-var cD = require('cwrcDialogs');
+var cD = require('cwrc-dialogs');
 
 var AddSchema = require('./dialogs/addSchema.js');
 var FileManager = require('./dialogs/fileManager.js');
