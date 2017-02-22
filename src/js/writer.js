@@ -3,10 +3,10 @@
 var $ = require('jquery');
 
 var tinymce = require('tinymce');
-require('./tinymce_plugins/cwrc-contextmenu');
-require('./tinymce_plugins/cwrc-path');
-require('./tinymce_plugins/schematags');
-require('./tinymce_plugins/treepaste');
+require('./tinymce_plugins/cwrc-contextmenu.js');
+require('./tinymce_plugins/cwrc-path.js');
+require('./tinymce_plugins/schematags.js');
+require('./tinymce_plugins/treepaste.js');
 
 var EventManager = require('./eventManager.js');
 var Utilities = require('./utilities.js');
