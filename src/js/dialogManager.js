@@ -4,7 +4,8 @@ var $ = require('jquery');
 require('jquery-ui-core');
 require('jquery-ui/ui/widgets/dialog');
 require('jquery-ui/ui/widgets/tooltip');
-require('jquery-popup');
+require('../js/lib/jquery/plugins/jquery-popup.js');
+
 var DialogForm = require('./dialogs/dialogForm.js');
 
 var cD = require('cwrcDialogs');
