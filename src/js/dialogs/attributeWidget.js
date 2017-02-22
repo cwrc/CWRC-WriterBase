@@ -1,7 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
-require('jquery-ui-core');
+
 require('jquery-ui/ui/widgets/accordion');
 
 function AttributeWidget(config) {

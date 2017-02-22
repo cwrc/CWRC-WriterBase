@@ -2,7 +2,7 @@
 
 var $ = require('jquery');
 
-require('jquery-ui-core');
+
 require('jquery-layout');
 
 require('jquery-ui/ui/widgets/tabs');

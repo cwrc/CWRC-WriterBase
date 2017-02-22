@@ -2,7 +2,7 @@ var $ = require('jquery');
 
 var moment = require('moment/moment');
 var DialogForm = require('../../../dialogs/dialogForm.js');
-require('jquery-ui-core');
+
 require('jquery-ui/ui/widgets/datepicker');
 require('jquery-ui/ui/widgets/button');
 

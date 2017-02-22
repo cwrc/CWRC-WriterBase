@@ -1,6 +1,8 @@
 'use strict';
 
-require('app-module-path').addPath(__dirname + '/src/js/lib/jquery');
+//require('app-module-path').addPath(__dirname + '/src/js/lib/jquery');
+
+require('./lib/jquery/jquery-ui-core.js');
 
 var $ = require('jquery');
 

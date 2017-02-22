@@ -2,7 +2,7 @@
 
 var $ = require('jquery');
 require('jquery-watermark');
-require('jquery-ui-core');
+
 require('jquery-ui/ui/widgets/button');
     
 function Triple(writer) {
