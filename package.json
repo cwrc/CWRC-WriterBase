@@ -25,6 +25,7 @@
   "homepage": "https://github.com/jchartrand/CWRC-WriterBase#readme",
   "browserify-shim": {
     "jquery": "$",
+    "jquery": "jQuery",
     "jquery-layout": {
       "exports": "$.fn.layout",
       "depends": [
@@ -37,7 +38,6 @@
         "jquery:jQuery"
       ]
     },
-    "jquery-ui-core": "jquery-ui-core",
     "jquery-watermark": {
       "exports": "$.fn.watermark",
       "depends": [
@@ -52,6 +52,7 @@
     }
   },
   "browser": {
+    "jquery": "./node_modules/jquery/dist/jquery.js",
     "jquery-xpath": "./node_modules/jquery-xpath/jquery.xpath.js",
     "jquery-layout": "./src/js/lib/jquery/plugins/jquery.layout-latest.js",
     "jquery-contextmenu": "./src/js/lib/jquery/plugins/jquery.contextmenu.min.js",
