@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/jchartrand/CWRC-WriterBase#readme",
   "browser": {
-    "objTree": "./src/js/lib/objtree/ObjTree.js"
+    "objtree": "./src/js/lib/objtree/ObjTree.js"
   },
   "dependencies": {
     "css-parse": "^2.0.0",
