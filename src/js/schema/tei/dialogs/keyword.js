@@ -1,5 +1,5 @@
 var $ = require('jquery');
-require('jquery-watermark');
+//require('jquery-watermark');
 var DialogForm = require('../../../dialogs/dialogForm.js');
 require('jquery-ui/ui/widgets/button');
 
