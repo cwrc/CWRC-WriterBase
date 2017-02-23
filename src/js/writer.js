@@ -7,7 +7,7 @@ require('./lib/jquery/jquery-ui-core.js');
 require("./lib/jquery/plugins/jquery.layout-latest.js");
 require("./lib/jquery/plugins/jquery.contextmenu.min.js");
 require("./lib/jquery/plugins/jquery.watermark.min.js");
-require("../../node_modules/jquery-xpath/jquery.xpath.js");
+require("jquery-xpath");
 
 var tinymce = require('tinymce');
 require('./tinymce_plugins/cwrc_contextmenu.js');
