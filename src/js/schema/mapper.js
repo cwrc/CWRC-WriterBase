@@ -2,7 +2,7 @@
 'use strict';
 
 var $ = require('jquery');
-require('jquery-xpath');
+//require('jquery-xpath');
 var Entity = require('../entity.js');
 
 function Mapper(config) {

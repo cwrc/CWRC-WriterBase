@@ -23,41 +23,8 @@
     "url": "https://github.com/jchartrand/CWRC-WriterBase/issues"
   },
   "homepage": "https://github.com/jchartrand/CWRC-WriterBase#readme",
-  "browserify-shim": {
-    "jquery": "$",
-    "jquery": "jQuery",
-    "jquery-layout": {
-      "exports": "$.fn.layout",
-      "depends": [
-        "jquery:jQuery"
-      ]
-    },
-    "jquery-xpath": {
-      "exports": "$.fn.xpath",
-      "depends": [
-        "jquery:jQuery"
-      ]
-    },
-    "jquery-watermark": {
-      "exports": "$.fn.watermark",
-      "depends": [
-        "jquery:jQuery"
-      ]
-    },
-    "prismjs": {
-      "exports": "Prism"
-    },
-    "objtree": {
-      "exports": "ObjTree"
-    }
-  },
   "browser": {
-    "jquery": "./node_modules/jquery/dist/jquery.js",
-    "jquery-xpath": "./node_modules/jquery-xpath/jquery.xpath.js",
-    "jquery-layout": "./src/js/lib/jquery/plugins/jquery.layout-latest.js",
-    "jquery-contextmenu": "./src/js/lib/jquery/plugins/jquery.contextmenu.min.js",
-    "jquery-watermark": "./src/js/lib/jquery/plugins/jquery.watermark.min.js",
-    "objtree": "./src/js/lib/objtree/ObjTree.js"
+    "objTree": "./src/js/lib/objtree/ObjTree.js"
   },
   "dependencies": {
     "css-parse": "^2.0.0",
@@ -70,7 +37,6 @@
     "js-cookie": "2.1.3",
     "jstree": "3.3.3",
     "moment": "^2.13.0",
-    "objtree": "0.1.24",
     "octokit": "^0.10.4",
     "prismjs": "^1.6.0",
     "tinymce": "^4.5.0"
