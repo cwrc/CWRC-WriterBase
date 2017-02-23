@@ -23,6 +23,34 @@
     "url": "https://github.com/jchartrand/CWRC-WriterBase/issues"
   },
   "homepage": "https://github.com/jchartrand/CWRC-WriterBase#readme",
+  "browserify-shim": {
+    "jquery": "$",
+    "jquery-layout": {
+      "exports": "$.fn.layout",
+      "depends": [
+        "jquery:jQuery"
+      ]
+    },
+    "jquery-xpath": {
+      "exports": "$.fn.xpath",
+      "depends": [
+        "jquery:jQuery"
+      ]
+    },
+    "jquery-ui-core": "jquery-ui-core",
+    "jquery-watermark": {
+      "exports": "$.fn.watermark",
+      "depends": [
+        "jquery:jQuery"
+      ]
+    },
+    "prismjs": {
+      "exports": "Prism"
+    },
+    "objtree": {
+      "exports": "ObjTree"
+    }
+  },
   "browser": {
     "jquery-xpath": "./node_modules/jquery-xpath/jquery.xpath.js",
     "jquery-layout": "./src/js/lib/jquery/plugins/jquery.layout-latest.js",
