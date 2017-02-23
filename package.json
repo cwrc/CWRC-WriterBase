@@ -23,6 +23,13 @@
     "url": "https://github.com/jchartrand/CWRC-WriterBase/issues"
   },
   "homepage": "https://github.com/jchartrand/CWRC-WriterBase#readme",
+  "browser": {
+    "jquery-xpath": "./node_modules/jquery-xpath/jquery.xpath.js",
+    "jquery-layout": "./src/js/lib/jquery/plugins/jquery.layout-latest.js",
+    "jquery-contextmenu": "./src/js/lib/jquery/plugins/jquery.contextmenu.min.js",
+    "jquery-watermark": "./src/js/lib/jquery/plugins/jquery.watermark.min.js",
+    "objtree": "./src/js/lib/objtree/ObjTree.js"
+  },
   "dependencies": {
     "css-parse": "^2.0.0",
     "css-stringify": "^2.0.0",
