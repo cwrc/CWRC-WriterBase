@@ -286,3 +286,7 @@ ObjTree.prototype.scalar_to_xml = function ( name, text ) {
 ObjTree.prototype.xml_escape = function ( text ) {
     return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ObjTree;
+}
