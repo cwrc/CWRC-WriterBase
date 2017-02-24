@@ -2,9 +2,9 @@
 
 var $ = require('jquery');
 
-require('jquery-ui/ui/widgets/dialog');
-require('jquery-ui/ui/widgets/tooltip');
-require('./lib/jquery/plugins/jquery.popup.js');
+//require('jquery-ui/ui/widgets/dialog');
+//require('jquery-ui/ui/widgets/tooltip');
+//require('./lib/jquery/plugins/jquery.popup.js');
 
 var DialogForm = require('./dialogs/dialogForm.js');
 

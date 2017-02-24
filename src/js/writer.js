@@ -2,20 +2,18 @@
 
 //require('app-module-path').addPath(__dirname + '/src/js/lib/jquery');
 
-window.jQuery = window.$ = require('jquery');
-require('./lib/jquery/jquery-ui-core.js');
+//window.jQuery = window.$ = require('jquery');
+/*require('./lib/jquery/jquery-ui-core.js');
 require("./lib/jquery/plugins/jquery.layout-latest.js");
 require("./lib/jquery/plugins/jquery.contextmenu.min.js");
 require("./lib/jquery/plugins/jquery.watermark.min.js");
-require("./lib/jquery/plugins/jquery.xpath.js");
+require("./lib/jquery/plugins/jquery.xpath.js");*/
 
 var tinymce = require('tinymce');
 require('./tinymce_plugins/cwrc_contextmenu.js');
 require('./tinymce_plugins/cwrc_path.js');
 require('./tinymce_plugins/schematags.js');
 require('./tinymce_plugins/treepaste.js');
-
-
 
 var EventManager = require('./eventManager.js');
 var Utilities = require('./utilities.js');
