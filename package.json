@@ -30,7 +30,7 @@
     "css-parse": "^2.0.0",
     "css-stringify": "^2.0.0",
     "cwrc-dialogs": "cwrc/CWRC-Dialogs#npm",
-    "jquery": "^3.1.0",
+    "jquery": "3.1.0",
     "jquery-ui": "1.12",
     "jquery.tmpl": "0.0.2",
     "js-cookie": "2.1.3",
