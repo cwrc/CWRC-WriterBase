@@ -6,7 +6,6 @@
 .externalToolBuilders
 /src/js/lib/tinymce_src
 /node_modules
-/docs
 /build
 npm-debug.log
 
