@@ -223,6 +223,10 @@ function CWRCWriter(config) {
     w.loadDocument = function(docXml, schemaURI) {
         w.fileManager.loadDocumentFromXml(docXml);
     };
+
+    w.showLoadDialog = function() {
+        w.delegator.load()
+    }
     
     /**
      * Get the current document from the editor
