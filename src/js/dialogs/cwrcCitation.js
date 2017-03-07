@@ -2,7 +2,8 @@
 
 var $ = require('jquery');
 
-var cD = require('cwrc-dialogs');
+//var cD = require('cwrc-dialogs');
+
 var cwrcDialogBridge = require('./cwrcDialogBridge.js');
     
 function CwrcCitation(writer) {

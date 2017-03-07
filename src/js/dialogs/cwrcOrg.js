@@ -3,11 +3,12 @@
 
 var $ = require('jquery');
 
-var cD = require('cwrc-dialogs');
+//var cD = require('cwrc-dialogs');
 var cwrcDialogBridge = require('./cwrcDialogBridge.js');
 
 function CwrcOrg(writer) {
     var w = writer;
+    var cD = writer.initialConfig.entityLookupDialogs;
     
     var schema = null;
     if (w.initialConfig.cwrcDialogs != null && w.initialConfig.cwrcDialogs.schemas != null) {

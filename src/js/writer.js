@@ -26,6 +26,7 @@ var FileManager = require('./fileManager.js');
 var AnnotationsManager = require('./annotationsManager.js');
 var SettingsDialog = require('./dialogs/settings.js');
 
+
 /**
  * @class CWRCWriter
  * @param {Object} config
@@ -645,6 +646,11 @@ function CWRCWriter(config) {
         } else {
             alert('Error: you must specify a delegator in the CWRCWriter config for full functionality!');
         }
+        if (config.entityLookupDialogs != null) {
+            w.entityLookupDialgos = config.entityLookupDialogs;
+        } else {
+            alert('Error: you must specify entity lookups in the CWRCWriter config for full functionality!');
+        }
         if (containerId == null) {
             alert('Error: no ID supplied for CWRCWriter!');
         }
@@ -950,6 +956,7 @@ function CWRCWriter(config) {
         });
         
         w.dialogManager = new DialogManager(w);
+
     };
     
     return w;

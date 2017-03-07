@@ -8,7 +8,7 @@ var $ = require('jquery');
 
 var DialogForm = require('./dialogs/dialogForm.js');
 
-var cD = require('cwrc-dialogs');
+//var cD = require('cwrc-dialogs');
 
 var AddSchema = require('./dialogs/addSchema.js');
 var FileManager = require('./dialogs/fileManager.js');
@@ -83,6 +83,7 @@ $.extend($.custom.popup.prototype.options, {
  */
 function DialogManager(writer) {
     var w = writer;
+    var cD = writer.initialConfig.entityLookupDialogs;
 
     // TODO ensure only gets added once
     $(document.head).append(''+
@@ -104,6 +105,10 @@ function DialogManager(writer) {
      * @lends DialogManager.prototype
      */
     var dm = {};
+
+    dm.getEntityDialogs =  function() {
+        return cD;
+    }
     
     dm.addDialog = function(dialogName, DialogClass) {
         var dialog = new DialogClass(w);

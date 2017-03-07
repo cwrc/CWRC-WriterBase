@@ -4,11 +4,13 @@
 var $ = require('jquery');
 
 
-var cD = require('cwrc-dialogs');
+//var cD = require('cwrc-dialogs');
+
 
 // a bridge between the CWRC-Writer and the cwrcDialogs
 function CwrcDialogBridge(writer, config) {
     var w = writer;
+    var cD = writer.initialConfig.entityLookupDialogs;
     
     var label = config.label;
     var cwrcType = config.cwrcType;
