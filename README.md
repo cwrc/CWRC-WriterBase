@@ -1,5 +1,7 @@
 ![Picture](http://www.cwrc.ca/wp-content/uploads/2010/12/CWRC_Dec-2-10_smaller.png)
 
+[![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
+
 CWRC-Writer-Base
 ================
 
@@ -37,35 +39,27 @@ Most of the work in setting up CWRCWriter for your project will be implementing 
 
 ![Picture](docs/images/Typical_Setup.png)
 
+A good example to follow when creating a new CWRC-Writer project is our default implementation:
+
+[https://github.com/jchartrand/CWRC-GitWriter]
+
+and also look at our development docs:
+
+[https://github.com/jchartrand/CWRC-Writer-Dev-Docs]
+
 **[Back to top](#table-of-contents)**
 
 ## Setup
 
-
 ### Customize Layout
 
-See https://github.com/cwrc/CWRC-Writer/blob/development/src/js/layout.js for an example of module initialization and layout.
+See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js] for an example of module initialization and layout. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the layout config file into the CWRC-WriterBase.
 
 ### Delegate to your services
 
 The bulk of the work in setting up the CWRCWriter is in the delegator.  The following UML diagram shows how the default CWRCWriter delegates for the CWRC project.  The methods that must be implemented for a new project are those in the 'delegator' class.
 
 ![Picture](docs/images/Delegator_UML.png)
-
-* `getUriForEntity(searchString)`: The lookup call to find an entity identifier (URI) in the entity database.  An entity can be a person, place, event.
-  * Returns: A URI for the selected entity.
-* `getUriForAnnotation()`
-* `getUriForDocument()`
-* `getUriForTarget()`
-* `getUriForSelector()`
-* `getUriForUser()`
-* `validate()`
-* `getDocumentation()`
-* `getTemplates()`
-* `loadTemplates()`
-* `loadDocument()`
-* `saveDocument()`
-* `getHelp()`
 
 **[Back to top](#table-of-contents)**
 
@@ -82,8 +76,11 @@ The bulk of the work in setting up the CWRCWriter is in the delegator.  The foll
   * `url`: An url that links to the actual schema (RELAX NG) file.
   * `cssUrl`: An url that links to the CSS associated with this schema.
   * `schemaMappingsId`: The directory name associated with this schema. This is used to load appropriate mapping and dialogs files from the schema directory: https://github.com/cwrc/CWRC-Writer/tree/development/src/js/schema
-* `config.cwrcDialogs`: Object. Contains various urls for use by the [CWRC-Dialogs](https://github.com/cwrc/CWRC-Dialogs). See [writerConfig.js](https://github.com/cwrc/CWRC-Writer/blob/development/src/js/writerConfig.js) for an example.
+* `config.cwrcDialogs`: Object. Contains various urls for use by the [CWRC-Dialogs](https://github.com/cwrc/CWRC-Dialogs). 
 * `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of plugins that will be set in the toolbars in the CWRC-Writer. Some possible values are: `addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, viewsource, editsource, validate, savebutton, loadbutton`.
+
+See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/config.js] for an example of a configuration file. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the config file into the CWRC-WriterBase.
+
 
 ### Configuration within documents
 
