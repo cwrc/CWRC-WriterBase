@@ -223,7 +223,7 @@
                     // Block the real paste event
                     return tinymce.dom.Event.cancel(e);
                 } else {
-                    var block = function (e) {
+                    var block = function(e) {
                         e.preventDefault();
                     };
 
@@ -574,7 +574,7 @@
             stripClass = getParam(ed, "paste_strip_class_attributes");
 
             if (stripClass !== "none") {
-                function removeClasses(match, g1) {
+                var removeClasses = function (match, g1) {
                         if (stripClass === "all")
                             return '';
 
