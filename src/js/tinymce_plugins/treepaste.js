@@ -223,7 +223,7 @@
                     // Block the real paste event
                     return tinymce.dom.Event.cancel(e);
                 } else {
-                    function block(e) {
+                    var block = function (e) {
                         e.preventDefault();
                     };
 
