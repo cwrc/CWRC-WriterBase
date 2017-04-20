@@ -113,6 +113,12 @@ function EventManager(writer) {
      */
     w.event('documentSaved');
     
+    /**
+     * A document is being saved to server
+     * @event Writer#documentSaved
+     */
+    w.event('savingDocument');
+
     
     /**
      * A schema was loaded into the editor

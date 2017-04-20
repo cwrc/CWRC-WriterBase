@@ -64,6 +64,33 @@ function LoadingIndicator(writer) {
         progressLabel.text('Schema Loaded');
     });
     
+    w.event('savingDocument').subscribe(function() {
+        w.dialogManager.show('loadingindicator');
+        progressLabel.text('Saving Document');
+        progressBar.progressbar('value', 5);
+    });
+
+    w.event('documentSaved').subscribe(function(success) {
+        progressBar.progressbar('value', 100);
+        if (success !== true) {
+            progressLabel.text('Error Saving Document');
+            loadingIndicator.dialog('option', 'buttons', {
+                'Ok': function() {
+                    loadingIndicator.dialog('close');
+                }
+            });
+        } else {
+            loadingIndicator.dialog('close');
+            // FIXME need to close immediately because of problems if there's another modal showing
+//            progressLabel.text('Document Loaded');
+//            loadingIndicator.fadeOut(1000, function() {
+//                loadingIndicator.dialog('close');
+//            });
+        }
+    });
+
+
+
     return {
         show: function(config) {
             loadingIndicator.dialog('option', 'buttons', {});
