@@ -29,12 +29,13 @@ CWRCWriter is a wysiwyg text editor for in-browser XML editing and stand-off RDF
   * annotation store, to list/retrieve/save/delete/update RDF annotations
   * XML validation service
   * authentication/authorization, as needed
-  * entity management service, to lookup/add/edit entities (people,places,events)
+  * entity management service, to lookup (and optionally /add/edit) entities (people,places,events)
   * XML schemas 
   * template service, to provide predefined XML templates 
   * documentation service, to provide help for various functions
 
 The services are configured through a 'delegator' class to which the CWRCWriter makes predefined calls without any knowledge of the underlying implementation, allowing easier substitution of your own document store, etc.  If you have existing server-side services, you'll create a delegator to call out to your services.  You may alternatively create a delegator that implements some or all services in-browser.
+
 Most of the work in setting up CWRCWriter for your project will be implementing a delegator, and the corresponding services if you don't already have them.  
 
 ![Picture](docs/images/Typical_Setup.png)
@@ -70,7 +71,6 @@ The bulk of the work in setting up the CWRCWriter is in the delegator.  The foll
 * `config.cwrcRootUrl`: String. An absolute URL that should point to the root of the CWRC-Writer directory. <b>Required</b>.
 * `config.mode`: String. The mode to start the CWRC-Writer in. Can be either `xml` or `xmlrdf`.
 * `config.allowOverlap`: Boolean. Should overlapping entities be allowed initially?.
-* `config.project`: String. Denotes the current project. Not currently used.
 * `config.schemas`: Object. A map of schema objects that can be used in the CWRC-Writer. Each entry should contain the following:
   * `name`: The schema title.
   * `url`: An url that links to the actual schema (RELAX NG) file.
@@ -106,6 +106,7 @@ where allowable values for `cw:mode` are:
 
 ## Usage
 
+The CWRC-WriterBase is meant to be used as part of an application like the [CWRC-GitWriter](https://github.com/jchartrand/CWRC-GitWriter).
 
 **[Back to top](#table-of-contents)**
 
