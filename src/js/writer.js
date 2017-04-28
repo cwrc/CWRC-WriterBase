@@ -25,6 +25,7 @@ var Converter = require('./converter.js');
 var FileManager = require('./fileManager.js');
 var AnnotationsManager = require('./annotationsManager.js');
 var SettingsDialog = require('./dialogs/settings.js');
+var layoutModules = require('./layout/layoutModules.js');
 
 
 /**
@@ -622,6 +623,9 @@ function CWRCWriter(config) {
      */
     w.init = function(containerId) {
         w.eventManager = new EventManager(w);
+        // the layoutModules are used by the confi.layout
+
+        w.layoutModules = layoutModules;
         
         var textareaId = 'editor';
         if (config.layout != null) {

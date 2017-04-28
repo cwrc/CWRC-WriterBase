@@ -149,7 +149,7 @@ function FileManager(writer) {
      */
     fm.loadDocumentFromXml = function(docXml) {
         w.event('loadingDocument').publish();
-        window.location.hash = '';
+        //window.location.hash = '';
         w.converter.processDocument(docXml);
     };
     

@@ -36,6 +36,7 @@
     "jstree": "3.3.3",
     "moment": "^2.13.0",
     "octokit": "^0.10.4",
+    "prismjs": "1.6.0",
     "tinymce": "^4.5.0"
   },
   "devDependencies": {
