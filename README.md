@@ -45,42 +45,21 @@ A good example to follow when creating a new CWRC-Writer project is our default 
 
 and also look at our [development docs](https://github.com/jchartrand/CWRC-Writer-Dev-Docs])
 
-**[Back to top](#table-of-contents)**
 
 ## Layout 
 
-See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js] for an example of module initialization and layout. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the layout config file into the CWRC-WriterBase.
+See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js] for an example of module initialization and layout. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the layout config file into the CWRC-WriterBase.  The following API section talks more about configuration.
 
-
-### Configuration within documents
-
-The CWRCWriter can also be configured for individual documents by including configuration information in the documents themselves:  
-
-1.  XML/RDF mode.  The default mode isXML & RDF with no overlap.
-
-This can be overridden by a cw:mode setting in the RDF:
-
-```
-<rdf:Description rdf:about="http://localhost:8080/editor/documents/null">
-    <cw:mode>0</cw:mode>
-</rdf:Description>
-```
-
-where allowable values for `cw:mode` are:
-
-0 = XML & RDF  
-1 = XML  
-2 = RDF
-
-**[Back to top](#table-of-contents)**
 
 ## API
 
 ### Constructor
 
-The CWRC-WriterBase exports a single constructor function that takes one argument, a configuration object.  An example showing invocation of the constructor is available [here](https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js).  That example also shows what needs to be set on the configuration object that is passed in.  
+The CWRC-WriterBase exports a single constructor function that takes one argument, a configuration object.  An example showing invocation of the constructor is available [here](https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js).   
 
-See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/config.js] for an example of a configuration file. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the config file into the CWRC-WriterBase.
+See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/config.js] for an example of a configuration file. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the config file into the CWRC-WriterBase, and what to set on the configuration object.
+
+### Configuration Object
 
 Options that can be set on the configuration object:
 
@@ -101,15 +80,38 @@ config.storageDialogs = storageDialogs
 config.layout = require('./layout-config')
 config.entityLookupDialogs = require('cwrc-public-entity-dialogs')
 
+#### Configuration within documents
+
+Configuration information can be included in the documents themselves:  
+
+1.  XML/RDF mode.  
+
+You can set the mode for the given document with a cw:mode setting in the RDF:
+
+```
+<rdf:Description rdf:about="http://localhost:8080/editor/documents/null">
+    <cw:mode>0</cw:mode>
+</rdf:Description>
+```
+
+where allowable values for `cw:mode` are:
+
+0 = XML & RDF  (default - XML & RDF with no overlap)
+1 = XML  
+2 = RDF
+
+## Writer object
+
 The object returned from instantiation has the following properties:
 
-> `isInitialized`
-> boolean
+ `isInitialized`  
+ boolean  
+ *Has the editor been initialized. * 
 
-> **isReadOnly**
- boolean
- is the editor in readonly mode
-***
+`isReadOnly`   
+ boolean   
+ *Is the editor in readonly mode*  
+
 `isAnnotator`
 **boolean**
 *is the editor in annotate (entities) only mode*
