@@ -323,12 +323,12 @@ AnnotationsManager.prototype = {
             if (entity.getUris().annotationId == null) {
                 // generate the URIs
                 $.when(
-                    me.w.delegator.getUriForEntity(entity),
-                    me.w.delegator.getUriForAnnotation(),
-                    me.w.delegator.getUriForDocument(),
-                    me.w.delegator.getUriForTarget(),
-                    me.w.delegator.getUriForSelector(),
-                    me.w.delegator.getUriForUser()
+                    me.w.getUriForEntity(entity),
+                    me.w.getUriForAnnotation(),
+                    me.w.getUriForDocument(),
+                    me.w.getUriForTarget(),
+                    me.w.getUriForSelector(),
+                    me.w.getUriForUser()
                 ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
                     entity.setUris({
                         entityId: entityUri,

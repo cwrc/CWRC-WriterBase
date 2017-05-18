@@ -194,7 +194,7 @@ function Validation(config) {
     
 
     $('#'+id+'_buttons button:eq(0)').button().click(function() {
-        w.delegator.validate();
+        w.validate();
     });
     $('#'+id+'_buttons button:eq(1)').button().click(function() {
         validation.clearResult();

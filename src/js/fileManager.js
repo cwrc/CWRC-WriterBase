@@ -75,7 +75,7 @@ function FileManager(writer) {
         if (w.currentDocId == null) {
             w.dialogManager.show('filemanager', {type: 'saver'});
         } else {
-            w.delegator.validate(function (valid) {
+            w.validate(function (valid) {
                 if (valid) {
 //                    w.delegator.saveDocument(w.currentDocId);
                     w.event('documentSaveRequested').publish(w.currentDocId);
@@ -101,7 +101,7 @@ function FileManager(writer) {
      * Loads a document through the delegator
      * @fires Writer#loadingDocument
      * @param {String} docName The name of the document
-     */
+     
     fm.loadDocument = function(docName) {
         w.currentDocId = docName;
         w.event('loadingDocument').publish();
@@ -112,7 +112,7 @@ function FileManager(writer) {
                 w.currentDocId = null;
             }
         });
-    };
+    };*/
     
     /**
      * Loads a document into the editor

@@ -10,6 +10,8 @@ require("./lib/jquery/plugins/jquery.watermark.min.js");
 require("./lib/jquery/plugins/jquery.xpath.js");*/
 
 var tinymce = require('tinymce');
+var Octokit = require('octokit');
+
 require('./tinymce_plugins/cwrc_contextmenu.js');
 require('./tinymce_plugins/cwrc_path.js');
 require('./tinymce_plugins/schematags.js');
@@ -53,10 +55,11 @@ function CWRCWriter(config) {
     w.deletedEntities = {};
     w.deletedStructs = {};
     
-    w.project = config.project || {}; // the current project (cwrc or russell)
+   // w.project = config.project || {}; // the current project (cwrc or russell)
     
     w.baseUrl = window.location.protocol+'//'+window.location.host+'/'; // the url for referencing various external services
     w.cwrcRootUrl = config.cwrcRootUrl; // the url which points to the root of the cwrcwriter location
+    w.validationUrl = config.validationUrl || 'http://validator.services.cwrc.ca/validator/validate.html';// url for the xml validation
     if (w.cwrcRootUrl == null || w.cwrcRootUrl == '') {
         if (window.console) console.info("using default cwrcRootUrl");
         w.cwrcRootUrl = window.location.protocol+'//'+window.location.host+'/'+window.location.pathname.split('/')[1]+'/';
@@ -226,7 +229,143 @@ function CWRCWriter(config) {
     };
 
     w.showLoadDialog = function() {
-        w.delegator.load()
+        w.storageDialogs.load(w)
+    }
+
+    w.getHelp = function() {
+        return w.utilities.getDocumentationForTag(tagName)
+    }
+
+    w.getDocumentation = function(fileName, callback) {
+        var octo = Octokit.new({token: '15286e8222a7bc13504996e8b451d82be1cba397'});
+        var templateRepo = octo.getRepo('cwrc', 'CWRC-Writer-Documentation');
+        var branch = templateRepo.getBranch('master');
+    
+        branch.contents('out/xhtml/'+fileName).then(function(contents) {
+            var doc = $.parseXML(contents);
+            callback.call(w, doc);
+        }, function() {
+            w.dialogManager.show('message', {
+                title: 'Error',
+                type: 'error',
+                msg: 'There was an error fetching the documentation for: '+fileName
+            });
+        });
+    }
+
+        /**
+     * Gets the URI for the entity
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    w.getUriForEntity = function(entity) {
+        var guid = w.utilities.createGuid();
+        var uri = 'http://id.cwrc.ca/'+entity.getType()+'/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
+    /**
+     * Gets the URI for the annotation
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    w.getUriForAnnotation = function() {
+        var guid = w.utilities.createGuid();
+        var uri = 'http://id.cwrc.ca/annotation/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
+    /**
+     * Gets the URI for the document
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    w.getUriForDocument = function() {
+        var guid = w.utilities.createGuid();
+        var uri = 'http://id.cwrc.ca/doc/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
+    /**
+     * Gets the URI for the target
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    w.getUriForTarget = function() {
+        var guid = w.utilities.createGuid();
+        var uri = 'http://id.cwrc.ca/target/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
+    /**
+     * Gets the URI for the selector
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    w.getUriForSelector = function() {
+        var guid = w.utilities.createGuid();
+        var uri = 'http://id.cwrc.ca/selector/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
+    /**
+     * Gets the URI for the user
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    w.getUriForUser = function() {
+        var guid = w.utilities.createGuid();
+        var uri = 'http://id.cwrc.ca/user/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+
+    w.validate = function(callback) {
+        var docText = w.converter.getDocumentContent(false);
+        var schemaUrl = w.schemaManager.schemas[w.schemaManager.schemaId].url;
+        
+        w.event('validationInitiated').publish();
+        
+        $.ajax({
+          //  url: w.baseUrl+'services/validator/validate.html',
+            url: w.validationUrl,
+            type: 'POST',
+            dataType: 'xml',
+            data: {
+                sch: schemaUrl,
+                type: 'RNG_XML',
+                content: docText
+            },
+            success: function(data, status, xhr) {
+                var valid = $('status', data).text() == 'pass';
+                w.event('documentValidated').publish(valid, data, docText);
+                if (callback) {
+                    callback.call(w, valid);
+                }
+            },
+            error: function() {
+                if (callback) {
+                    callback.call(w, null);
+                } else {
+                    w.dialogManager.show('message', {
+                        title: 'Error',
+                        msg: 'An error occurred while trying to validate the document.',
+                        type: 'error'
+                    });
+                }
+            }
+        });
     }
     
     /**
@@ -248,7 +387,10 @@ function CWRCWriter(config) {
         }
         return doc;
     };
-    
+
+    w.getDocRawContent = function() {
+        return w.editor.getContent({format: 'raw'})
+    }
     w.showToolbar = function() {
         $('.mce-toolbar-grp', w.editor.getContainer()).first().show();
         if (w.layout) {
@@ -648,11 +790,16 @@ function CWRCWriter(config) {
             showStructBrackets: false
         });
         
-        
+        /*
         if (config.delegator != null) {
             w.delegator = new config.delegator(w);
         } else {
             alert('Error: you must specify a delegator in the CWRCWriter config for full functionality!');
+        }*/
+        if (config.storageDialogs != null) {
+            w.storageDialogs = config.storageDialogs
+        } else {
+            alert('Error: you must specify a storage dialogs class in the CWRCWriter config to allow loading and saving documents.');
         }
         if (config.entityLookupDialogs != null) {
             w.entityLookupDialgos = config.entityLookupDialogs;
@@ -812,9 +959,9 @@ function CWRCWriter(config) {
                     ed.addCommand('editStructureTag', w.tagger.editStructureTag);
                     ed.addCommand('changeStructureTag', w.changeStructureTag);
                     ed.addCommand('removeHighlights', w.removeHighlights);
-                    ed.addCommand('loadDocument', w.fileManager.loadDocument);
+                   // ed.addCommand('loadDocument', w.fileManager.loadDocument);
                     ed.addCommand('getParentsForTag', w.utilities.getParentsForTag);
-                    ed.addCommand('getDocumentationForTag', w.delegator.getHelp);
+                    ed.addCommand('getDocumentationForTag', w.getHelp);
                     
                     // highlight tracking
                     body.on('keydown',_onKeyDownHandler).on('keyup',_onKeyUpHandler);
@@ -904,13 +1051,14 @@ function CWRCWriter(config) {
                 });
                 ed.addButton('newbutton', {title: 'New', image: w.cwrcRootUrl+'img/page_white_text.png',
                     onclick: function() {
-                        w.fileManager.newDocument();
+                      //  w.fileManager.newDocument();
+                      w.storageDialogs.save(w)
                     }
                 });
                 ed.addButton('savebutton', {title: 'Save', image: w.cwrcRootUrl+'img/save.png',
                     onclick: function() {
                        // w.fileManager.saveDocument();
-                       w.delegator.save()
+                       w.storageDialogs.save(w)
                     }
                 });
                 ed.addButton('saveasbutton', {title: 'Save As', image: w.cwrcRootUrl+'img/save_as.png',
@@ -926,7 +1074,7 @@ function CWRCWriter(config) {
                 ed.addButton('loadbutton', {title: 'Load', image: w.cwrcRootUrl+'img/folder_page.png',
                     onclick: function() {
                         //w.dialogManager.show('filemanager', {type: 'loader'});
-                        w.delegator.load()
+                        w.storageDialogs.load(w)
                     }
                 });
                 
@@ -943,7 +1091,7 @@ function CWRCWriter(config) {
                 });
                 ed.addButton('validate', {title: 'Validate', image: w.cwrcRootUrl+'img/validate.png',
                     onclick: function() {
-                        w.delegator.validate();
+                        w.validate();
                     }
                 });
                 ed.addButton('addtriple', {title: 'Add Relation', image: w.cwrcRootUrl+'img/chart_org.png',

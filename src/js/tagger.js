@@ -620,12 +620,12 @@ function Tagger(writer) {
             updateEntityInfo(entry, info);
             
             $.when(
-                w.delegator.getUriForEntity(entry),
-                w.delegator.getUriForAnnotation(),
-                w.delegator.getUriForDocument(),
-                w.delegator.getUriForTarget(),
-                w.delegator.getUriForSelector(),
-                w.delegator.getUriForUser()
+                w.getUriForEntity(entry),
+                w.getUriForAnnotation(),
+                w.getUriForDocument(),
+                w.getUriForTarget(),
+                w.getUriForSelector(),
+                w.getUriForUser()
             ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
                 var lookupInfo = entry.getLookupInfo();
                 if (lookupInfo !== undefined && lookupInfo.id) {

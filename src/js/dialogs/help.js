@@ -53,7 +53,7 @@ function Help(writer) {
         $('div.content a', $helpDialog).on('click', function(e) {
             e.preventDefault();
             var url = $(e.target).attr('href');
-            w.delegator.getDocumentation(url, function(doc) {
+            w.getDocumentation(url, function(doc) {
                 var content = $(doc).find('body')[0].innerHTML;
                 showContent(content);
                 $helpDialog[0].scrollTop = 0;
@@ -78,7 +78,7 @@ function Help(writer) {
             } else if (id !== undefined) {
                 var url = docsMappings[id];
                 if (url !== undefined) {
-                    w.delegator.getDocumentation(url, function(doc) {
+                    w.getDocumentation(url, function(doc) {
                         var content = $(doc).find('body')[0].innerHTML;
                         showContent(content);
                     });
