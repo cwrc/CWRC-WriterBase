@@ -24,16 +24,16 @@ CWRCWriter is a wysiwyg text editor for in-browser XML editing and stand-off RDF
 
 A 'CWRCWriter' installation is a bundling of the main CWRC-WriterBase (the code in this repository) with two other NPM packages that handle interaction with server-side services for:
 
-- document storage
-- named entity lookup (and optionally /add/edit)
+* document storage
+* named entity lookup (and optionally /add/edit)
 
 The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/jchartrand/cwrc-gitwriter) which uses GitHub to store documents, and uses VIAF servers for named entity (people, places) lookup.  The code for spawning dialogs to interact with GitHub and VIAF is in two NPM packages: [cwrc-git-dialogs](https://github.com/jchartrand/cwrc-git-dialogs) and [cwrc-public-entity-dialogs](https://github.com/jchartrand/cwrc-public-entity-dialogs).  You may substitute your own packages to interact with your own backend storage and/or entity lookup.
 
 The CWRCWriterBase itself also provides built in interaction with default server-side services for:
 
-XML Validation
-XML Schemas
-documentation and help
+* XML Validation
+* XML Schemas
+* documentation and help
 
 CWRC provides a default XML validation endpoint that the CWRC-WriterBase is preconfigured to use.  You may substitute your own, but the CWRC-WriterBase expects validation and error messages in a specific format.  Similarly you can substitute your own documentation and help files.
 
