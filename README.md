@@ -100,21 +100,21 @@ where allowable values for `cw:mode` are:
 1 = XML  
 2 = RDF
 
-## Writer object
+### Writer object
 
 The object returned from instantiation has the following properties:
 
  `isInitialized`  
  boolean  
- *Has the editor been initialized. * 
+ *Has the editor been initialized.* 
 
 `isReadOnly`   
  boolean   
- *Is the editor in readonly mode*  
-
-`isAnnotator`
-**boolean**
-*is the editor in annotate (entities) only mode*
+ *Is the editor in readonly mode.*  
+  
+`isAnnotator`  
+**boolean**  
+*Is the editor in annotate (entities) only mode.*  
 
 
 ## Demo
