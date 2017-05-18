@@ -63,7 +63,15 @@ See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/config.js] 
 
 Options that can be set on the configuration object:
 
+##### Required
+
 * `config.cwrcRootUrl`: String. An absolute URL that should point to the root of the CWRC-Writer directory. <b>Required</b>.
+* `config.storageDialogs` = Object.  Object. Storage dialogs, e.g., [cwrc-gi-dialogs](https://github.com/jchartrand/cwrc-git-dialogs)
+* `config.layout` = Object.  Layout object as described above [Layout](#layout), e.g. [layout-cofing.js]([https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js]) 
+* `config.entityLookupDialogs` = Object. Entity lookup, e.g., [cwrc-public-entity-dialogs](https://github.com/jchartrand/CWRC-PublicEntityDialogs)
+
+##### Optional
+
 * `config.mode`: String. The mode to start the CWRC-Writer in. Can be either `xml` or `xmlrdf`.
 * `config.allowOverlap`: Boolean. Should overlapping entities be allowed initially?.
 * `config.schemas`: Object. A map of schema objects that can be used in the CWRC-Writer. Each entry should contain the following:
@@ -74,17 +82,13 @@ Options that can be set on the configuration object:
 * `config.cwrcDialogs`: Object. Contains various urls for use by the [CWRC-Dialogs](https://github.com/cwrc/CWRC-Dialogs). 
 * `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of plugins that will be set in the toolbars in the CWRC-Writer. Some possible values are: `addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, viewsource, editsource, validate, savebutton, loadbutton`.
 
-The configuration object also requires:
 
-config.storageDialogs = storageDialogs
-config.layout = require('./layout-config')
-config.entityLookupDialogs = require('cwrc-public-entity-dialogs')
 
 #### Configuration within documents
 
 Configuration information can be included in the documents themselves:  
 
-1.  XML/RDF mode.  
+XML/RDF mode.  
 
 You can set the mode for the given document with a cw:mode setting in the RDF:
 
@@ -96,9 +100,9 @@ You can set the mode for the given document with a cw:mode setting in the RDF:
 
 where allowable values for `cw:mode` are:
 
-0 = XML & RDF  (default - XML & RDF with no overlap)
-1 = XML  
-2 = RDF
+0 = XML & RDF  (default - XML & RDF with no overlap)  
+1 = XML    
+2 = RDF  
 
 ### Writer object
 
