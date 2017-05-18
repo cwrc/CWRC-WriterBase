@@ -5,68 +5,59 @@
 CWRC-Writer-Base
 ================
 
-The Canadian Writing Research Collaboratory (CWRC) is developing an in-browser text markup editor (CWRC-Writer) for use by collaborative scholarly editing projects.  [Project Site](http://www.cwrc.ca/projects/infrastructure-projects/technical-projects/cwrc-writer/).  This package is the base code that builds on the TinyMCE javascript editor, meant to be packaged together, using Browserify, with a CWRC Delegator to communicate with a running instance of a CWRC Server that provides document and entity management.
+The Canadian Writing Research Collaboratory (CWRC) is developing an in-browser text markup editor (CWRC-Writer) for use by collaborative scholarly editing projects.  [Project Site](http://www.cwrc.ca/projects/infrastructure-projects/technical-projects/cwrc-writer/).  This package is the base code that builds on the TinyMCE javascript editor, meant to be packaged together, using Browserify, with a few other packages that communicate with a server that provides document and entity management.
 
 
 ## Table of Contents
 
 1. [Overview](#overview)
-1. [Setup](#setup)
+1. [Storage and entity lookup](#torage-and-entity-lookup)
+1. [Layout](#layout)
 1. [Configuration](#overview)
 1. [Usage](#usage)
-1. [Customization](#customization)
 1. [Demo](#demo)
-1. [Contributing](#contributing)
-1. [FAQ](#faq)
-1. [License](#license)
 
 
 ## Overview
 
-CWRCWriter is a wysiwyg text editor for in-browser XML editing and stand-off RDF annotation.  The editor is a [JQuery](https://jquery.com) customization of the [TinyMCE](http://www.tinymce.com) editor.  CWRCWriter requires several (not provided) supporting services: 
+CWRCWriter is a wysiwyg text editor for in-browser XML editing and stand-off RDF annotation.  The editor is a [JQuery](https://jquery.com) customization of the [TinyMCE](http://www.tinymce.com) editor.
 
-  * document store, to list/retrieve/save/delete/update XML documents
-  * annotation store, to list/retrieve/save/delete/update RDF annotations
-  * XML validation service
-  * authentication/authorization, as needed
-  * entity management service, to lookup (and optionally /add/edit) entities (people,places,events)
-  * XML schemas 
-  * template service, to provide predefined XML templates 
-  * documentation service, to provide help for various functions
+A 'CWRCWriter' installation is a bundling of the main CWRC-WriterBase (the code in this repository) with two other NPM packages that handle interaction with server-side services for:
 
-The services are configured through a 'delegator' class to which the CWRCWriter makes predefined calls without any knowledge of the underlying implementation, allowing easier substitution of your own document store, etc.  If you have existing server-side services, you'll create a delegator to call out to your services.  You may alternatively create a delegator that implements some or all services in-browser.
+- document storage
+- named entity lookup (and optionally /add/edit)
 
-Most of the work in setting up CWRCWriter for your project will be implementing a delegator, and the corresponding services if you don't already have them.  
+The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/jchartrand/cwrc-gitwriter) which uses GitHub to store documents, and uses VIAF servers for named entity (people, places) lookup.  The code for spawning dialogs to interact with GitHub and VIAF is in two NPM packages: [cwrc-git-dialogs](https://github.com/jchartrand/cwrc-git-dialogs) and [cwrc-public-entity-dialogs](https://github.com/jchartrand/cwrc-public-entity-dialogs).  You may substitute your own packages to interact with your own backend storage and/or entity lookup.
 
-![Picture](docs/images/Typical_Setup.png)
+The CWRCWriterBase itself also provides built in interaction with default server-side services for:
+
+XML Validation
+XML Schemas
+documentation and help
+
+CWRC provides a default XML validation endpoint that the CWRC-WriterBase is preconfigured to use.  You may substitute your own, but the CWRC-WriterBase expects validation and error messages in a specific format.  Similarly you can substitute your own documentation and help files.
+
+## Storage and entity lookup
+
+If you choose not to use the default CWRC GitHub storage and VIAF named entity lookup then most of the work in setting up CWRCWriter for your project will be implementing the dialogs to interact with your backend storage and named entity lookup (which is a significant part of the reason why we split these pieces off into their own packages.)  
 
 A good example to follow when creating a new CWRC-Writer project is our default implementation:
 
-[https://github.com/jchartrand/CWRC-GitWriter]
+[CWRC-GitWriter](https://github.com/jchartrand/CWRC-GitWriter)
 
-and also look at our development docs:
-
-[https://github.com/jchartrand/CWRC-Writer-Dev-Docs]
+and also look at our [development docs](https://github.com/jchartrand/CWRC-Writer-Dev-Docs])
 
 **[Back to top](#table-of-contents)**
 
-## Setup
-
-### Customize Layout
+## Layout 
 
 See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js] for an example of module initialization and layout. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the layout config file into the CWRC-WriterBase.
 
-### Delegate to your services
-
-The bulk of the work in setting up the CWRCWriter is in the delegator.  The following UML diagram shows how the default CWRCWriter delegates for the CWRC project.  The methods that must be implemented for a new project are those in the 'delegator' class.
-
-![Picture](docs/images/Delegator_UML.png)
-
-**[Back to top](#table-of-contents)**
-
 ## Configuration
 
-### Writer Config options
+See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/config.js] for an example of a configuration file. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the config file into the CWRC-WriterBase.
+
+The available options:
 
 * `config.cwrcRootUrl`: String. An absolute URL that should point to the root of the CWRC-Writer directory. <b>Required</b>.
 * `config.mode`: String. The mode to start the CWRC-Writer in. Can be either `xml` or `xmlrdf`.
@@ -79,12 +70,10 @@ The bulk of the work in setting up the CWRCWriter is in the delegator.  The foll
 * `config.cwrcDialogs`: Object. Contains various urls for use by the [CWRC-Dialogs](https://github.com/cwrc/CWRC-Dialogs). 
 * `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of plugins that will be set in the toolbars in the CWRC-Writer. Some possible values are: `addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, viewsource, editsource, validate, savebutton, loadbutton`.
 
-See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/config.js] for an example of a configuration file. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the config file into the CWRC-WriterBase.
-
 
 ### Configuration within documents
 
-The CWRCWriter can be configured for individual documents by including configuration information in the documents themselves:  
+The CWRCWriter can also be configured for individual documents by including configuration information in the documents themselves:  
 
 1.  XML/RDF mode.  The default mode isXML & RDF with no overlap.
 
@@ -108,7 +97,11 @@ where allowable values for `cw:mode` are:
 
 The CWRC-WriterBase is meant to be used as part of an application like the [CWRC-GitWriter](https://github.com/jchartrand/CWRC-GitWriter).
 
-**[Back to top](#table-of-contents)**
+## Demo
+
+A running deployment of the [CWRC-GitWriter](https://github.com/jchartrand/CWRC-GitWriter) is available for anyone's use at:
+
+[http://208.75.74.217](http://208.75.74.217)  
 
 
 
