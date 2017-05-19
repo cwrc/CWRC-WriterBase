@@ -47,6 +47,26 @@ A good example to follow when creating a new CWRC-Writer project is our default 
 
 Also look at our [development docs](https://github.com/jchartrand/CWRC-Writer-Dev-Docs]).
 
+Basically you'll need to create two objects with the following APIs:
+
+#### Storage object API
+
+load(writer)
+
+save(writer)
+
+where 'writer' is the writer object (i.e., the object defined in the [API](#writer-object) section.
+
+The storage object for GitHub is implemented here:  [cwrc-git-dialogs](https://github.com/jchartrand/cwrc-git-dialogs)
+
+Each method spawns a diaglog (bootstrap in our case) that prompts the user to load or save.  Because load(writer) and save(writer) are passed an instance of the CWRC writer object, all of the methods defined below in [API](#writer-object) are available, to allow get and set of the XML in the writer.
+
+We also define an authenticate method on our cwrc-git-dialogs object to handle the Oauth authentication of GitHub.  You may implement your authentication however you like.  If you want to follow our approach you can see it here: [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] where we authenticate before instantiating the CWRC-WriterBase.  
+
+#### Entity Lookup API
+
+Defined and implemented here:  [https://github.com/jchartrand/CWRC-PublicEntityDialogs]
+
 ## Layout 
 
 The layout of the CWRC-Writer can be modified from a configuration file.
