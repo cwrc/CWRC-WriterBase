@@ -99,14 +99,16 @@ You can set the mode for the given document with a cw:mode setting in the RDF:
 where allowable values for `cw:mode` are:
 
 0 = XML & RDF  (default - XML & RDF with no overlap)  
-1 = XML
+1 = XML  
 2 = RDF
 
 ### Writer object
 
-The object returned from instantiation has the following properties:
+The object returned from instantiation has properties and methods as follows.
 
- `isInitialized`  <sub>boolean</sub>   
+##### Properties
+
+ `isInitialized`  (<sub><sup>boolean</sup></sub>)
  *Has the editor been initialized.* 
 
 `isReadOnly`   
@@ -114,8 +116,11 @@ The object returned from instantiation has the following properties:
  *Is the editor in readonly mode.*  
   
 `isAnnotator`  
-<small>boolean</small> 
+###### boolean
 *Is the editor in annotate (entities) only mode.*  
+
+##### Methods
+
 
 
 ## Demo
