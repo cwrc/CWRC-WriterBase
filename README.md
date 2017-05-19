@@ -108,16 +108,15 @@ The object returned from instantiation has properties and methods as follows.
 
 ##### Properties
 
- `isInitialized`  (<sub><sup>boolean</sup></sub>)
+ `isInitialized`  (<sub><sup>boolean</sup></sub>)   
  *Has the editor been initialized.* 
 
-`isReadOnly`   
- <sup>boolean</sup>   
+`isReadOnly` (boolean)   
  *Is the editor in readonly mode.*  
   
-`isAnnotator`  
+`isAnnotator`
 ###### boolean
-*Is the editor in annotate (entities) only mode.*  
+*Is the editor in annotate (entities) only mode.*
 
 ##### Methods
 
