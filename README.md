@@ -106,20 +106,38 @@ where allowable values for `cw:mode` are:
 
 The object returned from instantiation has properties and methods as follows.
 
-##### Properties
+#### Properties
 
- `isInitialized`  (<sub><sup>boolean</sup></sub>)   
+###### isInitialized  (<sub><sup>boolean</sup></sub>)   
  *Has the editor been initialized.* 
 
-`isReadOnly` (boolean)   
+###### isReadOnly (boolean)   
  *Is the editor in readonly mode.*  
   
-`isAnnotator`
-###### boolean
+###### isAnnotator
+boolean
 *Is the editor in annotate (entities) only mode.*
 
-##### Methods
+#### Methods
 
+###### loadDocument(xmlDoc)
+*Loads a parsed XML document into the editor*
+
+###### showLoadDialog()
+*Calls the load() method of the object set in the storageDialogs property of the config object passed to the writer.*
+
+###### validate (callback)
+*Validates the current document*
+callback(w, valid): function where w is the writer and valid is true/false.
+Fires a `documentValidated` event if validation is successful.
+
+#### Events
+
+###### documentValidated 
+*publishes: (valid, data, docText)*  
+valid: true/false  
+data: results of the validation  
+docText: XML text that was checked  
 
 
 ## Demo

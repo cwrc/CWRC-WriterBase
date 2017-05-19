@@ -232,7 +232,7 @@ function CWRCWriter(config) {
         w.storageDialogs.load(w)
     }
 
-    w.getHelp = function() {
+    w.getHelp = function(tagName) {
         return w.utilities.getDocumentationForTag(tagName)
     }
 
