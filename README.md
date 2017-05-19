@@ -5,7 +5,7 @@
 CWRC-Writer-Base
 ================
 
-The [Canadian Writing Research Collaboratory (CWRC)](http://www.cwrc.ca/projects/infrastructure-projects/technical-projects/cwrc-writer/) is developing an in-browser text markup editor (CWRC-Writer) for use by collaborative scholarly editing projects.  This package is the base code that builds on the TinyMCE javascript editor, and is meant to be packaged together, using Browserify, with a few other packages that communicate with a server that provides document storage and entity (people, places) lookup.
+The [Canadian Writing Research Collaboratory (CWRC)](http://www.cwrc.ca/projects/infrastructure-projects/technical-projects/cwrc-writer/) is developing an in-browser text markup editor (CWRC-Writer) for use by collaborative scholarly editing projects.  This package is the base code that builds on the TinyMCE javascript editor, and is meant to be packaged together (using Browserify) with two other packages that communicate with a server that provides document storage and entity (people, places) lookup.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ A 'CWRCWriter' installation is a bundling of the main CWRC-WriterBase (the code 
 * document storage
 * named entity lookup (and optionally /add/edit)
 
-The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/jchartrand/cwrc-gitwriter) which uses GitHub to store documents, and uses [VIAF](https://viaf.org) for named entity (people, places) lookup.  The code with dialogs to interact with GitHub and VIAF is in two NPM packages: [cwrc-git-dialogs](https://github.com/jchartrand/cwrc-git-dialogs) and [cwrc-public-entity-dialogs](https://github.com/jchartrand/cwrc-public-entity-dialogs). You may substitute your own packages with dialogs that interact with your own backend storage and/or entity lookup.
+The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/jchartrand/cwrc-gitwriter) which uses GitHub to store documents, and uses [VIAF](https://viaf.org) for named entity (people, places) lookup.  The dialogs to interact with GitHub and VIAF are in the NPM packages [cwrc-git-dialogs](https://github.com/jchartrand/cwrc-git-dialogs) and [cwrc-public-entity-dialogs](https://github.com/jchartrand/cwrc-public-entity-dialogs). You may substitute your own packages with dialogs that interact with your own backend storage and/or entity lookup.
 
 The CWRCWriterBase itself also provides built in interaction with default server-side services for:
 
@@ -43,21 +43,21 @@ A good example to follow when creating a new CWRC-Writer project is our default 
 
 [CWRC-GitWriter](https://github.com/jchartrand/CWRC-GitWriter)
 
-and also look at our [development docs](https://github.com/jchartrand/CWRC-Writer-Dev-Docs])
-
+Also look at our [development docs](https://github.com/jchartrand/CWRC-Writer-Dev-Docs]).
 
 ## Layout 
 
-See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js] for an example of module initialization and layout. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the layout config file into the CWRC-WriterBase.  The following API section talks more about configuration.
-
+The layout of the CWRC-Writer can be modified from a configuration file.
+See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js] for an example of initialization and layout. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the layout config file into the CWRC-WriterBase.  The following API section talks more about configuration.
 
 ## API
 
 ### Constructor
 
-The CWRC-WriterBase exports a single constructor function that takes one argument, a configuration object.  An example showing invocation of the constructor is available [here](https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js).   
+The CWRC-WriterBase exports a single constructor function that takes one argument, a configuration object.
 
-See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/config.js] for an example of a configuration file. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the config file into the CWRC-WriterBase, and what to set on the configuration object.
+See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/config.js] for an example of a base configuration file, and  
+[https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] to see the configuration file loaded, extended, and passed into the constructor.
 
 ### Configuration Object
 
@@ -70,7 +70,7 @@ Options that can be set on the configuration object:
 * `config.layout`: Object.  Layout object as described above [Layout](#layout), see [layout-cofing.js]([https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js]) for example.
 * `config.entityLookupDialogs`: Object. Entity lookup, see [cwrc-public-entity-dialogs](https://github.com/jchartrand/CWRC-PublicEntityDialogs) for example and API definition.
 
-##### Optional Options (haha)
+##### Other Options
 
 * `config.mode`: String. The mode in which to start the CWRC-Writer.  `xml` or `xmlrdf`.
 * `config.allowOverlap`: Boolean. Should overlapping entities be allowed initially?.
@@ -84,11 +84,11 @@ Options that can be set on the configuration object:
 
 #### Configuration within documents
 
-Configuration information can be included in the documents themselves, to override project settings:
+Configuration information can be included in the XML documents themselves, to override project settings:
 
 `XML/RDF mode`  
 
-You can set the mode for the given document with a cw:mode setting in the RDF:
+Set the mode with a cw:mode setting in the RDF section:
 
 ```
 <rdf:Description rdf:about="http://localhost:8080/editor/documents/null">
@@ -102,20 +102,32 @@ where allowable values for `cw:mode` are:
 1 = XML  
 2 = RDF
 
+`Annotation Overlap`
+
+Overlapping annotations, those that cross XML tags, are disallowed by default. Enable them with:
+
+```
+<rdf:Description rdf:about="http://localhost:8080/editor/documents/null">
+    <cw:allowOverlap>true</cw:allowOverlap>
+</rdf:Description>
+```
+
 ### Writer object
 
-The object returned from instantiation has properties and methods as follows.
+The object returned by the constructor is defined here: [writer.js](https://github.com/jchartrand/CWRC-WriterBase/blob/master/src/js/writer.js).  The typical properties and methods you'd want to use when implementing your own storage and/or entity dialogs are:
 
 #### Properties
 
-###### isInitialized  (<sub><sup>boolean</sup></sub>)   
+###### isInitialized
+boolean    
  *Has the editor been initialized.* 
 
-###### isReadOnly (boolean)   
+###### isReadOnly  
+boolean     
  *Is the editor in readonly mode.*  
   
 ###### isAnnotator
-boolean
+boolean  
 *Is the editor in annotate (entities) only mode.*
 
 #### Methods
@@ -123,22 +135,23 @@ boolean
 ###### loadDocument(xmlDoc)
 *Loads a parsed XML document into the editor*
 
+###### getDocument()
+*Returns the parsed XML document from the editor*
+
+###### getDocRawContent()
+*Returns the raw textual content from the editor, including xml tags*
+
 ###### showLoadDialog()
-*Calls the load() method of the object set in the storageDialogs property of the config object passed to the writer.*
+*Convenience method to call the load() method of the object set in the storageDialogs property of the config object passed to the writer.*
 
 ###### validate (callback)
 *Validates the current document*
 callback(w, valid): function where w is the writer and valid is true/false.
 Fires a `documentValidated` event if validation is successful.
 
-#### Events
+### Events
 
-###### documentValidated 
-*publishes: (valid, data, docText)*  
-valid: true/false  
-data: results of the validation  
-docText: XML text that was checked  
-
+The full list of events used by the CWRC-Writer is defined in [eventManager.js](https://github.com/jchartrand/CWRC-WriterBase/blob/master/src/js/eventManager.js).  
 
 ## Demo
 
