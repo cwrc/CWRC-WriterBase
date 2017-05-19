@@ -110,11 +110,11 @@ The object returned from instantiation has the following properties:
  *Has the editor been initialized.* 
 
 `isReadOnly`   
- <sub>boolean</sub>   
+ <sup>boolean</sup>   
  *Is the editor in readonly mode.*  
   
 `isAnnotator`  
-**boolean**  
+<small>boolean</small> 
 *Is the editor in annotate (entities) only mode.*  
 
 
