@@ -63,32 +63,30 @@ See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/config.js] 
 
 Options that can be set on the configuration object:
 
-##### Required
+##### Required Options
 
 * `config.cwrcRootUrl`: String. An absolute URL that should point to the root of the CWRC-Writer directory. <b>Required</b>.
-* `config.storageDialogs` = Object.  Object. Storage dialogs, e.g., [cwrc-gi-dialogs](https://github.com/jchartrand/cwrc-git-dialogs)
-* `config.layout` = Object.  Layout object as described above [Layout](#layout), e.g. [layout-cofing.js]([https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js]) 
-* `config.entityLookupDialogs` = Object. Entity lookup, e.g., [cwrc-public-entity-dialogs](https://github.com/jchartrand/CWRC-PublicEntityDialogs)
+* `config.storageDialogs`: Object.  Object. Storage dialogs, see [cwrc-gi-dialogs](https://github.com/jchartrand/cwrc-git-dialogs) for example and API definition.
+* `config.layout`: Object.  Layout object as described above [Layout](#layout), see [layout-cofing.js]([https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js]) for example.
+* `config.entityLookupDialogs`: Object. Entity lookup, see [cwrc-public-entity-dialogs](https://github.com/jchartrand/CWRC-PublicEntityDialogs) for example and API definition.
 
-##### Optional
+##### Optional Options (haha)
 
-* `config.mode`: String. The mode to start the CWRC-Writer in. Can be either `xml` or `xmlrdf`.
+* `config.mode`: String. The mode in which to start the CWRC-Writer.  `xml` or `xmlrdf`.
 * `config.allowOverlap`: Boolean. Should overlapping entities be allowed initially?.
 * `config.schemas`: Object. A map of schema objects that can be used in the CWRC-Writer. Each entry should contain the following:
   * `name`: String. The schema title.
-  * `url`: String. A url that links to the actual schema (RELAX NG) file.
+  * `url`: String. A url that links to the schema (RELAX NG) file.
   * `cssUrl`: String. A url that links to the CSS associated with this schema.
-  * `schemaMappingsId`: String. The directory name associated with this schema. This is used to load appropriate mapping and dialogs files from the schema directory: https://github.com/cwrc/CWRC-Writer/tree/development/src/js/schema
-* `config.cwrcDialogs`: Object. Contains various urls for use by the [CWRC-Dialogs](https://github.com/cwrc/CWRC-Dialogs). 
-* `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of plugins that will be set in the toolbars in the CWRC-Writer. Some possible values are: `addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, viewsource, editsource, validate, savebutton, loadbutton`.
-
-
+  * `schemaMappingsId`: String. The directory name in the schema directory: https://github.com/cwrc/CWRC-Writer/tree/development/src/js/schema from which to load mapping and dialogs files for the schema.
+* `config.cwrcDialogs`: Object. Lists urls for use by the [CWRC-Dialogs](https://github.com/cwrc/CWRC-Dialogs). 
+* `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of plugins to set in the CWRC-Writer toolbars. Possible values: `addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, viewsource, editsource, validate, savebutton, loadbutton`.
 
 #### Configuration within documents
 
-Configuration information can be included in the documents themselves:  
+Configuration information can be included in the documents themselves, to override project settings:
 
-XML/RDF mode.  
+`XML/RDF mode`  
 
 You can set the mode for the given document with a cw:mode setting in the RDF:
 
@@ -101,19 +99,18 @@ You can set the mode for the given document with a cw:mode setting in the RDF:
 where allowable values for `cw:mode` are:
 
 0 = XML & RDF  (default - XML & RDF with no overlap)  
-1 = XML    
-2 = RDF  
+1 = XML
+2 = RDF
 
 ### Writer object
 
 The object returned from instantiation has the following properties:
 
- `isInitialized`  
- boolean  
+ `isInitialized`  <sub>boolean</sub>   
  *Has the editor been initialized.* 
 
 `isReadOnly`   
- boolean   
+ <sub>boolean</sub>   
  *Is the editor in readonly mode.*  
   
 `isAnnotator`  
