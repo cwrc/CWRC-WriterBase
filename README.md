@@ -39,15 +39,11 @@ CWRC provides a default XML validation HTTP end point that the CWRC-WriterBase i
 
 ## Storage and entity lookup
 
-If you choose not to use the default CWRC GitHub storage and VIAF named entity lookup then most of the work in setting up CWRCWriter for your project will be implementing the dialogs to interact with your backend storage and named entity lookup (which is a significant part of the reason why we split these pieces off into their own packages.)  
+If you choose not to use either the default CWRC GitHub storage or VIAF named entity lookup then most of the work in setting up CWRCWriter for your project will be implementing the dialogs to interact with your backend storage or named entity lookup. We have split these pieces off into their own packages in large part to make it easier to substitue your own dialogs for one or both.  
 
-A good example to follow when creating a new CWRC-Writer project is our default implementation:
+A good example to follow when creating a new CWRC-Writer project is our default implementation [CWRC-GitWriter](https://github.com/jchartrand/CWRC-GitWriter).  You might also choose to use either the CWRC GitHub storage dialogs or the CWRC public entity lookup, both of which are used by the CWRC-GitWriter, and replace just one of the two.  To help understand how we've developed the CWRC-Writer, you could also look at our [development docs](https://github.com/jchartrand/CWRC-Writer-Dev-Docs]).
 
-[CWRC-GitWriter](https://github.com/jchartrand/CWRC-GitWriter)
-
-Also look at our [development docs](https://github.com/jchartrand/CWRC-Writer-Dev-Docs]).
-
-Basically you'll need to create two objects with the following APIs:
+To replace one or the other, or both, of the storage and entity dialogs, you'll need to create objects with the following APIs:
 
 #### Storage object API
 
