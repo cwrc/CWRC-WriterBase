@@ -27,7 +27,7 @@ A 'CWRCWriter' installation is a bundling of the main CWRC-WriterBase (the code 
 * document storage
 * named entity lookup (and optionally /add/edit)
 
-The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/jchartrand/cwrc-gitwriter) which uses GitHub to store documents, and uses [VIAF](https://viaf.org) for named entity (people, places) lookup.  The dialogs to interact with GitHub and VIAF are in the NPM packages [cwrc-git-dialogs](https://github.com/jchartrand/cwrc-git-dialogs) and [cwrc-public-entity-dialogs](https://github.com/jchartrand/cwrc-public-entity-dialogs). You may substitute your own packages with dialogs that interact with your own backend storage and/or entity lookup.
+The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/jchartrand/cwrc-gitwriter) which uses GitHub to store documents, and uses [VIAF](https://viaf.org) for named entity (people, places) lookup.  The dialogs to interact with GitHub and VIAF are in the NPM packages [cwrc-git-dialogs](https://github.com/jchartrand/cwrc-git-dialogs) and [cwrc-public-entity-dialogs](https://github.com/jchartrand/cwrc-public-entity-dialogs). The CWRC-GitWriter therefore bundles (using browserify) those two NPM packages with the CWRC-WriterBase package. You may substitute your own packages with dialogs that interact with your own backend storage and/or entity lookup.
 
 The CWRCWriterBase itself also provides built in interaction with default server-side services for:
 
