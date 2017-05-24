@@ -1,6 +1,6 @@
 'use strict';
 
-var tinymce = require('tinymce');
+//var tinymce = require('tinymce');
 
 tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
     var menu, items, contextmenuNeverUseNative = editor.settings.contextmenu_never_use_native;
@@ -62,7 +62,8 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
             items.splice(1, 0, {
                 text: 'Insert Tag',
                 category: 'xmlTags',
-                type: 'cwrcpanelbutton',
+              //  type: 'cwrcpanelbutton',
+                type: 'panelbutton',
                 popoverAlign: ['tr-tl','tl-tr','br-bl','bl-br'],
                 panel: insertFilterPanel,
                 classes: 'cwrc',
@@ -82,7 +83,8 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
             },{
                 text: 'Change Tag',
                 category: 'modifyTag',
-                type: 'cwrcpanelbutton',
+               // type: 'cwrcpanelbutton',
+                type: 'panelbutton',
                 popoverAlign: ['tr-tl','tl-tr','br-bl','bl-br'],
                 panel: changeFilterPanel,
                 classes: 'cwrc',

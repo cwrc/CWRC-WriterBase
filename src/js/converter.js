@@ -5,7 +5,7 @@
 'use strict';
 
 var $ = require('jquery');
-var tinymce = require('tinymce');
+//var tinymce = require('tinymce');
 
 /**
  * @class Converter
@@ -490,7 +490,7 @@ function Converter(writer) {
         
         // clear current doc
         w.editor.setContent('', {format: 'raw'});
-        
+        //require('tinymce').activeEditor.setContent("");
         var schemaId = schemaIdOverride;
         var cssUrl;
         var loadSchemaCss = true; // whether to load schema css

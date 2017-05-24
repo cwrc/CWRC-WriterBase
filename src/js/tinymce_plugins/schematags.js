@@ -1,8 +1,9 @@
 'use strict';
 
 var $ = require('jquery');
-var tinymce = require('tinymce');
+//var tinymce = require('tinymce');
 //require('jquery-watermark');
+
 
 tinymce.PluginManager.add('schematags', function(editor) {
     
@@ -77,6 +78,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
         }
     });
     
+ 
     tinymce.ui.CWRCPanelButton = tinymce.ui.PanelButton.extend({
         // CHANGES
         // set popover to false
@@ -319,8 +321,9 @@ tinymce.PluginManager.add('schematags', function(editor) {
     
     var filterPanel = {}
     getFilterMenu(filterPanel);
+
     editor.addButton('schematags', {
-        type: 'cwrcpanelbutton',
+        type: 'panelbutton',
         text: 'Tags',
         popoverAlign: ['bl-tl', 'bl-tc'],
         panel: filterPanel

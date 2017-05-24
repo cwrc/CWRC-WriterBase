@@ -9,9 +9,11 @@ require("./lib/jquery/plugins/jquery.contextmenu.min.js");
 require("./lib/jquery/plugins/jquery.watermark.min.js");
 require("./lib/jquery/plugins/jquery.xpath.js");*/
 
-var tinymce = require('tinymce');
+//var tinymce = require('tinymce');
 var Octokit = require('octokit');
 
+window.tinymce = require('tinymce');
+require('tinymce/themes/modern/theme.js');
 require('./tinymce_plugins/cwrc_contextmenu.js');
 require('./tinymce_plugins/cwrc_path.js');
 require('./tinymce_plugins/schematags.js');
@@ -28,7 +30,6 @@ var FileManager = require('./fileManager.js');
 var AnnotationsManager = require('./annotationsManager.js');
 var SettingsDialog = require('./dialogs/settings.js');
 var layoutModules = require('./layout/layoutModules.js');
-
 
 /**
  * @class CWRCWriter
@@ -229,6 +230,7 @@ function CWRCWriter(config) {
     };
 
     w.showLoadDialog = function() {
+        
         w.storageDialogs.load(w)
     }
 

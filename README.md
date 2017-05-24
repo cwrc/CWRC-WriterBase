@@ -5,7 +5,7 @@
 CWRC-Writer-Base
 ================
 
-The [Canadian Writing Research Collaboratory (CWRC)](http://www.cwrc.ca/projects/infrastructure-projects/technical-projects/cwrc-writer/) is developing an in-browser text markup editor (CWRC-Writer) for use by collaborative scholarly editing projects.  This package is the base code that builds on the TinyMCE javascript editor, and is meant to be packaged together (using Browserify) with two other packages that communicate with a server that provides document storage and entity (people, places) lookup.  A default version of the CWRC-Writer that uses GitHub for storage and VIAF for entity lookup is available for anyone's use here:  
+The [Canadian Writing Research Collaboratory (CWRC)](http://www.cwrc.ca/projects/infrastructure-projects/technical-projects/cwrc-writer/) is developing an in-browser text markup editor (CWRC-Writer) for use by collaborative scholarly editing projects.  This package is the base code that builds on the TinyMCE javascript editor, and is meant to be packaged together (using Browserify) with two other packages that communicate with a server that provides document storage and entity (people, places) lookup.  A default version of the CWRC-Writer that uses GitHub for storage and VIAF for entity lookup is available for anyone's use:  
 
 [http://208.75.74.217](http://208.75.74.217)  
 
