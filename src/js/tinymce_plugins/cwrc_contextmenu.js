@@ -62,8 +62,8 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
             items.splice(1, 0, {
                 text: 'Insert Tag',
                 category: 'xmlTags',
-              //  type: 'cwrcpanelbutton',
-                type: 'panelbutton',
+                type: 'cwrcpanelbutton',
+        
                 popoverAlign: ['tr-tl','tl-tr','br-bl','bl-br'],
                 panel: insertFilterPanel,
                 classes: 'cwrc',
@@ -83,8 +83,8 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
             },{
                 text: 'Change Tag',
                 category: 'modifyTag',
-               // type: 'cwrcpanelbutton',
-                type: 'panelbutton',
+                type: 'cwrcpanelbutton',
+
                 popoverAlign: ['tr-tl','tl-tr','br-bl','bl-br'],
                 panel: changeFilterPanel,
                 classes: 'cwrc',

@@ -8,7 +8,8 @@ var $ = require('jquery');
 tinymce.PluginManager.add('schematags', function(editor) {
     
     // re-implementing tinymce.ui.Menu so that we can set autohide to false
-    tinymce.ui.CWRCMenu = tinymce.ui.FloatPanel.extend({
+   // tinymce.ui.CWRCMenu = tinymce.ui.FloatPanel.extend({
+    tinymce.ui.Factory.add('cwrcmenu', tinymce.ui.FloatPanel.extend({
         Defaults: {
             defaultType: 'menuitem',
             border: 1,
@@ -76,10 +77,10 @@ tinymce.PluginManager.add('schematags', function(editor) {
 
             return self._super();
         }
-    });
+    }));
     
  
-    tinymce.ui.CWRCPanelButton = tinymce.ui.PanelButton.extend({
+    tinymce.ui.Factory.add('cwrcpanelbutton', tinymce.ui.PanelButton.extend({
         // CHANGES
         // set popover to false
         
@@ -126,7 +127,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
             var self = this;
             self.hidePanel();
         }
-    });
+    }));
     
     /**
      * Gets the menu items for all tags in the schema.
@@ -323,7 +324,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
     getFilterMenu(filterPanel);
 
     editor.addButton('schematags', {
-        type: 'panelbutton',
+        type: 'cwrcpanelbutton',
         text: 'Tags',
         popoverAlign: ['bl-tl', 'bl-tc'],
         panel: filterPanel

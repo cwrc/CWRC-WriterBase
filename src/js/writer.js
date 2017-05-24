@@ -13,11 +13,13 @@ require("./lib/jquery/plugins/jquery.xpath.js");*/
 var Octokit = require('octokit');
 
 window.tinymce = require('tinymce');
+
 require('tinymce/themes/modern/theme.js');
 require('./tinymce_plugins/cwrc_contextmenu.js');
 require('./tinymce_plugins/cwrc_path.js');
 require('./tinymce_plugins/schematags.js');
 require('./tinymce_plugins/treepaste.js');
+
 
 var EventManager = require('./eventManager.js');
 var Utilities = require('./utilities.js');
