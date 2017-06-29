@@ -806,7 +806,7 @@ function CWRCWriter(config) {
             alert('Error: you must specify a storage dialogs class in the CWRCWriter config to allow loading and saving documents.');
         }
         if (config.entityLookupDialogs != null) {
-            w.entityLookupDialgos = config.entityLookupDialogs;
+            w.entityLookupDialogs = config.entityLookupDialogs;
         } else {
             alert('Error: you must specify entity lookups in the CWRCWriter config for full functionality!');
         }
