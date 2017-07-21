@@ -55,6 +55,8 @@ where 'writer' is the writer object (i.e., the object defined in the [API](#writ
 
 The storage object for GitHub is implemented here:  [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs)
 
+Each method is invoked by the CWRC-WriterBase whenever the end user clicks the 'save' or 'load' button in the editor.
+
 Each method spawns a diaglog (bootstrap in our case) that prompts the user to load or save.  Because load(writer) and save(writer) are passed an instance of the CWRC writer object, all of the methods defined below in [API](#writer-object) are available, to allow get and set of the XML in the writer.
 
 We also define an authenticate method on our cwrc-git-dialogs object to handle the Oauth authentication of GitHub.  You may implement your authentication however you like.  If you want to follow our approach you can see it here: [https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/app.js] where we authenticate before instantiating the CWRC-WriterBase.  
@@ -62,6 +64,8 @@ We also define an authenticate method on our cwrc-git-dialogs object to handle t
 #### Entity Lookup API
 
 Defined and implemented here:  [https://github.com/cwrc/CWRC-PublicEntityDialogs]
+
+The lookup methods defined in the Entity Lookup API are invoked by the CWRC-WriterBase whenever the end user clicks one of the entity buttons (person, place, event) to 'annotate' or 'tag' an entity reference (e.g., a person name like 'Charlie Parker') that they've highlighted in the text.
 
 ## Layout 
 
