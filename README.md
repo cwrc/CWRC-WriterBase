@@ -1,4 +1,4 @@
-![Picture](http://www.cwrc.ca/wp-content/uploads/2010/12/CWRC_Dec-2-10_smaller.png)
+![Picture](http://cwrc.ca/logos/CWRC_logos_2016_versions/CWRCLogo-Horz-FullColour.png)
 
 [![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
 
@@ -27,7 +27,7 @@ A 'CWRCWriter' installation is a bundling of the main CWRC-WriterBase (the code 
 * document storage
 * named entity lookup (and optionally /add/edit)
 
-The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/jchartrand/cwrc-gitwriter) which uses GitHub to store documents, and uses [VIAF](https://viaf.org) for named entity (people, places) lookup.  The dialogs to interact with GitHub and VIAF are in the NPM packages [cwrc-git-dialogs](https://github.com/jchartrand/cwrc-git-dialogs) and [cwrc-public-entity-dialogs](https://github.com/jchartrand/cwrc-public-entity-dialogs). The CWRC-GitWriter therefore bundles (using browserify) those two NPM packages with the CWRC-WriterBase package. You may substitute your own packages with dialogs that interact with your own backend storage and/or entity lookup.
+The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/cwrc/cwrc-gitwriter) which uses GitHub to store documents, and uses [VIAF](https://viaf.org) for named entity (people, places) lookup.  The dialogs to interact with GitHub and VIAF are in the NPM packages [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs) and [cwrc-public-entity-dialogs](https://github.com/cwrc/cwrc-public-entity-dialogs). The CWRC-GitWriter therefore bundles (using browserify) those two NPM packages with the CWRC-WriterBase package. You may substitute your own packages with dialogs that interact with your own backend storage and/or entity lookup.
 
 The CWRCWriterBase itself also provides built in interaction with default server-side services for:
 
@@ -41,7 +41,7 @@ CWRC provides a default XML validation HTTP end point that the CWRC-WriterBase i
 
 If you choose not to use either the default CWRC GitHub storage or VIAF named entity lookup then most of the work in setting up CWRCWriter for your project will be implementing the dialogs to interact with your backend storage or named entity lookup. We have split these pieces off into their own packages in large part to make it easier to substitue your own dialogs for one or both.  
 
-A good example to follow when creating a new CWRC-Writer project is our default implementation [CWRC-GitWriter](https://github.com/jchartrand/CWRC-GitWriter).  You might also choose to use either the CWRC GitHub storage dialogs or the CWRC public entity lookup, both of which are used by the CWRC-GitWriter, and replace just one of the two.  To help understand how we've developed the CWRC-Writer, you could also look at our [development docs](https://github.com/jchartrand/CWRC-Writer-Dev-Docs]).
+A good example to follow when creating a new CWRC-Writer project is our default implementation [CWRC-GitWriter](https://github.com/cwrc/CWRC-GitWriter).  You might also choose to use either the CWRC GitHub storage dialogs or the CWRC public entity lookup, both of which are used by the CWRC-GitWriter, and replace just one of the two.  To help understand how we've developed the CWRC-Writer, you could also look at our [development docs](https://github.com/cwrc/CWRC-Writer-Dev-Docs]).
 
 To replace one or the other, or both, of the storage and entity dialogs, you'll need to create objects with the following APIs:
 
@@ -53,20 +53,24 @@ save(writer)
 
 where 'writer' is the writer object (i.e., the object defined in the [API](#writer-object) section.
 
-The storage object for GitHub is implemented here:  [cwrc-git-dialogs](https://github.com/jchartrand/cwrc-git-dialogs)
+The storage object for GitHub is implemented here:  [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs)
+
+Each method is invoked by the CWRC-WriterBase whenever the end user clicks the 'save' or 'load' button in the editor.
 
 Each method spawns a diaglog (bootstrap in our case) that prompts the user to load or save.  Because load(writer) and save(writer) are passed an instance of the CWRC writer object, all of the methods defined below in [API](#writer-object) are available, to allow get and set of the XML in the writer.
 
-We also define an authenticate method on our cwrc-git-dialogs object to handle the Oauth authentication of GitHub.  You may implement your authentication however you like.  If you want to follow our approach you can see it here: [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] where we authenticate before instantiating the CWRC-WriterBase.  
+We also define an authenticate method on our cwrc-git-dialogs object to handle the Oauth authentication of GitHub.  You may implement your authentication however you like.  If you want to follow our approach you can see it here: [https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/app.js] where we authenticate before instantiating the CWRC-WriterBase.  
 
 #### Entity Lookup API
 
-Defined and implemented here:  [https://github.com/jchartrand/CWRC-PublicEntityDialogs]
+Defined and implemented here:  [https://github.com/cwrc/CWRC-PublicEntityDialogs]
+
+The lookup methods defined in the Entity Lookup API are invoked by the CWRC-WriterBase whenever the end user clicks one of the entity buttons (person, place, event) to 'annotate' or 'tag' an entity reference (e.g., a person name like 'Charlie Parker') that they've highlighted in the text.
 
 ## Layout 
 
 The layout of the CWRC-Writer can be modified from a configuration file.
-See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js] for an example of initialization and layout. [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the layout config file into the CWRC-WriterBase.  The following API section talks more about configuration.
+See [https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/layout-config.js] for an example of initialization and layout. [https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/app.js] shows how to pass the layout config file into the CWRC-WriterBase.  The following API section talks more about configuration.
 
 ## API
 
@@ -74,8 +78,8 @@ See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-conf
 
 The CWRC-WriterBase exports a single constructor function that takes one argument, a configuration object.
 
-See [https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/config.js] for an example of a base configuration file, and  
-[https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/app.js] to see the configuration file loaded, extended, and passed into the constructor.
+See [https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/config.js] for an example of a base configuration file, and  
+[https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/app.js] to see the configuration file loaded, extended, and passed into the constructor.
 
 ### Configuration Object
 
@@ -84,9 +88,9 @@ Options that can be set on the configuration object:
 ##### Required Options
 
 * `config.cwrcRootUrl`: String. An absolute URL that should point to the root of the CWRC-Writer directory. <b>Required</b>.
-* `config.storageDialogs`: Object.  Object. Storage dialogs, see [cwrc-gi-dialogs](https://github.com/jchartrand/cwrc-git-dialogs) for example and API definition.
-* `config.layout`: Object.  Layout object as described above [Layout](#layout), see [layout-cofing.js]([https://github.com/jchartrand/CWRC-GitWriter/blob/master/src/js/layout-config.js]) for example.
-* `config.entityLookupDialogs`: Object. Entity lookup, see [cwrc-public-entity-dialogs](https://github.com/jchartrand/CWRC-PublicEntityDialogs) for example and API definition.
+* `config.storageDialogs`: Object.  Object. Storage dialogs, see [cwrc-gi-dialogs](https://github.com/cwrc/cwrc-git-dialogs) for example and API definition.
+* `config.layout`: Object.  Layout object as described above [Layout](#layout), see [layout-cofing.js]([https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/layout-config.js]) for example.
+* `config.entityLookupDialogs`: Object. Entity lookup, see [cwrc-public-entity-dialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) for example and API definition.
 
 ##### Other Options
 
@@ -132,7 +136,7 @@ Overlapping annotations, those that cross XML tags, are disallowed by default. E
 
 ### Writer object
 
-The object returned by the constructor is defined here: [writer.js](https://github.com/jchartrand/CWRC-WriterBase/blob/master/src/js/writer.js).  The typical properties and methods you'd want to use when implementing your own storage and/or entity dialogs are:
+The object returned by the constructor is defined here: [writer.js](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/writer.js).  The typical properties and methods you'd want to use when implementing your own storage and/or entity dialogs are:
 
 #### Properties
 
@@ -169,11 +173,11 @@ Fires a `documentValidated` event if validation is successful.
 
 ### Events
 
-The full list of events used by the CWRC-Writer is defined in [eventManager.js](https://github.com/jchartrand/CWRC-WriterBase/blob/master/src/js/eventManager.js).  
+The full list of events used by the CWRC-Writer is defined in [eventManager.js](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js).  
 
 ## Demo
 
-A running deployment of the [CWRC-GitWriter](https://github.com/jchartrand/CWRC-GitWriter), our default implementation, is available for anyone's use at:
+A running deployment of the [CWRC-GitWriter](https://github.com/cwrc/CWRC-GitWriter), our default implementation, is available for anyone's use at:
 
 [http://208.75.74.217](http://208.75.74.217)  
 

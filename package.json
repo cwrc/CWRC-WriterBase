@@ -5,7 +5,7 @@
   "main": "src/js/writer.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jchartrand/CWRC-WriterBase.git"
+    "url": "https://github.com/cwrc/CWRC-WriterBase.git"
   },
   "files": [
     "src"
@@ -20,9 +20,9 @@
   "contributors": "James Chartrand",
   "license": "GPL-2.0",
   "bugs": {
-    "url": "https://github.com/jchartrand/CWRC-WriterBase/issues"
+    "url": "https://github.com/cwrc/CWRC-WriterBase/issues"
   },
-  "homepage": "https://github.com/jchartrand/CWRC-WriterBase#readme",
+  "homepage": "https://github.com/cwrc/CWRC-WriterBase#readme",
   "browser": {
     "objtree": "./src/js/lib/objtree/ObjTree.js"
   },
@@ -46,7 +46,7 @@
   },
   "scripts": {
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "commit": "git-cz",
+    "cm": "git-cz",
     "test": ""
   },
   "config": {
