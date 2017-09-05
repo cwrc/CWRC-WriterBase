@@ -897,6 +897,8 @@ function CWRCWriter(config) {
             elementpath: false,
             statusbar: false,
             
+            branding: false,
+            
             // disables style keyboard shortcuts
             formats: {
                 bold: {},
