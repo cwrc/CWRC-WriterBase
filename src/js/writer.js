@@ -843,6 +843,11 @@ function CWRCWriter(config) {
         tinymce.init({
             selector: '#'+textareaId,
             theme: 'modern',
+            
+            skin: 'lightgray',
+            skin_url: undefined,
+            baseURL: w.cwrcRootUrl,
+            
             content_css: w.cwrcRootUrl+'css/editor.css',
             
             contextmenu_never_use_native: true,
