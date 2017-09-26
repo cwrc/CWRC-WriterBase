@@ -1,13 +1,11 @@
 'use strict';
 
-//require('app-module-path').addPath(__dirname + '/src/js/lib/jquery');
-
-//window.jQuery = window.$ = require('jquery');
-/*require('./lib/jquery/jquery-ui-core.js');
-require("./lib/jquery/plugins/jquery.layout-latest.js");
-require("./lib/jquery/plugins/jquery.contextmenu.min.js");
-require("./lib/jquery/plugins/jquery.watermark.min.js");
-require("./lib/jquery/plugins/jquery.xpath.js");*/
+var $ = require('jquery');
+require('jquery-ui');
+require('./lib/jquery/plugins/jquery.layout-latest.js');
+require('./lib/jquery/plugins/jquery.contextmenu.min.js');
+require('./lib/jquery/plugins/jquery.watermark.min.js');
+require('./lib/jquery/plugins/jquery.xpath.js');
 
 //var tinymce = require('tinymce');
 var Octokit = require('octokit');
@@ -840,13 +838,13 @@ function CWRCWriter(config) {
         /**
          * Init tinymce
          */
+        tinymce.baseURL = w.cwrcRootUrl+'/js'; // need for skin
         tinymce.init({
             selector: '#'+textareaId,
             theme: 'modern',
             
             skin: 'lightgray',
-            skin_url: undefined,
-            baseURL: w.cwrcRootUrl,
+            skin_url: '',
             
             content_css: w.cwrcRootUrl+'css/editor.css',
             
