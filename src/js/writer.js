@@ -2,7 +2,7 @@
 
 var $ = require('jquery');
 require('jquery-ui');
-require('./lib/jquery/plugins/jquery.layout-latest.js');
+require('./lib/jquery/jquery-ui-core.js');
 require('./lib/jquery/plugins/jquery.contextmenu.min.js');
 require('./lib/jquery/plugins/jquery.watermark.min.js');
 require('./lib/jquery/plugins/jquery.xpath.js');
