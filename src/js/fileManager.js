@@ -186,6 +186,7 @@ function FileManager(writer) {
      * @param {String} start The anchor from the editor's URL
      */
     fm.loadInitialDocument = function(start) {
+        start = start || '';
         start = start.substr(1); // remove hash
         if (start === 'load') {
             w.dialogManager.show('filemanager', {type: 'loader'});
