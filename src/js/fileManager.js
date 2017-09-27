@@ -149,26 +149,6 @@ function FileManager(writer) {
         });
     };
     
-    /**
-     * Loads the initial document into the editor
-     * @fires Writer#loadingDocument
-     * @param {String} start The anchor from the editor's URL
-     */
-    fm.loadInitialDocument = function(start) {
-        start = start || '';
-        start = start.substr(1); // remove hash
-        if (start === 'load') {
-            w.dialogManager.show('filemanager', {type: 'loader'});
-        } else if (start.match(/^templates\//) !== null) {
-            start += '.xml';
-            fm.loadTemplate(start);
-        } else if (start !== '') {
-            fm.loadDocument(start);
-        } else if (w.initialConfig.defaultDocument) {
-            fm.loadInitialDocument('#'+w.initialConfig.defaultDocument);
-        }
-    };
-    
     return fm;
 };
 

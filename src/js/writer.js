@@ -230,7 +230,6 @@ function CWRCWriter(config) {
     };
 
     w.showLoadDialog = function() {
-        
         w.storageDialogs.load(w)
     }
 
@@ -962,7 +961,6 @@ function CWRCWriter(config) {
                     ed.addCommand('editStructureTag', w.tagger.editStructureTag);
                     ed.addCommand('changeStructureTag', w.changeStructureTag);
                     ed.addCommand('removeHighlights', w.removeHighlights);
-                   // ed.addCommand('loadDocument', w.fileManager.loadDocument);
                     ed.addCommand('getParentsForTag', w.utilities.getParentsForTag);
                     ed.addCommand('getDocumentationForTag', w.getHelp);
                     
