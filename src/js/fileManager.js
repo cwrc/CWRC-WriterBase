@@ -77,7 +77,6 @@ function FileManager(writer) {
         } else {
             w.validate(function (valid) {
                 if (valid) {
-//                    w.delegator.saveDocument(w.currentDocId);
                     w.event('documentSaveRequested').publish(w.currentDocId);
                 } else {
                     var doc = w.currentDocId;
@@ -87,7 +86,6 @@ function FileManager(writer) {
                         msg: doc+' is not valid. <b>Save anyways?</b>',
                         callback: function(yes) {
                             if (yes) {
-//                                w.delegator.saveDocument(w.currentDocId);
                                 w.event('documentSaveRequested').publish(w.currentDocId);
                             }
                         }
@@ -96,23 +94,7 @@ function FileManager(writer) {
             });
         }
     };
-    
-    /**
-     * Loads a document through the delegator
-     * @fires Writer#loadingDocument
-     * @param {String} docName The name of the document
-     
-    fm.loadDocument = function(docName) {
-        w.currentDocId = docName;
-        w.event('loadingDocument').publish();
-        w.delegator.loadDocument(docName, function(xml) {
-            if (xml != null) {
-                w.converter.processDocument(xml);
-            } else {
-                w.currentDocId = null;
-            }
-        });
-    };*/
+
     
     /**
      * Loads a document into the editor
@@ -151,19 +133,6 @@ function FileManager(writer) {
         w.event('loadingDocument').publish();
         //window.location.hash = '';
         w.converter.processDocument(docXml);
-    };
-    
-    /**
-     * Loads a template through the delegator
-     * @fires Writer#loadingDocument
-     * @param {String} filename The name of the template file
-     */
-    fm.loadTemplate = function(filename) {
-        w.currentDocId = null;
-        w.event('loadingDocument').publish();
-        w.delegator.loadTemplate(filename, function(xml) {
-            w.converter.processDocument(xml);
-        });
     };
     
     fm.editSource = function() {

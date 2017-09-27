@@ -1,5 +1,7 @@
 define(['jquery', 'jquery-ui', 'jquery.tmpl'], function($, jqueryUi, tmpl) {
 
+// TODO unused
+    
 return function(config) {
     var w = config.writer;
     

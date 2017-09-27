@@ -792,12 +792,6 @@ function CWRCWriter(config) {
             showStructBrackets: false
         });
         
-        /*
-        if (config.delegator != null) {
-            w.delegator = new config.delegator(w);
-        } else {
-            alert('Error: you must specify a delegator in the CWRCWriter config for full functionality!');
-        }*/
         if (config.storageDialogs != null) {
             w.storageDialogs = config.storageDialogs
         } else {
@@ -1073,11 +1067,6 @@ function CWRCWriter(config) {
                 ed.addButton('saveasbutton', {title: 'Save As', image: w.cwrcRootUrl+'img/save_as.png',
                     onclick: function() {
                         w.dialogManager.show('filemanager', {type: 'saver'});
-                    }
-                });
-                ed.addButton('saveexitbutton', {title: 'Save and Exit', image: w.cwrcRootUrl+'img/save_exit.png',
-                    onclick: function() {
-                        w.delegator.saveAndExit();
                     }
                 });
                 ed.addButton('loadbutton', {title: 'Load', image: w.cwrcRootUrl+'img/folder_page.png',
