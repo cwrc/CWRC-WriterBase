@@ -3,6 +3,7 @@ var EntitiesList = require('./modules/entitiesList.js')
 var Validation = require('./modules/validation.js');
 var Relations = require('./modules/relations.js');
 var Selection = require('./modules/selection.js');
+var ImageViewer = require('./modules/imageViewer.js');
 
 function addStructureTreePanel(writer, domId) {
     return new StructureTree({writer: writer, parentId: domId});
@@ -19,11 +20,15 @@ function addValidationPanel(writer, domId) {
 function addSelectionPanel(writer, domId) {
     return new Selection({writer: writer, parentId: domId});
 }
+function addImageViewer(writer, domId) {
+    return new ImageViewer({writer: writer, parentId: domId});
+}
 
 module.exports = {
         addStructureTreePanel: addStructureTreePanel,
         addEntitiesListPanel:addEntitiesListPanel,
         addRelationsListPanel:addRelationsListPanel,
         addValidationPanel:addValidationPanel,
-        addSelectionPanel:addSelectionPanel
+        addSelectionPanel:addSelectionPanel,
+        addImageViewer:addImageViewer
 };
