@@ -20,7 +20,7 @@ function addValidationPanel(writer, domId) {
 function addSelectionPanel(writer, domId) {
     return new Selection({writer: writer, parentId: domId});
 }
-function addImageViewer(writer, domId) {
+function addImageViewerPanel(writer, domId) {
     return new ImageViewer({writer: writer, parentId: domId});
 }
 
@@ -30,5 +30,5 @@ module.exports = {
         addRelationsListPanel:addRelationsListPanel,
         addValidationPanel:addValidationPanel,
         addSelectionPanel:addSelectionPanel,
-        addImageViewer:addImageViewer
+        addImageViewerPanel:addImageViewerPanel
 };
