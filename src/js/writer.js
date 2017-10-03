@@ -1,13 +1,11 @@
 'use strict';
 
-//require('app-module-path').addPath(__dirname + '/src/js/lib/jquery');
-
-//window.jQuery = window.$ = require('jquery');
-/*require('./lib/jquery/jquery-ui-core.js');
-require("./lib/jquery/plugins/jquery.layout-latest.js");
-require("./lib/jquery/plugins/jquery.contextmenu.min.js");
-require("./lib/jquery/plugins/jquery.watermark.min.js");
-require("./lib/jquery/plugins/jquery.xpath.js");*/
+var $ = require('jquery');
+require('jquery-ui');
+require('./lib/jquery/jquery-ui-core.js');
+require('./lib/jquery/plugins/jquery.contextmenu.min.js');
+require('./lib/jquery/plugins/jquery.watermark.min.js');
+require('./lib/jquery/plugins/jquery.xpath.js');
 
 //var tinymce = require('tinymce');
 var Octokit = require('octokit');
@@ -232,7 +230,6 @@ function CWRCWriter(config) {
     };
 
     w.showLoadDialog = function() {
-        
         w.storageDialogs.load(w)
     }
 
@@ -794,12 +791,6 @@ function CWRCWriter(config) {
             showStructBrackets: false
         });
         
-        /*
-        if (config.delegator != null) {
-            w.delegator = new config.delegator(w);
-        } else {
-            alert('Error: you must specify a delegator in the CWRCWriter config for full functionality!');
-        }*/
         if (config.storageDialogs != null) {
             w.storageDialogs = config.storageDialogs
         } else {
@@ -840,9 +831,14 @@ function CWRCWriter(config) {
         /**
          * Init tinymce
          */
+        tinymce.baseURL = w.cwrcRootUrl+'/js'; // need for skin
         tinymce.init({
             selector: '#'+textareaId,
             theme: 'modern',
+            
+            skin: 'lightgray',
+            skin_url: '',
+            
             content_css: w.cwrcRootUrl+'css/editor.css',
             
             contextmenu_never_use_native: true,
@@ -965,7 +961,6 @@ function CWRCWriter(config) {
                     ed.addCommand('editStructureTag', w.tagger.editStructureTag);
                     ed.addCommand('changeStructureTag', w.changeStructureTag);
                     ed.addCommand('removeHighlights', w.removeHighlights);
-                   // ed.addCommand('loadDocument', w.fileManager.loadDocument);
                     ed.addCommand('getParentsForTag', w.utilities.getParentsForTag);
                     ed.addCommand('getDocumentationForTag', w.getHelp);
                     
@@ -1070,11 +1065,6 @@ function CWRCWriter(config) {
                 ed.addButton('saveasbutton', {title: 'Save As', image: w.cwrcRootUrl+'img/save_as.png',
                     onclick: function() {
                         w.dialogManager.show('filemanager', {type: 'saver'});
-                    }
-                });
-                ed.addButton('saveexitbutton', {title: 'Save and Exit', image: w.cwrcRootUrl+'img/save_exit.png',
-                    onclick: function() {
-                        w.delegator.saveAndExit();
                     }
                 });
                 ed.addButton('loadbutton', {title: 'Load', image: w.cwrcRootUrl+'img/folder_page.png',

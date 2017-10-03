@@ -2,7 +2,8 @@
 
 var $ = require('jquery');
 
-    
+// TODO rework for new storage dialogs format
+
 function FileManager(writer) {
     var w = writer;
     

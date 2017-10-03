@@ -6,6 +6,7 @@ require('jquery-ui/ui/data');
 require('jquery-ui/ui/disable-selection');
 require('jquery-ui/ui/focusable');
 require('jquery-ui/ui/form');
+require('jquery-ui/ui/form-reset-mixin');
 require('jquery-ui/ui/ie');
 require('jquery-ui/ui/keycode');
 require('jquery-ui/ui/labels');
@@ -20,4 +21,3 @@ require('jquery-ui/ui/widget');
 // required for jquery layout
 require('jquery-ui/ui/widgets/mouse');
 require('jquery-ui/ui/widgets/draggable');
-
