@@ -2,12 +2,15 @@
 
 var $ = require('jquery');
 require('jquery-ui');
+var OpenSeaDragon = require('openseadragon');
 
 function ImageViewer(config) {
     var w = config.writer;
     var id = config.parentId+'_imageViewer';
     var tagName = config.tag || 'pb'; // page break element name
     var attrName = config.attribute || 'facs'; // attribute that stores the image URL
+    
+    var osd; // openseadragon instance
     
     var styles = ''+
     '.imageViewer { display: table; height: 100%; width: 100%; }'+
@@ -26,7 +29,7 @@ function ImageViewer(config) {
             '<div class="toolbar">'+
                 '<button class="prev">&#8592;</button><span class="pageInfo"><input type="text" class="currPage" /> / <span class="totalPages" /></span><button class="next">&#8594;</button>'+
             '</div>'+
-            '<div class="image"><img /></div>'+
+            '<div id="'+id+'_osd" class="image"></div>'+
         '</div>');
     $('#'+config.parentId).css('overflow', 'hidden');
     
@@ -62,7 +65,6 @@ function ImageViewer(config) {
     var iv = {};
     
     iv.reset = function() {
-        $parent.find('.image img').attr('src', '').css('display', 'none').css('width','').css('height','');
         pageBreaks = null;
         currentIndex = -1;
     }
@@ -103,9 +105,9 @@ function ImageViewer(config) {
     }
     
     function setImage(url) {
-        var img = $parent.find('.image img');
-        img.attr('src', '').css('display', 'none').css('width','').css('height','');
-        img.attr('src', url);
+        osd.addSimpleImage({
+            url: url
+        });
     }
     
     iv.resizeImage = function() {
@@ -188,6 +190,11 @@ function ImageViewer(config) {
                 iv.loadPage(val-1, false);
             }
         }
+    });
+    
+    osd = OpenSeaDragon({
+        id: id+'_osd',
+        prefixUrl: w.cwrcRootUrl+'img/osd/'
     });
     
     

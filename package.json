@@ -37,12 +37,13 @@
     "moment": "^2.13.0",
     "octokit": "0.10.4",
     "prismjs": "1.6.0",
-    "tinymce": "4.6.1"
+    "tinymce": "4.6.1",
+    "openseadragon": "2.3.1"
   },
   "devDependencies": {
     "commitizen": "2.9.6",
     "cz-conventional-changelog": "1.2.0",
-    "semantic-release": "^6.3.2"
+    "semantic-release": "^8.0.3"
   },
   "scripts": {
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
