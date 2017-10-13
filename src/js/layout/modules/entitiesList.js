@@ -22,31 +22,45 @@ function EntitiesList(config) {
     var metaKeys = ['_id', '_ref'];
     var showMetaKeys = false;
     
-    $('#'+config.parentId).append('<div id="entities" class="tabWithLayout">'+
-            '<ul class="entitiesList ui-layout-center"></ul>'+
-            '<div id="entitiesOptions" class="ui-layout-south tabButtons">'+
-            '<div id="sortBy"><span>Sort By</span> '+
-            '<input type="radio" id="sequence" name="sortBy" checked="checked" /><label for="sequence">Sequence</label>'+
-            '<input type="radio" id="category" name="sortBy" /><label for="category">Category</label></div>'+
-            '<!--<div><input type="checkbox" id="metaKeys" /><label for="metaKeys">Show Metadata</label></div>-->'+
-            '</div></div>');
+    var id = w.getUniqueId('entities_');
+    $('#'+config.parentId).append(
+        '<div id="'+id+'" class="moduleParent">'+
+            '<ul class="moduleContent entitiesList"></ul>'+
+            '<div class="moduleFooter entitiesOptions">'+
+                '<div class="sortBy"><span>Sort By</span> '+
+                    '<label>Sequence <input type="radio" class="sequence" name="sortBy" checked="checked" /></label>'+
+                    '<label>Category <input type="radio" class="category" name="sortBy" /></label>'+
+                '</div>'+
+                '<!--<div><input type="checkbox" id="metaKeys" /><label for="metaKeys">Show Metadata</label></div>-->'+
+            '</div>'+
+        '</div>');
+    
+    // TODO remove context menu IDs
+    // TODO context menu not appearing
+    // TODO background icons have no dimensions
     $(document.body).append(''+
-        '<div id="entitiesMenu" class="contextMenu" style="display: none;"><ul>'+
-        '<li id="editEntity"><ins style="background:url('+w.cwrcRootUrl+'img/tag_blue_edit.png) center center no-repeat;" />Edit Entity</li>'+
-        '<li id="removeEntity"><ins style="background:url('+w.cwrcRootUrl+'img/cross.png) center center no-repeat;" />Remove Entity</li>'+
-        '<li class="separator" id="copyEntity"><ins style="background:url('+w.cwrcRootUrl+'img/tag_blue_copy.png) center center no-repeat;" />Copy Entity</li>'+
-        '</ul></div>'
+        '<div id="'+id+'_contextMenu" class="contextMenu" style="display: none;">'+
+            '<ul>'+
+                '<li id="editEntity"><ins style="background:url('+w.cwrcRootUrl+'img/tag_blue_edit.png) center center no-repeat;" />Edit Entity</li>'+
+                '<li id="removeEntity"><ins style="background:url('+w.cwrcRootUrl+'img/cross.png) center center no-repeat;" />Remove Entity</li>'+
+                '<li class="separator" id="copyEntity"><ins style="background:url('+w.cwrcRootUrl+'img/tag_blue_copy.png) center center no-repeat;" />Copy Entity</li>'+
+            '</ul>'+
+        '</div>'
     );
     
-    $('#sequence').button().click(function() {
+    var $entities = $('#'+id);
+    
+    var $seqButton = $entities.find('.sequence');
+    $seqButton.button().click(function() {
         w.entitiesList.update('sequence');
         w.entitiesManager.highlightEntity(w.entitiesManager.getCurrentEntity());
     });
-    $('#category').button().click(function() {
+    var $catButton = $entities.find('.category')
+    $catButton.button().click(function() {
         w.entitiesList.update('category');
         w.entitiesManager.highlightEntity(w.entitiesManager.getCurrentEntity());
     });
-    $('#sortBy').controlgroup();
+    $entities.find('.sortBy').controlgroup();
 //    $('#metaKeys').button().click(function() {
 //        showMetaKeys = !showMetaKeys;
 //        w.entitiesList.update();
@@ -57,18 +71,6 @@ function EntitiesList(config) {
      * @lends EntitiesList.prototype
      */
     var pm = {};
-    
-    pm.layout = $('#entities').layout({
-        defaults: {
-            resizable: false,
-            slidable: false,
-            closable: false
-        },
-        south: {
-            size: 'auto',
-            spacing_open: 0
-        }
-    });
     
     w.event('loadingDocument').subscribe(function() {
         pm.clear();
@@ -95,10 +97,10 @@ function EntitiesList(config) {
         pm.remove(entityId);
     });
     w.event('entityFocused').subscribe(function(entityId) {
-        $('#entities > ul > li[name="'+entityId+'"]').addClass('selected').find('div[class="info"]').show();
+        $entities.find('ul.entitiesList > li[name="'+entityId+'"]').addClass('selected').find('div[class="info"]').show();
     });
     w.event('entityUnfocused').subscribe(function(entityId) {
-        $('#entities > ul > li').each(function(index, el) {
+        $entities.find('ul.entitiesList > li').each(function(index, el) {
             $(this).removeClass('selected').css('background-color', '').find('div[class="info"]').hide();
         });
     });
@@ -113,7 +115,7 @@ function EntitiesList(config) {
         pm.clear();
         
         if (sort == null) {
-            if ($('#sequence').prop('checked')) {
+            if ($seqButton.prop('checked')) {
                 sort = 'sequence';
             } else {
                 sort = 'category';
@@ -176,8 +178,8 @@ function EntitiesList(config) {
             });
         }
         
-        $('#entities > ul').html(entitiesString);
-        $('#entities > ul > li').hover(function() {
+        $entities.find('ul.entitiesList').html(entitiesString);
+        $entities.find('ul.entitiesList > li').hover(function() {
             if (!$(this).hasClass('selected')) {
                 $(this).addClass('over');
             }
@@ -191,7 +193,7 @@ function EntitiesList(config) {
         });
         
         if (w.isReadOnly !== true) {
-            $('#entities > ul > li').contextMenu('entitiesMenu', {
+            $entities.find('ul.entitiesList > li').contextMenu(id+'_contextMenu', {
                 bindings: {
                     'editEntity': function(tag) {
                         w.tagger.editTag($(tag).attr('name'));
@@ -229,12 +231,12 @@ function EntitiesList(config) {
         }
         
         if (w.entitiesManager.getCurrentEntity()) {
-            $('#entities > ul > li[name="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('selected').find('div[class="info"]').show();
+            $entities.find('ul.entitiesList  > li[name="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('selected').find('div[class="info"]').show();
         }
     };
     
     pm.clear = function() {
-        $('#entities > ul').empty();
+        $entities.find('ul').empty();
     };
     
     function _buildEntity(entity) {
@@ -264,7 +266,7 @@ function EntitiesList(config) {
     };
     
     pm.remove = function(id) {
-        $('#entities li[name="'+id+'"]').remove();
+        $entities.find('li[name="'+id+'"]').remove();
     };
     
     // add to writer

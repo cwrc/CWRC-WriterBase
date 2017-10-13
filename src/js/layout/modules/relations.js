@@ -17,23 +17,30 @@ function Relations(config) {
     
     var w = config.writer;
     
-    $('#'+config.parentId).append('<div id="relations" class="tabWithLayout" style="height: 100% !important;">'+
-            '<div id="relation_alter" class="ui-layout-center"><ul class="relationsList"></ul></div>'+
-            '<div class="ui-layout-south tabButtons">'+
-            '<button type="button">Add Relation</button><button type="button">Remove Relation</button>'+
+    var id = w.getUniqueId('relations_');
+    $('#'+config.parentId).append(
+        '<div id="'+id+'" class="moduleParent">'+
+            '<ul class="moduleContent relationsList"></ul>'+
+            '<div class="moduleFooter">'+
+                '<button type="button">Add Relation</button><button type="button">Remove Relation</button>'+
             '</div>'+
         '</div>');
+    
     $(document.body).append(''+
-        '<div id="relationsMenu" class="contextMenu" style="display: none;"><ul>'+
-        '<li id="removeRelation"><ins style="background:url(img/cross.png) center center no-repeat;" />Remove Relation</li>'+
-        '</ul></div>'
+        '<div id="'+id+'_contextMenu" class="contextMenu" style="display: none;">'+
+            '<ul>'+
+                '<li id="removeRelation"><ins style="background:url('+w.cwrcRootUrl+'img/cross.png) center center no-repeat;" />Remove Relation</li>'+
+            '</ul>'+
+        '</div>'
     );
     
-    $('#relations div.ui-layout-south button:eq(0)').button().click(function() {
+    var $relations = $('#'+id);
+    
+    $relations.find('.moduleFooter button:eq(0)').button().click(function() {
         w.dialogManager.show('triple');
     });
-    $('#relations div.ui-layout-south button:eq(1)').button().click(function() {
-        var selected = $('#relations ul li.selected');
+    $relations.find('.moduleFooter button:eq(1)').button().click(function() {
+        var selected = $relations.find('ul li.selected');
         if (selected.length == 1) {
             var i = selected.data('index');
             w.triples.splice(i, 1);
@@ -64,18 +71,6 @@ function Relations(config) {
         currentlySelectedNode: null
     };
     
-    pm.layout = $('#relations').layout({
-        defaults: {
-            resizable: false,
-            slidable: false,
-            closable: false
-        },
-        south: {
-            size: 'auto',
-            spacing_open: 0
-        }
-    });
-    
     /**
      * Update the list of relations.
      */
@@ -89,13 +84,13 @@ function Relations(config) {
             relationsString += '<li>'+triple.subject.text+' '+triple.predicate.text+' '+triple.object.text+'</li>';
         }
         
-        $('#relations ul').html(relationsString);
+        $relations.find('ul').html(relationsString);
         
-        $('#relations ul li').each(function(index, el) {
+        $relations.find('ul li').each(function(index, el) {
             $(this).data('index', index);
         }).click(function() {
             $(this).addClass('selected').siblings().removeClass('selected');
-        }).contextMenu('relationsMenu', {
+        }).contextMenu(id+'_contextMenu', {
             bindings: {
                 'removeRelation': function(r) {
                     var i = $(r).data('index');
@@ -130,7 +125,7 @@ function Relations(config) {
     };
     
     pm.clear = function() {
-        $('#relations ul').empty();
+        $relations.find('ul').empty();
     };
     
     // add to writer

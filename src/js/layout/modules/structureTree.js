@@ -590,25 +590,11 @@ function StructureTree(config) {
         return inserts;
     }
     
-    $('#'+config.parentId).append('<div id="structure" class="tabWithLayout">'+
-        '<div id="'+id+'" class="ui-layout-center"></div>'+
+    $('#'+config.parentId).append('<div class="moduleParent">'+
+        '<div id="'+id+'" class="moduleContent"></div>'+
     '</div>');
     
     $tree = $('#'+id);
-    
-    $tree.on('loaded.jstree', function(event, data) {
-        tree.layout = $('#structure').layout({
-            defaults: {
-                resizable: false,
-                slidable: false,
-                closable: false
-            },
-            south: {
-                size: 'auto',
-                spacing_open: 0
-            }
-        });
-    });
     
     $(document.head).append('<link type="text/css" rel="stylesheet" href="'+w.cwrcRootUrl+'css/jstree/themes/default/cwrc.css" />');
 //    $.vakata.dnd.settings.helper_left = 15;

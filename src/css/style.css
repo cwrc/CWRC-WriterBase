@@ -135,25 +135,28 @@ html, body {
     background-image: url('../img/arrow_right.gif');
 }
 
-#westTabsContent .tabWithLayout {
+.cwrc .moduleParent {
     height: 100%;
-    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
 }
 
-#westTabsContent .tabButtons {
+.cwrc .moduleContent {
+	padding-top: 5px;
+    overflow: auto;
+    flex: 1;
+}
+
+.cwrc .moduleFooter {
     border-top: 1px solid #BBBBBB;
     padding: 5px;
 }
 
-#sortBy > span {
+.cwrc .sortBy > span {
     float: left;
     margin: 0.4em;
 }
 
-.entitiesList {
-    overflow: auto;
-    padding-top: 5px !important;
-}
 
 .cwrc .tabs {
     overflow: hidden;
@@ -177,7 +180,8 @@ html, body {
 }
 
 .cwrc .tabs .ui-tabs-panel {
-    padding: 5px 0 0 0 !important;
+    padding: 0 !important;
+    height: 100%;
     overflow: auto;
 }
 
