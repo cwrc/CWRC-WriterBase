@@ -1,7 +1,6 @@
 'use strict';
 
 var $ = require('jquery');
-require('jquery-ui');
 require('./lib/jquery/jquery-ui-core.js');
 require('./lib/jquery/plugins/jquery.contextmenu.min.js');
 require('./lib/jquery/plugins/jquery.watermark.min.js');
