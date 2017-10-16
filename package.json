@@ -47,8 +47,7 @@
   },
   "scripts": {
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-    "cm": "git-cz",
-    "test": ""
+    "cm": "git-cz"
   },
   "config": {
     "commitizen": {
