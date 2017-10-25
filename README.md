@@ -1,5 +1,12 @@
 ![Picture](http://cwrc.ca/logos/CWRC_logos_2016_versions/CWRCLogo-Horz-FullColour.png)
 
+[![Travis](https://img.shields.io/travis/cwrc/CWRC-WriterBase.svg)](https://travis-ci.org/cwrc/CWRC-WriterBase)
+[![Codecov](https://img.shields.io/codecov/c/github/cwrc/CWRC-WriterBase.svg)](https://codecov.io/gh/cwrc/CWRC-WriterBase)
+[![version](https://img.shields.io/npm/v/cwrc-writer-base.svg)](http://npm.im/cwrc-writer-base)
+[![downloads](https://img.shields.io/npm/dm/cwrc-writer-base.svg)](http://npm-stat.com/charts.html?package=cwrc-writer-base&from=2015-08-01)
+[![GPL-2.0](https://img.shields.io/npm/l/cwrc-writer-base.svg)](http://opensource.org/licenses/GPL-2.0)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
 
 CWRC-Writer-Base
@@ -17,6 +24,7 @@ The [Canadian Writing Research Collaboratory (CWRC)](http://www.cwrc.ca/projects
 1. [Configuration](#overview)
 1. [API](#api)
 1. [Demo](#demo)
+1. [Development](#development)
 
 ## Overview
 
@@ -65,7 +73,7 @@ We also define an authenticate method on our cwrc-git-dialogs object to handle t
 
 Defined and implemented here:  [https://github.com/cwrc/CWRC-PublicEntityDialogs]
 
-The lookup methods defined in the Entity Lookup API are invoked by the CWRC-WriterBase whenever the end user clicks one of the entity buttons (person, place, event) to 'annotate' or 'tag' an entity reference (e.g., a person name like 'Charlie Parker') that they've highlighted in the text.
+The lookup methods defined in the Entity Lookup API are invoked by the CWRC-WriterBase whenever the end user clicks one of the entity buttons (person, place, event) to 'annotate' or 'tag' an entity reference` (e.g., a person name like 'Charlie Parker') that they've highlighted in the text.
 
 ## Layout 
 
@@ -183,4 +191,48 @@ A running deployment of the [CWRC-GitWriter](https://github.com/cwrc/CWRC-GitWri
 
 This demo may well be all that you need as it allows loading and saving to arbitrary GitHub repositories.
 
+## Development
+
+[CWRC-Writer-Dev-Docs](https://github.com/jchartrand/CWRC-Writer-Dev-Docs) describes general development practices for CWRC-Writer GitHub repositories, including this one.
+
+#### Testing
+
+The code in this repository is intended to run in the browser, and so we use [browser-run](https://github.com/juliangruber/browser-run) to run [browserified](http://browserify.org) [tape](https://github.com/substack/tape) tests directly in the browser. 
+
+We [decorate](https://en.wikipedia.org/wiki/Decorator_pattern) [tape](https://github.com/substack/tape) with [tape-promise](https://github.com/jprichardson/tape-promise) to allow testing with promises and async methods.  
+
+#### Mocking
+
+We use [sinon](http://sinonjs.org)
+
+#### Code Coverage  
+
+We generate code coverage by instrumenting our code with [istanbul](https://github.com/gotwarlost/istanbul) before [browser-run](https://github.com/juliangruber/browser-run) runs the tests, 
+then extract the coverage (which [istanbul](https://github.com/gotwarlost/istanbul) writes to the global object, i.e., the window in the browser), format it with [istanbul](https://github.com/gotwarlost/istanbul), and finally report (Travis actually does this for us) to [codecov.io](codecov.io)
+
+#### Transpilation
+
+We use [babelify](https://github.com/babel/babelify) and [babel-plugin-istanbul](https://github.com/istanbuljs/babel-plugin-istanbul) to compile our code, tests, and code coverage with [babel](https://github.com/babel/babel)  
+
+#### Continuous Integration
+
+We use [Travis](https://travis-ci.org).
+
+Note that to allow our tests to run in Electron on Travis, the following has been added to .travis.yml:
+
+```
+addons:
+  apt:
+    packages:
+      - xvfb
+install:
+  - export DISPLAY=':99.0'
+  - Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+  - npm install
+```
+
+#### Release
+
+We follow [SemVer](http://semver.org), which [Semantic Release](https://github.com/semantic-release/semantic-release) makes easy.  
+Semantic Release also writes our commit messages, sets the version number, publishes to NPM, and finally generates a changelog and a release (including a git tag) on GitHub.
 

@@ -4,8 +4,10 @@
 /.tomcatplugin
 /WebContent
 .externalToolBuilders
+/.idea
 /src/js/lib/tinymce_src
 /node_modules
 /build
+/coverage
 npm-debug.log
 
