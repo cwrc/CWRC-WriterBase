@@ -769,7 +769,7 @@ function CWRCWriter(config) {
 
         w.layoutModules = layoutModules;
         
-        var textareaId = 'editor';
+        var textareaId = w.getUniqueId('editor_');
         if (config.layout != null) {
             w.layout = new config.layout(w);
             w.layout.init($('#'+containerId), textareaId);
