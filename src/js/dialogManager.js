@@ -45,38 +45,6 @@ function handleResize(dialogEl) {
     }
 }
 
-$(document.body).append('<div class="cwrc" id="cwrcDialogWrapper"></div>');
-
-// add event listeners to all of our jquery ui dialogs
-$.extend($.ui.dialog.prototype.options, {
-    appendTo: '#cwrcDialogWrapper',
-    create: function(e) {
-        $(e.target).on('dialogopen', function(event) {
-            handleResize($(event.target));
-            $(window).on('resize', $.proxy(handleResize, this, $(event.target)));
-        }).on('dialogclose', function(event) {
-            $(window).off('resize', $.proxy(handleResize, this, $(event.target)));
-        });
-    }
-});
-
-// do the same for tooltips
-$.extend($.ui.tooltip.prototype.options, {
-    appendTo: '#cwrcDialogWrapper'
-});
-// do the same for popups
-$.extend($.custom.popup.prototype.options, {
-    appendTo: '#cwrcDialogWrapper',
-    create: function(e) {
-        $(e.target).on('popupopen', function(event) {
-            handleResize($(event.target));
-            $(window).on('resize', $.proxy(handleResize, this, $(event.target)));
-        }).on('popupclose', function(event) {
-            $(window).off('resize', $.proxy(handleResize, this, $(event.target)));
-        });
-    }
-});
-
 /**
  * @class DialogManager
  * @param {Writer} writer
@@ -84,6 +52,38 @@ $.extend($.custom.popup.prototype.options, {
 function DialogManager(writer) {
     var w = writer;
     var cD = writer.initialConfig.entityLookupDialogs;
+    
+    $(document.body).append('<div class="cwrc" id="cwrcDialogWrapper"></div>');
+
+    // add event listeners to all of our jquery ui dialogs
+    $.extend($.ui.dialog.prototype.options, {
+        appendTo: '#cwrcDialogWrapper',
+        create: function(e) {
+            $(e.target).on('dialogopen', function(event) {
+                handleResize($(event.target));
+                $(window).on('resize', $.proxy(handleResize, this, $(event.target)));
+            }).on('dialogclose', function(event) {
+                $(window).off('resize', $.proxy(handleResize, this, $(event.target)));
+            });
+        }
+    });
+    
+    // do the same for tooltips
+    $.extend($.ui.tooltip.prototype.options, {
+        appendTo: '#cwrcDialogWrapper'
+    });
+    // do the same for popups
+    $.extend($.custom.popup.prototype.options, {
+        appendTo: '#cwrcDialogWrapper',
+        create: function(e) {
+            $(e.target).on('popupopen', function(event) {
+                handleResize($(event.target));
+                $(window).on('resize', $.proxy(handleResize, this, $(event.target)));
+            }).on('popupclose', function(event) {
+                $(window).off('resize', $.proxy(handleResize, this, $(event.target)));
+            });
+        }
+    });
     
     // dialog name, class map
     var dialogs = {};
