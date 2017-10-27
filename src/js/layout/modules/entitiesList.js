@@ -22,9 +22,9 @@ function EntitiesList(config) {
     var metaKeys = ['_id', '_ref'];
     var showMetaKeys = false;
     
-    var id = w.getUniqueId('entities_');
-    $('#'+config.parentId).append(
-        '<div id="'+id+'" class="moduleParent">'+
+    var id = config.parentId;
+    $('#'+id).append(
+        '<div class="moduleParent">'+
             '<ul class="moduleContent entitiesList"></ul>'+
             '<div class="moduleFooter entitiesOptions">'+
                 '<div class="sortBy"><span>Sort By</span> '+

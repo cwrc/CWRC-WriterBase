@@ -77,7 +77,7 @@ $(document).on('context_show.vakata', function(e, data) {
 function StructureTree(config) {
     var w = config.writer;
     
-    var id = 'tree';
+    var id = w.getUniqueId('tree_');
     
     /**
      * @lends StructureTree.prototype

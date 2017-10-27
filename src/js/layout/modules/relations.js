@@ -17,9 +17,9 @@ function Relations(config) {
     
     var w = config.writer;
     
-    var id = w.getUniqueId('relations_');
+    var id = config.parentId;
     $('#'+config.parentId).append(
-        '<div id="'+id+'" class="moduleParent">'+
+        '<div class="moduleParent">'+
             '<ul class="moduleContent relationsList"></ul>'+
             '<div class="moduleFooter">'+
                 '<button type="button">Add Relation</button><button type="button">Remove Relation</button>'+
