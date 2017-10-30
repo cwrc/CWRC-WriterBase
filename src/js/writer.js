@@ -780,6 +780,7 @@ function CWRCWriter(config) {
         
         w.schemaManager = new SchemaManager(w, {schemas: config.schemas});
         w.entitiesManager = new EntitiesManager(w);
+        w.dialogManager = new DialogManager(w); // needs to load before SettingsDialog
         w.utilities = new Utilities(w);
         w.tagger = new Tagger(w);
         w.converter = new Converter(w);
@@ -1105,9 +1106,6 @@ function CWRCWriter(config) {
 //                        });
             }
         });
-        
-        w.dialogManager = new DialogManager(w);
-
     };
     
     return w;
