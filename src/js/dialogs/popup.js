@@ -38,8 +38,8 @@ function Popup(writer) {
             my: 'center', at: 'center', of: $currentTag,
             using: function(topLeft, posObj) {
                 var $popupEl = posObj.element.element;
-                var $editorBody = $(w.editor.getBody());
-                var $docBody = $(document.body);
+                var $editorBody = $(w.editor.getDoc().documentElement);
+                var $docBody = $(document.documentElement);
                 
                 var tagOffset = $currentTag.offset();
                 var frameOffset = $(w.editor.iframeElement).offset();

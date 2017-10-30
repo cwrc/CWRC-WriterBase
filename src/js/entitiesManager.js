@@ -200,7 +200,7 @@ EntitiesManager.prototype = {
                 
                 if (doScroll) {
                     var val = entityTags.offset().top;
-                    $(body).scrollTop(val);
+                    $(this.w.editor.getDoc().documentElement).scrollTop(val);
                 }
                 
                 this.w.event('entityFocused').publish(id);
