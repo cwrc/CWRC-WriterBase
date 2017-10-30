@@ -2,7 +2,7 @@
 'use strict';
 //window.jQuery = window.$ = require('jquery');
 //var $ = require('jquery');
-//require('jquery-ui-core');
+
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/checkboxradio');
 require('jquery-ui/ui/widgets/controlgroup');
