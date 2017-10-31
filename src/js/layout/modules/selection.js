@@ -16,7 +16,7 @@ function Selection(config) {
     var lastUpdate = new Date().getTime();
     
     $(document.body).append('<link type="text/css" rel="stylesheet" href="'+w.cwrcRootUrl+'css/prism.css" />');
-    $('#'+config.parentId).append('<div id="selection" style="margin-left: 10px; overflow: hidden;"></div>');
+    $('#'+config.parentId).append('<div id="selection" style="overflow: hidden;"></div>');
     $(document.body).append('<div id="selectionContents" style="display: none;"></div>');
     
     w.event('nodeChanged').subscribe(function() {
@@ -50,7 +50,7 @@ function Selection(config) {
             var escapedContents = w.utilities.escapeHTMLString(xmlString);   //$('#selectionContents')[0].innerHTML
             if (escapedContents.length < 100000) {
                 if (escapedContents != '\uFEFF') {
-                    $('#selection').html('<pre><code class="language-markup">'+escapedContents+'</code></pre>');
+                    $('#selection').html('<pre style="width:100%;height:100%;padding:0;margin:0;"><code class="language-markup">'+escapedContents+'</code></pre>');
                     Prism.highlightElement($('#selection code')[0]);
                 } else {
                     $('#selection').html('<pre><code>Nothing selected.</code></pre>');
