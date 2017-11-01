@@ -237,7 +237,7 @@ Displays images linked from within the current document. Useful for OCR'd docume
 
 [Relations](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/relations.js)
 
-Displays the list of entity relationships in the current document. Uses (triple)[https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/dialogs/triple.js] to add new relationships.
+Displays the list of entity relationships (i.e. RDF triples) in the current document. Uses [triple](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/dialogs/triple.js) to add new relationships.
 
 ### Selection
 
@@ -255,7 +255,7 @@ Displays the markup of the current document in a tree/outline. Useful for naviga
 
 [Validation](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/validation.js)
 
-Requests and displays the results of document validation. See (#validate-callback).
+Requests and displays the results of document validation. See [validate](#validate-callback).
 
 ## Demo
 
