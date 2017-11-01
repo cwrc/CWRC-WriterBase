@@ -97,7 +97,7 @@ Options that can be set on the configuration object:
 
 * `config.cwrcRootUrl`: String. An absolute URL that should point to the root of the CWRC-Writer directory. <b>Required</b>.
 * `config.storageDialogs`: Object.  Object. Storage dialogs, see [cwrc-gi-dialogs](https://github.com/cwrc/cwrc-git-dialogs) for example and API definition.
-* `config.layout`: Object.  Layout object as described above [Layout](#layout), see [layout-cofing.js]([https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/layout-config.js]) for example.
+* `config.layout`: Object.  Layout object as described above [Layout](#layout), see [layout-config.js](https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/layout-config.js) for example.
 * `config.entityLookupDialogs`: Object. Entity lookup, see [cwrc-public-entity-dialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) for example and API definition.
 
 ##### Other Options
@@ -109,6 +109,7 @@ Options that can be set on the configuration object:
   * `url`: String. A url that links to the schema (RELAX NG) file.
   * `cssUrl`: String. A url that links to the CSS associated with this schema.
   * `schemaMappingsId`: String. The directory name in the schema directory: https://github.com/cwrc/CWRC-Writer/tree/development/src/js/schema from which to load mapping and dialogs files for the schema.
+  * `entityTemplates`: Object. Lists urls for use by citation and note entity dialogs.
 * `config.cwrcDialogs`: Object. Lists urls for use by the [CWRC-Dialogs](https://github.com/cwrc/CWRC-Dialogs). 
 * `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of plugins to set in the CWRC-Writer toolbars. Possible values: `addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, viewsource, editsource, validate, savebutton, loadbutton`.
 
