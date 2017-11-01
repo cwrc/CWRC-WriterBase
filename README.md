@@ -23,6 +23,8 @@ The [Canadian Writing Research Collaboratory (CWRC)](http://www.cwrc.ca/projects
 1. [Layout](#layout)
 1. [Configuration](#overview)
 1. [API](#api)
+1. [Managers](#managers)
+1. [Modules](#modules)
 1. [Demo](#demo)
 1. [Development](#development)
 
@@ -180,9 +182,37 @@ boolean
 callback(w, valid): function where w is the writer and valid is true/false.
 Fires a `documentValidated` event if validation is successful.
 
+## Managers
+
+Tasks within CWRC-Writer are handled by specific managers.
+
+### Annotations
+
+### Dialogs
+
+### Entities
+
 ### Events
 
-The full list of events used by the CWRC-Writer is defined in [eventManager.js](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js).  
+### Schema
+
+
+## Modules
+
+Modules are self-contained components that add extra functionality to CWRC-Writer. These are added to the Base through the [Layout](#layout).
+
+### EntitiesList
+
+### ImageViewer
+
+### Relations
+
+### Selection
+
+### StructureTree
+
+### Validation
+
 
 ## Demo
 
