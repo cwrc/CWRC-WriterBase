@@ -188,28 +188,28 @@ Tasks within CWRC-Writer are handled by specific managers.
 
 ### Annotations
 
-(AnnotationsManager)[https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/annotationsManager.js]
+[AnnotationsManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/annotationsManager.js)
 Handles conversion of entities to annotations and vice-versa.
 
 ### Dialogs
 
-(DialogManager)[https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/dialogManager.js]
+[DialogManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/dialogManager.js)
 Handles the initialization and display of dialogs.
 
 ### Entities
 
-(EntitiesManager)[https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/entitiesManager.js]
+[EntitiesManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/entitiesManager.js)
 Handles the creation and modification of entities. Stores the list of entities in the current document.
 
 ### Events
 
-(EventManager)[https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js]
-Handles the dissemination of events through the CWRC-Writer using a publication-subscribe pattern. See the (code)[https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js] for the full list of events.
+[EventManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js)
+Handles the dissemination of events through the CWRC-Writer using a publication-subscribe pattern. See the [code](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js) for the full list of events.
 
 ### Schema
 
-(SchemaManager)[https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/schema/schemaManager.js]
-Handles schema loading and schema CSS processing. Stores the list of available schemas, as well as the current schema. Handles the creation of schema-appropriate entities, via the (Mapper)[https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/schema/mapper.js].
+[SchemaManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/schema/schemaManager.js)
+Handles schema loading and schema CSS processing. Stores the list of available schemas, as well as the current schema. Handles the creation of schema-appropriate entities, via the [Mapper](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/schema/mapper.js).
 
 
 ## Modules
