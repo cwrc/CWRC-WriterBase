@@ -189,26 +189,31 @@ Tasks within CWRC-Writer are handled by specific managers.
 ### Annotations
 
 [AnnotationsManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/annotationsManager.js)
+
 Handles conversion of entities to annotations and vice-versa.
 
 ### Dialogs
 
 [DialogManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/dialogManager.js)
+
 Handles the initialization and display of dialogs.
 
 ### Entities
 
 [EntitiesManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/entitiesManager.js)
-Handles the creation and modification of entities. Stores the list of entities in the current document.
+
+Handles the creation and modification of [entities](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/entity.js). Stores the list of entities in the current document.
 
 ### Events
 
 [EventManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js)
+
 Handles the dissemination of events through the CWRC-Writer using a publication-subscribe pattern. See the [code](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js) for the full list of events.
 
 ### Schema
 
 [SchemaManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/schema/schemaManager.js)
+
 Handles schema loading and schema CSS processing. Stores the list of available schemas, as well as the current schema. Handles the creation of schema-appropriate entities, via the [Mapper](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/schema/mapper.js).
 
 
@@ -218,16 +223,39 @@ Modules are self-contained components that add extra functionality to CWRC-Write
 
 ### EntitiesList
 
+[EntitiesList](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/entitiesList.js)
+
+Displays the list of entities in the current document. Allows for modifying, copying, and deleting of entities.
+
 ### ImageViewer
+
+[ImageViewer](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/imageViewer.js)
+
+Displays images linked from within the current document. Useful for OCR'd documents.
 
 ### Relations
 
+[Relations](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/relations.js)
+
+Displays the list of entity relationships in the current document. Uses (triple)[https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/dialogs/triple.js] to add new relationships.
+
 ### Selection
+
+[Selection](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/selection.js)
+
+Displays the markup of the text that's selected in the current document.
 
 ### StructureTree
 
+[StructureTree](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/structureTree.js)
+
+Displays the markup of the current document in a tree/outline. Useful for navigating and modifying the document.
+
 ### Validation
 
+[Validation](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/validation.js)
+
+Requests and displays the results of document validation. See (#validate-callback).
 
 ## Demo
 
