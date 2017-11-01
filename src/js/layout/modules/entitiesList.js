@@ -6,7 +6,7 @@
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/checkboxradio');
 require('jquery-ui/ui/widgets/controlgroup');
-//require('jquery-contextmenu');
+require('../../lib/jquery/plugins/jquery.contextmenu.min.js');
     
 /**
  * @class EntitiesList
@@ -36,7 +36,6 @@ function EntitiesList(config) {
         '</div>');
     
     // TODO remove context menu IDs
-    // TODO context menu not appearing
     // TODO background icons have no dimensions
     $(document.body).append(''+
         '<div id="'+id+'_contextMenu" class="contextMenu" style="display: none;">'+
@@ -122,26 +121,26 @@ function EntitiesList(config) {
             }
         }
         
-        var id, entry, i;
+        var entityId, entry, i;
         var entitiesString = '';
         
         var entityTags = $('[_entity][class~=start]', w.editor.getBody());
         if (sort == 'category') {
             var categories = {};
             entityTags.each(function(index, el) {
-                id = $(el).attr('name');
-                if (w.entitiesManager.getEntity(id) === undefined) {
-                    var deleted = w.deletedEntities[id];
+                entityId = $(el).attr('name');
+                if (w.entitiesManager.getEntity(entityId) === undefined) {
+                    var deleted = w.deletedEntities[entityId];
                     if (deleted != null) {
-                        w.entitiesManager.setEntity(id, deleted);
+                        w.entitiesManager.setEntity(entityId, deleted);
                         entry = deleted;
-                        delete w.deletedEntities[id];
+                        delete w.deletedEntities[entityId];
                     } else {
-                        w.tagger.removeEntity(id);
+                        w.tagger.removeEntity(entityId);
                         return;
                     }
                 } else {
-                    entry = w.entitiesManager.getEntity(id);
+                    entry = w.entitiesManager.getEntity(entityId);
                 }
                 if (categories[entry.getType()] == null) {
                     categories[entry.getType()] = [];
@@ -149,8 +148,8 @@ function EntitiesList(config) {
                 categories[entry.getType()].push(entry);
             });
             var category;
-            for (id in categories) {
-                category = categories[id];
+            for (entityId in categories) {
+                category = categories[entityId];
                 for (i = 0; i < category.length; i++) {
                     entry = category[i];
                     entitiesString += _buildEntity(entry);
@@ -158,19 +157,19 @@ function EntitiesList(config) {
             }
         } else if (sort == 'sequence') {
             entityTags.each(function(index, el) {
-                id = $(this).attr('name');
-                if (w.entitiesManager.getEntity(id) === undefined) {
-                    var deleted = w.deletedEntities[id];
+                entityId = $(this).attr('name');
+                if (w.entitiesManager.getEntity(entityId) === undefined) {
+                    var deleted = w.deletedEntities[entityId];
                     if (deleted != null) {
-                        w.entitiesManager.setEntity(id, deleted);
+                        w.entitiesManager.setEntity(entityId, deleted);
                         entry = deleted;
-                        delete w.deletedEntities[id];
+                        delete w.deletedEntities[entityId];
                     } else {
-                        w.tagger.removeEntity(id);
+                        w.tagger.removeEntity(entityId);
                         return;
                     }
                 } else {
-                    entry = w.entitiesManager.getEntity(id);
+                    entry = w.entitiesManager.getEntity(entityId);
                 }
                 if (entry) {
                     entitiesString += _buildEntity(entry);
