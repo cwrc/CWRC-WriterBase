@@ -584,7 +584,7 @@ function Converter(writer) {
         
         $(doc).find('rdf\\:RDF, RDF').remove();
         var root = doc.documentElement;
-        var editorString = converter.buildEditorString(root);
+        var editorString = converter.buildEditorString(root, !w.isReadOnly);
         w.editor.setContent(editorString, {format: 'raw'});
         
         w.editor.undoManager.clear()
@@ -629,7 +629,7 @@ function Converter(writer) {
         
         var root = doc.documentElement;
 
-        var editorString = converter.buildEditorString(root);
+        var editorString = converter.buildEditorString(root, !w.isReadOnly);
         w.editor.setContent(editorString, {format: 'raw'}); // format is raw to prevent html parser and serializer from messing up whitespace
 
         insertEntities();
