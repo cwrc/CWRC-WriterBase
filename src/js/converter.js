@@ -200,31 +200,35 @@ function Converter(writer) {
         if (entityEntry && tag) {
             array = w.schemaManager.mapper.getMapping(entityEntry);
         } else if (structEntry) {
-            var openingTag = '<'+tag;
-            var cwrcAnnotationId = node[0].getAttribute('annotationId');
-            if (cwrcAnnotationId != null) {
-                openingTag += ' annotationId="'+cwrcAnnotationId+'"';
-            }
-            var cwrcOffsetId = node[0].getAttribute('offsetId');
-            if (cwrcOffsetId != null) {
-                openingTag += ' offsetId="'+cwrcOffsetId+'"';
-            }
-            for (var key in structEntry) {
-                if (key.indexOf('_') != 0) {
-                    var attName = key;
-                    var attValue = structEntry[key];
-                    if (attName == 'id') {
-                        // leave out IDs
-//                        attName = w.idName;
-                    } else {
-//                        var validVal = converter.convertTextForExport(attValue);
-                        openingTag += ' '+attName+'="'+attValue+'"';
+            if (tag === '#comment') {
+                array = ['<!-- ', ' -->'];
+            } else {
+                var openingTag = '<'+tag;
+                var cwrcAnnotationId = node[0].getAttribute('annotationId');
+                if (cwrcAnnotationId != null) {
+                    openingTag += ' annotationId="'+cwrcAnnotationId+'"';
+                }
+                var cwrcOffsetId = node[0].getAttribute('offsetId');
+                if (cwrcOffsetId != null) {
+                    openingTag += ' offsetId="'+cwrcOffsetId+'"';
+                }
+                for (var key in structEntry) {
+                    if (key.indexOf('_') != 0) {
+                        var attName = key;
+                        var attValue = structEntry[key];
+                        if (attName == 'id') {
+                            // leave out IDs
+    //                        attName = w.idName;
+                        } else {
+    //                        var validVal = converter.convertTextForExport(attValue);
+                            openingTag += ' '+attName+'="'+attValue+'"';
+                        }
                     }
                 }
+                openingTag += '>';
+                array.push(openingTag);
+                array.push('</'+tag+'>');
             }
-            openingTag += '>';
-            array.push(openingTag);
-            array.push('</'+tag+'>');
         } else {
             // not a valid tag so return empty strings
             array = ['', ''];
@@ -786,11 +790,13 @@ function Converter(writer) {
      * contents, compatible with the editor. Additionally creates w.structs
      * entries.
      *
-     * @param node
-     *            An (X)HTML element
+     * @param {Element} node An (X)HTML element
+     * @param {Boolean} [includeComments] True to include comments in the output
      * @returns {String}
      */
-    converter.buildEditorString = function(node) {
+    converter.buildEditorString = function(node, includeComments) {
+        includeComments === undefined ? false : includeComments;
+        
         var editorString = '';
 
         function doBuild(currentNode, forceInline) {
@@ -858,17 +864,21 @@ function Converter(writer) {
                 editorString += '>\uFEFF</'+tagName+'>'; // need \uFEFF otherwise a <br> gets inserted
             } else {
                 editorString += '>';
-
-                var isInline = forceInline || !w.utilities.isTagBlockLevel(tag);
-
-                $node.contents().each(function(index, el) {
-                    if (el.nodeType == 1) {
-                        doBuild(el, isInline);
-                    } else if (el.nodeType == 3) {
-                        var stringContents = el.data.replace(/</g, '&lt;').replace(/>/g, '&gt;'); // prevent tags from accidentally being created
-                        editorString += stringContents;
-                    }
-                });
+                
+                if (currentNode.nodeType === Node.COMMENT_NODE) {
+                    var stringContents = currentNode.data.replace(/</g, '&lt;').replace(/>/g, '&gt;'); // prevent tags from accidentally being created
+                    editorString += stringContents;
+                } else {
+                    var isInline = forceInline || !w.utilities.isTagBlockLevel(tag);
+                    $node.contents().each(function(index, el) {
+                        if (el.nodeType === Node.ELEMENT_NODE || (includeComments && el.nodeType === Node.COMMENT_NODE)) {
+                            doBuild(el, isInline);
+                        } else if (el.nodeType === Node.TEXT_NODE) {
+                            var stringContents = el.data.replace(/</g, '&lt;').replace(/>/g, '&gt;'); // prevent tags from accidentally being created
+                            editorString += stringContents;
+                        }
+                    });
+                }
 
                 editorString += '</'+tagName+'>';
             }
