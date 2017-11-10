@@ -51,7 +51,7 @@ function handleResize(dialogEl) {
  */
 function DialogManager(writer) {
     var w = writer;
-    var cD = writer.initialConfig.entityLookupDialogs;
+   // var cD = writer.initialConfig.entityLookupDialogs;
     
     $(document.body).append('<div class="cwrc" id="cwrcDialogWrapper"></div>');
 
@@ -99,10 +99,10 @@ function DialogManager(writer) {
      */
     var dm = {};
 
-    dm.getEntityDialogs =  function() {
+  /*  dm.getEntityDialogs =  function() {
         return cD;
     }
-    
+    */
     dm.addDialog = function(dialogName, DialogClass) {
         var dialog = new DialogClass(w);
         if (dialog.show === undefined) {
@@ -157,7 +157,7 @@ function DialogManager(writer) {
         dm.addDialog(dialogName, defaultDialogs[dialogName]);
     }
 
-    if (w.initialConfig.cwrcDialogs !== undefined) {
+   /* if (w.initialConfig.cwrcDialogs !== undefined) {
         cD.initialize();
         
         var conf = w.initialConfig.cwrcDialogs;
@@ -171,7 +171,7 @@ function DialogManager(writer) {
             if (conf.schemas.place) cD.setPlaceSchema(conf.schemas.place);
             if (conf.schemas.organization) cD.setOrganizationSchema(conf.schemas.organization);
         }
-    }
+    }*/
 
     var dialogNames = ['citation', 'correction', 'date', 'keyword', 'link', 'note', 'org', 'person', 'place', 'title'];
 
