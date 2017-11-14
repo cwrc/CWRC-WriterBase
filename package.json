@@ -44,7 +44,7 @@
     "octokit": "0.10.4",
     "openseadragon": "2.3.1",
     "prismjs": "1.6.0",
-    "tinymce": "4.6.1",
+    "tinymce": "4.7.2",
     "viaf-entity-lookup": "^1.1.1",
     "wikidata-entity-lookup": "^1.1.0"
   },
