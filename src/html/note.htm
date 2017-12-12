@@ -8,6 +8,10 @@
         <link type="text/css" rel="stylesheet" href="../css/style.css" />
         <link type="text/css" rel="stylesheet" href="../css/layout-default-latest.css" />
         <link type="text/css" rel="stylesheet" href="../css/cwrc12/jquery-ui.css" />
+        <link type="text/css" rel="stylesheet" href="../css/prism.css" />
+        <link type="text/css" rel="stylesheet" href="../css/editor.css" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+            integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
     </head>
     <body>
         <div id="cwrcWriterContainer" style="height: 100%; width: 100%;"></div>
@@ -25,12 +29,17 @@
 	        
 	        var readonly = getParameterByName('readonly');
             if (readonly == 'true') readonly = true;
-	        window.writer = getCWRCWriter({
-	            readonly: readonly,
-	            mode: 'xml',
-	            buttons1: 'schematags,editTag,removeTag,|,addperson,addplace,adddate,addorg,addcitation,addtitle,addcorrection,addkeyword,addlink'
-	        });
-            writer.init('cwrcWriterContainer');
+            
+            var config = CWRCWriterConfig;
+            config.readonly = readonly;
+            config.mode = 'xml';
+            config.buttons1 = 'schematags,editTag,removeTag,|,addperson,addplace,adddate,addorg,addcitation,addtitle,addcorrection,addkeyword,addlink';
+            
+            config.layout = CWRCWriterLayout;
+            config.entityLookupDialogs = CWRCWriterDialogs;
+            config.storageDialogs = CWRCWriterStorageDialogs;
+            window.writer = new CWRCWriter(config);
+            window.writer.init("cwrcWriterContainer");
         </script>
     </body>
 </html>
