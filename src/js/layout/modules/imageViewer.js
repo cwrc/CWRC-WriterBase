@@ -14,10 +14,11 @@ function ImageViewer(config) {
     
     var styles = ''+
     '.imageViewer { display: table; height: 100%; width: 100%; }'+
-    '.imageViewer .toolbar { display: table-row; height: 25px; width: 100%; text-align: center; }'+
+    '.imageViewer .toolbar { display: table-row; height: 25px; text-align: center; }'+
     '.imageViewer .pageInfo { display: inline-block; margin: 0 5px; }'+
     '.imageViewer input.currPage { width: 20px; text-align: right; }'+
-    '.imageViewer .image { display: table-row; width: 100%; }';
+    '.imageViewer .msg { display: table-row; height: 25px; text-align: center; margin-top: 10px; }'+
+    '.imageViewer .image { display: table-row; }';
     
     var styleEl = document.createElement("style");
     styleEl.type = "text/css";
@@ -29,6 +30,7 @@ function ImageViewer(config) {
             '<div class="toolbar">'+
                 '<button class="prev">&#8592;</button><span class="pageInfo"><input type="text" class="currPage" /> / <span class="totalPages" /></span><button class="next">&#8594;</button>'+
             '</div>'+
+            '<div id="'+id+'_msg" class="msg"></div>'+
             '<div id="'+id+'_osd" class="image"></div>'+
         '</div>');
     $('#'+config.parentId).css('overflow', 'hidden');
@@ -72,12 +74,10 @@ function ImageViewer(config) {
     function processDocument(doc) {
         pageBreaks = $(doc).find('*[_tag='+tagName+']');
         if (pageBreaks.length == 0) {
-            w.dialogManager.show('message', {
-                title: 'ImageViewer Error',
-                type: 'error',
-                msg: 'No <b>&lt;'+tagName+'&gt;</b> elements found!'
-            });
+            $('#'+id+'_msg').show().html('No '+tagName+' elements found.');
+            osd.close();
         } else {
+            $('#'+id+'_msg').hide();
             $parent.find('.totalPages').html(pageBreaks.length);
             iv.loadPage(0, true);
         }
