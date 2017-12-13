@@ -74,10 +74,8 @@ function ImageViewer(config) {
     function processDocument(doc) {
         pageBreaks = $(doc).find('*[_tag='+tagName+']');
         if (pageBreaks.length == 0) {
-            $('#'+id+'_msg').show().html('No '+tagName+' elements found.');
-            osd.close();
+            iv.setMessage('No '+tagName+' elements found.');
         } else {
-            $('#'+id+'_msg').hide();
             $parent.find('.totalPages').html(pageBreaks.length);
             iv.loadPage(0, true);
         }
@@ -142,27 +140,32 @@ function ImageViewer(config) {
      * @param boolean external did the request get triggered from outside this module? (e.g. from scrolling)
      */
     iv.loadPage = function(index, external) {
+        $('#'+id+'_msg').hide();
         if (index >= 0 && index < pageBreaks.length) {
             if (index != currentIndex) {
                 currentIndex = index;
                 $parent.find('.currPage').val(index+1);
                 var pageBreak = $(pageBreaks.get(index));
                 var url = pageBreak.attr(attrName);
-                setImage(url);
+                if (url !== undefined) {
+                    setImage(url);
                 
-                if (index == 0) {
-                    $parent.find('button.prev').button('disable');
+                    if (index == 0) {
+                        $parent.find('button.prev').button('disable');
+                    } else {
+                        $parent.find('button.prev').button('enable')
+                    }
+                    if (index == pageBreaks.legnth-1) {
+                        $parent.find('button.next').button('disable');
+                    } else {
+                        $parent.find('button.next').button('enable');
+                    }
+                    
+                    if (!external) {
+                        pageBreak[0].scrollIntoView();
+                    }
                 } else {
-                    $parent.find('button.prev').button('enable')
-                }
-                if (index == pageBreaks.legnth-1) {
-                    $parent.find('button.next').button('disable');
-                } else {
-                    $parent.find('button.next').button('enable');
-                }
-                
-                if (!external) {
-                    pageBreak[0].scrollIntoView();
+                    iv.setMessage('No URI found for @'+attrName);
                 }
             }
         }
@@ -174,6 +177,11 @@ function ImageViewer(config) {
     
     iv.nextPage = function() {
         iv.loadPage(currentIndex+1, false);
+    }
+    
+    iv.setMessage = function(msg) {
+        osd.close();
+        $('#'+id+'_msg').show().html(msg);
     }
     
     $parent.find('.image img').on('load', function() {
