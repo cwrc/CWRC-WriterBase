@@ -1,7 +1,7 @@
 // custom extension of dialog that removes focus/unfocus functions
 'use strict';
 
-
+var $ = require('jquery');
 require('jquery-ui/ui/widgets/dialog');
 
 $.widget( "custom.popup", $.ui.dialog, {

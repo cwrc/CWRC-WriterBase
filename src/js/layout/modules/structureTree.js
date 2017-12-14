@@ -1,7 +1,7 @@
 //define(['jquery', 'jquery-ui', 'jquery.jstree'], function($, jqueryUi, jsTree) {
 'use strict';
 
-//var $ = require('jquery');
+var $ = require('jquery');
 require('jstree');
 
 // overwrite show submenu, add our custom filter input

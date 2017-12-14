@@ -2,6 +2,7 @@
 
 var $ = require('jquery');
 var ObjTree = require('objtree');
+//require('jquery-xpath');
 
 /**
  * @class Utilities

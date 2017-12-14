@@ -1,14 +1,11 @@
 'use strict';
 
 var $ = require('jquery');
-require('./lib/jquery/plugins/jquery.contextmenu.min.js');
-require('./lib/jquery/plugins/jquery.watermark.min.js');
-require('./lib/jquery/plugins/jquery.xpath.js');
 
 //var tinymce = require('tinymce');
-var Octokit = require('octokit');
-
 window.tinymce = require('tinymce');
+
+var Octokit = require('octokit');
 
 require('tinymce/themes/modern/theme.js');
 require('./tinymce_plugins/cwrc_contextmenu.js');
