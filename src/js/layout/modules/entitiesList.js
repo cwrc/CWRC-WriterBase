@@ -5,7 +5,7 @@ var $ = require('jquery');
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/checkboxradio');
 require('jquery-ui/ui/widgets/controlgroup');
-require('../../lib/jquery/plugins/jquery.contextmenu.min.js');
+require('jquery-contextmenu');
     
 /**
  * @class EntitiesList

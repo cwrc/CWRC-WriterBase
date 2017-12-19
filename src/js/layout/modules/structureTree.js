@@ -1,4 +1,3 @@
-//define(['jquery', 'jquery-ui', 'jquery.jstree'], function($, jqueryUi, jsTree) {
 'use strict';
 
 var $ = require('jquery');

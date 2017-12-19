@@ -27,7 +27,8 @@
     "objtree": "./src/js/lib/objtree/ObjTree.js",
     "jquery-watermark": "./src/js/lib/jquery/plugins/jquery.watermark.min.js",
     "jquery-contextmenu": "./src/js/lib/jquery/plugins/jquery.contextmenu.min.js",
-    "jquery-xpath": "./src/js/lib/jquery/plugins/jquery.xpath.js"
+    "jquery-xpath": "./src/js/lib/jquery/plugins/jquery.xpath.js",
+    "jquery-popup": "./src/js/lib/jquery/plugins/jquery.popup.js"
   },
   "dependencies": {
     "bootstrap": "3.3.7",
