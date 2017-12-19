@@ -83,7 +83,6 @@ html, body {
 	overflow: hidden;
     color: #eee;
     background-color: #455372;
-    border-bottom: 1px solid #455372;
 }
 
 #headerParent {
@@ -161,8 +160,6 @@ html, body {
 
 .cwrc .tabs {
     overflow: hidden;
-    border: none !important;
-    border-right: 1px solid #ccc !important;
     padding: 0 !important;
 }
 
