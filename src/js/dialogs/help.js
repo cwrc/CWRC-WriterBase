@@ -36,7 +36,7 @@ function Help(writer) {
             text: 'View full Documentation',
             'class': 'left',
             click: function() {
-                window.open('http://cwrc.ca/CWRC-Writer_Documentation/');
+                window.open('https://cwrc.ca/CWRC-Writer_Documentation/');
             }
         },{
             text: 'Ok',

@@ -55,7 +55,7 @@ function CWRCWriter(config) {
     
     w.baseUrl = window.location.protocol+'//'+window.location.host+'/'; // the url for referencing various external services
     w.cwrcRootUrl = config.cwrcRootUrl; // the url which points to the root of the cwrcwriter location
-    w.validationUrl = config.validationUrl || 'http://validator.services.cwrc.ca/validator/validate.html';// url for the xml validation
+    w.validationUrl = config.validationUrl || 'https://validator.services.cwrc.ca/validator/validate.html';// url for the xml validation
     if (w.cwrcRootUrl == null || w.cwrcRootUrl == '') {
         if (window.console) console.info("using default cwrcRootUrl");
         w.cwrcRootUrl = window.location.protocol+'//'+window.location.host+'/'+window.location.pathname.split('/')[1]+'/';

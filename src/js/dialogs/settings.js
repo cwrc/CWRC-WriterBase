@@ -126,7 +126,7 @@ function Settings(writer, config) {
     $('#helpLink').click(function() {
         w.dialogManager.show('message', {
             title: 'CWRC-Writer Help',
-            msg: '<p>For help with CWRC-Writer click <a href="http://cwrc.ca/CWRC-Writer_Documentation/" target="_blank">here</a>.</p>',
+            msg: '<p>For help with CWRC-Writer click <a href="https://cwrc.ca/CWRC-Writer_Documentation/" target="_blank">here</a>.</p>',
             modal: false
         });
     });
