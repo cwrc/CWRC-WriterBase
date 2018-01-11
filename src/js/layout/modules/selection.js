@@ -13,11 +13,17 @@ function Selection(config) {
     
     var w = config.writer;
     
+    var id = w.getUniqueId('selection_');
+    
     var lastUpdate = new Date().getTime();
     
-    $(document.body).append('<link type="text/css" rel="stylesheet" href="'+w.cwrcRootUrl+'css/prism.css" />');
-    $('#'+config.parentId).append('<div id="selection" style="overflow: hidden;"></div>');
-    $(document.body).append('<div id="selectionContents" style="display: none;"></div>');
+    w.utilities.addCSS('css/prism-ghcolors.css');
+    $('#'+config.parentId).append(`
+    <div class="moduleParent">
+        <div id="${id}" class="moduleContent"></div>
+    </div>
+    `);
+    $(document.body).append('<div id="'+id+'selectionContents" style="display: none;"></div>');
     
     w.event('nodeChanged').subscribe(function() {
         updateSelection();
@@ -34,7 +40,7 @@ function Selection(config) {
     function updateSelection(useDoc) {
         var timestamp = new Date().getTime();
         var timeDiff = timestamp - lastUpdate; // track to avoid double update on nodeChanged/tagSelected combo
-        if ($('#selection').is(':visible') && timeDiff > 250) {
+        if ($('#'+id).is(':visible') && timeDiff > 250) {
             lastUpdate = new Date().getTime();
             
             var contents = '';
@@ -45,18 +51,18 @@ function Selection(config) {
                 contents = range.cloneContents();
             }
             
-            $('#selectionContents').html(contents);
-            var xmlString = w.converter.buildXMLString($('#selectionContents'));
+            $('#'+id+'selectionContents').html(contents);
+            var xmlString = w.converter.buildXMLString($('#'+id+'selectionContents'));
             var escapedContents = w.utilities.escapeHTMLString(xmlString);   //$('#selectionContents')[0].innerHTML
             if (escapedContents.length < 100000) {
                 if (escapedContents != '\uFEFF') {
-                    $('#selection').html('<pre style="width:100%;height:100%;padding:0;margin:0;"><code class="language-markup">'+escapedContents+'</code></pre>');
-                    Prism.highlightElement($('#selection code')[0]);
+                    $('#'+id).html('<pre style="width:100%;height:100%;padding:0;margin:0;"><code class="language-markup">'+escapedContents+'</code></pre>');
+                    Prism.highlightElement($('#'+id+' code')[0]);
                 } else {
-                    $('#selection').html('<pre><code>Nothing selected.</code></pre>');
+                    $('#'+id).html('<pre><code>Nothing selected.</code></pre>');
                 }
             } else {
-                $('#selection').html('<pre><code>The selection is too large to display.</code></pre>');
+                $('#'+id).html('<pre><code>The selection is too large to display.</code></pre>');
             }
         }
     }

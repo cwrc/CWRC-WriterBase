@@ -2,7 +2,6 @@
 
 var $ = require('jquery');
 var ObjTree = require('objtree');
-//require('jquery-xpath');
 
 /**
  * @class Utilities
@@ -62,6 +61,16 @@ function Utilities(writer) {
         var json = xotree.parseDOM(xml);
         return json;
     };
+    
+    u.addCSS = function(cssHref) {
+        var fullHref = w.cwrcRootUrl+cssHref;
+        for (var i = 0; i < document.styleSheets.length; i++) {
+            if (document.styleSheets[i].href === fullHref) {
+                return;
+            }
+        }
+        $(document.head).append('<link type="text/css" rel="stylesheet" href="'+fullHref+'" />');
+    }
     
     /**
      * @param content
