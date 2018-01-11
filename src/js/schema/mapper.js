@@ -2,7 +2,7 @@
 'use strict';
 
 var $ = require('jquery');
-//require('jquery-xpath');
+var xpath = require('xpath');
 var Entity = require('../entity.js');
 
 function Mapper(config) {
@@ -140,19 +140,31 @@ Mapper.getDefaultReverseMapping = function(xml, customMappings, nsPrefix) {
     return obj;
 };
 
-Mapper.getXpathResult = function(xmlContext, xpath, nsPrefix) {
+Mapper.getXpathResult = function(xmlContext, xpathExpression, nsPrefix) {
     nsPrefix = nsPrefix || '';
     var nsUri = xmlContext.namespaceURI;
     if (nsUri === null && nsPrefix !== '') {
         // remove namespaces
         var regex = new RegExp(nsPrefix+':', 'g');
-        xpath = xpath.replace(regex, '');
+        xpathExpression = xpathExpression.replace(regex, '');
     }
-    var nsResolver = function(prefix) {
-        if (prefix == nsPrefix) return nsUri;
-    };
 
-    var result = $(xmlContext).xpath(xpath, nsResolver)[0];
+    var namespaces = {};
+    namespaces[nsPrefix] = nsUri;
+    var expr = xpath.useNamespaces(namespaces);
+    
+    var result = undefined;
+    if (xpathExpression.indexOf(',') !== -1) { // xpath lib doesn't support xpath 2.0 commas 
+        var expressions = xpathExpression.split(',');
+        for (var i = 0; i < expressions.length; i++) {
+            var e = expressions[i];
+            result = expr(e, xmlContext, true);
+            if (result !== undefined) break;
+        }
+    } else {
+        result = expr(xpathExpression, xmlContext, true);
+    }
+    
     return result;
 };
 
