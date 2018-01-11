@@ -5,8 +5,6 @@ var $ = require('jquery');
 //var tinymce = require('tinymce');
 window.tinymce = require('tinymce');
 
-var Octokit = require('octokit');
-
 require('tinymce/themes/modern/theme.js');
 require('./tinymce_plugins/cwrc_contextmenu.js');
 require('./tinymce_plugins/cwrc_path.js');
@@ -230,23 +228,6 @@ function CWRCWriter(config) {
 
     w.getHelp = function(tagName) {
         return w.utilities.getDocumentationForTag(tagName)
-    }
-
-    w.getDocumentation = function(fileName, callback) {
-        var octo = Octokit.new({token: '15286e8222a7bc13504996e8b451d82be1cba397'});
-        var templateRepo = octo.getRepo('cwrc', 'CWRC-Writer-Documentation');
-        var branch = templateRepo.getBranch('master');
-    
-        branch.contents('out/xhtml/'+fileName).then(function(contents) {
-            var doc = $.parseXML(contents);
-            callback.call(w, doc);
-        }, function() {
-            w.dialogManager.show('message', {
-                title: 'Error',
-                type: 'error',
-                msg: 'There was an error fetching the documentation for: '+fileName
-            });
-        });
     }
 
         /**

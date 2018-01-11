@@ -45,7 +45,6 @@
     "layout": "ajmacdonald/layout",
     "log4javascript": "^1.4.15",
     "moment": "^2.13.0",
-    "octokit": "0.10.4",
     "openseadragon": "2.3.1",
     "prismjs": "1.6.0",
     "tinymce": "4.7.2",
