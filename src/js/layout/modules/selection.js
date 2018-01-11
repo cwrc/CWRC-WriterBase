@@ -68,8 +68,7 @@ function Selection(config) {
     }
     
     selection.showSelection = function() {
-        w.layout.ui.center.children.layout1.open('south');
-        $('#southTabs').tabs('option', 'active', 1);
+        w.layoutManager.showModule('selection');
         updateSelection(true);
     }
     

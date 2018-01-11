@@ -14,12 +14,20 @@ function Validation(config) {
     
     var w = config.writer;
     
-    var id = 'validation';
+    var id = w.getUniqueId('validation_');
     
-    $('#'+config.parentId).append('<div id="'+id+'">'+
-            '<div id="'+id+'_buttons"><button type="button">Validate</button><button type="button">Clear</button><button type="button">Help</button></div>'+
-            '<ul class="validationList"></ul>'+
-        '</div>');
+    $('#'+config.parentId).append(`
+    <div class="moduleParent">
+        <div id="${id}" class="moduleContent">
+            <ul class="validationList"></ul>
+        </div>
+        <div id="${id}_buttons" class="moduleFooter">
+            <button type="button">Validate</button>
+            <button type="button">Clear</button>
+            <button type="button">Help</button>
+        </div>
+    </div>
+    `);
     
     w.event('documentLoaded').subscribe(function() {
         validation.clearResult();
@@ -32,19 +40,13 @@ function Validation(config) {
         '<li class="ui-state-default">'+
             '<span class="loading"></span> Validating...'+
         '</li>');
-        showValidation();
+        w.layoutManager.showModule('validation');
     });
     
     w.event('documentValidated').subscribe(function(valid, resultDoc, docString) {
         $('#'+id+'_indicator').hide();
         validation.showValidationResult(resultDoc, docString);
     });
-    
-    // TODO decouple
-    function showValidation() {
-        w.layout.ui.center.children.layout1.open('south');
-        $('#southTabs').tabs('option', 'active', 0);
-    }
     
     /**
      * @lends Validation.prototype
@@ -183,7 +185,7 @@ function Validation(config) {
             }
         });
         
-        showValidation();
+        w.layoutManager.showModule('validation');
     };
     
     validation.clearResult = function() {

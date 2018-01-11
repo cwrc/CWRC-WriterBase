@@ -22,7 +22,7 @@ var Converter = require('./converter.js');
 var FileManager = require('./fileManager.js');
 var AnnotationsManager = require('./annotationsManager.js');
 var SettingsDialog = require('./dialogs/settings.js');
-var layoutModules = require('./layout/layoutModules.js');
+var LayoutManager = require('./layout/layoutManager.js');
 
 /**
  * @class CWRCWriter
@@ -213,12 +213,16 @@ function CWRCWriter(config) {
         w.entitiesManager.highlightEntity();
     };
     
+    w.loadDocumentURL = function(docUrl) {
+        w.fileManager.loadDocumentFromUrl(docUrl);
+    };
+    
     /**
      * Load a document into the editor
      * @param docXml The XML content of the document
      * @param schemaURI The URI for the corresponding schema
      */
-    w.loadDocument = function(docXml, schemaURI) {
+    w.loadDocumentXML = function(docXml, schemaURI) {
         w.fileManager.loadDocumentFromXml(docXml);
     };
 
@@ -367,19 +371,6 @@ function CWRCWriter(config) {
 
     w.getDocRawContent = function() {
         return w.editor.getContent({format: 'raw'})
-    }
-    w.showToolbar = function() {
-        $('.mce-toolbar-grp', w.editor.getContainer()).first().show();
-        if (w.layout) {
-            w.layout.ui.resizeAll();
-        }
-    }
-    
-    w.hideToolbar = function() {
-        $('.mce-toolbar-grp', w.editor.getContainer()).first().hide();
-        if (w.layout) {
-            w.layout.ui.resizeAll();
-        }
     }
 
     w.getButtonByName = function(name) {
@@ -735,355 +726,349 @@ function CWRCWriter(config) {
         w.entitiesManager.highlightEntity(id, w.editor.selection.getBookmark());
     };
     
+    // INIT
+    if (config.storageDialogs != null) {
+        w.storageDialogs = config.storageDialogs
+    } else {
+        alert('Error: you must specify a storage dialogs class in the CWRCWriter config to allow loading and saving documents.');
+    }
+    if (config.entityLookupDialogs != null) {
+        w.entityLookupDialogs = config.entityLookupDialogs;
+    } else {
+        alert('Error: you must specify entity lookups in the CWRCWriter config for full functionality!');
+    }
     
+    var $container;
+    if (config.container === undefined) {
+        alert('Error: no container supplied for CWRCWriter!');
+        return;
+    } else {
+        if (typeof config.container === 'string') {
+            $container = $('#'+config.container);
+        } else {
+            $container = $(config.container);
+        }
+    }
+    
+    w.eventManager = new EventManager(w);
+    w.utilities = new Utilities(w);
+    w.utilities.addCSS('css/style.css');
+    
+    var editorId = w.getUniqueId('editor_');
+    w.layoutManager = new LayoutManager(w, {
+        name: 'CWRC-Writer',
+        version: '1',
+        editorId: editorId,
+        modules: config.modules,
+        container: $container
+    });
+    
+    w.schemaManager = new SchemaManager(w, {schemas: config.schemas});
+    w.entitiesManager = new EntitiesManager(w);
+    w.dialogManager = new DialogManager(w); // needs to load before SettingsDialog
+    w.tagger = new Tagger(w);
+    w.converter = new Converter(w);
+    w.fileManager = new FileManager(w);
+    w.annotationsManager = new AnnotationsManager(w);
+    w.settings = new SettingsDialog(w, {
+        showEntityBrackets: true,
+        showStructBrackets: false
+    });
+    
+    $(document.body).mousedown(function(e) {
+        _hideContextMenus(e);
+    });
+    
+    window.addEventListener('beforeunload', function(e) {
+        if ((w.isReadOnly === false || w.isAnnotator === true) && window.location.hostname != 'localhost') {
+            if (tinymce.get(editorId).isDirty()) {
+                var msg = 'You have unsaved changes.';
+                (e || window.event).returnValue = msg;
+                return msg;
+            }
+        }
+    });
+
+    $(window).on('unload', function(e) {
+        try {
+            // clear the editor first (large docs can cause the browser to freeze)
+            w.utilities.getRootTag().remove();
+        } catch(e) {
+            
+        }
+    });
+
     /**
-     * Initialize the editor.
-     * @param {String} containerId The ID of the container to transform into the editor.
+     * Init tinymce
      */
-    w.init = function(containerId) {
-        w.eventManager = new EventManager(w);
-        // the layoutModules are used by the confi.layout
-
-        w.layoutModules = layoutModules;
+    tinymce.baseURL = w.cwrcRootUrl+'/js'; // need for skin
+    tinymce.init({
+        selector: '#'+editorId,
+        theme: 'modern',
         
-        var textareaId = w.getUniqueId('editor_');
-        if (config.layout != null) {
-            w.layout = new config.layout(w);
-            w.layout.init($('#'+containerId), textareaId);
-        } else {
-            alert('Error: you must specify a layout in the CWRCWriter config!');
-            return;
-        }
+        skin: 'lightgray',
+        skin_url: '',
         
-        w.schemaManager = new SchemaManager(w, {schemas: config.schemas});
-        w.entitiesManager = new EntitiesManager(w);
-        w.dialogManager = new DialogManager(w); // needs to load before SettingsDialog
-        w.utilities = new Utilities(w);
-        w.tagger = new Tagger(w);
-        w.converter = new Converter(w);
-        w.fileManager = new FileManager(w);
-        w.annotationsManager = new AnnotationsManager(w);
-        w.settings = new SettingsDialog(w, {
-            showEntityBrackets: true,
-            showStructBrackets: false
-        });
+        content_css: w.cwrcRootUrl+'css/editor.css',
         
-        if (config.storageDialogs != null) {
-            w.storageDialogs = config.storageDialogs
-        } else {
-            alert('Error: you must specify a storage dialogs class in the CWRCWriter config to allow loading and saving documents.');
-        }
-        if (config.entityLookupDialogs != null) {
-            w.entityLookupDialogs = config.entityLookupDialogs;
-        } else {
-            alert('Error: you must specify entity lookups in the CWRCWriter config for full functionality!');
-        }
-        if (containerId == null) {
-            alert('Error: no ID supplied for CWRCWriter!');
-        }
+        contextmenu_never_use_native: true,
         
-        $(document.body).mousedown(function(e) {
-            _hideContextMenus(e);
-        });
+        doctype: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
+        element_format: 'xhtml',
         
-        window.addEventListener('beforeunload', function(e) {
-            if ((w.isReadOnly === false || w.isAnnotator === true) && window.location.hostname != 'localhost') {
-                if (tinymce.get(textareaId).isDirty()) {
-                    var msg = 'You have unsaved changes.';
-                    (e || window.event).returnValue = msg;
-                    return msg;
-                }
-            }
-        });
-
-        $(window).on('unload', function(e) {
-            try {
-                // clear the editor first (large docs can cause the browser to freeze)
-                w.utilities.getRootTag().remove();
-            } catch(e) {
-                
-            }
-        });
-
-        /**
-         * Init tinymce
-         */
-        tinymce.baseURL = w.cwrcRootUrl+'/js'; // need for skin
-        tinymce.init({
-            selector: '#'+textareaId,
-            theme: 'modern',
-            
-            skin: 'lightgray',
-            skin_url: '',
-            
-            content_css: w.cwrcRootUrl+'css/editor.css',
-            
-            contextmenu_never_use_native: true,
-            
-            doctype: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
-            element_format: 'xhtml',
-            
-            forced_root_block: w.utilities.getBlockTag(),
-            keep_styles: false, // false, otherwise tinymce interprets our spans as style elements
-            
-            paste_postprocess: function(plugin, ev) {
-                function stripTags(index, node) {
-                    if (node.hasAttribute('_tag') || node.hasAttribute('_entity') ||
-                        node.nodeName.toLowerCase() == 'p' && node.nodeName.toLowerCase() == 'br') {
-                        $(node).children().each(stripTags);
+        forced_root_block: w.utilities.getBlockTag(),
+        keep_styles: false, // false, otherwise tinymce interprets our spans as style elements
+        
+        paste_postprocess: function(plugin, ev) {
+            function stripTags(index, node) {
+                if (node.hasAttribute('_tag') || node.hasAttribute('_entity') ||
+                    node.nodeName.toLowerCase() == 'p' && node.nodeName.toLowerCase() == 'br') {
+                    $(node).children().each(stripTags);
+                } else {
+                    if ($(node).contents().length == 0) {
+                        $(node).remove();
                     } else {
-                        if ($(node).contents().length == 0) {
-                            $(node).remove();
-                        } else {
-                            var contents = $(node).contents().unwrap();
-                            contents.not(':text').each(stripTags);
-                        }
+                        var contents = $(node).contents().unwrap();
+                        contents.not(':text').each(stripTags);
                     }
                 }
-                
-                function replaceTags(index, node) {
-                    if (node.nodeName.toLowerCase() == 'p') {
-                        var tagName = w.utilities.getTagForEditor('p');
-                        $(node).contents().unwrap().wrapAll('<'+tagName+' _tag="p"></'+tagName+'>').not(':text').each(replaceTags);
-                    } else if (node.nodeName.toLowerCase() == 'br') {
-                        var tagName = w.utilities.getTagForEditor('br');
-                        $(node).replaceWith('<'+tagName+' _tag="lb"></'+tagName+'>');
-                    }
-                }
-                
-                $(ev.node).children().each(stripTags);
-                $(ev.node).children().each(replaceTags);
-                
-                window.setTimeout(function() {
-                    // need to fire contentPasted here, after the content is actually within the document
-                    w.event('contentPasted').publish();
-                }, 0);
-            },
-            
-            valid_elements: '*[*]', // allow everything
-            
-            plugins: 'schematags,cwrc_contextmenu,cwrcpath', //paste
-            toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,viewmarkup,editsource,|,validate,savebutton,loadbutton' : config.buttons1,
-            toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
-            toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
-            menubar: false,
-            elementpath: false,
-            statusbar: false,
-            
-            branding: false,
-            
-            // disables style keyboard shortcuts
-            formats: {
-                bold: {},
-                italic: {},
-                underline: {}
-            },
-            
-            setup: function(ed) {
-                // link the writer and editor
-                w.editor = ed;
-                ed.writer = w;
-                
-                // custom properties added to the editor
-                ed.currentStruct = null; // the id of the currently selected structural tag
-                ed.currentBookmark = null; // for storing a bookmark used when adding a tag
-                ed.currentNode = null; // the node that the cursor is currently in
-                ed.contextMenuPos = null; // the position of the context menu (used to position related dialog box)
-                ed.copiedElement = {selectionType: null, element: null}; // the element that was copied (when first selected through the structure tree)
-                ed.entityCopy = null; // store a copy of an entity for pasting
-                ed.lastKeyPress = null; // the last key the user pressed
-                
-                if (w.isReadOnly === true) {
-                    ed.on('PreInit', function(e) {
-                        ed.getBody().removeAttribute('contenteditable');
-                    });
-                }
-                
-                ed.on('init', function(args) {
-                    // modify isBlock method to check _tag attributes
-                    ed.dom.isBlock = function(node) {
-                        if (!node) {
-                            return false;
-                        }
-                        
-                        var type = node.nodeType;
-
-                        // If it's a node then check the type and use the nodeName
-                        if (type) {
-                            if (type === 1) {
-                                var tag = node.getAttribute('_tag') || node.nodeName;
-                                return !!(ed.schema.getBlockElements()[tag]);
-                            }
-                        }
-
-                        return !!ed.schema.getBlockElements()[node];
-                    };
-                    
-                    var settings = w.settings.getSettings();
-                    var body = $(ed.getBody());
-                    if (settings.showEntityBrackets) body.addClass('showEntityBrackets');
-                    if (settings.showStructBrackets) body.addClass('showStructBrackets');
-                    
-                    ed.addCommand('isSelectionValid', w.utilities.isSelectionValid);
-                    ed.addCommand('addEntity', w.tagger.addEntity);
-                    ed.addCommand('editTag', w.tagger.editTag);
-                    ed.addCommand('copyTag', w.tagger.copyTag);
-                    ed.addCommand('pasteTag', w.tagger.pasteTag);
-                    ed.addCommand('changeTag', w.tagger.changeTag);
-                    ed.addCommand('splitTag', w.tagger.splitTag);
-                    ed.addCommand('removeTag', w.tagger.removeTag);
-                    ed.addCommand('pasteEntity', w.tagger.pasteEntity);
-                    ed.addCommand('removeEntity', w.tagger.removeEntity);
-                    ed.addCommand('addStructureTag', w.tagger.addStructureTag);
-                    ed.addCommand('editStructureTag', w.tagger.editStructureTag);
-                    ed.addCommand('changeStructureTag', w.changeStructureTag);
-                    ed.addCommand('removeHighlights', w.removeHighlights);
-                    ed.addCommand('getParentsForTag', w.utilities.getParentsForTag);
-                    ed.addCommand('getDocumentationForTag', w.getHelp);
-                    
-                    // highlight tracking
-                    body.on('keydown',_onKeyDownHandler).on('keyup',_onKeyUpHandler);
-                    // attach mouseUp to doc because body doesn't always extend to full height of editor panel
-                    $(ed.iframeElement.contentDocument).on('mouseup', _onMouseUpHandler);
-                    
-                    w.isInitialized = true;
-                    w.event('writerInitialized').publish(w);
-                });
-                ed.on('Change',_onChangeHandler);
-                ed.on('NodeChange',_onNodeChangeHandler);
-                ed.on('copy', _onCopyHandler);
-                
-                // add schema file and method
-                ed.addCommand('getSchema', function(){
-                    return w.schemaManager.schema;
-                });
-                
-                ed.addButton('addperson', {title: 'Tag Person', image: w.cwrcRootUrl+'img/user.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'person');
-                    }
-                });
-                ed.addButton('addplace', {title: 'Tag Place', image: w.cwrcRootUrl+'img/world.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'place');
-                    }
-                });
-                ed.addButton('adddate', {title: 'Tag Date', image: w.cwrcRootUrl+'img/calendar.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'date');
-                    }
-                });
-                ed.addButton('addevent', {title: 'Tag Event', image: w.cwrcRootUrl+'img/cake.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'event');
-                    }
-                });
-                ed.addButton('addorg', {title: 'Tag Organization', image: w.cwrcRootUrl+'img/group.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'org');
-                    }
-                });
-                ed.addButton('addcitation', {title: 'Tag Citation', image: w.cwrcRootUrl+'img/vcard.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'citation');
-                    }
-                });
-                ed.addButton('addnote', {title: 'Tag Note', image: w.cwrcRootUrl+'img/note.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'note');
-                    }
-                });
-                ed.addButton('addcorrection', {title: 'Tag Correction', image: w.cwrcRootUrl+'img/error.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'correction');
-                    }
-                });
-                ed.addButton('addkeyword', {title: 'Tag Keyword', image: w.cwrcRootUrl+'img/key.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'keyword');
-                    }
-                });
-                ed.addButton('addlink', {title: 'Tag Link', image: w.cwrcRootUrl+'img/link.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'link');
-                    }
-                });
-                ed.addButton('addtitle', {title: 'Tag Text/Title', image: w.cwrcRootUrl+'img/book.png',
-                    onclick : function() {
-                        ed.execCommand('addEntity', 'title');
-                    }
-                });
-                ed.addButton('editTag', {title: 'Edit Tag', image: w.cwrcRootUrl+'img/tag_blue_edit.png',
-                    onclick : function() {
-                        ed.execCommand('editTag');
-                    }
-                });
-                ed.addButton('removeTag', {title: 'Remove Tag', image: w.cwrcRootUrl+'img/tag_blue_delete.png',
-                    onclick : function() {
-                        if (w.entitiesManager.getCurrentEntity() != null) {
-                            w.tagger.removeEntity(w.entitiesManager.getCurrentEntity(), false);
-                        } else if (w.editor.currentStruct != null) {
-                            w.tagger.removeStructureTag(w.editor.currentStruct, false);
-                        }
-                    }
-                });
-                ed.addButton('newbutton', {title: 'New', image: w.cwrcRootUrl+'img/page_white_text.png',
-                    onclick: function() {
-                      //  w.fileManager.newDocument();
-                      w.storageDialogs.save(w)
-                    }
-                });
-                ed.addButton('savebutton', {title: 'Save', image: w.cwrcRootUrl+'img/save.png',
-                    onclick: function() {
-                       // w.fileManager.saveDocument();
-                       w.storageDialogs.save(w)
-                    }
-                });
-                ed.addButton('saveasbutton', {title: 'Save As', image: w.cwrcRootUrl+'img/save_as.png',
-                    onclick: function() {
-                        w.dialogManager.show('filemanager', {type: 'saver'});
-                    }
-                });
-                ed.addButton('loadbutton', {title: 'Load', image: w.cwrcRootUrl+'img/folder_page.png',
-                    onclick: function() {
-                        //w.dialogManager.show('filemanager', {type: 'loader'});
-                        w.storageDialogs.load(w)
-                    }
-                });
-                
-                ed.addButton('viewmarkup', {title: 'View Markup', image: w.cwrcRootUrl+'img/page_white_code.png',
-                    onclick: function() {
-                        w.selection.showSelection();
-                    }
-                });
-                
-                ed.addButton('editsource', {title: 'Edit Source', image: w.cwrcRootUrl+'img/page_white_edit.png',
-                    onclick: function() {
-                        w.fileManager.editSource();
-                    }
-                });
-                ed.addButton('validate', {title: 'Validate', image: w.cwrcRootUrl+'img/validate.png',
-                    onclick: function() {
-                        w.validate();
-                    }
-                });
-                ed.addButton('addtriple', {title: 'Add Relation', image: w.cwrcRootUrl+'img/chart_org.png',
-                    onclick: function() {
-                        $('#westTabs').tabs('option', 'active', 2);
-                        w.dialogManager.show('triple');
-                    }
-                });
-                
-                
-//                        ed.addButton('toggleeditor', {
-//                            title: 'Show Advanced Mode',
-//                            image: 'img/html.png',
-//                           
-//                            cmd: 'toggle_editor'
-//                        });
             }
-        });
-    };
+            
+            function replaceTags(index, node) {
+                if (node.nodeName.toLowerCase() == 'p') {
+                    var tagName = w.utilities.getTagForEditor('p');
+                    $(node).contents().unwrap().wrapAll('<'+tagName+' _tag="p"></'+tagName+'>').not(':text').each(replaceTags);
+                } else if (node.nodeName.toLowerCase() == 'br') {
+                    var tagName = w.utilities.getTagForEditor('br');
+                    $(node).replaceWith('<'+tagName+' _tag="lb"></'+tagName+'>');
+                }
+            }
+            
+            $(ev.node).children().each(stripTags);
+            $(ev.node).children().each(replaceTags);
+            
+            window.setTimeout(function() {
+                // need to fire contentPasted here, after the content is actually within the document
+                w.event('contentPasted').publish();
+            }, 0);
+        },
+        
+        valid_elements: '*[*]', // allow everything
+        
+        plugins: 'schematags,cwrc_contextmenu,cwrcpath', //paste
+        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,viewmarkup,editsource,|,validate,savebutton,loadbutton' : config.buttons1,
+        toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
+        toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
+        menubar: false,
+        elementpath: false,
+        statusbar: false,
+        
+        branding: false,
+        
+        // disables style keyboard shortcuts
+        formats: {
+            bold: {},
+            italic: {},
+            underline: {}
+        },
+        
+        setup: function(ed) {
+            // link the writer and editor
+            w.editor = ed;
+            ed.writer = w;
+            
+            // custom properties added to the editor
+            ed.currentStruct = null; // the id of the currently selected structural tag
+            ed.currentBookmark = null; // for storing a bookmark used when adding a tag
+            ed.currentNode = null; // the node that the cursor is currently in
+            ed.contextMenuPos = null; // the position of the context menu (used to position related dialog box)
+            ed.copiedElement = {selectionType: null, element: null}; // the element that was copied (when first selected through the structure tree)
+            ed.entityCopy = null; // store a copy of an entity for pasting
+            ed.lastKeyPress = null; // the last key the user pressed
+            
+            if (w.isReadOnly === true) {
+                ed.on('PreInit', function(e) {
+                    ed.getBody().removeAttribute('contenteditable');
+                });
+            }
+            
+            ed.on('init', function(args) {
+                // modify isBlock method to check _tag attributes
+                ed.dom.isBlock = function(node) {
+                    if (!node) {
+                        return false;
+                    }
+                    
+                    var type = node.nodeType;
+
+                    // If it's a node then check the type and use the nodeName
+                    if (type) {
+                        if (type === 1) {
+                            var tag = node.getAttribute('_tag') || node.nodeName;
+                            return !!(ed.schema.getBlockElements()[tag]);
+                        }
+                    }
+
+                    return !!ed.schema.getBlockElements()[node];
+                };
+                
+                var settings = w.settings.getSettings();
+                var body = $(ed.getBody());
+                if (settings.showEntityBrackets) body.addClass('showEntityBrackets');
+                if (settings.showStructBrackets) body.addClass('showStructBrackets');
+                
+                ed.addCommand('isSelectionValid', w.utilities.isSelectionValid);
+                ed.addCommand('addEntity', w.tagger.addEntity);
+                ed.addCommand('editTag', w.tagger.editTag);
+                ed.addCommand('copyTag', w.tagger.copyTag);
+                ed.addCommand('pasteTag', w.tagger.pasteTag);
+                ed.addCommand('changeTag', w.tagger.changeTag);
+                ed.addCommand('splitTag', w.tagger.splitTag);
+                ed.addCommand('removeTag', w.tagger.removeTag);
+                ed.addCommand('pasteEntity', w.tagger.pasteEntity);
+                ed.addCommand('removeEntity', w.tagger.removeEntity);
+                ed.addCommand('addStructureTag', w.tagger.addStructureTag);
+                ed.addCommand('editStructureTag', w.tagger.editStructureTag);
+                ed.addCommand('changeStructureTag', w.changeStructureTag);
+                ed.addCommand('removeHighlights', w.removeHighlights);
+                ed.addCommand('getParentsForTag', w.utilities.getParentsForTag);
+                ed.addCommand('getDocumentationForTag', w.getHelp);
+                
+                // highlight tracking
+                body.on('keydown',_onKeyDownHandler).on('keyup',_onKeyUpHandler);
+                // attach mouseUp to doc because body doesn't always extend to full height of editor panel
+                $(ed.iframeElement.contentDocument).on('mouseup', _onMouseUpHandler);
+                
+                w.isInitialized = true;
+                w.event('writerInitialized').publish(w);
+            });
+            ed.on('Change',_onChangeHandler);
+            ed.on('NodeChange',_onNodeChangeHandler);
+            ed.on('copy', _onCopyHandler);
+            
+            // add schema file and method
+            ed.addCommand('getSchema', function(){
+                return w.schemaManager.schema;
+            });
+            
+            ed.addButton('addperson', {title: 'Tag Person', image: w.cwrcRootUrl+'img/user.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'person');
+                }
+            });
+            ed.addButton('addplace', {title: 'Tag Place', image: w.cwrcRootUrl+'img/world.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'place');
+                }
+            });
+            ed.addButton('adddate', {title: 'Tag Date', image: w.cwrcRootUrl+'img/calendar.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'date');
+                }
+            });
+            ed.addButton('addevent', {title: 'Tag Event', image: w.cwrcRootUrl+'img/cake.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'event');
+                }
+            });
+            ed.addButton('addorg', {title: 'Tag Organization', image: w.cwrcRootUrl+'img/group.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'org');
+                }
+            });
+            ed.addButton('addcitation', {title: 'Tag Citation', image: w.cwrcRootUrl+'img/vcard.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'citation');
+                }
+            });
+            ed.addButton('addnote', {title: 'Tag Note', image: w.cwrcRootUrl+'img/note.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'note');
+                }
+            });
+            ed.addButton('addcorrection', {title: 'Tag Correction', image: w.cwrcRootUrl+'img/error.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'correction');
+                }
+            });
+            ed.addButton('addkeyword', {title: 'Tag Keyword', image: w.cwrcRootUrl+'img/key.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'keyword');
+                }
+            });
+            ed.addButton('addlink', {title: 'Tag Link', image: w.cwrcRootUrl+'img/link.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'link');
+                }
+            });
+            ed.addButton('addtitle', {title: 'Tag Text/Title', image: w.cwrcRootUrl+'img/book.png',
+                onclick : function() {
+                    ed.execCommand('addEntity', 'title');
+                }
+            });
+            ed.addButton('editTag', {title: 'Edit Tag', image: w.cwrcRootUrl+'img/tag_blue_edit.png',
+                onclick : function() {
+                    ed.execCommand('editTag');
+                }
+            });
+            ed.addButton('removeTag', {title: 'Remove Tag', image: w.cwrcRootUrl+'img/tag_blue_delete.png',
+                onclick : function() {
+                    if (w.entitiesManager.getCurrentEntity() != null) {
+                        w.tagger.removeEntity(w.entitiesManager.getCurrentEntity(), false);
+                    } else if (w.editor.currentStruct != null) {
+                        w.tagger.removeStructureTag(w.editor.currentStruct, false);
+                    }
+                }
+            });
+            ed.addButton('newbutton', {title: 'New', image: w.cwrcRootUrl+'img/page_white_text.png',
+                onclick: function() {
+                  //  w.fileManager.newDocument();
+                  w.storageDialogs.save(w)
+                }
+            });
+            ed.addButton('savebutton', {title: 'Save', image: w.cwrcRootUrl+'img/save.png',
+                onclick: function() {
+                   // w.fileManager.saveDocument();
+                   w.storageDialogs.save(w)
+                }
+            });
+            ed.addButton('saveasbutton', {title: 'Save As', image: w.cwrcRootUrl+'img/save_as.png',
+                onclick: function() {
+                    w.dialogManager.show('filemanager', {type: 'saver'});
+                }
+            });
+            ed.addButton('loadbutton', {title: 'Load', image: w.cwrcRootUrl+'img/folder_page.png',
+                onclick: function() {
+                    //w.dialogManager.show('filemanager', {type: 'loader'});
+                    w.storageDialogs.load(w)
+                }
+            });
+            
+            ed.addButton('viewmarkup', {title: 'View Markup', image: w.cwrcRootUrl+'img/page_white_code.png',
+                onclick: function() {
+                    w.selection.showSelection();
+                }
+            });
+            
+            ed.addButton('editsource', {title: 'Edit Source', image: w.cwrcRootUrl+'img/page_white_edit.png',
+                onclick: function() {
+                    w.fileManager.editSource();
+                }
+            });
+            ed.addButton('validate', {title: 'Validate', image: w.cwrcRootUrl+'img/validate.png',
+                onclick: function() {
+                    w.validate();
+                }
+            });
+            ed.addButton('addtriple', {title: 'Add Relation', image: w.cwrcRootUrl+'img/chart_org.png',
+                onclick: function() {
+                    $('#westTabs').tabs('option', 'active', 2);
+                    w.dialogManager.show('triple');
+                }
+            });
+
+        }
+    });
     
     return w;
 };

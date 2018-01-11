@@ -158,12 +158,12 @@ html, body {
 }
 
 
-.cwrc .tabs {
+.cwrc.tabs {
     overflow: hidden;
     padding: 0 !important;
 }
 
-.cwrc .tabs > ul {
+.cwrc.tabs > ul {
     padding: 3px 2px 0 !important;
     border-top: none !important;
     border-left: none !important;
@@ -173,31 +173,31 @@ html, body {
     background: #eee !important;
 }
 
-.cwrc .tabs > ul li a {
+.cwrc.tabs > ul li a {
     padding: 4px 1em !important;
 }
 
-.cwrc .tabs .ui-tabs-panel {
+.cwrc.tabs .ui-tabs-panel {
     padding: 0 !important;
     height: 100%;
     overflow: auto;
 }
 
-.cwrc .tabs > ul li.ui-state-default {
+.cwrc.tabs > ul li.ui-state-default {
 	border-color: #eee !important;
 	background: #eee !important;
 }
 
-.cwrc .tabs > ul li.ui-state-hover {
+.cwrc.tabs > ul li.ui-state-hover {
 	background: #b3bbbe !important;
 }
 
-.cwrc .tabs > ul li.ui-state-active {
+.cwrc.tabs > ul li.ui-state-active {
 	border-color: #b3bbbe !important;
     background: #ffffff !important;
 }
 
-.cwrc .tabs > ul li.ui-state-active a, .cwrc .tabs > ul li.ui-state-active a:link {
+.cwrc.tabs > ul li.ui-state-active a, .cwrc.tabs > ul li.ui-state-active a:link {
 	color: #333333 !important;
 }
 
@@ -1020,50 +1020,6 @@ html, body {
     font-size: 1em;
 }
 
-.mceToolbar .person {
-    border-bottom: 2px solid #FF0000 !important;
-}
-
-.mceToolbar .place {
-    border-bottom: 2px solid #009999 !important;
-}
-
-.mceToolbar .date {
-    border-bottom: 2px solid #FF7400 !important;
-}
-
-.mceToolbar .event {
-    border-bottom: 2px solid #00CC00 !important;
-}
-
-.mceToolbar .org {
-    border-bottom: 2px solid #3914AF !important;
-}
-
-.mceToolbar .citation {
-    border-bottom: 2px solid #CD0074 !important;
-}
-
-.mceToolbar .note {
-    border-bottom: 2px solid #0D56A6 !important;
-}
-
-.mceToolbar .textTitle {
-    border-bottom: 2px solid #debb00 !important;
-}
-
-.mceToolbar .correction {
-    border-bottom: 2px solid #FF3300 !important;
-}
-
-.mceToolbar .keyword {
-    border-bottom: 2px solid #008040 !important;
-}
-
-.mceToolbar .link {
-    border-bottom: 2px solid #3366ff !important;
-}
-
 /* tinymce context menu overrides */
 .mce-cwrc .mce-menu-item {
 	padding: 4px 2px;
@@ -1094,6 +1050,10 @@ div.mce-cwrc div.mce-menu-item-sep, div.mce-cwrc div.mce-menu-item-sep:hover {
 
 
 /* tinymce overrides */
+.mce-tinymce.mce-container {
+	border-width: 0px !important;
+}
+
 div.mceDropDown {
     box-shadow: 1px 1px 2px #ccc;
 }
