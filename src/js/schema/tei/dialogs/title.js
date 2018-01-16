@@ -1,10 +1,11 @@
 var $ = require('jquery');
-var DialogForm = require('../../../dialogs/dialogForm.js');
+var DialogForm = require('dialogForm');
 
-module.exports = function(id, writer) {
+module.exports = function(writer) {
     var w = writer;
     
-    var html = ''+
+    var id = w.getUniqueId('titleForm_');
+    var $el = $(''+
     '<div id="'+id+'Dialog" class="annotationDialog">'+
         '<div id="'+id+'_tagAs">'+
             '<p>Tag as:</p>'+
@@ -35,16 +36,15 @@ module.exports = function(id, writer) {
             '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
             '</div>'+
         '</div>'+
-    '</div>';
+    '</div>').appendTo(document.body);
     
     var dialog = new DialogForm({
         writer: w,
-        id: id,
+        $el: $el,
         width: 435,
         height: 630,
         type: 'title',
-        title: 'Tag Title',
-        html: html
+        title: 'Tag Title'
     });
     
     dialog.$el.on('beforeShow', function(e, config, dialog) {

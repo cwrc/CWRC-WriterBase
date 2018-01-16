@@ -6,27 +6,24 @@ var $ = require('jquery');
 function Header(writer) {
     var w = writer;
     
-    $('#headerButtons').prepend(''+
-    '<div id="headerLink">Edit Header</div>');
+    var $headerLink = $('<div>Edit Header</div>').appendTo(w.layoutManager.getHeaderButtonsParent());
     
-    $(document.body).append(''+
-    '<div id="headerDialog">'+
+    var $headerDialog = $(''+
+    '<div class="headerDialog">'+
     '<div><textarea></textarea></div>'+
-    '</div>');
+    '</div>').appendTo(document.body);
     
-    var header = $('#headerDialog');
-    var $writer = $('#cwrc_wrapper');
-    header.dialog({
+    $headerDialog.dialog({
         title: 'Edit Header',
         modal: true,
         resizable: true,
         height: 380,
         width: 400,
-        position: { my: "center", at: "center", of: $writer },
+        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
         autoOpen: false,
         buttons: {
             'Ok': function() {
-                var editorString = '<head>'+$('#headerDialog textarea').val()+'</head>';
+                var editorString = '<head>'+$headerDialog.find('textarea').val()+'</head>';
                 var xml;
                 try {
                     xml = $.parseXML(editorString);
@@ -45,10 +42,10 @@ function Header(writer) {
                 });
                 $('[_tag="'+w.header+'"]', w.editor.getBody()).html(headerString);
                 
-                header.dialog('close');
+                $headerDialog.dialog('close');
             },
             'Cancel': function() {
-                header.dialog('close');
+                $headerDialog.dialog('close');
             }
         }
     });
@@ -59,11 +56,11 @@ function Header(writer) {
         headerEl.children().each(function(index, el) {
             headerString += w.converter.buildXMLString($(el));
         });
-        $('#headerDialog textarea').val(headerString);
-        header.dialog('open');
+        $headerDialog.find('textarea').val(headerString);
+        $headerDialog.dialog('open');
     }
     
-    $('#headerLink').click(function() {
+    $headerLink.click(function() {
         doOpen();
     });
     
@@ -72,7 +69,7 @@ function Header(writer) {
             doOpen();
         },
         hide: function() {
-            header.dialog('close');
+            $headerDialog.dialog('close');
         }
     };
 };

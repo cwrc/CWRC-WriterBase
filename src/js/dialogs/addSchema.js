@@ -7,8 +7,8 @@ function AddSchema(writer) {
     var w = writer;
     
     // TODO add validation
-    $(document.body).append(''+
-    '<div id="addSchemaDialog">'+
+    var $d = $(''+
+    '<div>'+
         '<div>'+
             '<label>Schema Name</label>'+
             '<input type="text" name="name" value=""/>'+
@@ -21,44 +21,42 @@ function AddSchema(writer) {
             '<label>Schema CSS URL</label>'+
             '<input type="text" name="cssUrl" value=""/>'+
         '</div>'+
-    '</div>');
+    '</div>').appendTo(document.body);
     
-    var d = $('#addSchemaDialog');
-    var $writer = $('#cwrc_wrapper');
-    d.dialog({
+    $d.dialog({
         modal: true,
         resizable: false,
         closeOnEscape: false,
         open: function(event, ui) {
-            $('#addSchemaDialog').parent().find('.ui-dialog-titlebar-close').hide();
+            $d.parent().find('.ui-dialog-titlebar-close').hide();
         },
         title: 'Add Schema',
         height: 300,
         width: 250,
-        position: { my: "center", at: "center", of: $writer },
+        position: { my: "center", at: "center", of: w.layoutManager.getWrapper()},
         autoOpen: false,
         buttons: {
             'Add': function() {
                 var info = {};
-                $('#addSchemaDialog input').each(function(index, el) {
+                $('input', $d).each(function(index, el) {
                     info[el.getAttribute('name')] = $(el).val();
                 });
                 var id = w.schemaManager.addSchema(info);
-                d.dialog('close');
+                $d.dialog('close');
             },
             'Cancel': function() {
-                d.dialog('close');
+                $d.dialog('close');
             }
         }
     });
     
     return {
         show: function(config) {
-            $('#addSchemaDialog input').val('');
-            d.dialog('open');
+            $('input', $d).val('');
+            $d.dialog('open');
         },
         hide: function() {
-            d.dialog('close');
+            $d.dialog('close');
         }
     };
 };

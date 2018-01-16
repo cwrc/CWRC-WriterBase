@@ -1,13 +1,14 @@
 var $ = require('jquery');
-//require('jquery-watermark');
-var DialogForm = require('../../../dialogs/dialogForm.js');
+require('jquery-watermark');
+var DialogForm = require('dialogForm');
 require('jquery-ui/ui/widgets/button');
 
-module.exports = function(id, writer) {
+module.exports = function(writer) {
     var w = writer;
     
-    var html = ''+
-    '<div id="'+id+'Dialog" class="annotationDialog">'+
+    var id = w.getUniqueId('keywordForm_');
+    var $el = $(''+
+    '<div class="annotationDialog">'+
         '<div id="'+id+'RowsParent">'+
         '</div>'+
         '<div data-transform="accordion">'+
@@ -15,16 +16,15 @@ module.exports = function(id, writer) {
             '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
             '</div>'+
         '</div>'+
-    '</div>';
+    '</div>').appendTo(document.body);
     
     var dialog = new DialogForm({
         writer: w,
-        id: id,
+        $el: $el,
         type: 'keyword',
         title: 'Tag Keyword',
-        height: 350,
-        width: 350,
-        html: html
+        height: 420,
+        width: 420
     });
     
     function addRow(prevRow) {
@@ -60,7 +60,7 @@ module.exports = function(id, writer) {
     
     dialog.$el.on('beforeSave', function(e, dialog) {
         dialog.currentData.customValues.keywords = [];
-        $('#'+id+'Dialog .keywordRow').each(function(index, el) {
+        $('.keywordRow', $el).each(function(index, el) {
             var keyword = $('input', el).val();
             dialog.currentData.customValues.keywords.push(keyword);
         });

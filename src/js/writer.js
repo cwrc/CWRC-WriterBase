@@ -230,11 +230,7 @@ function CWRCWriter(config) {
         w.storageDialogs.load(w)
     }
 
-    w.getHelp = function(tagName) {
-        return w.utilities.getDocumentationForTag(tagName)
-    }
-
-        /**
+    /**
      * Gets the URI for the entity
      * @param {Object} entity The entity object
      * @returns {Promise} The promise object
@@ -347,7 +343,20 @@ function CWRCWriter(config) {
                 }
             }
         });
-    }
+    };
+    
+    /**
+     * Destroy the CWRC-Writer
+     */
+    w.destroy = function() {
+        if (window.console) console.log('Destroying', w.editor.id);
+        w.editor.remove();
+        w.editor.destroy();
+        // TODO detect and destroy modules
+        if (w.tree !== undefined) {
+            w.tree.destroy();
+        }
+    };
     
     /**
      * Get the current document from the editor
@@ -756,8 +765,7 @@ function CWRCWriter(config) {
     
     var editorId = w.getUniqueId('editor_');
     w.layoutManager = new LayoutManager(w, {
-        name: 'CWRC-Writer',
-        version: '1',
+        name: 'CWRC-Writer 1.0',
         editorId: editorId,
         modules: config.modules,
         container: $container
@@ -932,7 +940,6 @@ function CWRCWriter(config) {
                 ed.addCommand('changeStructureTag', w.changeStructureTag);
                 ed.addCommand('removeHighlights', w.removeHighlights);
                 ed.addCommand('getParentsForTag', w.utilities.getParentsForTag);
-                ed.addCommand('getDocumentationForTag', w.getHelp);
                 
                 // highlight tracking
                 body.on('keydown',_onKeyDownHandler).on('keyup',_onKeyUpHandler);

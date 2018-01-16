@@ -10,29 +10,30 @@ require('jquery-ui/ui/widgets/controlgroup');
 var AttributeWidget = require('./attributeWidget.js');
 function DialogForm(config) {
     this.w = config.writer;
-    var id = config.id;
+    this.$el = config.$el;
+    
     var title = config.title;
     var height = config.height || 650;
     var width = config.width || 575;
-    var html = config.html;
-    var $writer = $('#cwrc_wrapper');
+    
+    this.showConfig; // the config object sent to the dialog's "show" method
+    
+    this.cwrcWriter; // reference to the cwrcWriter if this is a note form
+    this.cwrcWriterConfig = config.cwrcWriterConfig; // the config to use for the cwrcWriter
     
     // set to false to cancel saving
     this.isValid = true;
     
     this.type = config.type;
-    this.mode = null;
+    this.mode = null; // ADD or EDIT
     this.currentData = {
         attributes: {},
         properties: {},
         customValues: {},
         noteContent: {}
     };;
-    this.currentId = null;
+    this.currentId = null; // entity ID
 
-    $(document.body).append(html);
-    
-    this.$el = $('#'+id+'Dialog');
     this.$el.dialog({
         title: title,
         modal: true,
@@ -44,7 +45,7 @@ function DialogForm(config) {
         }, this),
         height: height,
         width: width,
-        position: { my: "center", at: "center", of: $writer },
+        position: { my: "center", at: "center", of: this.w.layoutManager.getWrapper() },
         autoOpen: false,
         buttons: [{
             text: 'Cancel',
@@ -67,7 +68,6 @@ function DialogForm(config) {
             }, this)
         },{
             text: 'Save',
-            id: id+'SaveButton',
             click: $.proxy(function() {
                 this.save();
             }, this)
@@ -92,7 +92,7 @@ function DialogForm(config) {
         }
     });
     $('[data-type="attributes"]', this.$el).first().each($.proxy(function(index, el) {
-        this.attributesWidget = new AttributeWidget({writer: this.w, parentId: id+'_attParent', dialogForm: this});
+        this.attributesWidget = new AttributeWidget({writer: this.w, $parent: this.$el, $el: $(el)});
         this.attWidgetInit = false;
     }, this));
 }
@@ -158,6 +158,98 @@ function initAttributeWidget(dialogInstance, config) {
     dialogInstance.attWidgetInit = true;
 };
 
+function initWriter(el) {
+    var me = this;
+    
+    var config = me.cwrcWriterConfig;
+    if (config === undefined) {
+        // defaults
+        var config = $.extend({}, me.w.initialConfig);
+        config.entityLookupDialogs = CWRCWriterDialogs;
+        config.storageDialogs = CWRCWriterStorageDialogs;
+        config.modules = {
+            west: ['structure','entities']
+        }
+        config.mode = 'xml';
+        config.buttons1 = 'schematags,editTag,removeTag,|,addperson,addplace,adddate,addorg,addcitation,addtitle,addcorrection,addkeyword,addlink';
+    }
+    
+    if (el.getAttribute('id') == null || config.container === undefined) {
+        var id = me.w.getUniqueId('miniWriter_');
+        config.container = id;
+        el.setAttribute('id', id);
+    }
+    
+    if (me.cwrcWriterConfig === undefined) {
+        // store defaults
+        me.cwrcWriterConfig = config;
+    }
+    
+    me.cwrcWriter = new CWRCWriter(config);
+    
+    me.$el.one('beforeClose', function() {
+        me.cwrcWriter.destroy();
+    });
+    
+    me.$el.one('beforeSave', function() {
+        var content = me.cwrcWriter.converter.getDocumentContent();
+        me.currentData.noteContent = content;
+    });
+    if (me.cwrcWriter.isReadOnly) {
+        me.$el.dialog('option', 'buttons', [{
+            text: 'Close',
+            click: function() {
+                me.$el.trigger('beforeCancel');
+                me.$el.trigger('beforeClose');
+                me.$el.dialog('close');
+            }
+        }]);
+    }
+    
+    if (me.cwrcWriter.isInitialized) {
+        postSetup();
+    } else {
+        me.cwrcWriter.event('writerInitialized').subscribe(postSetup);
+    }
+    
+    function postSetup() {
+        me.cwrcWriter.event('documentLoaded').subscribe(function() {
+            // TODO remove forced XML/no overlap
+            me.cwrcWriter.mode = me.cwrcWriter.XML;
+            me.cwrcWriter.allowOverlap = false;
+            
+            me.cwrcWriter.editor.focus();
+        });
+        
+        // in case document is loaded before tree
+        me.cwrcWriter.event('structureTreeInitialized').subscribe(function(tree) {
+            setTimeout(tree.update, 50); // need slight delay to get indents working for some reason
+        });
+        me.cwrcWriter.event('entitiesListInitialized').subscribe(function(el) {
+            setTimeout(el.update, 50);
+        });
+        
+        var noteUrl = me.w.cwrcRootUrl + me.w.schemaManager.getCurrentSchema().entityTemplates[me.type];
+        if (me.mode === DialogForm.ADD) {
+            me.cwrcWriter.fileManager.loadDocumentFromUrl(noteUrl);
+        } else {
+            $.ajax({
+                url: noteUrl,
+                type: 'GET',
+                dataType: 'xml',
+                success: function(doc, status, xhr) {
+                    var parent = me.showConfig.entry.getTag();
+                    var noteDoc = $.parseXML(me.showConfig.entry.getNoteContent());
+                    var annotation = $(parent, noteDoc).first();
+                    annotation.removeAttr('annotationId');
+                    var xmlDoc = $(doc).find(parent).replaceWith(annotation).end()[0];
+                    me.cwrcWriter.fileManager.loadDocumentFromXml(xmlDoc);
+                }
+            });
+        }
+    }
+}
+
 DialogForm.prototype = {
 
     constructor: DialogForm,
@@ -182,7 +274,7 @@ DialogForm.prototype = {
                 case 'radio':
                     formEl.find('[data-default]').prop('checked', true);
                     if (formEl.data('transform') === 'buttonset') {
-                        formEl.find('[data-default]').button('refresh');
+                        $('input', formEl).button('refresh');
                     }
                     break;
                 case 'textbox':
@@ -195,7 +287,12 @@ DialogForm.prototype = {
                     break;
             }
         });
-        $('[data-transform="accordion"]').each(function(index, el) {
+        $('[data-transform="writer"]', this.$el).each(function(index, el) {
+            this.$el.one('dialogopen', function(e, ui) {
+                initWriter.call(this, el);
+            }.bind(this));
+        }.bind(this));
+        $('[data-transform="accordion"]', this.$el).each(function(index, el) {
             $(this).accordion('option', 'active', false);
         });
         
@@ -266,7 +363,7 @@ DialogForm.prototype = {
                                 case 'radio':
                                     $('input[value="'+value+'"]', formEl).prop('checked', true);
                                     if (formEl.data('transform') === 'buttonset') {
-                                        $('input[value="'+value+'"]', formEl).button('refresh');
+                                        $('input', formEl).button('refresh');
                                     }
                                     break;
                                 case 'textbox':

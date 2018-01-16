@@ -13,46 +13,48 @@ function Triple(writer) {
         place: ['is located within', 'contains']
     };
     
-    $(document.body).append(''+
-    '<div id="tripleDialog">'+
-        '<div id="tripleColumnsParent">'+
-        '<div id="subjectColumn" class="column"><h2>Subject</h2><ul class="entitiesList"></ul><div class="customEntry"><input type="text" name="customSubject" value="" /></div></div>'+
-        '<div id="predicateColumn" class="column"><h2>Predicate</h2><ul></ul><div class="customEntry"><input type="text" name="customPredicate" value="" /></div></div>'+
-        '<div id="objectColumn" class="column"><h2>Object</h2><ul class="entitiesList"></ul><div class="customEntry"><input type="text" name="customObject" value="" /></div></div>'+
+    var $triple = $(''+
+    '<div class="triplesDialog">'+
+        '<div class="columns">'+
+            '<div class="column"><h2>Subject</h2><ul class="entitiesList"></ul><div class="customEntry"><input type="text" name="customSubject" value="" /></div></div>'+
+            '<div class="column predicate"><h2>Predicate</h2><ul></ul><div class="customEntry"><input type="text" name="customPredicate" value="" /></div></div>'+
+            '<div class="column"><h2>Object</h2><ul class="entitiesList"></ul><div class="customEntry"><input type="text" name="customObject" value="" /></div></div>'+
         '</div>'+
-        '<div id="currentRelation">'+
-        '<p></p><button type="button">Add Relation</button>'+
+        '<div class="currentRelation">'+
+            '<p></p><button type="button">Add Relation</button>'+
         '</div>'+
-    '</div>');
+    '</div>').appendTo(document.body);
     
-    var d = $('#tripleDialog');
-    var $writer = $('#cwrc_wrapper');
-    d.dialog({
+    $triple.dialog({
         title: 'Add Relation',
         modal: true,
         resizable: true,
         closeOnEscape: true,
         height: 450,
         width: 600,
-        position: { my: "center", at: "center", of: $writer },
+        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
         autoOpen: false,
         buttons: {
             'Close': function() {
-                d.dialog('close');
+                $triple.dialog('close');
             }
         }
     });
     
-    $('#subjectColumn input').watermark('Custom Subject');
-    $('#predicateColumn input').watermark('Custom Predicate');
-    $('#objectColumn input').watermark('Custom Object');
+    var $subject = $('.column:eq(0)', $triple);
+    var $predicate = $('.column:eq(1)', $triple);
+    var $object = $('.column:eq(2)', $triple);
     
-    $('#tripleColumnsParent input').keyup(function() {
+    $('input', $subject).watermark('Custom Subject');
+    $('input', $predicate).watermark('Custom Predicate');
+    $('input', $object).watermark('Custom Object');
+    
+    $('input', $triple).keyup(function() {
         $(this).parents('.column').find('li').removeClass('selected');
         updateRelationString();
     });
     
-    $('#currentRelation button').button({disabled: true}).click(function() {
+    $('.currentRelation button', $triple).button({disabled: true}).click(function() {
         var components = getComponents();
         var subject = components[0];
         var predicate = components[1];
@@ -70,16 +72,16 @@ function Triple(writer) {
     });
     
     var loadPredicates = function(type) {
-        $('#predicateColumn > ul').empty();
+        $('.predicate > ul', $triple).empty();
         
         var p = precidateList[type] || ['is associated with'];
         var predicateString = '';
         for (var i = 0; i < p.length; i++) {
             predicateString += '<li>'+p[i]+'</li>';
         }
-        $('#predicateColumn > ul').html(predicateString);
+        $('.predicate > ul', $triple).html(predicateString);
         
-        $('#predicateColumn ul li').click(function() {
+        $('.predicate > ul li', $triple).click(function() {
             $(this).siblings('li').removeClass('selected');
             $(this).toggleClass('selected');
             $(this).parents('.column').find('input').val('');
@@ -104,7 +106,7 @@ function Triple(writer) {
     
     var getComponents = function() {
         var components = [null, null, null];
-        $('#tripleColumnsParent ul').each(function(index, el) {
+        $('ul', $triple).each(function(index, el) {
             var s = $(this).find('.selected');
             if (s.length == 1) {
                 var uri = '';
@@ -115,7 +117,7 @@ function Triple(writer) {
                 components[index] = {text: w.utilities.escapeHTMLString(s.text()), uri: uri, external: false};
             }
         });
-        $('#tripleColumnsParent input').each(function(index, el) {
+        $('input', $triple).each(function(index, el) {
             var val = $(this).val();
             if (val != '') components[index] = {text: w.utilities.escapeHTMLString(val), uri: w.utilities.escapeHTMLString(val), external: true};
         });
@@ -141,12 +143,12 @@ function Triple(writer) {
             }
         }
         
-        $('#currentRelation p').text(str);
+        $('.currentRelation p', $triple).text(str);
         
         if (enable) {
-            $('#currentRelation button').button('enable');
+            $('.currentRelation button', $triple).button('enable');
         } else {
-            $('#currentRelation button').button('disable');
+            $('.currentRelation button', $triple).button('disable');
         }
     };
     
@@ -158,9 +160,9 @@ function Triple(writer) {
     
     return {
         show: function(config) {
-            $('#subjectColumn > ul, #predicateColumn > ul, #objectColumn > ul').empty();
+            $('.column > ul', $triple).empty();
             
-            $('#currentRelation p').html('');
+            $('.currentRelation p', $triple).html('');
             
             var entitiesString = '';
             
@@ -168,8 +170,9 @@ function Triple(writer) {
                 entitiesString += buildEntity(entity);
             });
             
-            $('#subjectColumn > ul, #objectColumn > ul').html(entitiesString);
-            $('#tripleDialog .entitiesList > li').hover(function() {
+            $('ul', $subject).html(entitiesString);
+            $('ul', $object).html(entitiesString);
+            $('.entitiesList > li', $triple).hover(function() {
                 if (!$(this).hasClass('selected')) {
                     $(this).addClass('over');
                 }
@@ -181,12 +184,12 @@ function Triple(writer) {
                 $(this).siblings('li').removeClass('selected');
                 $(this).removeClass('over').toggleClass('selected');
                 $(this).parents('.column').find('input').val('');
-                if ($(this).parents('#subjectColumn').length > 0) {
+                if ($subject.find(this).length > 0) {
                     if ($(this).hasClass('selected')) {
                         var type = w.entitiesManager.getEntity($(this).attr('name')).getType();
                         loadPredicates(type);
                     } else {
-                        $('#predicateColumn > ul').empty();
+                        $('ul', $predicate).empty();
                     }
                 }
                 
@@ -195,11 +198,11 @@ function Triple(writer) {
             
             
             
-            d.dialog('open');
+            $triple.dialog('open');
         },
 
         hide: function() {
-            d.dialog('close');
+            $triple.dialog('close');
         }
     };
 };

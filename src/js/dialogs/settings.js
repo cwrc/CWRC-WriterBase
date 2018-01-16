@@ -19,90 +19,82 @@ function Settings(writer, config) {
     var defaultSettings = {
         mode: w.mode,
         annotationMode: w.annotationMode,
-        allowOverlap: w.allowOverlap,
-        validationSchema: w.schemaManager.schemaId
+        allowOverlap: w.allowOverlap
+        //,validationSchema: w.schemaManager.schemaId
     };
     $.extend(defaultSettings, settings);
     
-    var $settingsDialog;
-    var $writer = $('#cwrc_wrapper');
+    var $helpLink = $('<div class="helpLink">Help</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
+    var $settingsLink = $('<div>Settings</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
     
-    $('#headerButtons').prepend(''+
-    '<div id="settingsLink">Settings</div>'+
-    '<div id="helpLink">Help</div>');
-    
-    $(document.body).append(''+
-    '<div id="settingsDialog">'+
+    var $settingsDialog = $(''+
     '<div>'+
-        '<label>Font Size</label>'+
-        '<select name="fontsize">'+
-            '<option value="9pt">9pt</option>'+
-            '<option value="10pt">10pt</option>'+
-            '<option value="11pt">11pt</option>'+
-            '<option value="12pt">12pt</option>'+
-            '<option value="13pt">13pt</option>'+
-        '</select>'+
-    '</div>'+
-    '<div style="margin-top: 10px;">'+
-        '<label>Font Type</label>'+
-        '<select name="fonttype">'+
-            '<option value="Arial" style="font-family: Arial; font-size: 14px;">Arial</option>'+
-            '<option value="Book Antiqua" style="font-family: Book Antiqua; font-size: 14px;">Book Antiqua</option>'+
-            '<option value="Georgia" style="font-family: Georgia; font-size: 14px;">Georgia</option>'+
-            '<option value="Helvetica" style="font-family: Helvetica; font-size: 14px;">Helvetica</option>'+
-            '<option value="Palatino" style="font-family: Palatino; font-size: 14px;">Palatino</option>'+
-            '<option value="Tahoma" style="font-family: Tahoma; font-size: 14px;">Tahoma</option>'+
-            '<option value="Times New Roman" style="font-family: Times New Roman; font-size: 14px;">Times New Roman</option>'+
-            '<option value="Verdana" style="font-family: Verdana; font-size: 14px;">Verdana</option>'+
-            '<option value="Lato" style="font-family: Lato; font-size: 14px;">Lato</option>'+
-        '</select>'+
-    '</div>'+
-    '<div style="margin-top: 10px;">'+
-        '<label for="showentitybrackets">Show Entity Brackets</label>'+
-        '<input type="checkbox" id="showentitybrackets" />'+
-    '</div>'+
-    '<div style="margin-top: 10px;">'+
-        '<label for="showstructbrackets">Show Tags</label>'+
-        '<input type="checkbox" id="showstructbrackets" />'+
-    '</div>'+
-    '<div id="settingsDialogAdvanced">'+
-    '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #aaa;">'+
-    '<label>Editor Mode</label>'+
-        '<select name="editormode">'+
-            '<option value="xml">XML only (no overlap)</option>'+
-            '<option value="xmlrdf">XML and RDF (no overlap)</option>'+
-            '<option value="xmlrdfoverlap">XML and RDF (overlapping entities)</option>'+
-            '<option value="rdf">RDF only</option>'+
-        '</select>'+
-    '</div>'+
-    '<div style="margin-top: 10px;">'+
-    '<label>Annotations Format</label>'+
-        '<select name="annotations">'+
-            '<option value="xml">RDF/XML</option>'+
-            '<option value="json">JSON-LD</option>'+
-        '</select>'+
-    '</div>'+
-    '<div style="margin-top: 10px;">'+
-        '<label>Schema</label>'+
-        '<select name="schema">'+
-        '</select>'+
-        '<br/><br/><button type="button">Add Schema</button>'+
-    '</div>'+
-    '</div>'+
-    '</div>');
-    
-    $settingsDialog = $('#settingsDialog');
+        '<div>'+
+            '<label>Font Size</label>'+
+            '<select name="fontsize">'+
+                '<option value="9pt">9pt</option>'+
+                '<option value="10pt">10pt</option>'+
+                '<option value="11pt">11pt</option>'+
+                '<option value="12pt">12pt</option>'+
+                '<option value="13pt">13pt</option>'+
+            '</select>'+
+        '</div>'+
+        '<div style="margin-top: 10px;">'+
+            '<label>Font Type</label>'+
+            '<select name="fonttype">'+
+                '<option value="Arial" style="font-family: Arial; font-size: 14px;">Arial</option>'+
+                '<option value="Book Antiqua" style="font-family: Book Antiqua; font-size: 14px;">Book Antiqua</option>'+
+                '<option value="Georgia" style="font-family: Georgia; font-size: 14px;">Georgia</option>'+
+                '<option value="Helvetica" style="font-family: Helvetica; font-size: 14px;">Helvetica</option>'+
+                '<option value="Palatino" style="font-family: Palatino; font-size: 14px;">Palatino</option>'+
+                '<option value="Tahoma" style="font-family: Tahoma; font-size: 14px;">Tahoma</option>'+
+                '<option value="Times New Roman" style="font-family: Times New Roman; font-size: 14px;">Times New Roman</option>'+
+                '<option value="Verdana" style="font-family: Verdana; font-size: 14px;">Verdana</option>'+
+                '<option value="Lato" style="font-family: Lato; font-size: 14px;">Lato</option>'+
+            '</select>'+
+        '</div>'+
+        '<div style="margin-top: 10px;">'+
+            '<label>Show Entity Brackets <input type="checkbox" class="showentitybrackets" /></label>'+
+        '</div>'+
+        '<div style="margin-top: 10px;">'+
+            '<label>Show Tags <input type="checkbox" class="showstructbrackets" /></label>'+
+        '</div>'+
+        '<div class="settingsDialogAdvanced">'+
+            '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #aaa;">'+
+                '<label>Editor Mode</label>'+
+                '<select name="editormode">'+
+                    '<option value="xml">XML only (no overlap)</option>'+
+                    '<option value="xmlrdf">XML and RDF (no overlap)</option>'+
+                    '<option value="xmlrdfoverlap">XML and RDF (overlapping entities)</option>'+
+                    '<option value="rdf">RDF only</option>'+
+                '</select>'+
+            '</div>'+
+            '<div style="margin-top: 10px;">'+
+                '<label>Annotations Format</label>'+
+                '<select name="annotations">'+
+                    '<option value="xml">RDF/XML</option>'+
+                    '<option value="json">JSON-LD</option>'+
+                '</select>'+
+            '</div>'+
+            '<div style="margin-top: 10px;">'+
+                '<label>Schema</label>'+
+                '<select name="schema">'+
+                '</select>'+
+                '<br/><br/><button type="button">Add Schema</button>'+
+            '</div>'+
+        '</div>'+
+    '</div>').appendTo(document.body);
     
     buildSchema();
     $('select[name="schema"]', $settingsDialog).nextAll('button').button().click(function() {
         w.dialogManager.show('addschema');
     });
     
-    $('#settingsLink').click(function() {
+    $settingsLink.click(function() {
         $('select[name="fontsize"] > option[value="'+settings.fontSize+'"]', $settingsDialog).attr('selected', true);
         $('select[name="fonttype"] > option[value="'+settings.fontFamily+'"]', $settingsDialog).attr('selected', true);
-        $('#showentitybrackets').prop('checked', settings.showEntityBrackets);
-        $('#showstructbrackets').prop('checked', settings.showStructBrackets);
+        $settingsDialog.find('.showentitybrackets').prop('checked', settings.showEntityBrackets);
+        $settingsDialog.find('.showstructbrackets').prop('checked', settings.showStructBrackets);
         if (w.mode === w.XML) {
             $('select[name="editormode"] > option[value="xml"]', $settingsDialog).attr('selected', true);
         } else if (w.mode === w.XMLRDF){
@@ -123,7 +115,7 @@ function Settings(writer, config) {
         $settingsDialog.dialog('open');
     });
     
-    $('#helpLink').click(function() {
+    $helpLink.click(function() {
         w.dialogManager.show('message', {
             title: 'CWRC-Writer Help',
             msg: '<p>For help with CWRC-Writer click <a href="https://cwrc.ca/CWRC-Writer_Documentation/" target="_blank">here</a>.</p>',
@@ -137,21 +129,11 @@ function Settings(writer, config) {
         resizable: false,
         dialogClass: 'splitButtons',
         closeOnEscape: true,
-        height: 400,
+        height: 450,
         width: 450,
-        position: { my: "center", at: "center", of: $writer },
+        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
         autoOpen: false,
         buttons: [{
-            text: 'Help',
-            icons: {primary: 'ui-icon-help'},
-            'class': 'left',
-            click: function() {
-                w.dialogManager.show('help', {
-                    id: 'settings',
-                    title: 'Settings Help'
-                });
-            }
-        },{
             text: 'Revert to Defaults',
             'class': 'left',
             click: function() {
@@ -273,15 +255,15 @@ function Settings(writer, config) {
             settings.fontSize = $('select[name="fontsize"]', $settingsDialog).val();
             settings.fontFamily = $('select[name="fonttype"]', $settingsDialog).val();
             
-            if (settings.showEntityBrackets != $('#showentitybrackets').prop('checked')) {
+            if (settings.showEntityBrackets != $settingsDialog.find('.showentitybrackets').prop('checked')) {
                 $('body', w.editor.getDoc()).toggleClass('showEntityBrackets');
             }
-            settings.showEntityBrackets = $('#showentitybrackets').prop('checked');
+            settings.showEntityBrackets = $settingsDialog.find('.showentitybrackets').prop('checked');
             
-            if (settings.showStructBrackets != $('#showstructbrackets').prop('checked')) {
+            if (settings.showStructBrackets != $settingsDialog.find('.showstructbrackets').prop('checked')) {
                 $('body', w.editor.getDoc()).toggleClass('showStructBrackets');
             }
-            settings.showStructBrackets = $('#showstructbrackets').prop('checked');
+            settings.showStructBrackets = $settingsDialog.find('.showstructbrackets').prop('checked');
             
             var schemaId = $('select[name="schema"]', $settingsDialog).val();
             if (schemaId !== w.schemaManager.schemaId) {
@@ -301,8 +283,8 @@ function Settings(writer, config) {
     function setDefaults() {
         $('select[name="fontsize"]', $settingsDialog).val(defaultSettings.fontSize);
         $('select[name="fonttype"]', $settingsDialog).val(defaultSettings.fontFamily);
-        $('#showentitybrackets').prop('checked', defaultSettings.showEntityBrackets);
-        $('#showstructbrackets').prop('checked', defaultSettings.showStructBrackets);
+        $settingsDialog.find('.showentitybrackets').prop('checked', defaultSettings.showEntityBrackets);
+        $settingsDialog.find('.showstructbrackets').prop('checked', defaultSettings.showStructBrackets);
         
         var editorVal;
         switch(defaultSettings.mode) {
@@ -322,7 +304,7 @@ function Settings(writer, config) {
         $('select[name="editormode"]', $settingsDialog).val(editorVal);
         $('select[name="annotations"]', $settingsDialog).val(defaultSettings.annotationMode);
         
-        $('select[name="schema"]', $settingsDialog).val(defaultSettings.validationSchema);
+        //$('select[name="schema"]', $settingsDialog).val(defaultSettings.validationSchema);
     };
     
     w.event('schemaAdded').subscribe(buildSchema);
@@ -332,8 +314,8 @@ function Settings(writer, config) {
             return settings;
         },
         hideAdvanced: function() {
-            $('#settingsDialogAdvanced').hide();
-            $settingsDialog.dialog('option', 'height', 200);
+            $settingsDialog.find('.settingsDialogAdvanced').hide();
+            $settingsDialog.dialog('option', 'height', 260);
         }
     };
 };

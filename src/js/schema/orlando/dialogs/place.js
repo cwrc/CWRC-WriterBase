@@ -1,11 +1,12 @@
 var $ = require('jquery');
-var DialogForm = require('../../../dialogs/dialogForm.js');
+var DialogForm = require('dialogForm');
 
-module.exports = function(id, writer) {
+module.exports = function(writer) {
     var w = writer;
     
-    var html = ''+
-    '<div id="'+id+'Dialog" class="annotationDialog">'+
+    var id = w.getUniqueId('placeForm_');
+    var $el = $(''+
+    '<div class="annotationDialog">'+
         '<div id="'+id+'_certainty" data-transform="buttonset" data-type="radio" data-mapping="custom.tag">'+
             '<p>Type of place:</p>'+
             '<input type="radio" id="'+id+'_address" name="'+id+'_type_place" value="ADDRESS" data-default="true" /><label for="'+id+'_address">Address</label>'+
@@ -20,16 +21,15 @@ module.exports = function(id, writer) {
             '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
             '</div>'+
         '</div>'+
-    '</div>';
+    '</div>').appendTo(document.body);
     
     var dialog = new DialogForm({
         writer: w,
-        id: id,
+        $el: $el,
         type: 'place',
         title: 'Tag Place',
         width: 650,
-        height: 450,
-        html: html
+        height: 450
     });
     
     dialog.$el.on('beforeShow', function(e, config, dialog) {

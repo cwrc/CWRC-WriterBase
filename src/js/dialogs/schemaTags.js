@@ -16,28 +16,26 @@ function SchemaTags(writer) {
     var currentTagName = null;
     var action = null;
     
-    $(document.body).append(''+
-    '<div id="schemaDialog">'+
-    '</div>');
+    var $schemaDialog = $(''+
+    '<div class="schemaDialog">'+
+    '</div>').appendTo(document.body);
     
     var dialogOpenTimestamp = null;
     
-    var schemaDialog = $('#schemaDialog');
-    var $writer = $('#cwrc_wrapper');
-    schemaDialog.dialog({
+    $schemaDialog.dialog({
         modal: true,
         resizable: true,
         dialogClass: 'splitButtons',
         closeOnEscape: false,
         height: 460,
         width: 550,
-        position: { my: "center", at: "center", of: $writer },
+        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
         minHeight: 400,
         minWidth: 510,
         autoOpen: false,
         open: function(event, ui) {
             dialogOpenTimestamp = event.timeStamp;
-            schemaDialog.parent().find('.ui-dialog-titlebar-close').hide();
+            $schemaDialog.parent().find('.ui-dialog-titlebar-close').hide();
         },
         beforeClose: function(event, ui) {
             if (event.timeStamp - dialogOpenTimestamp < 150) {
@@ -47,12 +45,13 @@ function SchemaTags(writer) {
         },
         buttons: [{
             text: 'Cancel',
+            role: 'cancel',
             click: function() {
                 cancel();
             }
         },{
-            id: 'schemaOkButton',
             text: 'Ok',
+            role: 'ok',
             click: function() {
                 formResult();
             }
@@ -60,9 +59,9 @@ function SchemaTags(writer) {
     });
     var attributesWidget = new AttributeWidget({
         writer: w,
-        parentId: 'schemaDialog',
-        showSchemaHelp: true,
-        dialogForm: {$el: schemaDialog}
+        $parent: $schemaDialog,
+        $el: $schemaDialog,
+        showSchemaHelp: true
     });
     
     
@@ -82,7 +81,7 @@ function SchemaTags(writer) {
     var formResult = function() {
         // collect values then close dialog
         var attributes = {};
-        $('.attsContainer > div > div:visible', schemaDialog).children('input[type!="hidden"], select').each(function(index, el) {
+        $('.attsContainer > div > div:visible', $schemaDialog).children('input[type!="hidden"], select').each(function(index, el) {
             var val = $(this).val();
             if (val != '') { // ignore blank values
                 attributes[$(this).attr('name')] = val;
@@ -91,15 +90,16 @@ function SchemaTags(writer) {
         
         // validation
         var invalid = [];
-        $('.attsContainer span.required', schemaDialog).parent().children('label').each(function(index, el) {
-            if (attributes[$(this).text()] == '') {
+        $('.attsContainer span.required', $schemaDialog).parent().children('label').each(function(index, el) {
+            var entry = attributes[$(this).text()];
+            if (entry === '') {
                 invalid.push($(this).text());
             }
         });
         if (invalid.length > 0) {
             for (var i = 0; i < invalid.length; i++) {
                 var name = invalid[i];
-                $('.attsContainer *[name="'+name+'"]', schemaDialog).css({borderColor: 'red'}).keyup(function(event) {
+                $('.attsContainer *[name="'+name+'"]', $schemaDialog).css({borderColor: 'red'}).keyup(function(event) {
                     $(this).css({borderColor: '#ccc'});
                 });
             }
@@ -108,11 +108,11 @@ function SchemaTags(writer) {
         
         attributes._tag = currentTagName;
         
-        schemaDialog.dialog('close');
+        $schemaDialog.dialog('close');
         // check if beforeClose cancelled or not
-        if (schemaDialog.is(':hidden')) {
+        if ($schemaDialog.is(':hidden')) {
             try {
-                $('ins', schemaDialog).tooltip('destroy');
+                $('ins', $schemaDialog).tooltip('destroy');
             } catch (e) {
                 if (console) console.log('error destroying tooltip');
             }
@@ -133,13 +133,13 @@ function SchemaTags(writer) {
     };
     
     var cancel = function() {
-        schemaDialog.dialog('close');
+        $schemaDialog.dialog('close');
         // check if beforeClose cancelled or not
-        if (schemaDialog.is(':hidden')) {
+        if ($schemaDialog.is(':hidden')) {
             w.editor.selection.moveToBookmark(w.editor.currentBookmark);
             w.editor.currentBookmark = null;
             try {
-                $('#schemaDialog ins').tooltip('destroy');
+                $('ins', $schemaDialog).tooltip('destroy');
             } catch (e) {
                 if (console) console.log('error destroying tooltip');
             }
@@ -157,12 +157,12 @@ function SchemaTags(writer) {
             
             buildForm(tagName, tagPath);
             
-            schemaDialog.dialog('option', 'title', tagName);
-            schemaDialog.dialog('open');
+            $schemaDialog.dialog('option', 'title', tagName);
+            $schemaDialog.dialog('open');
             
             // TODO contradicting focuses
-            $('#schemaOkButton').focus();
-            $('input, select', schemaDialog).first().focus();
+            $('button[role=ok]', $schemaDialog.parent()).focus();
+            //$('input, select', $schemaDialog).first().focus();
         },
         
         addSchemaTag: function(params) {

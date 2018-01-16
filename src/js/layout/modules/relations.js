@@ -20,7 +20,7 @@ function Relations(config) {
         '<div class="moduleParent">'+
             '<ul class="moduleContent relationsList"></ul>'+
             '<div class="moduleFooter">'+
-                '<button type="button">Add Relation</button><button type="button">Remove Relation</button>'+
+                '<button type="button" role="add">Add Relation</button><button type="button" role="remove">Remove Relation</button>'+
             '</div>'+
         '</div>');
     
@@ -34,10 +34,10 @@ function Relations(config) {
     
     var $relations = $('#'+id);
     
-    $relations.find('.moduleFooter button:eq(0)').button().click(function() {
+    $relations.find('.moduleFooter button[role=add]').button().click(function() {
         w.dialogManager.show('triple');
     });
-    $relations.find('.moduleFooter button:eq(1)').button().click(function() {
+    $relations.find('.moduleFooter button[role=remove]').button().click(function() {
         var selected = $relations.find('ul li.selected');
         if (selected.length == 1) {
             var i = selected.data('index');

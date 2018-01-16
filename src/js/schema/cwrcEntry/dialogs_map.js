@@ -1,5 +1,3 @@
-var DialogForm = require('../../dialogs/dialogForm.js');
-
 var citation = require('./dialogs/citation.js');
 var correction = require('./dialogs/correction.js');
 var date = require('./dialogs/date.js');

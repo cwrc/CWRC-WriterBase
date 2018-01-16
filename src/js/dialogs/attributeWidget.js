@@ -6,8 +6,8 @@ require('jquery-ui/ui/widgets/accordion');
 
 function AttributeWidget(config) {
     this.w = config.writer;
-    this.parentId = config.parentId;
-    this.dialogForm = config.dialogForm;
+    this.$el = config.$el; // the el to add the attribute widget to
+    this.$parent = config.$parent; // the parent form (optional)
     
     this.showSchemaHelp = config.showSchemaHelp === true ? true : false;
     var schemaHelpEl = '';
@@ -19,9 +19,8 @@ function AttributeWidget(config) {
     
     this.isDirty = false;
     
-    this.$parent = $('#'+this.parentId);
-    this.$parent.addClass('attributeWidget');
-    this.$parent.append(''+
+    this.$el.addClass('attributeWidget');
+    this.$el.append(''+
     '<div class="attributeSelector">'+
         '<h2>Attributes</h2>'+
         '<ul></ul>'+
@@ -32,28 +31,30 @@ function AttributeWidget(config) {
         schemaHelpEl+
     '</div>');
     
-    // add listeners for other form elements
-    $('[data-mapping]', this.dialogForm.$el).each($.proxy(function(index, el) {
-        var formEl = $(el);
-        var type = formEl.data('type');
-        var mapping = formEl.data('mapping');
-        var isCustom = mapping.indexOf('custom.') === 0;
-        if (!isCustom) {
-            var changeEl;
-            if (type === 'radio') {
-                changeEl = $('input', formEl);
-            } else if (type === 'textbox' || type === 'select') {
-                changeEl = formEl;
+    if (this.$parent !== undefined) {
+        // add listeners for other form elements
+        $('[data-mapping]', this.$parent).each($.proxy(function(index, el) {
+            var formEl = $(el);
+            var type = formEl.data('type');
+            var mapping = formEl.data('mapping');
+            var isCustom = mapping.indexOf('custom.') === 0;
+            if (!isCustom) {
+                var changeEl;
+                if (type === 'radio') {
+                    changeEl = $('input', formEl);
+                } else if (type === 'textbox' || type === 'select') {
+                    changeEl = formEl;
+                }
+                if (changeEl !== undefined) {
+                    changeEl.change($.proxy(function(mapping, e) {
+                        var dataObj = {};
+                        dataObj[mapping] = $(e.target).val();
+                        this.setData(dataObj);
+                    }, this, mapping));
+                }
             }
-            if (changeEl !== undefined) {
-                changeEl.change($.proxy(function(mapping, e) {
-                    var dataObj = {};
-                    dataObj[mapping] = $(e.target).val();
-                    this.setData(dataObj);
-                }, this, mapping));
-            }
-        }
-    }, this));
+        }, this));
+    }
 }
 
 AttributeWidget.ADD = 0;
@@ -67,13 +68,13 @@ AttributeWidget.prototype = {
     buildWidget: function(atts, previousVals, tag) {
         previousVals = previousVals || {};
         
-        $('.attributeSelector ul, .level1Atts, .highLevelAtts, .schemaHelp', this.$parent).empty();
+        $('.attributeSelector ul, .level1Atts, .highLevelAtts, .schemaHelp', this.$el).empty();
         this.isDirty = false;
         
         if (this.showSchemaHelp && tag !== undefined) {
-            var helpText = this.w.editor.execCommand('getDocumentationForTag', tag);
+            var helpText = this.w.utilities.getDocumentationForTag(tag);
             if (helpText != '') {
-                $('.schemaHelp', this.$parent).html('<h3>'+tag+' Documentation</h3><p>'+helpText+'</p>');
+                $('.schemaHelp', this.$el).html('<h3>'+tag+' Documentation</h3><p>'+helpText+'</p>');
             }
         }
         
@@ -149,13 +150,13 @@ AttributeWidget.prototype = {
             }
         }
         
-        $('.attributeSelector ul', this.$parent).html(attributeSelector);
-        $('.level1Atts', this.$parent).html(level1Atts);
-        $('.highLevelAtts', this.$parent).html(highLevelAtts);
+        $('.attributeSelector ul', this.$el).html(attributeSelector);
+        $('.level1Atts', this.$el).html(level1Atts);
+        $('.highLevelAtts', this.$el).html(highLevelAtts);
         
-        $('.attributeSelector li', this.$parent).click(function() {
+        $('.attributeSelector li', this.$el).click(function() {
             var name = $(this).data('name').replace(/:/g, '\\:');
-            var div = $('[data-name="form_'+name+'"]', this.$parent);
+            var div = $('[data-name="form_'+name+'"]', this.$el);
             $(this).toggleClass('selected');
             if ($(this).hasClass('selected')) {
                 div.show();
@@ -164,11 +165,11 @@ AttributeWidget.prototype = {
             }
         });
         
-        $('ins', this.$parent).tooltip({
+        $('ins', this.$el).tooltip({
             tooltipClass: 'cwrc-tooltip'
         });
         
-        $('input, select, option', this.$parent).change(function(event) {
+        $('input, select, option', this.$el).change(function(event) {
             this.isDirty = true;
         });
 //        .keyup(function(event) {
@@ -179,18 +180,18 @@ AttributeWidget.prototype = {
 //            }
 //        });
         
-        $('select, option', this.$parent).click(function(event) {
+        $('select, option', this.$el).click(function(event) {
             this.isDirty = true;
         });
     },
     reset: function() {
-        $('.attributeSelector li', this.$parent).each(function(el, index) {
+        $('.attributeSelector li', this.$el).each(function(el, index) {
             $(this).removeClass('selected');
             var name = $(this).data('name').replace(/:/g, '\\:');
-            var div = $('[data-name="form_'+name+'"]', this.$parent);
+            var div = $('[data-name="form_'+name+'"]', this.$el);
             div.hide();
         });
-        $('.attsContainer input, .attsContainer select', this.$parent).val('');
+        $('.attsContainer input, .attsContainer select', this.$el).val('');
     },
     setData: function(data) {
         var wasDataSet = false;
@@ -198,8 +199,8 @@ AttributeWidget.prototype = {
         for (var key in data) {
             var val = data[key];
             wasDataSet = true;
-            $('.attributeSelector li[data-name="'+key+'"]', this.$parent).addClass('selected');
-            var div = $('[data-name="form_'+key+'"]', this.$parent);
+            $('.attributeSelector li[data-name="'+key+'"]', this.$el).addClass('selected');
+            var div = $('[data-name="form_'+key+'"]', this.$el);
             $('input, select', div).val(val);
             div.show();
         }
@@ -209,7 +210,7 @@ AttributeWidget.prototype = {
     getData: function() {
         // collect values then close dialog
         var attributes = {};
-        $('.attsContainer > div > div:visible', this.$parent).children('input[type!="hidden"], select').each(function(index, el) {
+        $('.attsContainer > div > div:visible', this.$el).children('input[type!="hidden"], select').each(function(index, el) {
             var val = $(this).val();
             if (val !== '') { // ignore blank values
                 attributes[$(this).attr('name')] = val;
@@ -218,7 +219,7 @@ AttributeWidget.prototype = {
         
         // validation
         var invalid = [];
-        $('.attsContainer span.required', this.$parent).parent().children('label').each(function(index, el) {
+        $('.attsContainer span.required', this.$el).parent().children('label').each(function(index, el) {
             if (attributes[$(this).text()] == '') {
                 invalid.push($(this).text());
             }
@@ -226,7 +227,7 @@ AttributeWidget.prototype = {
         if (invalid.length > 0) {
             for (var i = 0; i < invalid.length; i++) {
                 var name = invalid[i];
-                $('.attsContainer *[name="'+name+'"]', this.$parent).css({borderColor: 'red'}).keyup(function(event) {
+                $('.attsContainer *[name="'+name+'"]', this.$el).css({borderColor: 'red'}).keyup(function(event) {
                     $(this).css({borderColor: '#ccc'});
                 });
             }
@@ -236,14 +237,14 @@ AttributeWidget.prototype = {
         return attributes;
     },
     expand: function() {
-        this.$parent.parent('[data-transform="accordion"]').accordion('option', 'active', 0);
+        this.$el.parent('[data-transform="accordion"]').accordion('option', 'active', 0);
     },
     collapse: function() {
-        this.$parent.parent('[data-transform="accordion"]').accordion('option', 'active', false);
+        this.$el.parent('[data-transform="accordion"]').accordion('option', 'active', false);
     },
     destroy: function() {
         try {
-            $('ins', this.$parent).tooltip('destroy');
+            $('ins', this.$el).tooltip('destroy');
         } catch (e) {
             if (console) console.log('error destroying tooltip');
         }

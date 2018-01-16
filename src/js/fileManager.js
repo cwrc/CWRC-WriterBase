@@ -23,15 +23,12 @@ function FileManager(writer) {
     
     var w = writer;
     
-    $(document.body).append(''+
-        '<div id="editSourceDialog">'+
-            '<textarea spellcheck="false"></textarea>'+
-        '</div>'
-        //'<iframe id="editDocLoader" style="display: none;"></iframe>'
-    );
+    var $edit = $(''+
+    '<div>'+
+        '<textarea style="height: 98%; width: 98%;" spellcheck="false"></textarea>'+
+    '</div>').appendTo(document.body);
     
-    var edit = $('#editSourceDialog');
-    edit.dialog({
+    $edit.dialog({
         title: 'Edit Source',
         modal: true,
         resizable: true,
@@ -41,13 +38,13 @@ function FileManager(writer) {
         autoOpen: false,
         buttons: {
             'Ok': function() {
-                var newDocString = $('textarea', edit).val();
+                var newDocString = $('textarea', $edit).val();
                 var xmlDoc = w.utilities.stringToXML(newDocString);
-                edit.dialog('close');
+                $edit.dialog('close');
                 fm.loadDocumentFromXml(xmlDoc);
             },
             'Cancel': function() {
-                edit.dialog('close');
+                $edit.dialog('close');
             }
         },
         open: function(e) {
@@ -142,8 +139,8 @@ function FileManager(writer) {
             callback: function(yes) {
                 if (yes) {
                     var docText = w.converter.getDocumentContent(true);
-                    $('textarea', edit).val(docText);
-                    edit.dialog('open');
+                    $('textarea', $edit).val(docText);
+                    $edit.dialog('open');
                 }
             }
         });

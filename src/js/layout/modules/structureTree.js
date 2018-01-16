@@ -140,6 +140,10 @@ function StructureTree(config) {
         treeRef.delete_node('#cwrc_tree_root');
     };
     
+    tree.destroy = function() {
+        $.jstree.reference('#'+id).destroy();
+    };
+    
     /**
      * Expands the parents of a particular node
      * @param {element} node A node that exists in the editor

@@ -22,9 +22,8 @@ function Validation(config) {
             <ul class="validationList"></ul>
         </div>
         <div id="${id}_buttons" class="moduleFooter">
-            <button type="button">Validate</button>
-            <button type="button">Clear</button>
-            <button type="button">Help</button>
+            <button type="button" role="validate">Validate</button>
+            <button type="button" role="clear">Clear</button>
         </div>
     </div>
     `);
@@ -194,17 +193,11 @@ function Validation(config) {
     };
     
 
-    $('#'+id+'_buttons button:eq(0)').button().click(function() {
+    $('#'+id+'_buttons button[role=validate]').button().click(function() {
         w.validate();
     });
-    $('#'+id+'_buttons button:eq(1)').button().click(function() {
+    $('#'+id+'_buttons button[role=clear]').button().click(function() {
         validation.clearResult();
-    });
-    $('#'+id+'_buttons button:eq(2)').button({icons: {primary: 'ui-icon-help'}}).click(function() {
-        w.dialogManager.show('help', {
-            id: 'validation',
-            title: 'Validation Help'
-        });
     });
     
     // add to writer

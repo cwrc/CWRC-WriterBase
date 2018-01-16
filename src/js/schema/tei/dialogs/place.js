@@ -1,11 +1,12 @@
 var $ = require('jquery');
-var DialogForm = require('../../../dialogs/dialogForm.js');
+var DialogForm = require('dialogForm');
 
-module.exports = function(id, writer) {
+module.exports = function(writer) {
     var w = writer;
     
-    var html = ''+
-    '<div id="'+id+'Dialog" class="annotationDialog">'+
+    var id = w.getUniqueId('placeForm_');
+    var $el = $(''+
+    '<div class="annotationDialog">'+
         '<div id="'+id+'_tagAs">'+
             '<p>Tag as:</p>'+
             '<span class="tagAs" data-type="tagAs"></span>'+
@@ -31,14 +32,13 @@ module.exports = function(id, writer) {
             '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
             '</div>'+
         '</div>'+
-    '</div>';
+    '</div>').appendTo(document.body);
     
     var dialog = new DialogForm({
         writer: w,
-        id: id,
+        $el: $el,
         type: 'place',
-        title: 'Tag Place',
-        html: html
+        title: 'Tag Place'
     });
     
     dialog.$el.on('beforeShow', function(e, config, dialog) {

@@ -11,63 +11,72 @@ var Relations = require('./modules/relations.js');
 var Selection = require('./modules/selection.js');
 var ImageViewer = require('./modules/imageViewer.js');
 
-// private properties
-var w;
-var mode; // 'reader' or 'annotator'
-var $outerLayout;
-var $innerLayout;
-var modulesLayout;
-
+/**
+ * 
+ * @param {Writer} writer
+ * @param {Object} config
+ * @param {Object} config.modules
+ * @param {jQuery} config.container
+ * @param {String} config.editorId
+ * @param {String} config.name
+ * @param {String} config.version
+ * 
+ * @returns
+ */
 function LayoutManager(writer, config) {
-    w = writer;
+    this.w = writer;
     
-    // INIT
-    w.utilities.addCSS('css/cwrc12/jquery-ui.css');
-    w.utilities.addCSS('css/layout-default-latest.css');
+    this.w.utilities.addCSS('css/cwrc12/jquery-ui.css');
+    this.w.utilities.addCSS('css/layout-default-latest.css');
     
     var defaultModulesLayout = {
         west: ['structure','entities'],
         east: ['selection'],
         south: ['validation']
     }
+    this.modulesLayout = config.modules || defaultModulesLayout;
     
-    modulesLayout = config.modules || defaultModulesLayout;
+    this.mode; // 'reader' or 'annotator'
     
     var container = config.container;
     
     var name = config.name;
-    var version = config.version;
     var editorId = config.editorId;
     
     var html = `
-    <div id="cwrc_loadingMask" class="cwrc"><div>Loading ${name}</div></div>
-    <div id="cwrc_wrapper" class="cwrc">
-        <div id="cwrc_header" class="cwrc ui-layout-north">
-            <div id="headerParent" class="ui-widget">
-                <a id="titleLink" href="https://www.cwrc.ca" target="_blank">${name} v.${version}</a>
-                <div id="headerButtons"></div>
+    <div class="cwrc cwrcLoadingMask"><div>Loading ${name}</div></div>
+    
+    <div class="cwrc cwrcWrapper">
+        <div class="cwrc cwrcHeader ui-layout-north">
+            <div class="headerParent ui-widget">
+                <a class="titleLink" href="https://www.cwrc.ca" target="_blank">${name}</a>
+                <div class="headerButtons"></div>
             </div>
         </div>`;
     
-    html += addPanel(editorId, 'west', modulesLayout.west);
+    html += addPanel(editorId, 'west', this.modulesLayout.west);
     
     html += `
-        <div id="cwrc_main" class="cwrc ui-layout-center">
+        <div class="cwrc ui-layout-center">
             <div class="ui-layout-center ui-widget ui-widget-content">
                 <textarea id="${editorId}" name="editor" class="tinymce"></textarea>
             </div>`;
     
-    html += addPanel(editorId, 'south', modulesLayout.south);
+    html += addPanel(editorId, 'south', this.modulesLayout.south);
     
     html += `
         </div>`;
     
-    html += addPanel(editorId, 'east', modulesLayout.east);
+    html += addPanel(editorId, 'east', this.modulesLayout.east);
     
     html += `
     </div>`;
     
     $(container).html(html);
+    
+    this.$wrapper = $(container).find('.cwrcWrapper').first();
+    this.$loadingMask = $(container).find('.cwrcLoadingMask').first();
+    this.$headerButtons = $(container).find('.headerButtons').first();
     
     var outerLayoutConfig = {
         defaults: {
@@ -85,7 +94,7 @@ function LayoutManager(writer, config) {
         }
     };
     
-    if (modulesLayout.west !== undefined) {
+    if (this.modulesLayout.west !== undefined) {
         outerLayoutConfig.west = {
             size: 'auto',
             minSize: 325,
@@ -94,7 +103,7 @@ function LayoutManager(writer, config) {
         };
     }
     
-    if (modulesLayout.east != undefined) {
+    if (this.modulesLayout.east != undefined) {
         outerLayoutConfig.east = {
             size: 'auto',
             minSize: 325,
@@ -103,7 +112,7 @@ function LayoutManager(writer, config) {
         };
     }
     
-    $outerLayout = $('#cwrc_wrapper').layout(outerLayoutConfig);
+    this.$outerLayout = this.$wrapper.layout(outerLayoutConfig);
     
     var innerLayoutConfig = {
         defaults: {
@@ -114,7 +123,7 @@ function LayoutManager(writer, config) {
         },
         center: {
             onresize_end: function(region, pane, state, options) {
-                if (w.editor) {
+                if (this.w.editor) {
                     var containerHeight = pane.height();
                     
                     var toolbars = pane[0].querySelectorAll('.mce-toolbar, .mce-statusbar, .mce-menubar');
@@ -129,13 +138,13 @@ function LayoutManager(writer, config) {
                     }
                     
                     var newHeight = containerHeight - barsHeight - 8;
-                    w.editor.theme.resizeTo('100%', newHeight);
+                    this.w.editor.theme.resizeTo('100%', newHeight);
                 }
-            }
+            }.bind(this)
         }
     };
     
-    if (modulesLayout.south !== undefined) {
+    if (this.modulesLayout.south !== undefined) {
         innerLayoutConfig.south = {
             size: 250,
             resizable: true,
@@ -148,14 +157,14 @@ function LayoutManager(writer, config) {
         };
     }
     
-    $innerLayout = $('#cwrc_main').layout(innerLayoutConfig);
+    this.$innerLayout = this.$wrapper.find('.ui-layout-center').first().layout(innerLayoutConfig);
     
-    for (var region in modulesLayout) {
-        var modules = modulesLayout[region];
+    for (var region in this.modulesLayout) {
+        var modules = this.modulesLayout[region];
         if (Array.isArray(modules)) {
             modules.forEach(function(module) {
-                initModule(editorId, w, module);
-            });
+                initModule(editorId, this.w, module);
+            }.bind(this));
             var $region = $(container).find('.ui-layout-'+region);
             $region.tabs({
                 activate: function(event, ui) {
@@ -166,7 +175,7 @@ function LayoutManager(writer, config) {
                 }
             });
         } else {
-            initModule(editorId, w, modules);
+            initModule(editorId, this.w, modules);
         }
     }
     
@@ -176,30 +185,30 @@ function LayoutManager(writer, config) {
     
     var onLoad = function() {
         isLoading = true;
-        w.event('loadingDocument').unsubscribe(onLoad);
-    };
+        this.w.event('loadingDocument').unsubscribe(onLoad);
+    }.bind(this);
     var onLoadDone = function() {
         isLoading = false;
         if (doneLayout) {
-            $('#cwrc_loadingMask').fadeOut();
-            w.event('documentLoaded').unsubscribe(onLoadDone);
+            this.$loadingMask.fadeOut();
+            this.w.event('documentLoaded').unsubscribe(onLoadDone);
             doResize();
         }
-    };
+    }.bind(this);
     var doResize = function() {
-        $outerLayout.options.onresizeall_end = function() {
+        this.$outerLayout.options.onresizeall_end = function() {
             doneLayout = true;
             if (isLoading === false) {
-                $('#cwrc_loadingMask').fadeOut();
-                $outerLayout.options.onresizeall_end = null;
+                this.$loadingMask.fadeOut();
+                this.$outerLayout.options.onresizeall_end = null;
             }
-            if (w.isReadOnly) {
+            if (this.w.isReadOnly) {
                 if ($('#annotateLink').length === 0) {
                     $('#headerLink').hide();
-                    $('#headerButtons').append('<div id="annotateLink"><h2>Annotate</h2></div>');
+                    this.$headerButtons.append('<div id="annotateLink"><h2>Annotate</h2></div>');
                     
                     $('#annotateLink').click(function(e) {
-                        if (mode === 'reader') {
+                        if (this.mode === 'reader') {
                             // TODO check credentials
                             this.activateAnnotator();
                             $('h2', e.currentTarget).text('Read');
@@ -209,26 +218,26 @@ function LayoutManager(writer, config) {
                         }
                     }.bind(this));
                     
-                    w.settings.hideAdvanced();
+                    this.w.settings.hideAdvanced();
                     
                     this.activateReader();
                 }
             }
         }.bind(this);
-        $outerLayout.resizeAll(); // now that the editor is loaded, set proper sizing
+        this.$outerLayout.resizeAll(); // now that the editor is loaded, set proper sizing
     }.bind(this);
     
-    w.event('loadingDocument').subscribe(onLoad);
-    w.event('documentLoaded').subscribe(onLoadDone);
-    w.event('writerInitialized').subscribe(doResize);
+    this.w.event('loadingDocument').subscribe(onLoad);
+    this.w.event('documentLoaded').subscribe(onLoadDone);
+    this.w.event('writerInitialized').subscribe(doResize);
 }
 
 LayoutManager.prototype = {
     constructor: LayoutManager,
     
     showModule: function(moduleId) {
-        for (var region in modulesLayout) {
-            var modules = modulesLayout[region];
+        for (var region in this.modulesLayout) {
+            var modules = this.modulesLayout[region];
             if (Array.isArray(modules)) {
                 for (var i = 0; i < modules.length; i++) {
                     if (modules[i] === moduleId) {
@@ -247,50 +256,58 @@ LayoutManager.prototype = {
     
     showRegion: function(region, tabIndex) {
         if (region === 'south') {
-            $innerLayout.open('south');
+            this.$innerLayout.open('south');
             if (tabIndex !== undefined) {
-                $innerLayout.panes[region].tabs('option', 'active', tabIndex);
+                this.$innerLayout.panes[region].tabs('option', 'active', tabIndex);
             }
         } else {
             if (region === 'west') {
-                $outerLayout.open('west');
+                this.$outerLayout.open('west');
             } else if (region === 'east') {
-                $outerLayout.open('east');
+                this.$outerLayout.open('east');
             } else {
                 return;
             }
             if (tabIndex !== undefined) {
-                $outerLayout.panes[region].tabs('option', 'active', tabIndex);
+                this.$outerLayout.panes[region].tabs('option', 'active', tabIndex);
             }
         }
     },
     
     resizeAll: function() {
-        $outerLayout.resizeAll();
-        $innerLayout.resizeAll();
+        this.$outerLayout.resizeAll();
+        this.$innerLayout.resizeAll();
     },
     
     activateReader: function() {
-        w.isAnnotator = false;
-        $('.mce-toolbar-grp', w.editor.getContainer()).first().hide();
+        this.w.isAnnotator = false;
+        $('.mce-toolbar-grp', this.w.editor.getContainer()).first().hide();
         
-        w.editor.plugins.cwrc_contextmenu.disabled = true;
+        this.w.editor.plugins.cwrc_contextmenu.disabled = true;
         
-        mode = 'reader';
+        this.mode = 'reader';
         
         this.resizeAll();
     },
     
     activateAnnotator: function() {
-        w.isAnnotator = true;
-        $('.mce-toolbar-grp', w.editor.getContainer()).first().show();
+        this.w.isAnnotator = true;
+        $('.mce-toolbar-grp', this.w.editor.getContainer()).first().show();
         
-        w.editor.plugins.cwrc_contextmenu.disabled = false;
-        w.editor.plugins.cwrc_contextmenu.entityTagsOnly = true;
+        this.w.editor.plugins.cwrc_contextmenu.disabled = false;
+        this.w.editor.plugins.cwrc_contextmenu.entityTagsOnly = true;
         
-        mode = 'annotator';
+        this.mode = 'annotator';
         
         this.resizeAll();
+    },
+    
+    getWrapper: function() {
+        return this.$wrapper;
+    },
+    
+    getHeaderButtonsParent: function() {
+        return this.$headerButtons;
     }
 }
 

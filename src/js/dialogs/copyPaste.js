@@ -11,24 +11,22 @@ function CopyPaste(writer) {
     
     var cwrcCopy = false;
     
-    var copyMsg = 'It looks like you\'re trying to copy content.<br/>Consider having a look at the <a href="">Copy & Paste Documentation</a>';
-    var pasteMsg = 'It looks like you\'re trying to paste from outside CWRC-Writer. Be aware that <b>all tags will be removed</b> and only plain text will remain.<br/>Consider having a look at the <a href="">Copy & Paste Documentation</a>';
+    var copyMsg = 'It looks like you\'re trying to copy content.<br/>Consider having a look at the <a href="https://cwrc.ca/CWRC-Writer_Documentation/#CWRCWriter_Copy_Splash.html" target="_blank">Copy & Paste Documentation</a>';
+    var pasteMsg = 'It looks like you\'re trying to paste from outside CWRC-Writer. Be aware that <b>all tags will be removed</b> and only plain text will remain.<br/>Consider having a look at the <a href="https://cwrc.ca/CWRC-Writer_Documentation/#CWRCWriter_Copy_Splash.html" target="_blank">Copy & Paste Documentation</a>';
     
-    $(document.body).append(''+
-    '<div id="copyPasteDialog">'+
+    var $copyPasteDialog = $(''+
+    '<div>'+
         '<div class="content"></div>'+
-    '</div>');
+    '</div>').appendTo(document.body);
     
-    var $copyPasteDialog = $('#copyPasteDialog');
-    var $writer = $('#cwrc_wrapper');
     $copyPasteDialog.dialog({
         title: 'Copy & Paste Help',
         modal: true,
         resizable: true,
         closeOnEscape: true,
-        height: 150,
+        height: 250,
         width: 350,
-        position: { my: "center", at: "center", of: $writer },
+        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
         autoOpen: false,
         dialogClass: 'splitButtons',
         buttons: [{
@@ -73,14 +71,6 @@ function CopyPaste(writer) {
                 msg = pasteMsg;
             }
             $copyPasteDialog.find('.content').html(msg);
-            $copyPasteDialog.find('a').on('click', function(e) {
-                e.preventDefault();
-                $copyPasteDialog.dialog('close');
-                w.dialogManager.show('help', {
-                    id: 'copyPaste',
-                    title: 'Copy & Paste Help'
-                });
-            });
             
             $copyPasteDialog.dialog('open');
         },

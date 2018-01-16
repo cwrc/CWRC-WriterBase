@@ -14,9 +14,8 @@ var $ = require('jquery');
 function Converter(writer) {
     var w = writer;
 
-    $(document.body).append(''+
-        '<div id="entitiesConverter"></div>' // used by converter.convertTextForExport
-    );
+    // used by converter.convertTextForExport
+    var $entitiesConverter = $('<div style="display: none;"></div>').appendTo(document.body);
 
     /**
      * @lends Converter.prototype
@@ -372,8 +371,8 @@ function Converter(writer) {
         var newText = text;
         if (newText != null) {
             if (newText.match(/&.+?;/gim)) { // match all entities
-                $('#entitiesConverter')[0].innerHTML = newText;
-                newText = $('#entitiesConverter')[0].innerText || $('#entitiesConverter')[0].firstChild.nodeValue;
+                $entitiesConverter[0].innerHTML = newText;
+                newText = $entitiesConverter[0].innerText || $entitiesConverter[0].firstChild.nodeValue;
             }
             // the following characters must be escaped
             newText = newText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')

@@ -1,11 +1,12 @@
 var $ = require('jquery');
-var DialogForm = require('../../../dialogs/dialogForm.js');
+var DialogForm = require('dialogForm');
 
-module.exports = function(id, writer) {
+module.exports = function(writer) {
     var w = writer;
     
-    var html = ''+
-    '<div id="'+id+'Dialog" class="annotationDialog">'+
+    var id = w.getUniqueId('noteForm_');
+    var $el = $(''+
+    '<div class="annotationDialog">'+
         '<div>'+
             '<label for="'+id+'_input">Standard name</label>'+
             '<input type="text" id="'+id+'_input" data-type="textbox" data-mapping="STANDARD" />'+
@@ -15,14 +16,13 @@ module.exports = function(id, writer) {
             '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
             '</div>'+
         '</div>'+
-    '</div>';
+    '</div>').appendTo(document.body);
     
     var dialog = new DialogForm({
         writer: w,
-        id: id,
+        $el: $el,
         type: 'person',
-        title: 'Tag Person',
-        html: html
+        title: 'Tag Person'
     });
     
     dialog.$el.on('beforeShow', function(e, config, dialog) {

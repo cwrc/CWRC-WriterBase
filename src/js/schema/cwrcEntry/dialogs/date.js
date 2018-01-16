@@ -1,16 +1,17 @@
 var $ = require('jquery');
 var moment = require('moment/moment');
-var DialogForm = require('../../../dialogs/dialogForm.js');
+var DialogForm = require('dialogForm');
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/datepicker');
 
-module.exports = function(id, writer) {
+module.exports = function(writer) {
     var w = writer;
     var today = new Date();
     var upperLimit = today.getFullYear() + 10;
     
-    var html = ''+
-    '<div id="'+id+'Dialog" class="annotationDialog">'+
+    var id = w.getUniqueId('citationForm_');
+    var $el = $(''+
+    '<div class="annotationDialog">'+
         '<div id="'+id+'_type" data-transform="buttonset" data-type="radio" data-mapping="prop.tag">'+
             '<p>Date type:</p>'+
             '<input type="radio" name="dateType" value="DATE" id="'+id+'_type_date" checked="checked"/><label for="'+id+'_type_date">Single Date</label>'+
@@ -43,14 +44,13 @@ module.exports = function(id, writer) {
             '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
             '</div>'+
         '</div>'+
-    '</div>';
+    '</div>').appendTo(document.body);
     
     var dialog = new DialogForm({
         writer: w,
-        id: id,
+        $el: $el,
         type: 'date',
-        title: 'Tag Date',
-        html: html
+        title: 'Tag Date'
     });
     
     $('#'+id+'_type input').click(function() {
