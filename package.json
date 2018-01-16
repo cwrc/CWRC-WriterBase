@@ -80,6 +80,7 @@
   "scripts": {
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "cm": "git-cz",
+    "precommit": "npm run test && npm run check-coverage",
     "browserify-test": "mkdirp build && cross-env NODE_ENV=test && browserify -g deamdify test/test.js -o build/test.js --debug",
     "watch-test": "mkdirp build && cross-env NODE_ENV=test && watchify -g deamdify test/test.js -o build/test.js --debug --verbose",
     "test": "npm run test:electron && npm run generate-coverage",
