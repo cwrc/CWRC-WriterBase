@@ -24,7 +24,7 @@ function Message(writer) {
             modal: modal,
             resizable: true,
             closeOnEscape: true,
-            height: 250,
+            height: 300,
             width: 300,
             position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
             autoOpen: false,
