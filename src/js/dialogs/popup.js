@@ -85,7 +85,15 @@ function Popup(writer) {
         
         var $titleEl = $popupEl.parent().find('.ui-dialog-title');
         $titleEl.css('white-space', 'nowrap') // change whitespace handling to accurately get width
-        var width = Math.min(200, $popupEl.parent().find('.ui-dialog-title').width())+30;
+        
+        var textWidth = $popupEl.parent().find('.ui-dialog-title').width();
+        var width;
+        if (type === 'link') {
+            width = textWidth+30;
+        } else {
+            width = Math.min(200, textWidth)+30;
+        }
+        
         $titleEl.css('white-space', 'normal')
         $popupEl.popup('option', 'width', width);
         
