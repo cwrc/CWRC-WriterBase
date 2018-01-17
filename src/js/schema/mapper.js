@@ -2,7 +2,7 @@
 'use strict';
 
 var $ = require('jquery');
-var xpath = require('xpath');
+var xpath = require('jquery-xpath');
 var Entity = require('../entity.js');
 
 function Mapper(config) {
@@ -149,21 +149,11 @@ Mapper.getXpathResult = function(xmlContext, xpathExpression, nsPrefix) {
         xpathExpression = xpathExpression.replace(regex, '');
     }
 
-    var namespaces = {};
-    namespaces[nsPrefix] = nsUri;
-    var expr = xpath.useNamespaces(namespaces);
+    var nsResolver = function(prefix) {
+        if (prefix == nsPrefix) return nsUri;
+    };
     
-    var result = undefined;
-    if (xpathExpression.indexOf(',') !== -1) { // xpath lib doesn't support xpath 2.0 commas 
-        var expressions = xpathExpression.split(',');
-        for (var i = 0; i < expressions.length; i++) {
-            var e = expressions[i];
-            result = expr(e, xmlContext, true);
-            if (result !== undefined) break;
-        }
-    } else {
-        result = expr(xpathExpression, xmlContext, true);
-    }
+    var result = $(xmlContext).xpath(xpathExpression, nsResolver)[0];
     
     return result;
 };

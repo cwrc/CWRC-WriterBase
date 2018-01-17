@@ -28,6 +28,7 @@
     "jquery-watermark": "./src/js/lib/jquery/plugins/jquery.watermark.min.js",
     "jquery-contextmenu": "./src/js/lib/jquery/plugins/jquery.contextmenu.min.js",
     "jquery-popup": "./src/js/lib/jquery/plugins/jquery.popup.js",
+    "jquery-xpath": "./src/js/lib/jquery/plugins/jquery.xpath.js",
     "dialogForm": "./src/js/dialogs/dialogForm.js"
   },
   "dependencies": {
@@ -40,7 +41,6 @@
     "getty-entity-lookup": "^1.2.0",
     "jquery": "3.1.0",
     "jquery-ui": "1.12",
-    "xpath": "0.0.27",
     "js-cookie": "2.1.3",
     "jstree": "3.3.3",
     "layout": "ajmacdonald/layout",
