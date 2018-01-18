@@ -165,8 +165,6 @@ function initWriter(el) {
     if (config === undefined) {
         // defaults
         var config = $.extend({}, me.w.initialConfig);
-        config.entityLookupDialogs = CWRCWriterDialogs;
-        config.storageDialogs = CWRCWriterStorageDialogs;
         config.modules = {
             west: ['structure','entities']
         }
