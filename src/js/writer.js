@@ -349,7 +349,16 @@ function CWRCWriter(config) {
      * Destroy the CWRC-Writer
      */
     w.destroy = function() {
-        if (window.console) console.log('Destroying', w.editor.id);
+        if (window.console) console.log('destroying', w.editor.id);
+        
+        try {
+            // clear the editor first (large docs can cause the browser to freeze)
+            w.utilities.getRootTag().remove();
+        } catch(e) {
+        }
+        
+        window.removeEventListener('beforeunload', handleUnload);
+        
         w.editor.remove();
         w.editor.destroy();
         // TODO detect and destroy modules
@@ -787,7 +796,7 @@ function CWRCWriter(config) {
         _hideContextMenus(e);
     });
     
-    window.addEventListener('beforeunload', function(e) {
+    var handleUnload = function(e) {
         if ((w.isReadOnly === false || w.isAnnotator === true) && window.location.hostname != 'localhost') {
             if (tinymce.get(editorId).isDirty()) {
                 var msg = 'You have unsaved changes.';
@@ -795,7 +804,9 @@ function CWRCWriter(config) {
                 return msg;
             }
         }
-    });
+    };
+    
+    window.addEventListener('beforeunload', handleUnload);
 
     $(window).on('unload', function(e) {
         try {
