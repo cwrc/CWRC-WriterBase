@@ -64,10 +64,8 @@ function Utilities(writer) {
     
     u.addCSS = function(cssHref) {
         var fullHref = w.cwrcRootUrl+cssHref;
-        for (var i = 0; i < document.styleSheets.length; i++) {
-            if (document.styleSheets[i].href === fullHref) {
-                return;
-            }
+        if (document.querySelector('link[rel=stylesheet][href="'+fullHref+'"]')) {
+            return;
         }
         $(document.head).append('<link type="text/css" rel="stylesheet" href="'+fullHref+'" />');
     }
