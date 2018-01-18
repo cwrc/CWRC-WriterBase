@@ -823,10 +823,8 @@ function CWRCWriter(config) {
     tinymce.baseURL = w.cwrcRootUrl+'/js'; // need for skin
     tinymce.init({
         selector: '#'+editorId,
-        theme: 'modern',
         
-        skin: 'lightgray',
-        skin_url: '',
+        skin_url: w.cwrcRootUrl+'css/tinymce',
         
         content_css: w.cwrcRootUrl+'css/editor.css',
         
