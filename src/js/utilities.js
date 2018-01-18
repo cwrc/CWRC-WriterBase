@@ -1142,6 +1142,84 @@ function Utilities(writer) {
         return paths.length ? "/" + paths.join("/") : null;
     };
     
+    /**
+     * Gets the URI for the entity
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    u.getUriForEntity = function(entity) {
+        var guid = u.createGuid();
+        var uri = 'http://id.cwrc.ca/'+entity.getType()+'/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
+    /**
+     * Gets the URI for the annotation
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    u.getUriForAnnotation = function() {
+        var guid = u.createGuid();
+        var uri = 'http://id.cwrc.ca/annotation/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
+    /**
+     * Gets the URI for the document
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    u.getUriForDocument = function() {
+        var guid = u.createGuid();
+        var uri = 'http://id.cwrc.ca/doc/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
+    /**
+     * Gets the URI for the target
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    u.getUriForTarget = function() {
+        var guid = u.createGuid();
+        var uri = 'http://id.cwrc.ca/target/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
+    /**
+     * Gets the URI for the selector
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    u.getUriForSelector = function() {
+        var guid = u.createGuid();
+        var uri = 'http://id.cwrc.ca/selector/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
+    /**
+     * Gets the URI for the user
+     * @param {Object} entity The entity object
+     * @returns {Promise} The promise object
+     */
+    u.getUriForUser = function() {
+        var guid = u.createGuid();
+        var uri = 'http://id.cwrc.ca/user/'+guid;
+        var dfd = new $.Deferred();
+        dfd.resolve(uri);
+        return dfd.promise();
+    };
+    
     u.createGuid = function() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
