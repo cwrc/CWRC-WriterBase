@@ -1,16 +1,13 @@
-//define(['jquery', 'jquery-ui', 'cwrcDialogs'], function($, jqueryUi, cD) {
 'use strict';
 
 var $ = require('jquery');
-
-
-//var cD = require('cwrc-dialogs');
-
 
 // a bridge between the CWRC-Writer and the cwrcDialogs
 function CwrcDialogBridge(writer, config) {
     var w = writer;
     var cD = writer.initialConfig.entityLookupDialogs;
+    
+    w.utilities.addCSS('css/bootstrap-scoped.css');
     
     var label = config.label;
     var cwrcType = config.cwrcType;

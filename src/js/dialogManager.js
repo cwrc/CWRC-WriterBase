@@ -104,10 +104,6 @@ function DialogManager(writer) {
      */
     var dm = {};
 
-  /*  dm.getEntityDialogs =  function() {
-        return cD;
-    }
-    */
     dm.addDialog = function(dialogName, DialogClass) {
         var dialog = new DialogClass(w);
         if (dialog.show === undefined) {
