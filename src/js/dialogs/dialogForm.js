@@ -169,6 +169,7 @@ function initWriter(el) {
             west: ['structure','entities']
         }
         config.mode = 'xml';
+        config.allowOverlap = false;
         config.buttons1 = 'schematags,editTag,removeTag,|,addperson,addplace,adddate,addorg,addcitation,addtitle,addcorrection,addkeyword,addlink';
     }
     
