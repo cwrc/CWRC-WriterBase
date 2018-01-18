@@ -643,16 +643,6 @@ function Converter(writer) {
 
         // clean up leftover w.structs entries removed during entity insertion
         w.tagger.findNewAndDeletedTags();
-        
-        // try putting the cursor in the body
-        window.setTimeout(function() {
-            var bodyTag = $('[_tag='+w.header+']', w.editor.getBody()).next()[0];
-            if (bodyTag != null) {
-                w.editor.selection.select(bodyTag);
-                w.editor.selection.collapse(true);
-                w._fireNodeChange(bodyTag);
-            }
-        }, 50);
 
         // reset the undo manager
         w.editor.undoManager.clear();

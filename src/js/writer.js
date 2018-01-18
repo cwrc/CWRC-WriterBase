@@ -199,7 +199,7 @@ function CWRCWriter(config) {
             $(w.editor.getDoc()).scrollTop(newScrollTop);
             
             // using setRng triggers nodeChange event so no need to call it manually
-//            w._fireNodeChange(nodeEl);
+//            _fireNodeChange(nodeEl);
             
             // need focus to happen after timeout, otherwise it doesn't always work (in FF)
             window.setTimeout(function() {
@@ -348,7 +348,7 @@ function CWRCWriter(config) {
         return result;
     }
     
-    w._fireNodeChange = function(nodeEl) {
+    function _fireNodeChange(nodeEl) {
         // fire the onNodeChange event
         var parents = [];
         w.editor.dom.getParent(nodeEl, function(n) {
@@ -450,7 +450,7 @@ function CWRCWriter(config) {
                         w.editor.selection.setRng(rng);
                         
                         window.setTimeout(function(){
-                            w._fireNodeChange(newCurrentNode);
+                            _fireNodeChange(newCurrentNode);
                         }, 0);
                     }
                 }
@@ -574,7 +574,7 @@ function CWRCWriter(config) {
                 
                 // use setTimeout to add to the end of the onNodeChange stack
                 window.setTimeout(function(){
-                    w._fireNodeChange(el);
+                    _fireNodeChange(el);
                 }, 0);
             } else {
                 w.editor.currentNode = el;
@@ -738,6 +738,19 @@ function CWRCWriter(config) {
             
         }
     });
+    
+// this method is superseded by the converter's document loaded message    
+//    w.event('documentLoaded').subscribe(function() {
+//        // try putting the cursor in the body
+//        setTimeout(function() {
+//            var bodyTag = $('[_tag='+w.header+']', w.editor.getBody()).next()[0];
+//            if (bodyTag != null) {
+//                w.editor.selection.select(bodyTag);
+//                w.editor.selection.collapse(true);
+//                _fireNodeChange(bodyTag);
+//            }
+//        }, 50);
+//    });
 
     /**
      * Init tinymce
