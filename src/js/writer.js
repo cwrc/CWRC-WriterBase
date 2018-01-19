@@ -113,7 +113,7 @@ function CWRCWriter(config) {
     }
     if (w.allowOverlap && w.mode === w.XML) {
         w.allowOverlap = false;
-        alert('XML cannot overlap!');
+        if (console) console.warn('Mode set to XML and overlap allowed. Disabling overlap since XML doesn\'t allow it.');
     }
     
     // possible results when trying to add entity
@@ -132,6 +132,11 @@ function CWRCWriter(config) {
     w.getUniqueId = function(prefix) {
         var id = tinymce.DOM.uniqueId(prefix);
         return id;
+    };
+    
+    // needed to instantiate writer in notes
+    w._getClass = function() {
+        return CWRCWriter;
     };
     
     /**

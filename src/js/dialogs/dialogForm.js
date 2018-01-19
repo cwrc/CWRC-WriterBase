@@ -184,7 +184,7 @@ function initWriter(el) {
         me.cwrcWriterConfig = config;
     }
     
-    me.cwrcWriter = new CWRCWriter(config);
+    me.cwrcWriter = new me.w._getClass()(config);
     
     me.$el.one('beforeClose', function() {
         me.cwrcWriter.destroy();
