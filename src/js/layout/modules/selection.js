@@ -56,7 +56,7 @@ function Selection(config) {
             var escapedContents = w.utilities.escapeHTMLString(xmlString);   //$('#selectionContents')[0].innerHTML
             if (escapedContents.length < 100000) {
                 if (escapedContents != '\uFEFF') {
-                    $('#'+id).html('<pre style="width:100%;height:100%;padding:0;margin:0;"><code class="language-markup">'+escapedContents+'</code></pre>');
+                    $('#'+id).html('<pre style="width:100%;height:100%;padding:0;margin:0;border:none !important;"><code class="language-markup">'+escapedContents+'</code></pre>');
                     Prism.highlightElement($('#'+id+' code')[0]);
                 } else {
                     $('#'+id).html('<pre><code>Nothing selected.</code></pre>');
