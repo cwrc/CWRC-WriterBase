@@ -848,6 +848,7 @@ div.mce-cwrc div.mce-menu-item-sep, div.mce-cwrc div.mce-menu-item-sep:hover {
 
 /* tinymce overrides */
 .mce-tinymce.mce-container {
+	overflow: hidden; /* needed to prevent scrollbars from jquery dialogs */
 	border-width: 0px !important;
 }
 
