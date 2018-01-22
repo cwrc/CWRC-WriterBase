@@ -220,7 +220,8 @@ AttributeWidget.prototype = {
         // validation
         var invalid = [];
         $('.attsContainer span.required', this.$el).parent().children('label').each(function(index, el) {
-            if (attributes[$(this).text()] == '') {
+            var entry = attributes[$(this).text()];
+            if (entry === undefined || entry == '') {
                 invalid.push($(this).text());
             }
         });
