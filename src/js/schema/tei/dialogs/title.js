@@ -41,8 +41,8 @@ module.exports = function(writer) {
     var dialog = new DialogForm({
         writer: w,
         $el: $el,
-        width: 435,
-        height: 630,
+        width: 630,
+        height: 660,
         type: 'title',
         title: 'Tag Title'
     });
