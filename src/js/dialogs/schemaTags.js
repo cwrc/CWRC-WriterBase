@@ -116,7 +116,7 @@ function SchemaTags(writer) {
         // check if beforeClose cancelled or not
         if ($schemaDialog.is(':hidden')) {
             w.editor.selection.moveToBookmark(w.editor.currentBookmark);
-            w.editor.currentBookmark = null;
+            //w.editor.currentBookmark = null;
             try {
                 $('ins', $schemaDialog).tooltip('destroy');
             } catch (e) {
