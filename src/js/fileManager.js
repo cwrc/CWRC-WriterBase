@@ -25,7 +25,7 @@ function FileManager(writer) {
     
     var $edit = $(''+
     '<div>'+
-        '<textarea style="height: 98%; width: 98%;" spellcheck="false"></textarea>'+
+        '<textarea style="height: 98%; width: 98%; font-family: monospace;" spellcheck="false"></textarea>'+
     '</div>').appendTo(document.body);
     
     $edit.dialog({
