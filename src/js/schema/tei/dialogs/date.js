@@ -1,6 +1,8 @@
 var $ = require('jquery');
 
 var moment = require('moment/moment');
+moment.suppressDeprecationWarnings = true;
+
 var DialogForm = require('dialogForm');
 
 require('jquery-ui/ui/widgets/datepicker');
@@ -126,9 +128,10 @@ module.exports = function(writer) {
             
             var dateString = w.editor.currentBookmark.rng.toString();
             if (dateString != '') {
-                var dateObj = moment(dateString).toDate(); // use moment library to parse date string properly
-                var year = dateObj.getFullYear();
-                if (!isNaN(year)) {
+                var dateMoment = moment(dateString);
+                if (dateMoment.isValid()) {
+                    var dateObj = dateMoment.toDate(); // use moment library to parse date string properly
+                    var year = dateObj.getFullYear();
                     if (dateString.length > 4) {
                         var month = dateObj.getMonth();
                         month++; // month is zero based index
@@ -144,7 +147,7 @@ module.exports = function(writer) {
             }
 
             toggleDate('date');
-            $('#'+id+'_type_date').prop('checked', true).button('refresh');
+            $('#'+id+'_type_date').prop('checked', true);
             $dateInput.val(dateValue);
             $startDate.val('');
             $endDate.val('');
@@ -152,18 +155,20 @@ module.exports = function(writer) {
             var data = config.entry.getAttributes();
             if (data.when !== undefined) {
                 toggleDate('date');
-                $('#'+id+'_type_date').prop('checked', true).button('refresh');
+                $('#'+id+'_type_date').prop('checked', true);
                 $dateInput.val(data.when);
                 $startDate.val('');
                 $endDate.val('');
             } else {
                 toggleDate('range');
-                $('#'+id+'_type_range').prop('checked', true).button('refresh');
+                $('#'+id+'_type_range').prop('checked', true);
                 $dateInput.val('');
                 $startDate.val(data.from);
                 $endDate.val(data.to);
             }
         }
+        
+        $('#'+id+'_type input').button('refresh');
         
         $dateInput.css({borderBottom: ''});
         $startDate.css({borderBottom: ''});
