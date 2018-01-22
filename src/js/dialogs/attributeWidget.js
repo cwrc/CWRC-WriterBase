@@ -207,8 +207,12 @@ AttributeWidget.prototype = {
         
         return wasDataSet;
     },
+    
+    /**
+     * Collects the data from the attribute widget and performs validation.
+     * @returns {Object|undefined} Returns undefined if invalid
+     */
     getData: function() {
-        // collect values then close dialog
         var attributes = {};
         $('.attsContainer > div > div:visible', this.$el).children('input[type!="hidden"], select').each(function(index, el) {
             var val = $(this).val();
@@ -237,6 +241,7 @@ AttributeWidget.prototype = {
         
         return attributes;
     },
+    
     expand: function() {
         this.$el.parent('[data-transform="accordion"]').accordion('option', 'active', 0);
     },

@@ -80,30 +80,9 @@ function SchemaTags(writer) {
     
     var formResult = function() {
         // collect values then close dialog
-        var attributes = {};
-        $('.attsContainer > div > div:visible', $schemaDialog).children('input[type!="hidden"], select').each(function(index, el) {
-            var val = $(this).val();
-            if (val != '') { // ignore blank values
-                attributes[$(this).attr('name')] = val;
-            }
-        });
-        
-        // validation
-        var invalid = [];
-        $('.attsContainer span.required', $schemaDialog).parent().children('label').each(function(index, el) {
-            var entry = attributes[$(this).text()];
-            if (entry === '') {
-                invalid.push($(this).text());
-            }
-        });
-        if (invalid.length > 0) {
-            for (var i = 0; i < invalid.length; i++) {
-                var name = invalid[i];
-                $('.attsContainer *[name="'+name+'"]', $schemaDialog).css({borderColor: 'red'}).keyup(function(event) {
-                    $(this).css({borderColor: '#ccc'});
-                });
-            }
-            return;
+        var attributes = attributesWidget.getData();
+        if (attributes === undefined) {
+            attributes = {}; // let form submit even if invalid (for now)
         }
         
         attributes._tag = currentTagName;
