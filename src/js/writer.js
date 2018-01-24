@@ -607,16 +607,14 @@ function CWRCWriter(config) {
     };
     
     function _hideContextMenus(evt) {
+        console.log('hide context menus');
         var target = $(evt.target);
         // hide structure tree menu
         // TODO move to structure tree
         if ($.vakata && $.vakata.context && target.parents('.vakata-context').length === 0) {
             $.vakata.context.hide();
         }
-        // hide editor menu
-        if ($('#menu_editor_contextmenu:visible').length > 0 && target.parents('#menu_editor_contextmenu, #menu_structTagsContextMenu, #menu_changeTagContextMenu').length == 0) {
-            w.editor.execCommand('hideContextMenu', w.editor, evt);
-        }
+        
     };
     
     function _doHighlightCheck(evt) {
