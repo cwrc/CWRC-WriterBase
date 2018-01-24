@@ -115,7 +115,7 @@ test('init', (assert)=> {
     let configForTestingConstructor = getConfigForTestingConstructor()
     window.writer = new CWRCWriter(configForTestingConstructor)
     // ACT
-    window.writer.init('cwrcWriterContainer')
+  //  window.writer.init('cwrcWriterContainer')
     // ASSERT
     assert.ok(true, 'did something either in javascript or in the DOM');
     reset()
@@ -134,7 +134,7 @@ test('showLoadDialog', (assert)=> {
     }
 
     window.writer = new CWRCWriter(configForTestingConstructor)
-    window.writer.init('cwrcWriterContainer')
+   // window.writer.init('cwrcWriterContainer')
     // ACT
     writer.showLoadDialog()
     // ASSERT
@@ -150,7 +150,7 @@ test('showLoadDialog with sinon', (assert)=> {
     var sinonSpy = sinon.spy();
     configForTestingConstructor.storageDialogs.load = sinonSpy;
     window.writer = new CWRCWriter(configForTestingConstructor)
-    window.writer.init('cwrcWriterContainer')
+   // window.writer.init('cwrcWriterContainer')
     // act
     writer.showLoadDialog()
     // assert
@@ -221,6 +221,7 @@ function getConfigForTestingConstructor() {
                 }
             }
         },
-        "defaultDocument": "templates/letter"
+        "defaultDocument": "templates/letter",
+        "container":"cwrcWriterContainer"
     }
 }

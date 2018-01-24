@@ -30,14 +30,33 @@ The [Canadian Writing Research Collaboratory (CWRC)](http://www.cwrc.ca/projects
 
 ## Overview
 
-CWRCWriter is a WYSIWYG text editor for in-browser XML editing and stand-off RDF annotation.  The editor is a customization of the [TinyMCE](http://www.tinymce.com) editor.
+CWRCWriter is a WYSIWYG text editor for in-browser XML editing and stand-off RDF annotation.  
+The editor is a customization of the [TinyMCE](http://www.tinymce.com) editor.
 
-A 'CWRCWriter' installation is a bundling of the main CWRC-WriterBase (the code in this repository) with two other NPM packages that handle interaction (dialogs for user input, and calls to the server) with server-side services for:
+A 'CWRCWriter' installation is a bundling of the main CWRC-WriterBase (the code in this repository) with  
+a few other NPM packages that handle interaction (calls to the server from dialogs for user input) with server-side services for:
 
 * document storage
-* named entity lookup (and optionally /add/edit)
+* named entity lookup 
 
-The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/cwrc/cwrc-gitwriter) which uses GitHub to store documents, and uses [VIAF](https://viaf.org) for named entity (people, places) lookup.  The dialogs to interact with GitHub and VIAF are in the NPM packages [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs) and [cwrc-public-entity-dialogs](https://github.com/cwrc/cwrc-public-entity-dialogs). The CWRC-GitWriter therefore bundles (using browserify) those two NPM packages with the CWRC-WriterBase package. You may substitute your own packages with dialogs that interact with your own backend storage and/or entity lookup.
+The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/cwrc/cwrc-gitwriter) which uses 
+GitHub to store documents, and uses [VIAF](https://viaf.org), [WikiData](https://www.wikidata.org), [DBpedia](http://wiki.dbpedia.org), 
+[Getty](http://vocab.getty.edu) for named entity (people, places) lookup.  
+
+The dialogs to interact with GitHub, VIAF,  are in the NPM packages:
+ 
+* [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs)
+* [cwrc-public-entity-dialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs)
+
+The CWRC-PublicEntityDialogs package in turn uses:
+
+* [getty-entity-lookup](https://github.com/cwrc/getty-entity-lookup)
+* [wikidata-entity-lookup](https://github.com/cwrc/wikidata-entity-lookup)
+* [dbpedia-entity-lookup](https://github.com/cwrc/dbpedia-entity-lookup)
+* [viaf-entity-lookup](https://github.com/cwrc/viaf-entity-lookup)
+
+The CWRC-GitWriter (the default CWRC-Writer) therefore bundles (using browserify) those NPM packages together with the CWRC-WriterBase package. 
+You may substitute your own packages with dialogs that interact with your own backend storage and/or entity lookup.
 
 The CWRCWriterBase itself also provides built in interaction with default server-side services for:
 
@@ -45,15 +64,24 @@ The CWRCWriterBase itself also provides built in interaction with default server
 * XML Schemas
 * documentation and help
 
-CWRC provides a default XML validation HTTP end point that the CWRC-WriterBase is preconfigured to use.  You may substitute your own, but the CWRC-WriterBase expects validation and error messages in a specific format.  Similarly you can substitute your own documentation and help files.
+CWRC provides a default XML validation HTTP end point that the CWRC-WriterBase is preconfigured to use.  
+You may substitute your own, but the CWRC-WriterBase expects validation and error messages in a specific format.  
+Similarly you can substitute your own documentation and help files.
 
 ## Storage and entity lookup
 
-If you choose not to use either the default CWRC GitHub storage or VIAF named entity lookup then most of the work in setting up CWRCWriter for your project will be implementing the dialogs to interact with your backend storage or named entity lookup. We have split these pieces off into their own packages in large part to make it easier to substitue your own dialogs for one or both.  
+If you choose not to use either the default CWRC GitHub storage or the CWRC named entity lookups then most of the 
+work in setting up CWRCWriter for your project will be in implementing the dialogs to interact with your backend storage 
+and/or named entity lookups. We have split these pieces off into their own packages in large part to make it easier to 
+substitute your own dialogs and supporting services.  
 
-A good example to follow when creating a new CWRC-Writer project is our default implementation [CWRC-GitWriter](https://github.com/cwrc/CWRC-GitWriter).  You might also choose to use either the CWRC GitHub storage dialogs or the CWRC public entity lookup, both of which are used by the CWRC-GitWriter, and replace just one of the two.  To help understand how we've developed the CWRC-Writer, you could also look at our [development docs](https://github.com/cwrc/CWRC-Writer-Dev-Docs]).
+A good example to follow when creating a new CWRC-Writer project is our pubic implementation 
+[CWRC-GitWriter](https://github.com/cwrc/CWRC-GitWriter).  You might also choose to use either the 
+CWRC GitHub storage dialogs or the CWRC public entity lookups, both of which are used by the CWRC-GitWriter, 
+and replace just one of the two.  To help understand how we've developed the CWRC-Writer, you could also 
+look at our [development docs](https://github.com/cwrc/CWRC-Writer-Dev-Docs]).
 
-To replace one or the other, or both, of the storage and entity dialogs, you'll need to create objects with the following APIs:
+To replace either of the storage and entity dialogs, you'll need to create objects with the following APIs:
 
 #### Storage object API
 
@@ -67,15 +95,27 @@ The storage object for GitHub is implemented here:  [cwrc-git-dialogs](https://g
 
 Each method is invoked by the CWRC-WriterBase whenever the end user clicks the 'save' or 'load' button in the editor.
 
-Each method spawns a diaglog (bootstrap in our case) that prompts the user to load or save.  Because load(writer) and save(writer) are passed an instance of the CWRC writer object, all of the methods defined below in [API](#writer-object) are available, to allow get and set of the XML in the writer.
+Each method spawns a dialog that prompts the user to load or save.  Because load(writer) and save(writer) are passed an instance of the CWRC writer object, all of the methods defined below in [API](#writer-object) are available, to allow get and set of the XML in the writer.
 
 We also define an authenticate method on our cwrc-git-dialogs object to handle the Oauth authentication of GitHub.  You may implement your authentication however you like.  If you want to follow our approach you can see it here: [https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/app.js] where we authenticate before instantiating the CWRC-WriterBase.  
 
 #### Entity Lookup API
 
-Defined and implemented here:  [https://github.com/cwrc/CWRC-PublicEntityDialogs]
+You have at least two choices here:
 
-The lookup methods defined in the Entity Lookup API are invoked by the CWRC-WriterBase whenever the end user clicks one of the entity buttons (person, place, event) to 'annotate' or 'tag' an entity reference` (e.g., a person name like 'Charlie Parker') that they've highlighted in the text.
+1. You can entirely implement your own dialog for lookup, following the model in 
+[CRWCPublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs)
+
+2. You can use [CRWCPublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) and configure it with different 
+sources.  We provide four sources (viaf, wikidata, getty, DBpedia).  
+
+* [getty-entity-lookup](https://github.com/cwrc/getty-entity-lookup)
+* [wikidata-entity-lookup](https://github.com/cwrc/wikidata-entity-lookup)
+* [dbpedia-entity-lookup](https://github.com/cwrc/dbpedia-entity-lookup)
+* [viaf-entity-lookup](https://github.com/cwrc/viaf-entity-lookup)
+
+You can use any of these sources, and supplement them with your own sources.  [CRWCPublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) fully 
+explains how to add your own sources.
 
 ## Layout 
 
@@ -215,7 +255,6 @@ Handles the dissemination of events through the CWRC-Writer using a publication-
 [SchemaManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/schema/schemaManager.js)
 
 Handles schema loading and schema CSS processing. Stores the list of available schemas, as well as the current schema. Handles the creation of schema-appropriate entities, via the [Mapper](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/schema/mapper.js).
-
 
 ## Modules
 
