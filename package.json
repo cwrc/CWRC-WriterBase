@@ -59,7 +59,7 @@
     "cwrc-public-entity-dialogs": "^1.2.0",
     "cz-conventional-changelog": "2.0.0",
     "dbpedia-entity-lookup": "0.0.0",
-    "deamdify": "github:au-phiware/deamdify",
+    "deamdify": "0.3.0",
     "faucet": "0.0.1",
     "getty-entity-lookup": "^1.2.0",
     "husky": "0.13.3",
