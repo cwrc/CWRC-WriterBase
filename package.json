@@ -25,11 +25,12 @@
   "homepage": "https://github.com/cwrc/CWRC-WriterBase#readme",
   "browser": {
     "objtree": "./src/js/lib/objtree/ObjTree.js",
+    "dialogForm": "./src/js/dialogs/dialogForm.js",
     "jquery-watermark": "./src/js/lib/jquery/plugins/jquery.watermark.min.js",
     "jquery-contextmenu": "./src/js/lib/jquery/plugins/jquery.contextmenu.min.js",
     "jquery-popup": "./src/js/lib/jquery/plugins/jquery.popup.js",
     "jquery-xpath": "./src/js/lib/jquery/plugins/jquery.xpath.js",
-    "dialogForm": "./src/js/dialogs/dialogForm.js"
+    "layout": "./src/js/lib/jquery/plugins/jquery.layout_and_plugins.js"
   },
   "dependencies": {
     "bootstrap": "3.3.7",
@@ -38,7 +39,6 @@
     "jquery": "3.2.1",
     "jquery-ui": "1.12",
     "jstree": "3.3.3",
-    "layout": "github:ajmacdonald/layout",
     "moment": "^2.20.1",
     "openseadragon": "2.3.1",
     "prismjs": "1.6.0",

@@ -2,7 +2,7 @@
 
 var $ = require('jquery');
 
-require('../../src/js/lib/jquery/plugins/jquery.layout-latest.js');
+require('../../src/js/lib/jquery/plugins/jquery.layout_and_plugins.js');
 require('jquery-ui/ui/widgets/tabs');
 
 function Layout(w) {
