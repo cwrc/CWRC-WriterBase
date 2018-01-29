@@ -607,7 +607,6 @@ function CWRCWriter(config) {
     };
     
     function _hideContextMenus(evt) {
-        console.log('hide context menus');
         var target = $(evt.target);
         // hide structure tree menu
         // TODO move to structure tree

@@ -599,7 +599,7 @@ function StructureTree(config) {
     
     $tree = $('#'+id);
     
-    w.utilities.addCSS('css/jstree/themes/default/cwrc.css');
+    w.utilities.addCSS('css/jstree/default/cwrc.css');
 //    $.vakata.dnd.settings.helper_left = 15;
 //    $.vakata.dnd.settings.helper_top = 20;
     
@@ -618,7 +618,7 @@ function StructureTree(config) {
                 name: 'default',
                 icons: false,
                 url: true,
-                dir: w.cwrcRootUrl + 'css/jstree/themes',
+                dir: w.cwrcRootUrl + 'css/jstree',
                 responsive: false
             },
             data: {
