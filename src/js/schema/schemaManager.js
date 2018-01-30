@@ -97,7 +97,7 @@ function SchemaManager(writer, config) {
         var schemaEntry = sm.schemas[schemaId];
         if (schemaEntry !== undefined) {
             sm.schemaId = schemaId;
-            var baseUrl = ''; //w.project == null ? '' : w.baseUrl; // handling difference between local and server urls
+            var baseUrl = ''; // TODO review if this is necessary
             var schemaUrl = schemaEntry.url;
             var schemaMappingsId = schemaEntry.schemaMappingsId;
             

@@ -310,7 +310,7 @@ AnnotationsManager.prototype = {
         var rdfString = '';
 
         // xml mode
-        var uri = this.w.baseUrl+'editor/documents/'+this.w.currentDocId;
+        var uri = this.w.cwrcRootUrl+'editor/documents/'+this.w.currentDocId;
         rdfString += ''+
         '<rdf:Description rdf:about="'+uri+'">'+
             '\n\t<cw:mode>'+this.w.mode+'</cw:mode>'+

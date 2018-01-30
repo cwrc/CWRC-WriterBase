@@ -49,9 +49,6 @@ function CWRCWriter(config) {
     w.deletedEntities = {};
     w.deletedStructs = {};
     
-   // w.project = config.project || {}; // the current project (cwrc or russell)
-    
-    w.baseUrl = window.location.protocol+'//'+window.location.host+'/'; // the url for referencing various external services
     w.cwrcRootUrl = config.cwrcRootUrl; // the url which points to the root of the cwrcwriter location
     w.validationUrl = config.validationUrl || 'https://validator.services.cwrc.ca/validator/validate.html';// url for the xml validation
     if (w.cwrcRootUrl == null || w.cwrcRootUrl == '') {
@@ -242,7 +239,6 @@ function CWRCWriter(config) {
         w.event('validationInitiated').publish();
         
         $.ajax({
-          //  url: w.baseUrl+'services/validator/validate.html',
             url: w.validationUrl,
             type: 'POST',
             dataType: 'xml',
