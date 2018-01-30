@@ -228,7 +228,7 @@ function initWriter(el) {
             setTimeout(el.update, 50);
         });
         
-        var noteUrl = me.w.cwrcRootUrl + me.w.schemaManager.getCurrentSchema().entityTemplates[me.type];
+        var noteUrl = me.w.schemaManager.getCurrentSchema().entityTemplates[me.type];
         if (me.mode === DialogForm.ADD) {
             me.cwrcWriter.fileManager.loadDocumentFromUrl(noteUrl);
         } else {
