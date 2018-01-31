@@ -2,7 +2,6 @@
 
 var $ = require('jquery');
 
-//var tinymce = require('tinymce');
 window.tinymce = require('tinymce');
 
 require('tinymce/themes/modern/theme.js');

@@ -1,5 +1,6 @@
 'use strict';
 
+var $ = require('jquery');
 var tinymce = require('tinymce');
     
 tinymce.PluginManager.add('viewsource', function(editor) {

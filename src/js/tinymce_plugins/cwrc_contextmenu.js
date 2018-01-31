@@ -1,6 +1,7 @@
 'use strict';
 
-//var tinymce = require('tinymce');
+var tinymce = require('tinymce');
+var $ = require('jquery');
 
 tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
     var menu, items, contextmenuNeverUseNative = editor.settings.contextmenu_never_use_native;

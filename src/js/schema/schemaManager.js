@@ -1,7 +1,6 @@
 'use strict';
 
 var $ = require('jquery');
-var tinymce = require('tinymce');
 var Mapper = require('./mapper.js');
 var cssParser = require('css-parse');
 var cssStringify = require('css-stringify');
