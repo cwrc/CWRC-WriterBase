@@ -674,10 +674,8 @@ function Utilities(writer) {
                     return false;
                 }
             });
-            if (docs != null) {
+            if (docs != null && docs['#text'] !== undefined) {
                 docs = docs['#text'];
-            } else {
-                docs = 'No documentation available.';
             }
             
             if (child.anyName) {
