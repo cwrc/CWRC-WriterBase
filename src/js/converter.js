@@ -657,7 +657,7 @@ function Converter(writer) {
                     msg: 'The wrong schema is specified.<br/>Schema root: '+w.root+'<br/>Document root: '+root.nodeName+'<br/><br/>Go to <b>Settings</b> to change the schema association.',
                     type: 'error'
                 });
-            } else if (w.showModeMessage === true) {
+            } else if (w.isEmbedded !== true) {
                 var msg;
                 if (w.mode === w.XML) {
                     msg = '<b>XML only</b><br/>Only XML tags and no RDF/Semantic Web annotations will be created.';

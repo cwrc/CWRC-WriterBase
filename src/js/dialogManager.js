@@ -142,7 +142,6 @@ function DialogManager(writer) {
         popup: Popup,
         copyPaste: CopyPaste,
         triple: Triple,
-        header: Header,
         loadingindicator: LoadingIndicator,
         addschema: AddSchema,
         person: CwrcPerson,
@@ -152,6 +151,11 @@ function DialogManager(writer) {
         place: CwrcPlace,
         schemaTags: SchemaTags
     };
+    
+    if (w.isEmbedded !== true) {
+        defaultDialogs.header = Header;
+    }
+    
     for (var dialogName in defaultDialogs) {
         dm.addDialog(dialogName, defaultDialogs[dialogName]);
     }

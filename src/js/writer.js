@@ -77,6 +77,12 @@ function CWRCWriter(config) {
     // is the editor in annotate (entities) only mode
     w.isAnnotator = false;
     
+    // true if this writer is embedded in a parent writer, i.e. for note entities
+    w.isEmbedded = false;
+    if (config.embedded !== undefined && typeof config.embedded === 'boolean') {
+        w.isEmbedded = config.embedded;
+    }
+    
     // possible editor modes
     w.XMLRDF = 0; // XML + RDF
     w.XML = 1; // XML only
@@ -92,12 +98,6 @@ function CWRCWriter(config) {
         } else if (config.mode === 'rdf') {
             w.mode = w.RDF;
         }
-    }
-    
-    // should we tell the user the editor mode after loading a document?
-    w.showModeMessage = true;
-    if (config.showModeMessage !== undefined && typeof config.showModeMessage === 'boolean') {
-        w.showModeMessage = config.showModeMessage;
     }
     
     // what format to produce annotations in (XML or JSON)

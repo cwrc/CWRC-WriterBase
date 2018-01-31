@@ -168,6 +168,7 @@ function initWriter(el) {
         config.modules = {
             west: ['structure','entities']
         }
+        config.embedded = true;
         config.mode = 'xml';
         config.allowOverlap = false;
         config.buttons1 = 'schematags,editTag,removeTag,|,addperson,addplace,adddate,addorg,addcitation,addtitle,addcorrection,addkeyword,addlink';
@@ -212,6 +213,8 @@ function initWriter(el) {
     }
     
     function postSetup() {
+        me.cwrcWriter.settings.hideAdvanced();
+        
         me.cwrcWriter.event('documentLoaded').subscribe(function() {
             // TODO remove forced XML/no overlap
             me.cwrcWriter.mode = me.cwrcWriter.XML;
