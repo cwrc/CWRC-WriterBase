@@ -36,8 +36,10 @@ function ImageViewer(config) {
     $('#'+config.parentId).css('overflow', 'hidden');
     
     var $parent = $('#'+id);
-    var pageBreaks;
+    var $pageBreaks;
     var currentIndex = -1;
+    
+    var ignoreScroll = false;
     
     w.event('loadingDocument').subscribe(function() {
         iv.reset();
@@ -67,45 +69,56 @@ function ImageViewer(config) {
     var iv = {};
     
     iv.reset = function() {
-        pageBreaks = null;
+        $pageBreaks = null;
         currentIndex = -1;
     }
     
     function processDocument(doc) {
-        pageBreaks = $(doc).find('*[_tag='+tagName+']');
-        if (pageBreaks.length == 0) {
+        $pageBreaks = $(doc).find('*[_tag='+tagName+']');
+        if ($pageBreaks.length === 0) {
             iv.setMessage('No '+tagName+' elements found.');
+            w.layoutManager.hideModule('imageViewer');
         } else {
-            $parent.find('.totalPages').html(pageBreaks.length);
-            iv.loadPage(0, true);
+            var tileSources = [];
+            $pageBreaks.each(function(index, el) {
+                var url = $(el).attr(attrName);
+                tileSources.push({
+                    type: 'image',
+                    url: url
+                });
+            });
+            
+            $parent.find('.totalPages').html($pageBreaks.length);
+            $parent.find('.currPage').val(1);
+            currentIndex = 0;
+            
+            w.layoutManager.showModule('imageViewer');
+            osd.open(tileSources, 0);
         }
     }
     
     function handleScroll() {
-        var ifr = $('iframe', w.editor.getContainer());
-        var scrollHeight = ifr.height();
-        var el = w.editor.getDoc().scrollingElement;
-        var scrollTop = el.scrollTop;
-        var scrollBottom = scrollTop+scrollHeight;
-        
-        var index = -1;
-        pageBreaks.each(function(i, el) {
-           var y = $(el).offset().top;
-           if (y > scrollTop && y < scrollBottom) {
-               index = i;
-               return false;
-           }
-        });
-        
-        if (index != -1) {
-            iv.loadPage(index, true);
+        if (!ignoreScroll) {
+            var ifr = $('iframe', w.editor.getContainer());
+            var scrollHeight = ifr.height();
+            var el = w.editor.getDoc().scrollingElement;
+            var scrollTop = el.scrollTop;
+            var scrollBottom = scrollTop+scrollHeight;
+            
+            var index = -1;
+            $pageBreaks.each(function(i, el) {
+               var y = $(el).offset().top;
+               if (y > scrollTop && y < scrollBottom) {
+                   index = i;
+                   return false;
+               }
+            });
+            
+            if (index != -1) {
+                iv.loadPage(index, true);
+            }
         }
-    }
-    
-    function setImage(url) {
-        osd.addSimpleImage({
-            url: url
-        });
+        ignoreScroll = false;
     }
     
     iv.resizeImage = function() {
@@ -141,31 +154,26 @@ function ImageViewer(config) {
      */
     iv.loadPage = function(index, external) {
         $('#'+id+'_msg').hide();
-        if (index >= 0 && index < pageBreaks.length) {
+        if (index >= 0 && index < $pageBreaks.length) {
             if (index != currentIndex) {
                 currentIndex = index;
-                $parent.find('.currPage').val(index+1);
-                var pageBreak = $(pageBreaks.get(index));
-                var url = pageBreak.attr(attrName);
-                if (url !== undefined) {
-                    setImage(url);
                 
-                    if (index == 0) {
-                        $parent.find('button.prev').button('disable');
-                    } else {
-                        $parent.find('button.prev').button('enable')
-                    }
-                    if (index == pageBreaks.legnth-1) {
-                        $parent.find('button.next').button('disable');
-                    } else {
-                        $parent.find('button.next').button('enable');
-                    }
-                    
-                    if (!external) {
-                        pageBreak[0].scrollIntoView();
-                    }
+                osd.goToPage(index);
+                if (!external) {
+                    ignoreScroll = true; // make sure scrollIntoView doesn't re-trigger loadPage
+                    $pageBreaks.get(index).scrollIntoView();
+                }
+                
+                $parent.find('.currPage').val(index+1);
+                if (index == 0) {
+                    $parent.find('button.prev').button('disable');
                 } else {
-                    iv.setMessage('No URI found for @'+attrName);
+                    $parent.find('button.prev').button('enable')
+                }
+                if (index == $pageBreaks.legnth-1) {
+                    $parent.find('button.next').button('disable');
+                } else {
+                    $parent.find('button.next').button('enable');
                 }
             }
         }
@@ -202,7 +210,8 @@ function ImageViewer(config) {
     
     osd = OpenSeaDragon({
         id: id+'_osd',
-        prefixUrl: w.cwrcRootUrl+'img/osd/'
+        prefixUrl: w.cwrcRootUrl+'img/osd/',
+        sequenceMode: true
     });
     
     

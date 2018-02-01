@@ -254,6 +254,25 @@ LayoutManager.prototype = {
         }
     },
     
+    hideModule: function(moduleId) {
+        for (var region in this.modulesLayout) {
+            var modules = this.modulesLayout[region];
+            if (Array.isArray(modules)) {
+                for (var i = 0; i < modules.length; i++) {
+                    if (modules[i] === moduleId) {
+                        this.hideRegion(region);
+                        return;
+                    }
+                }
+            } else {
+                if (modules === moduleId) {
+                    this.hideRegion(region);
+                    return;
+                }
+            }
+        }
+    },
+    
     showRegion: function(region, tabIndex) {
         if (region === 'south') {
             this.$innerLayout.open('south');
@@ -270,6 +289,20 @@ LayoutManager.prototype = {
             }
             if (tabIndex !== undefined) {
                 this.$outerLayout.panes[region].tabs('option', 'active', tabIndex);
+            }
+        }
+    },
+    
+    hideRegion: function(region) {
+        if (region === 'south') {
+            this.$innerLayout.close('south');
+        } else {
+            if (region === 'west') {
+                this.$outerLayout.close('west');
+            } else if (region === 'east') {
+                this.$outerLayout.close('east');
+            } else {
+                return;
             }
         }
     },
