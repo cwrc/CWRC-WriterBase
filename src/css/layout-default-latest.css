@@ -171,7 +171,7 @@
     overflow:    hidden !important;
     position:    absolute !important;
     opacity:    0 !important;
-    filter:        Alpha(Opacity="0") !important;
+    filter:        alpha(opacity=0) !important;
 }
 .ui-layout-mask-inside-pane { /* masks always inside pane EXCEPT when pane is an iframe */
     top:        0 !important;
