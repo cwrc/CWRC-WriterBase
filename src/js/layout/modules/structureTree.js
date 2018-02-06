@@ -531,11 +531,10 @@ function StructureTree(config) {
 
         $tree.jstree('open_node', dropNode, null, false);
         
-        tree.update();
         if (isCopy) {
             w.tagger.findDuplicateTags();
-            w.entitiesList.update();
         }
+        w.event('contentChanged').publish(w.editor);
     }
     
     function _removeCustomClasses() {
