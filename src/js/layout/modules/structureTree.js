@@ -192,6 +192,10 @@ function StructureTree(config) {
                     //}
     
                     _scrollIntoView(treeNode);
+                } else {
+                    // if highlighting already highlighted node
+                    // the user has probably clicked inside a selected tag so we should clear all selections
+                    _onNodeDeselect();
                 }
             }
         } else {
