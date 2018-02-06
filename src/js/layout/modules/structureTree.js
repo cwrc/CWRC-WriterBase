@@ -280,8 +280,7 @@ function StructureTree(config) {
             } else if (w.structs[id] != null) {
                 tree.currentlySelectedEntity = null;
                 if (tree.currentlySelectedNodes.indexOf(id) != -1 && !external) {
-                    // already selected node, toggle selection type
-                    selectContents = !selectContents;
+                    // already selected node, do nothing
                 } else {
                     tree.currentlySelectedNodes.push(id);
                 }
@@ -483,7 +482,15 @@ function StructureTree(config) {
     function _onNodeSelect(event, data) {
         if (!ignoreSelect) {
             var $target = $(data.event.currentTarget);
-            var selectContents = $target.hasClass('contentsSelected');
+            
+            var selectContents;
+            if ($target.hasClass('contentsSelected')) {
+                selectContents = false;
+            } else if ($target.hasClass('nodeSelected')) {
+                selectContents = true;
+            } else {
+                selectContents = true;
+            }
             
             var multiselect = data.event.ctrlKey == true || data.event.shiftKey == true;
             
@@ -863,7 +870,9 @@ function StructureTree(config) {
         tree.update();
     });
     w.event('nodeChanged').subscribe(function(currentNode) {
-        tree.highlightNode(currentNode);
+        if (!ignoreSelect) {
+            tree.highlightNode(currentNode);
+        }
     });
     w.event('contentChanged').subscribe(function() {
         tree.update();
