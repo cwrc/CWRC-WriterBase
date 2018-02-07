@@ -17,7 +17,6 @@ function ImageViewer(config) {
     '.imageViewer .toolbar { display: table-row; height: 25px; text-align: center; }'+
     '.imageViewer .pageInfo { display: inline-block; margin: 0 5px; }'+
     '.imageViewer input.currPage { width: 20px; text-align: right; }'+
-    '.imageViewer .msg { display: table-row; height: 25px; text-align: center; margin-top: 10px; }'+
     '.imageViewer .image { display: table-row; }';
     
     var styleEl = document.createElement("style");
@@ -30,7 +29,6 @@ function ImageViewer(config) {
             '<div class="toolbar">'+
                 '<button class="prev">&#8592;</button><span class="pageInfo"><input type="text" class="currPage" /> / <span class="totalPages" /></span><button class="next">&#8594;</button>'+
             '</div>'+
-            '<div id="'+id+'_msg" class="msg"></div>'+
             '<div id="'+id+'_osd" class="image"></div>'+
         '</div>');
     $('#'+config.parentId).css('overflow', 'hidden');
@@ -76,12 +74,17 @@ function ImageViewer(config) {
     function processDocument(doc) {
         $pageBreaks = $(doc).find('*[_tag='+tagName+']');
         if ($pageBreaks.length === 0) {
-            iv.setMessage('No '+tagName+' elements found.');
+            var msg = 'Provide page breaks ('+tagName+') with '+attrName+' attributes pointing to image URLs to display the corresponding images/scans for pages in this doument.';
+            iv.setMessage(msg);
             w.layoutManager.hideModule('imageViewer');
         } else {
+            iv.setMessage('');
             var tileSources = [];
             $pageBreaks.each(function(index, el) {
                 var url = $(el).attr(attrName);
+                if (url === undefined || url === '') {
+                    // no url handled by reset-size listener
+                }
                 tileSources.push({
                     type: 'image',
                     url: url
@@ -153,7 +156,6 @@ function ImageViewer(config) {
      * @param boolean external did the request get triggered from outside this module? (e.g. from scrolling)
      */
     iv.loadPage = function(index, external) {
-        $('#'+id+'_msg').hide();
         if (index >= 0 && index < $pageBreaks.length) {
             if (index != currentIndex) {
                 currentIndex = index;
@@ -188,8 +190,8 @@ function ImageViewer(config) {
     }
     
     iv.setMessage = function(msg) {
-        osd.close();
-        $('#'+id+'_msg').show().html(msg);
+        osd.drawer.clear();
+        osd._showMessage(msg);
     }
     
     $parent.find('.image img').on('load', function() {
@@ -212,6 +214,20 @@ function ImageViewer(config) {
         id: id+'_osd',
         prefixUrl: w.cwrcRootUrl+'img/osd/',
         sequenceMode: true
+    });
+    
+    osd.addHandler('open-failed', function(event) {
+        var msg = event.message;
+        if (event.source.url === true) {
+            msg = 'No URI found for @'+attrName+'.';
+        }
+        iv.setMessage(msg);
+    });
+    
+    osd.addHandler('reset-size', function(event) {
+        if (event.contentFactor == 0) {
+            iv.setMessage('No URI found for @'+attrName+'.');
+        }
     });
     
     

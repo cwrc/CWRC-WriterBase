@@ -107,6 +107,7 @@ function LayoutManager(writer, config) {
         outerLayoutConfig.east = {
             size: 'auto',
             minSize: 325,
+            initClosed: true,
             onresize_end: function(region, pane, state, options) {
             }
         };
