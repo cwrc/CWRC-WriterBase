@@ -75,6 +75,9 @@ function CWRCWriter(config) {
     
     // is the editor in annotate (entities) only mode
     w.isAnnotator = false;
+    if (config.annotator !== undefined && typeof config.annotator === 'boolean') {
+        w.isAnnotator = config.annotator;
+    }
     
     // true if this writer is embedded in a parent writer, i.e. for note entities
     w.isEmbedded = false;
@@ -842,6 +845,15 @@ function CWRCWriter(config) {
             }
             
             ed.on('init', function(args) {
+                if (w.isReadOnly === true) {
+                    ed.plugins.cwrc_contextmenu.disabled = true;
+                    w.layoutManager.hideToolbar();
+                }
+                if (w.isAnnotator === true) {
+                    ed.plugins.cwrc_contextmenu.disabled = false;
+                    ed.plugins.cwrc_contextmenu.entityTagsOnly = true;
+                }
+                
                 // modify isBlock method to check _tag attributes
                 ed.dom.isBlock = function(node) {
                     if (!node) {

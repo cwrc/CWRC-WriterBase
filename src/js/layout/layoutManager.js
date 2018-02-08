@@ -203,27 +203,6 @@ function LayoutManager(writer, config) {
                 this.$loadingMask.fadeOut();
                 this.$outerLayout.options.onresizeall_end = null;
             }
-            if (this.w.isReadOnly) {
-                if ($('#annotateLink').length === 0) {
-                    $('#headerLink').hide();
-                    this.$headerButtons.append('<div id="annotateLink"><h2>Annotate</h2></div>');
-                    
-                    $('#annotateLink').click(function(e) {
-                        if (this.mode === 'reader') {
-                            // TODO check credentials
-                            this.activateAnnotator();
-                            $('h2', e.currentTarget).text('Read');
-                        } else {
-                            this.activateReader();
-                            $('h2', e.currentTarget).text('Annotate');
-                        }
-                    }.bind(this));
-                    
-                    this.w.settings.hideAdvanced();
-                    
-                    this.activateReader();
-                }
-            }
         }.bind(this);
         this.$outerLayout.resizeAll(); // now that the editor is loaded, set proper sizing
     }.bind(this);
@@ -308,34 +287,19 @@ LayoutManager.prototype = {
         }
     },
     
+    showToolbar: function() {
+        $('.mce-toolbar-grp', this.w.editor.getContainer()).first().show();
+    },
+    
+    hideToolbar: function() {
+        $('.mce-toolbar-grp', this.w.editor.getContainer()).first().hide();
+    },
+    
     resizeAll: function() {
         this.$outerLayout.resizeAll();
         this.$innerLayout.resizeAll();
     },
-    
-    activateReader: function() {
-        this.w.isAnnotator = false;
-        $('.mce-toolbar-grp', this.w.editor.getContainer()).first().hide();
-        
-        this.w.editor.plugins.cwrc_contextmenu.disabled = true;
-        
-        this.mode = 'reader';
-        
-        this.resizeAll();
-    },
-    
-    activateAnnotator: function() {
-        this.w.isAnnotator = true;
-        $('.mce-toolbar-grp', this.w.editor.getContainer()).first().show();
-        
-        this.w.editor.plugins.cwrc_contextmenu.disabled = false;
-        this.w.editor.plugins.cwrc_contextmenu.entityTagsOnly = true;
-        
-        this.mode = 'annotator';
-        
-        this.resizeAll();
-    },
-    
+
     getWrapper: function() {
         return this.$wrapper;
     },

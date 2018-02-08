@@ -6,7 +6,7 @@ var $ = require('jquery');
 function Header(writer) {
     var w = writer;
     
-    var $headerLink = $('<div>Edit Header</div>').appendTo(w.layoutManager.getHeaderButtonsParent());
+    var $headerLink = $('<div class="editHeader">Edit Header</div>').appendTo(w.layoutManager.getHeaderButtonsParent());
     
     var $headerDialog = $(''+
     '<div class="headerDialog">'+
