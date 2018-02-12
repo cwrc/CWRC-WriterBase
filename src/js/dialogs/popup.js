@@ -1,8 +1,7 @@
-//define(['jquery', 'jquery-ui', 'jquery.popup'], function($, jqueryUi, jPopup) {
 'use strict';
 
 var $ = require('jquery');
-
+require('jquery-popup');
     
 function Popup(writer) {
     var w = writer;
@@ -80,21 +79,33 @@ function Popup(writer) {
         $popupEl.parent().find('.ui-dialog-title').off('click', doClick);
         
         $popupEl.popup('option', 'dialogClass', 'popup '+type);
-        $popupEl.popup('option', 'title', text);
-        $popupEl.popup('open');
         
-        var $titleEl = $popupEl.parent().find('.ui-dialog-title');
-        $titleEl.css('white-space', 'nowrap') // change whitespace handling to accurately get width
-        
-        var textWidth = $popupEl.parent().find('.ui-dialog-title').width();
-        var width;
-        if (type === 'link') {
-            width = textWidth+30;
+        if (typeof text === 'string') {
+            $popupEl.popup('option', 'title', text);
+            $popupEl.html('');
         } else {
-            width = Math.min(200, textWidth)+30;
+            $popupEl.parent().find('.ui-dialog-title').html('');
+            $popupEl.html(text);
         }
         
-        $titleEl.css('white-space', 'normal')
+        $popupEl.popup('open');
+        
+        var width;
+        if (type === 'note') {
+            width = 350;
+        } else {
+            var $titleEl = $popupEl.parent().find('.ui-dialog-title');
+            $titleEl.css('white-space', 'nowrap') // change whitespace handling to accurately get width
+            
+            var textWidth = $popupEl.parent().find('.ui-dialog-title').width();
+            if (type === 'link') {
+                width = textWidth+30;
+            } else {
+                width = Math.min(200, textWidth)+30;
+            }
+            
+            $titleEl.css('white-space', 'normal');
+        }
         $popupEl.popup('option', 'width', width);
         
         doPosition();
@@ -134,9 +145,19 @@ function Popup(writer) {
         var popKeys = w.schemaManager.mapper.getPopupElements();
         var tag = $currentTag.attr('_tag');
         if (popKeys.indexOf(tag) !== -1) {
-            var popText = $currentTag[0].textContent;
-            if (popText != '') {
-                doPopup(popText, 'tag');
+            var entType = w.schemaManager.mapper.getEntityTypeForTag(tag);
+            if (entType !== null && w.schemaManager.mapper.isEntityTypeNote(entType)) {
+                var entity = w.entitiesManager.getEntity(popupId);
+                if (entity !== undefined) {
+                    var node = w.utilities.stringToXML(entity.getNoteContent());
+                    var popText = w.converter.buildEditorString(node.firstElementChild);
+                    doPopup(w.utilities.stringToXML(popText).firstElementChild, 'note');
+                }
+            } else {
+                var popText = $currentTag[0].textContent;
+                if (popText != '') {
+                    doPopup(popText, 'tag');
+                }
             }
         }
     };
