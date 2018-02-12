@@ -376,7 +376,7 @@ function CWRCWriter(config) {
         }
         // TODO move to keyup
         // redo/undo listener
-        if ((tinymce.isMac ? event.metaKey : event.ctrlKey) && (evt.which == 89 || evt.which == 90)) {
+        if ((tinymce.isMac ? evt.metaKey : evt.ctrlKey) && (evt.which == 89 || evt.which == 90)) {
             var doUpdate = w.tagger.findNewAndDeletedTags();
             if (doUpdate) {
                 w.event('contentChanged').publish(w.editor);
@@ -461,7 +461,7 @@ function CWRCWriter(config) {
             
             // check if text is allowed in this node
             if (w.editor.currentNode.getAttribute('_textallowed') == 'false') {
-                if (tinymce.isMac ? event.metaKey : event.ctrlKey) {
+                if (tinymce.isMac ? evt.metaKey : evt.ctrlKey) {
                     // don't show message if we got here through undo/redo
                     var node = $('[_textallowed="true"]', w.editor.getBody()).first();
                     var rng = w.editor.selection.getRng(true);
