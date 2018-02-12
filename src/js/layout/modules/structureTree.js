@@ -462,7 +462,7 @@ function StructureTree(config) {
     }
     
     function _doConditionalSelect($tree, node, event) {
-        if (event.ctrlKey || event.shiftKey) {
+        if ((tinymce.isMac ? event.metaKey : event.ctrlKey) || event.shiftKey) {
             // only allow multiselect for siblings
             var selected = $tree.jstree('get_selected');
             if (selected.length == 0) {
@@ -492,7 +492,7 @@ function StructureTree(config) {
                 selectContents = true;
             }
             
-            var multiselect = data.event.ctrlKey == true || data.event.shiftKey == true;
+            var multiselect = (tinymce.isMac ? data.event.metaKey : data.event.ctrlKey) || data.event.shiftKey;
             
             selectNode($target.parent(), selectContents, multiselect, false) 
         }
