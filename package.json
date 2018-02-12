@@ -90,6 +90,7 @@
     "generate-coverage": "istanbul report --root coverage lcov",
     "check-coverage": "istanbul check-coverage --statements 5 --branches 1 --functions 1 --lines 5",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
+    "copy:openseadragon": "mkdirp src/img/osd && copyfiles -f \"node_modules/openseadragon/build/openseadragon/images/*\" src/img/osd/",
     "debug:build": "npm run debug:clean && npm run debug:copyfiles && npm run debug:build:js",
     "debug:clean": "rimraf build",
     "debug:copyfiles": "npm run debug:copy:images && npm run debug:copy:css && npm run debug:copy:html && npm run debug:copy:xml && npm run debug:tinymce:copyskin ",
