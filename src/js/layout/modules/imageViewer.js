@@ -14,10 +14,20 @@ function ImageViewer(config) {
     
     var styles = ''+
     '.imageViewer { display: table; height: 100%; width: 100%; }'+
-    '.imageViewer .toolbar { display: table-row; height: 25px; text-align: center; }'+
-    '.imageViewer .pageInfo { display: inline-block; margin: 0 5px; }'+
-    '.imageViewer input.currPage { width: 20px; text-align: right; }'+
-    '.imageViewer .image { display: table-row; }';
+    '.imageViewer .toolbar { display: table-row; height: 32px; }'+
+    '.imageViewer .image { display: table-row; height: 100%; }'+
+    '.imageViewer .toolbar .navigation { float: left; }'+
+    '.imageViewer .toolbar .zoom { float: right; }'+
+    '.imageViewer .button { display: inline-block; width: 16px; height: 16px; padding: 4px 8px; margin: 3px; background-color: #eee; border: 1px solid #ccc; border-radius: 3px; background-repeat: no-repeat; background-position: center; }'+
+    '.imageViewer .button:hover { cursor: pointer; background-color: #ccc; border: 1px solid #aaa; }'+
+    '.imageViewer .pageInfo { display: inline-block; position: relative; float: right; margin: 5px 3px; }'+
+    '.imageViewer input.currPage { height: 16px; width: 20px; text-align: right; }'+
+    '.imageViewer .prev { background-image: url('+w.cwrcRootUrl+'img/arrow_left.png) }'+
+    '.imageViewer .next { background-image: url('+w.cwrcRootUrl+'img/arrow_right.png) }'+
+    '.imageViewer .zoomIn { background-image: url('+w.cwrcRootUrl+'img/magnifier_zoom_in.png) }'+
+    '.imageViewer .zoomOut { background-image: url('+w.cwrcRootUrl+'img/magnifier_zoom_out.png) }'+
+    '.imageViewer .home { background-image: url('+w.cwrcRootUrl+'img/house.png) }'+
+    '.imageViewer .openseadragon-message { white-space: pre; }';
     
     var styleEl = document.createElement("style");
     styleEl.type = "text/css";
@@ -27,7 +37,16 @@ function ImageViewer(config) {
     $('#'+config.parentId).append(''+
         '<div id="'+id+'" class="imageViewer">'+
             '<div class="toolbar">'+
-                '<button class="prev">&#8592;</button><span class="pageInfo"><input type="text" class="currPage" /> / <span class="totalPages" /></span><button class="next">&#8594;</button>'+
+                '<div class="navigation">'+
+                    '<span id="'+id+'_prev" class="button prev" />'+
+                    '<span id="'+id+'_next" class="button next" />'+
+                    '<span class="pageInfo"><input type="text" class="currPage" /> / <span class="totalPages" /></span>'+
+                '</div>'+
+                '<div class="zoom">'+
+                    '<span id="'+id+'_zoomIn" class="button zoomIn" />'+
+                    '<span id="'+id+'_zoomOut" class="button zoomOut" />'+
+                    '<span id="'+id+'_home" class="button home" />'+
+                '</div>'+
             '</div>'+
             '<div id="'+id+'_osd" class="image"></div>'+
         '</div>');
@@ -69,12 +88,16 @@ function ImageViewer(config) {
     iv.reset = function() {
         $pageBreaks = null;
         currentIndex = -1;
+        
+        osd.drawer.clear();
+        osd.close();
+        osd.tileSources = []; // hack to remove any previously added images
     }
     
     function processDocument(doc) {
-        $pageBreaks = $(doc).find('*[_tag='+tagName+']');
+        $pageBreaks = $(doc).find('*[_tag='+tagName+']['+attrName+']');
         if ($pageBreaks.length === 0) {
-            var msg = 'Provide page breaks ('+tagName+') with '+attrName+' attributes pointing to image URLs to display the corresponding images/scans for pages in this doument.';
+            var msg = 'Provide page breaks ('+tagName+') with '+attrName+' attributes \n pointing to image URLs in order to \n display the corresponding images/scans \n for pages in this doument.';
             iv.setMessage(msg);
             w.layoutManager.hideModule('imageViewer');
         } else {
@@ -165,18 +188,6 @@ function ImageViewer(config) {
                     ignoreScroll = true; // make sure scrollIntoView doesn't re-trigger loadPage
                     $pageBreaks.get(index).scrollIntoView();
                 }
-                
-                $parent.find('.currPage').val(index+1);
-                if (index == 0) {
-                    $parent.find('button.prev').button('disable');
-                } else {
-                    $parent.find('button.prev').button('enable')
-                }
-                if (index == $pageBreaks.legnth-1) {
-                    $parent.find('button.next').button('disable');
-                } else {
-                    $parent.find('button.next').button('enable');
-                }
             }
         }
     }
@@ -198,9 +209,6 @@ function ImageViewer(config) {
         iv.resizeImage();
     });
     
-    $parent.find('button.prev').button().click(iv.prevPage);
-    $parent.find('button.next').button().click(iv.nextPage);
-    
     $parent.find('.currPage').keyup(function(e) {
         if (e.keyCode == 13) { // enter key
             var val = parseInt($(this).val());
@@ -212,8 +220,14 @@ function ImageViewer(config) {
     
     osd = OpenSeaDragon({
         id: id+'_osd',
-        prefixUrl: w.cwrcRootUrl+'img/osd/',
-        sequenceMode: true
+        sequenceMode: true,
+        autoHideControls: false,
+        showFullPageControl: false,
+        previousButton: id+'_prev',
+        nextButton: id+'_next',
+        zoomInButton: id+'_zoomIn',
+        zoomOutButton: id+'_zoomOut',
+        homeButton: id+'_home'
     });
     
     osd.addHandler('open-failed', function(event) {
@@ -228,6 +242,10 @@ function ImageViewer(config) {
         if (event.contentFactor == 0) {
             iv.setMessage('No URI found for @'+attrName+'.');
         }
+    });
+    
+    osd.addHandler('page', function(event) {
+        $parent.find('.currPage').val(event.page+1);
     });
     
     
