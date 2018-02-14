@@ -83,7 +83,6 @@ function StructureTree(config) {
      */
     var tree = {
         currentlySelectedNodes: [], // ids of the currently selected nodes
-        currentlySelectedEntity: null, // id of the currently selected entity (as opposed to node, ie. struct tag)
         selectionType: null, // is the node or the just the contents of the node selected?
         NODE_SELECTED: 0,
         CONTENTS_SELECTED: 1,
@@ -177,7 +176,7 @@ function StructureTree(config) {
         if (node) {
             var id = node.id;
             if (id) { // TODO handling of entity name attribute
-                if (tree.currentlySelectedNodes.indexOf(id) == -1 && tree.currentlySelectedEntity !== id) {
+                if (tree.currentlySelectedNodes.indexOf(id) === -1) {
                     ignoreSelect = true;
                     var treeNode = $('[name="'+id+'"]', $tree);
                     if (treeNode.length === 0) {
@@ -192,6 +191,10 @@ function StructureTree(config) {
                     //}
     
                     _scrollIntoView(treeNode);
+                } else {
+                    // if highlighting already highlighted node
+                    // the user has probably clicked inside a selected tag so we should clear all selections
+                    _onNodeDeselect();
                 }
             }
         } else {
@@ -250,7 +253,7 @@ function StructureTree(config) {
         
         // clear other selections if not multiselect
         if (!multiselect) {
-            if (tree.currentlySelectedNodes.indexOf(id) != -1) {
+            if (tree.currentlySelectedNodes.indexOf(id) !== -1) {
                 tree.currentlySelectedNodes = [id];
             } else {
                 tree.currentlySelectedNodes = [];
@@ -261,44 +264,28 @@ function StructureTree(config) {
             var isEntity = w.entitiesManager.getEntity(id) !== undefined;
             var aChildren = $node.children('a');
             
-            if (isEntity) {
-                tree.currentlySelectedNodes = [];
+            if (tree.currentlySelectedNodes.indexOf(id) !== -1 && !external) {
+                // already selected node, do nothing
+            } else {
+                tree.currentlySelectedNodes.push(id);
+            }
+            
+            if (selectContents) {
+                aChildren.addClass('contentsSelected').removeClass('nodeSelected');
+                tree.selectionType = tree.CONTENTS_SELECTED;
+            } else {
                 aChildren.addClass('nodeSelected').removeClass('contentsSelected');
-                if (tree.currentlySelectedEntity !== id) {
-                    tree.currentlySelectedEntity = id;
-                    tree.selectionType = null;
-                    
-                    if (!external) {
-                        ignoreSelect = true;
-                        w.entitiesManager.highlightEntity(id, null, true);
-                    }
-                }
-            } else if (w.structs[id] != null) {
-                tree.currentlySelectedEntity = null;
-                if (tree.currentlySelectedNodes.indexOf(id) != -1 && !external) {
-                    // already selected node, toggle selection type
-                    selectContents = !selectContents;
-                } else {
-                    tree.currentlySelectedNodes.push(id);
-                }
-                
-                if (selectContents) {
-                    aChildren.addClass('contentsSelected').removeClass('nodeSelected');
-                } else {
-                    aChildren.addClass('nodeSelected').removeClass('contentsSelected');
-                }
-                
-                tree.selectionType = selectContents ? tree.CONTENTS_SELECTED : tree.NODE_SELECTED;
+                tree.selectionType = tree.NODE_SELECTED;
+            }
 
-                if (!external) {
-                    if (w.structs[id]._tag == w.header) {
-                        w.dialogManager.show('header');
-                    } else {
-                        ignoreSelect = true; // set to true so tree.highlightNode code isn't run by editor's onNodeChange handler
-                        w.selectStructureTag(tree.currentlySelectedNodes, selectContents);
-                    }
+            if (!external) {
+                if (!isEntity && w.structs[id]._tag == w.header) {
+                    w.dialogManager.show('header');
+                } else {
+                    ignoreSelect = true; // set to true so tree.highlightNode code isn't run by editor's onNodeChange handler
+                    w.selectStructureTag(tree.currentlySelectedNodes, selectContents);
                 }
-            } 
+            }
         }
     }
     
@@ -459,7 +446,7 @@ function StructureTree(config) {
     }
     
     function _doConditionalSelect($tree, node, event) {
-        if (event.ctrlKey || event.shiftKey) {
+        if ((tinymce.isMac ? event.metaKey : event.ctrlKey) || event.shiftKey) {
             // only allow multiselect for siblings
             var selected = $tree.jstree('get_selected');
             if (selected.length == 0) {
@@ -479,9 +466,17 @@ function StructureTree(config) {
     function _onNodeSelect(event, data) {
         if (!ignoreSelect) {
             var $target = $(data.event.currentTarget);
-            var selectContents = $target.hasClass('contentsSelected');
             
-            var multiselect = data.event.ctrlKey == true || data.event.shiftKey == true;
+            var selectContents;
+            if ($target.hasClass('contentsSelected')) {
+                selectContents = false;
+            } else if ($target.hasClass('nodeSelected')) {
+                selectContents = true;
+            } else {
+                selectContents = true;
+            }
+            
+            var multiselect = (tinymce.isMac ? data.event.metaKey : data.event.ctrlKey) || data.event.shiftKey;
             
             selectNode($target.parent(), selectContents, multiselect, false) 
         }
@@ -493,7 +488,7 @@ function StructureTree(config) {
             $target.removeClass('nodeSelected contentsSelected');
             var id = data.node.li_attr.name;
             var index = tree.currentlySelectedNodes.indexOf(id);
-            if (index != -1) {
+            if (index !== -1) {
                 tree.currentlySelectedNodes.splice(index, 1);
             }
         } else {
@@ -501,7 +496,6 @@ function StructureTree(config) {
             _removeCustomClasses();
             tree.currentlySelectedNodes = [];
         }
-        tree.currentlySelectedEntity = null;
         tree.selectionType = null;
     }
     
@@ -527,11 +521,10 @@ function StructureTree(config) {
 
         $tree.jstree('open_node', dropNode, null, false);
         
-        tree.update();
         if (isCopy) {
             w.tagger.findDuplicateTags();
-            w.entitiesList.update();
         }
+        w.event('contentChanged').publish(w.editor);
     }
     
     function _removeCustomClasses() {
@@ -856,7 +849,9 @@ function StructureTree(config) {
         tree.update();
     });
     w.event('nodeChanged').subscribe(function(currentNode) {
-        tree.highlightNode(currentNode);
+        if (!ignoreSelect) {
+            tree.highlightNode(currentNode);
+        }
     });
     w.event('contentChanged').subscribe(function() {
         tree.update();
@@ -927,11 +922,11 @@ function StructureTree(config) {
         tree.update();
     });
     w.event('entityFocused').subscribe(function(entityId) {
-        if (!ignoreSelect) {
-            var entityNode = $('[name="'+entityId+'"]', w.editor.getBody())[0];
-            tree.highlightNode(entityNode);
-        }
-        ignoreSelect = false;
+//        if (!ignoreSelect) {
+//            var entityNode = $('[name="'+entityId+'"]', w.editor.getBody())[0];
+//            tree.highlightNode(entityNode);
+//        }
+//        ignoreSelect = false;
     });
     w.event('entityPasted').subscribe(function(entityId) {
         tree.update();

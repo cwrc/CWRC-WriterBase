@@ -307,16 +307,22 @@ function Settings(writer, config) {
         //$('select[name="schema"]', $settingsDialog).val(defaultSettings.validationSchema);
     };
     
+    function hideAdvanced() {
+        $settingsDialog.find('.settingsDialogAdvanced').hide();
+        $settingsDialog.dialog('option', 'height', 260);
+    }
+    
     w.event('schemaAdded').subscribe(buildSchema);
+    
+    if (w.isReadOnly) {
+        hideAdvanced();
+    }
     
     return {
         getSettings: function() {
             return settings;
         },
-        hideAdvanced: function() {
-            $settingsDialog.find('.settingsDialogAdvanced').hide();
-            $settingsDialog.dialog('option', 'height', 260);
-        }
+        hideAdvanced: hideAdvanced
     };
 };
 

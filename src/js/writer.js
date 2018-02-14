@@ -75,6 +75,9 @@ function CWRCWriter(config) {
     
     // is the editor in annotate (entities) only mode
     w.isAnnotator = false;
+    if (config.annotator !== undefined && typeof config.annotator === 'boolean') {
+        w.isAnnotator = config.annotator;
+    }
     
     // true if this writer is embedded in a parent writer, i.e. for note entities
     w.isEmbedded = false;
@@ -373,7 +376,7 @@ function CWRCWriter(config) {
         }
         // TODO move to keyup
         // redo/undo listener
-        if ((evt.which == 89 || evt.which == 90) && evt.ctrlKey) {
+        if ((tinymce.isMac ? evt.metaKey : evt.ctrlKey) && (evt.which == 89 || evt.which == 90)) {
             var doUpdate = w.tagger.findNewAndDeletedTags();
             if (doUpdate) {
                 w.event('contentChanged').publish(w.editor);
@@ -458,7 +461,7 @@ function CWRCWriter(config) {
             
             // check if text is allowed in this node
             if (w.editor.currentNode.getAttribute('_textallowed') == 'false') {
-                if (evt.ctrlKey || evt.which == 17) {
+                if (tinymce.isMac ? evt.metaKey : evt.ctrlKey) {
                     // don't show message if we got here through undo/redo
                     var node = $('[_textallowed="true"]', w.editor.getBody()).first();
                     var rng = w.editor.selection.getRng(true);
@@ -843,6 +846,15 @@ function CWRCWriter(config) {
             }
             
             ed.on('init', function(args) {
+                if (w.isReadOnly === true) {
+                    ed.plugins.cwrc_contextmenu.disabled = true;
+                    w.layoutManager.hideToolbar();
+                }
+                if (w.isAnnotator === true) {
+                    ed.plugins.cwrc_contextmenu.disabled = false;
+                    ed.plugins.cwrc_contextmenu.entityTagsOnly = true;
+                }
+                
                 // modify isBlock method to check _tag attributes
                 ed.dom.isBlock = function(node) {
                     if (!node) {
