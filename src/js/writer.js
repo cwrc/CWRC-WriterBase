@@ -10,7 +10,6 @@ require('./tinymce_plugins/cwrc_path.js');
 require('./tinymce_plugins/schematags.js');
 require('./tinymce_plugins/treepaste.js');
 
-
 var EventManager = require('./eventManager.js');
 var Utilities = require('./utilities.js');
 var SchemaManager = require('./schema/schemaManager.js');
