@@ -84,6 +84,7 @@ function Popup(writer) {
             $popupEl.popup('option', 'title', text);
             $popupEl.html('');
         } else {
+            // note
             $popupEl.parent().find('.ui-dialog-title').html('');
             $popupEl.html(text);
         }
@@ -147,11 +148,14 @@ function Popup(writer) {
         if (popKeys.indexOf(tag) !== -1) {
             var entType = w.schemaManager.mapper.getEntityTypeForTag(tag);
             if (entType !== null && w.schemaManager.mapper.isEntityTypeNote(entType)) {
-                var entity = w.entitiesManager.getEntity(popupId);
-                if (entity !== undefined) {
-                    var node = w.utilities.stringToXML(entity.getNoteContent());
-                    var popText = w.converter.buildEditorString(node.firstElementChild);
-                    doPopup(w.utilities.stringToXML(popText).firstElementChild, 'note');
+                // note popup
+                if (w.isReadOnly) {
+                    var entity = w.entitiesManager.getEntity(popupId);
+                    if (entity !== undefined) {
+                        var node = w.utilities.stringToXML(entity.getNoteContent());
+                        var popText = w.converter.buildEditorString(node.firstElementChild);
+                        doPopup(w.utilities.stringToXML(popText).firstElementChild, 'note');
+                    }
                 }
             } else {
                 var popText = $currentTag[0].textContent;
