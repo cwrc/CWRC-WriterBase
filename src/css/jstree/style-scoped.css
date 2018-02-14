@@ -81,6 +81,9 @@
 .cwrc .jstree .jstree-wholerow-clicked {
   background: #d3d3d3 !important;
 }
+.cwrc .jstree .jstree-context {
+  background: #d3d3d3 !important;
+}
 .cwrc .jstree a.nodeSelected {
   font-weight: bold;
 }

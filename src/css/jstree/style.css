@@ -82,6 +82,10 @@
     background: #d3d3d3 !important;
 }
 
+.jstree .jstree-context {
+	background: #d3d3d3 !important;
+}
+
 .jstree a.nodeSelected {
     font-weight: bold;
 }
