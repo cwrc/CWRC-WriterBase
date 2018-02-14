@@ -592,9 +592,7 @@ function StructureTree(config) {
     
     $tree = $('#'+id);
     
-    w.utilities.addCSS('css/jstree/default/cwrc.css');
-//    $.vakata.dnd.settings.helper_left = 15;
-//    $.vakata.dnd.settings.helper_top = 20;
+    w.utilities.addCSS('css/jstree/style-scoped.css');
     
     var plugins = ['wholerow','conditionalselect'];
     if (w.isReadOnly !== true) {
@@ -608,10 +606,8 @@ function StructureTree(config) {
             check_callback: true, // enable tree modifications
             animation: false,
             themes: {
-                name: 'default',
                 icons: false,
-                url: true,
-                dir: w.cwrcRootUrl + 'css/jstree',
+                url: false,
                 responsive: false
             },
             data: {

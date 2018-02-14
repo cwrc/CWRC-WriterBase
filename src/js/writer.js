@@ -692,6 +692,7 @@ function CWRCWriter(config) {
     
     w.eventManager = new EventManager(w);
     w.utilities = new Utilities(w);
+    $(document.body).addClass('cwrc');
     w.utilities.addCSS('css/style.css');
     
     var editorId = w.getUniqueId('editor_');

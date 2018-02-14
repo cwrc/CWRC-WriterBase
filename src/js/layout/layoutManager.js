@@ -27,7 +27,7 @@ function LayoutManager(writer, config) {
     this.w = writer;
     
     this.w.utilities.addCSS('css/cwrc12/jquery-ui.css');
-    this.w.utilities.addCSS('css/layout-default-latest.css');
+    this.w.utilities.addCSS('css/layout-scoped.css');
     
     var defaultModulesLayout = {
         west: ['structure','entities'],
