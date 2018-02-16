@@ -22,7 +22,6 @@ var CwrcOrg = require('./dialogs/cwrcOrg.js');
 var CwrcTitle = require('./dialogs/cwrcTitle.js');
 var CwrcCitation = require('./dialogs/cwrcCitation.js');
 
-
 // TODO hardcoded schemas
 var schemaDialogsMaps = {
     tei: require('./schema/tei/dialogs_map.js'),
