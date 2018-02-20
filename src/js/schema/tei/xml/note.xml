@@ -4,9 +4,7 @@
 <TEI xmlns="http://www.tei-c.org/ns/1.0">
     <text>
         <body>
-            <note>
-                <p/>
-            </note>
+            <note></note>
         </body>
     </text>
 </TEI>
