@@ -149,13 +149,11 @@ function Popup(writer) {
             var entType = w.schemaManager.mapper.getEntityTypeForTag(tag);
             if (entType !== null && w.schemaManager.mapper.isEntityTypeNote(entType)) {
                 // note popup
-                if (w.isReadOnly) {
-                    var entity = w.entitiesManager.getEntity(popupId);
-                    if (entity !== undefined) {
-                        var node = w.utilities.stringToXML(entity.getNoteContent());
-                        var popText = w.converter.buildEditorString(node.firstElementChild);
-                        doPopup(w.utilities.stringToXML(popText).firstElementChild, 'note');
-                    }
+                var entity = w.entitiesManager.getEntity(popupId);
+                if (entity !== undefined) {
+                    var node = w.utilities.stringToXML(entity.getNoteContent());
+                    var popText = w.converter.buildEditorString(node.firstElementChild);
+                    doPopup(w.utilities.stringToXML(popText).firstElementChild, 'note');
                 }
             } else {
                 var popText = $currentTag[0].textContent;
