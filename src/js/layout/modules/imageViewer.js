@@ -53,6 +53,7 @@ function ImageViewer(config) {
     $('#'+config.parentId).css('overflow', 'hidden');
     
     var $parent = $('#'+id);
+    
     var $pageBreaks;
     var currentIndex = -1;
     
@@ -72,9 +73,12 @@ function ImageViewer(config) {
     }
     w.event('documentLoaded').subscribe(function(success, body) {
         if (success) {
-            processDocument(body);
+            processDocument(body, true);
             setTimeout(cssHack, 50);
         }
+    });
+    w.event('contentChanged').subscribe(function() {
+        processDocument(w.editor.getDoc(), false);
     });
     w.event('writerInitialized').subscribe(function() {
         $(w.editor.getDoc()).scroll(handleScroll);
@@ -89,24 +93,34 @@ function ImageViewer(config) {
         $pageBreaks = null;
         currentIndex = -1;
         
+        osdReset();
+    }
+    
+    function osdReset() {
         osd.drawer.clear();
         osd.close();
         osd.tileSources = []; // hack to remove any previously added images
     }
     
-    function processDocument(doc) {
-        $pageBreaks = $(doc).find('*[_tag='+tagName+']['+attrName+']');
+    function processDocument(doc, docLoaded) {
+        setMessage('');
+        
+        $pageBreaks = $(doc).find('*[_tag='+tagName+']');
+        
         if ($pageBreaks.length === 0) {
-            var msg = 'Provide page breaks ('+tagName+') with '+attrName+' attributes \n pointing to image URLs in order to \n display the corresponding images/scans \n for pages in this doument.';
-            iv.setMessage(msg);
-            w.layoutManager.hideModule('imageViewer');
+            hideViewer();
         } else {
-            iv.setMessage('');
+            $pageBreaks.each(function(i, el) {
+                if (i == 0) $(el).hide();
+                else $(el).show();
+            });
+            
+            var bogusUrls = 0;
             var tileSources = [];
             $pageBreaks.each(function(index, el) {
                 var url = $(el).attr(attrName);
                 if (url === undefined || url === '') {
-                    // no url handled by reset-size listener
+                    bogusUrls++;
                 }
                 tileSources.push({
                     type: 'image',
@@ -114,12 +128,44 @@ function ImageViewer(config) {
                 });
             });
             
-            $parent.find('.totalPages').html($pageBreaks.length);
-            $parent.find('.currPage').val(1);
-            currentIndex = 0;
+            var needUpdate = docLoaded || tileSources.length !== osd.tileSources.length;
+            if (!needUpdate) {
+                for (var i = 0; i < tileSources.length; i++) {
+                    if (tileSources[i].url !== osd.tileSources[i].url) {
+                        needUpdate = true;
+                        break;
+                    }
+                }
+            }
             
-            w.layoutManager.showModule('imageViewer');
-            osd.open(tileSources, 0);
+            if (needUpdate) {
+                osd.open(tileSources);
+                
+                if (bogusUrls === tileSources.length) {
+                    w.layoutManager.hideModule('imageViewer');
+                } else {
+                    w.layoutManager.showModule('imageViewer');
+                }
+                                
+                $parent.find('.totalPages').html($pageBreaks.length);
+                currentIndex = -1;
+                handleScroll();
+            }
+        }
+    }
+    
+    function loadPage(index, doScroll) {
+        if (index >= 0 && index < $pageBreaks.length) {
+            currentIndex = index;
+            $parent.find('.currPage').val(currentIndex+1);
+            
+            if (!ignoreScroll && doScroll) {
+                ignoreScroll = true;
+                var pb = $pageBreaks.get(currentIndex);
+                if (currentIndex === 0) $(pb).show();
+                pb.scrollIntoView();
+                if (currentIndex === 0) $(pb).hide();
+            }
         }
     }
     
@@ -130,27 +176,33 @@ function ImageViewer(config) {
             var el = w.editor.getDoc().scrollingElement;
             var scrollTop = el.scrollTop;
             var scrollBottom = scrollTop+scrollHeight;
-            
+
             var index = -1;
             $pageBreaks.each(function(i, el) {
-               var y = $(el).offset().top;
-               if (y > scrollTop && y < scrollBottom) {
-                   index = i;
-                   return false;
-               }
+                var y = $(el).offset().top;
+                if (y >= scrollTop && y < scrollBottom) {
+                    index = i;
+                    return false;
+                }
             });
             
-            if (index != -1) {
-                iv.loadPage(index, true);
-            }
+            ignoreScroll = true;
+            osd.goToPage(index);
         }
         ignoreScroll = false;
     }
     
-    iv.resizeImage = function() {
+    function hideViewer() {
+        var msg = 'Provide page breaks ('+tagName+') with '+attrName+' attributes \n pointing to image URLs in order to \n display the corresponding images/scans \n for pages in this doument.';
+        setMessage(msg);
+        w.layoutManager.hideModule('imageViewer');
+    }
+    
+    function resizeImage() {
         var container = $parent.parent();
+        var toolbarHeight = 30;
         var cw = container.width();
-        var ch = container.height()-30;
+        var ch = container.height()-toolbarHeight;
         
         var img = $parent.find('.image img');
         var iw = img.width();
@@ -173,47 +225,20 @@ function ImageViewer(config) {
         img.css('height', nh).css('width', nw).css('display', 'block');
     }
     
-    /**
-     * load the specified page
-     * @param int index
-     * @param boolean external did the request get triggered from outside this module? (e.g. from scrolling)
-     */
-    iv.loadPage = function(index, external) {
-        if (index >= 0 && index < $pageBreaks.length) {
-            if (index != currentIndex) {
-                currentIndex = index;
-                
-                osd.goToPage(index);
-                if (!external) {
-                    ignoreScroll = true; // make sure scrollIntoView doesn't re-trigger loadPage
-                    $pageBreaks.get(index).scrollIntoView();
-                }
-            }
-        }
-    }
-    
-    iv.prevPage = function() {
-        iv.loadPage(currentIndex-1, false);
-    }
-    
-    iv.nextPage = function() {
-        iv.loadPage(currentIndex+1, false);
-    }
-    
-    iv.setMessage = function(msg) {
+    function setMessage(msg) {
         osd.drawer.clear();
         osd._showMessage(msg);
     }
     
     $parent.find('.image img').on('load', function() {
-        iv.resizeImage();
+        resizeImage();
     });
     
     $parent.find('.currPage').keyup(function(e) {
         if (e.keyCode == 13) { // enter key
             var val = parseInt($(this).val());
             if (!isNaN(val)) {
-                iv.loadPage(val-1, false);
+                loadPage(val-1, true);
             }
         }
     });
@@ -235,22 +260,20 @@ function ImageViewer(config) {
         if (event.source.url === true) {
             msg = 'No URI found for @'+attrName+'.';
         }
-        iv.setMessage(msg);
+        setMessage(msg);
     });
     
     osd.addHandler('reset-size', function(event) {
         if (event.contentFactor == 0) {
-            iv.setMessage('No URI found for @'+attrName+'.');
+            setMessage('No URI found for @'+attrName+'.');
         }
     });
     
     osd.addHandler('page', function(event) {
-        $parent.find('.currPage').val(event.page+1);
+        loadPage(event.page, true);
     });
-    
     
     return iv;
 }
-
 
 module.exports = ImageViewer;
