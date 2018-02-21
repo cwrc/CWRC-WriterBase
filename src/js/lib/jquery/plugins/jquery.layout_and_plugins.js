@@ -2714,9 +2714,9 @@ var jQuery = require('jquery');
                                             //.hover( addHover, removeHover ) // use ui-layout-toggler-west-hover .content-closed instead!
                                             ;
                                     }
-                                    // ADD TOGGLER.click/.hover
-                                    enableClosable(pane);
                                 }
+                                // ADD TOGGLER.click/.hover
+                                enableClosable(pane);
                             }
     
                             // add Draggable events

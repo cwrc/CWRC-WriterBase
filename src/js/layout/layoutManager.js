@@ -78,9 +78,13 @@ function LayoutManager(writer, config) {
     this.$loadingMask = $(container).find('.cwrcLoadingMask').first();
     this.$headerButtons = $(container).find('.headerButtons').first();
     
+    var panelMinWidth = 275;
+    
     var outerLayoutConfig = {
         defaults: {
+            enableCursorHotkey: false,
             maskIframesOnResize: true,
+            closable: true,
             resizable: true,
             slidable: false,
             fxName: 'none'
@@ -97,7 +101,7 @@ function LayoutManager(writer, config) {
     if (this.modulesLayout.west !== undefined) {
         outerLayoutConfig.west = {
             size: 'auto',
-            minSize: 325,
+            minSize: panelMinWidth,
             onresize_end: function(region, pane, state, options) {
             }
         };
@@ -106,7 +110,7 @@ function LayoutManager(writer, config) {
     if (this.modulesLayout.east != undefined) {
         outerLayoutConfig.east = {
             size: 'auto',
-            minSize: 325,
+            minSize: panelMinWidth,
             initClosed: true,
             onresize_end: function(region, pane, state, options) {
             }
@@ -117,7 +121,9 @@ function LayoutManager(writer, config) {
     
     var innerLayoutConfig = {
         defaults: {
+            enableCursorHotkey: false,
             maskIframesOnResize: true,
+            closable: true,
             resizable: true,
             slidable: false,
             fxName: 'none'
