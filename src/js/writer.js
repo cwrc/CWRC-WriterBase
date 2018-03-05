@@ -2,6 +2,8 @@
 
 var $ = require('jquery');
 
+var fscreen = require('fscreen')['default'];
+
 window.tinymce = require('tinymce');
 
 require('tinymce/themes/modern/theme.js');
@@ -313,7 +315,7 @@ function CWRCWriter(config) {
 
     w.getDocRawContent = function() {
         return w.editor.getContent({format: 'raw'})
-    }
+    };
 
     w.getButtonByName = function(name) {
         var buttons = w.editor.buttons,
@@ -348,7 +350,18 @@ function CWRCWriter(config) {
         });
 
         return result;
-    }
+    };
+    
+    w.toggleFullScreen = function() {
+        if (fscreen.fullscreenEnabled) {
+            if (fscreen.fullscreenElement !== null) {
+                fscreen.exitFullscreen();
+            } else {
+                var wrapper = w.layoutManager.getWrapper()[0];
+                fscreen.requestFullscreen(wrapper);
+            }
+        }
+    };
     
     function _fireNodeChange(nodeEl) {
         // fire the onNodeChange event
@@ -808,7 +821,7 @@ function CWRCWriter(config) {
         valid_elements: '*[*]', // allow everything
         
         plugins: 'schematags,cwrc_contextmenu,cwrcpath', //paste
-        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,viewmarkup,editsource,|,validate,savebutton,loadbutton' : config.buttons1,
+        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,viewmarkup,editsource,|,validate,savebutton,loadbutton,|,fullscreen' : config.buttons1,
         toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
         toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
         menubar: false,
@@ -1024,6 +1037,11 @@ function CWRCWriter(config) {
                 onclick: function() {
                     $('#westTabs').tabs('option', 'active', 2);
                     w.dialogManager.show('triple');
+                }
+            });
+            ed.addButton('fullscreen', {title: 'Toggle Fullscreen', image: w.cwrcRootUrl+'img/arrow_out.png',
+                onclick: function() {
+                    w.toggleFullScreen();
                 }
             });
 

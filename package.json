@@ -42,7 +42,8 @@
     "moment": "^2.20.1",
     "openseadragon": "2.3.1",
     "prismjs": "1.6.0",
-    "tinymce": "4.7.2"
+    "tinymce": "4.7.2",
+    "fscreen": "1.0.2"
   },
   "devDependencies": {
     "babel-plugin-istanbul": "4.1.5",
