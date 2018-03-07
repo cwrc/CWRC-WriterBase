@@ -230,6 +230,7 @@
 }
 .cwrc .vakata-context li {
   list-style: none;
+  margin: 0 !important;
 }
 .cwrc .vakata-context li > a {
   display: block;

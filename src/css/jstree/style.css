@@ -240,6 +240,7 @@
 }
 .vakata-context li {
   list-style: none;
+  margin: 0 !important;
 }
 .vakata-context li > a {
   display: block;

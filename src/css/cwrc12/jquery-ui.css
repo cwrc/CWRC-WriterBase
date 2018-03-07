@@ -846,14 +846,15 @@ button.cwrc .ui-button::-moz-focus-inner {
 	position: relative;
 	top: 0;
 	margin: 1px .2em 0 0;
-	border-bottom-width: 0 !important;
+	border-bottom-width: 0;
 	padding: 0;
 	white-space: nowrap;
 }
 .cwrc .ui-tabs .ui-tabs-nav .ui-tabs-anchor {
 	float: left;
-	padding: .5em 1em;
+	padding: .5em 1em !important;
 	text-decoration: none;
+	font-weight: normal;
 }
 .cwrc .ui-tabs .ui-tabs-nav li.ui-tabs-active {
 	margin-bottom: -1px;
@@ -869,7 +870,7 @@ button.cwrc .ui-button::-moz-focus-inner {
 }
 .cwrc .ui-tabs .ui-tabs-panel {
 	display: block;
-	border-width: 0;
+	border-width: 0 !important;
 	padding: 1em 1.4em;
 	background: none;
 }
@@ -901,6 +902,7 @@ body .cwrc .ui-tooltip {
 }
 .cwrc .ui-widget.ui-widget-content {
 	border: 1px solid #c5c5c5;
+	border-color: #c5c5c5 !important;
 }
 .cwrc .ui-widget-content {
 	border: 1px solid #dddddd;

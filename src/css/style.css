@@ -53,6 +53,7 @@ html, body {
 
 .cwrc label {
     margin-right: 5px;
+    display: inline;
 }
 
 .cwrcLoadingMask {
@@ -383,6 +384,7 @@ html, body {
 
 .entitiesList li {
     height: 22px;
+    list-style: none;
 }
 
 .entitiesList li.selected {
@@ -541,14 +543,6 @@ html, body {
     max-height: 250px;
 }
 
-.cwrc .popup.ui-dialog.note .ui-widget-content {
-    padding: .5em 1em;
-}
-
-.cwrc .popup.ui-dialog.note .ui-dialog-titlebar {
-    padding: 0;
-}
-
 .cwrc .link.ui-dialog .ui-dialog-title {
     text-decoration: underline;
     cursor: pointer;
@@ -584,6 +578,8 @@ html, body {
 }
 
 .attributeWidget .attributeSelector li {
+    list-style-type: none;
+    margin: 0;
     padding: 3px;
     background-color: #fff;
 }
@@ -675,6 +671,8 @@ html, body {
 
 .triplesDialog .column > ul li {
     white-space: nowrap;
+    list-style: none;
+    margin: 0;
 }
 
 .triplesDialog .entitiesList li.selected {
