@@ -69,7 +69,7 @@
     "log4javascript": "^1.4.15",
     "mkdirp": "0.5.1",
     "rimraf": "^2.6.2",
-    "semantic-release": "^8.2.3",
+    "semantic-release": "^15.0.1",
     "sinon": "4.0.1",
     "tape": "4.6.3",
     "tape-promise": "2.0.1",
