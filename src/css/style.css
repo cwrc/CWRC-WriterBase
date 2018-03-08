@@ -356,6 +356,11 @@ html, body {
 .entitiesList .entityTitle {
     font-size: 1em;
     vertical-align: 6px;
+    text-overflow: ellipsis;
+    display: inline-block;
+    white-space: nowrap;
+    width: 85%;
+    overflow: hidden;
 }
 
 .entitiesList .selected .entityTitle {
