@@ -221,6 +221,21 @@ function initWriter(el) {
             me.cwrcWriter.allowOverlap = false;
             
             me.cwrcWriter.editor.focus();
+            /*
+            var parentTag = me.cwrcWriter.schemaManager.mapper.getParentTag(me.showConfig.type);
+            var nodeEl = me.cwrcWriter.editor.dom.$('[_tag='+parentTag+']');
+            var nodeChildren = nodeEl.children();
+            while (nodeChildren.length) {
+                nodeEl = nodeChildren;
+                nodeChildren = nodeEl.children();
+            }
+            nodeEl = nodeEl[0];
+            var rng = me.cwrcWriter.editor.dom.createRng();
+            rng.selectNodeContents(nodeEl);
+            var sel = me.cwrcWriter.editor.selection;
+            sel.setRng(rng);
+            sel.collapse(true);
+            */
         });
         
         // in case document is loaded before tree
@@ -298,6 +313,11 @@ DialogForm.prototype = {
             $(this).accordion('option', 'active', false);
         });
         
+        this.$el.one('beforeClose', function(event) {
+            // if we have an entity dialog inside a note entity, we need to stop the parent note entity from also receiving beforeClose
+            event.stopPropagation();
+        });
+        
         this.currentData = {
             attributes: {},
             properties: {},
@@ -331,51 +351,55 @@ DialogForm.prototype = {
             
             // populate form
             var that = this;
-            $('[data-type]', this.$el).each(function(index, el) {
-                var formEl = $(this);
-                var type = formEl.data('type');
-                if (type === 'attributes') {
-                    var showWidget = that.attributesWidget.setData(data);
-                    if (showWidget) {
-                        that.attributesWidget.expand();
-                    }
-                } else {
-                    var mapping = formEl.data('mapping');
-                    if (mapping !== undefined) {
-                        var value;
-                        
-                        var isCustom = mapping.indexOf('custom.') === 0;
-                        var isProperty = mapping.indexOf('prop.') === 0;
-                        if (isCustom) {
-                            mapping = mapping.replace(/^custom\./, '');
-                            value = customValues[mapping];
-                        } else if (isProperty) {
-                            mapping = mapping.replace(/^prop\./, '');
-                            value = config.entry[mapping];
-                        } else {
-                            value = data[mapping];
+            $('[data-type]', this.$el)
+                .filter(function(index, el) {
+                    return $(el).parents('.cwrcWrapper').length === 1; // don't include form elements from note entity children
+                })
+                .each(function(index, el) {
+                    var formEl = $(this);
+                    var type = formEl.data('type');
+                    if (type === 'attributes') {
+                        var showWidget = that.attributesWidget.setData(data);
+                        if (showWidget) {
+                            that.attributesWidget.expand();
                         }
-                        
-                        if (value !== undefined) {
-                            switch (type) {
-                                case 'select':
-                                    formEl.val(value);
-                                    formEl.parents('[data-transform="accordion"]').accordion('option', 'active', 0);
-                                    break;
-                                case 'radio':
-                                    $('input[value="'+value+'"]', formEl).prop('checked', true);
-                                    if (formEl.data('transform') === 'buttonset') {
-                                        $('input', formEl).button('refresh');
-                                    }
-                                    break;
-                                case 'textbox':
-                                    formEl.val(value);
-                                    break;
+                    } else {
+                        var mapping = formEl.data('mapping');
+                        if (mapping !== undefined) {
+                            var value;
+                            
+                            var isCustom = mapping.indexOf('custom.') === 0;
+                            var isProperty = mapping.indexOf('prop.') === 0;
+                            if (isCustom) {
+                                mapping = mapping.replace(/^custom\./, '');
+                                value = customValues[mapping];
+                            } else if (isProperty) {
+                                mapping = mapping.replace(/^prop\./, '');
+                                value = config.entry[mapping];
+                            } else {
+                                value = data[mapping];
+                            }
+                            
+                            if (value !== undefined) {
+                                switch (type) {
+                                    case 'select':
+                                        formEl.val(value);
+                                        formEl.parents('[data-transform="accordion"]').accordion('option', 'active', 0);
+                                        break;
+                                    case 'radio':
+                                        $('input[value="'+value+'"]', formEl).prop('checked', true);
+                                        if (formEl.data('transform') === 'buttonset') {
+                                            $('input', formEl).button('refresh');
+                                        }
+                                        break;
+                                    case 'textbox':
+                                        formEl.val(value);
+                                        break;
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
         }
         
         this.$el.trigger('beforeShow', [config, this]);
@@ -397,6 +421,27 @@ DialogForm.prototype = {
                 this.w.tagger.finalizeEntity(this.type, this.currentData);
             }
         }
+    },
+    
+    destroy: function() {
+        if (this.attributesWidget != null) {
+            this.attributesWidget.destroy();
+        }
+        
+        $('[data-transform]', this.$el).each(function(index, el) {
+            var formEl = $(el);
+            var transform = formEl.data('transform');
+            switch (transform) {
+                case 'buttonset':
+                    formEl.controlgroup('destroy');
+                    break;
+                case 'accordion':
+                    formEl.accordion('destroy');
+                    break;
+            }
+        });
+        
+        this.$el.empty();
     }
 };
 

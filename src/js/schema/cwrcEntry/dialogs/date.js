@@ -75,9 +75,8 @@ module.exports = function(writer) {
         buttonImage: w.cwrcRootUrl+'img/calendar.png',
         buttonImageOnly: true
     });
-    // wrap the datepicker div with our custom class
     // TODO find a better way to do this
-    $('#ui-datepicker-div').wrap('<div class="cwrc" />');
+    $('#ui-datepicker-div').appendTo(w.dialogManager.getDialogWrapper());
     
     var $startDate = $('#'+id+'_startDate');
     $startDate.focus(function() {

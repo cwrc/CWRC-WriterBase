@@ -55,7 +55,7 @@ function handleResize(dialogEl) {
 function DialogManager(writer) {
     var w = writer;
     
-    var $cwrcDialogWrapper = $('<div class="cwrc cwrcDialogWrapper"></div>').appendTo(document.body);
+    var $cwrcDialogWrapper = $('<div class="cwrc cwrcDialogWrapper"></div>').appendTo(w.layoutManager.getWrapper());
 
     // add event listeners to all of our jquery ui dialogs
     $.extend($.ui.dialog.prototype.options, {
@@ -110,12 +110,21 @@ function DialogManager(writer) {
                 console.warn(dialogName+" doesn't have required method \"show\"!");
             }
         }
+        if (dialog.destroy === undefined) {
+            if (window.console) {
+                console.warn(dialogName+" doesn't have required method \"destroy\"!");
+            }
+        }
         dialogs[dialogName] = dialog;
         return dialog;
     };
     
     dm.getDialog = function(dialogName) {
         return dialogs[dialogName];
+    };
+    
+    dm.getDialogWrapper = function() {
+        return $cwrcDialogWrapper;
     };
     
     dm.show = function(type, config) {

@@ -38,7 +38,7 @@ function LayoutManager(writer, config) {
     
     this.mode; // 'reader' or 'annotator'
     
-    var container = config.container;
+    this.$container = config.container;
     
     var name = config.name;
     var editorId = config.editorId;
@@ -72,11 +72,11 @@ function LayoutManager(writer, config) {
     html += `
     </div>`;
     
-    $(container).html(html);
+    this.$container.html(html);
     
-    this.$wrapper = $(container).find('.cwrcWrapper').first();
-    this.$loadingMask = $(container).find('.cwrcLoadingMask').first();
-    this.$headerButtons = $(container).find('.headerButtons').first();
+    this.$wrapper = this.$container.find('.cwrcWrapper').first();
+    this.$loadingMask = this.$container.find('.cwrcLoadingMask').first();
+    this.$headerButtons = this.$container.find('.headerButtons').first();
     
     var panelMinWidth = 275;
     
@@ -172,7 +172,7 @@ function LayoutManager(writer, config) {
             modules.forEach(function(module) {
                 initModule(editorId, this.w, module);
             }.bind(this));
-            var $region = $(container).find('.ui-layout-'+region);
+            var $region = this.$container.find('.ui-layout-'+region);
             $region.tabs({
                 activate: function(event, ui) {
                     $.layout.callbacks.resizeTabLayout(event, ui);
@@ -312,6 +312,11 @@ LayoutManager.prototype = {
     
     getHeaderButtonsParent: function() {
         return this.$headerButtons;
+    },
+    
+    destroy: function() {
+        this.$outerLayout.destroy(true);
+        this.$container.empty();
     }
 }
 

@@ -291,6 +291,8 @@ function CWRCWriter(config) {
         if (w.tree !== undefined) {
             w.tree.destroy();
         }
+        
+        w.layoutManager.destroy();
     };
     
     /**
