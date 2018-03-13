@@ -2,7 +2,7 @@ var $ = require('jquery');
 //
 var DialogForm = require('dialogForm');
 
-module.exports = function(writer) {
+module.exports = function(writer, parentEl) {
     var w = writer;
     
     var id = w.getUniqueId('keywordForm_');
@@ -16,7 +16,7 @@ module.exports = function(writer) {
             '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
             '</div>'+
         '</div>'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(parentEl);
     
     var dialog = new DialogForm({
         writer: w,
@@ -30,6 +30,9 @@ module.exports = function(writer) {
     return {
         show: function(config) {
             dialog.show(config);
+        },
+        destroy: function() {
+            dialog.destroy();
         }
     };
 };

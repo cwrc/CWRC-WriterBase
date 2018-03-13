@@ -36,6 +36,8 @@ function LayoutManager(writer, config) {
     }
     this.modulesLayout = config.modules || defaultModulesLayout;
     
+    this.modules = [];
+    
     this.mode; // 'reader' or 'annotator'
     
     this.$container = config.container;
@@ -170,7 +172,8 @@ function LayoutManager(writer, config) {
         var modules = this.modulesLayout[region];
         if (Array.isArray(modules)) {
             modules.forEach(function(module) {
-                initModule(editorId, this.w, module);
+                var module = initModule(editorId, this.w, module);
+                this.modules.push(module);
             }.bind(this));
             var $region = this.$container.find('.ui-layout-'+region);
             $region.tabs({
@@ -182,7 +185,8 @@ function LayoutManager(writer, config) {
                 }
             });
         } else {
-            initModule(editorId, this.w, modules);
+            var module = initModule(editorId, this.w, modules);
+            this.modules.push(module);
         }
     }
     
@@ -315,8 +319,20 @@ LayoutManager.prototype = {
     },
     
     destroy: function() {
+        for (var i = 0; i < this.modules.length; i++) {
+            var mod = this.modules[i];
+            if (mod.destroy !== undefined) {
+                mod.destroy();
+            } else {
+                if (window.console) {
+                    console.warn('no destroy method for', mod);
+                }
+            }
+        }
+        
         this.$outerLayout.destroy(true);
-        this.$container.empty();
+        
+        this.$container.empty(); // can't use "remove" or note dialogs can't be re-opened
     }
 }
 

@@ -4,7 +4,7 @@ var $ = require('jquery');
 
 var AttributeWidget = require('./attributeWidget.js');
     
-function SchemaTags(writer) {
+function SchemaTags(writer, parentEl) {
     var w = writer;
     
     var ADD = 0;
@@ -18,7 +18,7 @@ function SchemaTags(writer) {
     
     var $schemaDialog = $(''+
     '<div class="schemaDialog">'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(parentEl)
     
     var dialogOpenTimestamp = null;
     
@@ -142,6 +142,10 @@ function SchemaTags(writer) {
             // TODO contradicting focuses
             $('button[role=ok]', $schemaDialog.parent()).focus();
             //$('input, select', $schemaDialog).first().focus();
+        },
+        destroy: function() {
+            attributesWidget.destroy();
+            $schemaDialog.dialog('destroy');
         },
         
         addSchemaTag: function(params) {

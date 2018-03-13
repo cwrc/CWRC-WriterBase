@@ -3,7 +3,7 @@
 var $ = require('jquery');
 
     
-function AddSchema(writer) {
+function AddSchema(writer, parentEl) {
     var w = writer;
     
     // TODO add validation
@@ -21,7 +21,7 @@ function AddSchema(writer) {
             '<label>Schema CSS URL</label>'+
             '<input type="text" name="cssUrl" value=""/>'+
         '</div>'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(parentEl)
     
     $d.dialog({
         modal: true,
@@ -55,8 +55,8 @@ function AddSchema(writer) {
             $('input', $d).val('');
             $d.dialog('open');
         },
-        hide: function() {
-            $d.dialog('close');
+        destroy: function() {
+            $d.dialog('destroy');
         }
     };
 };

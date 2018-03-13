@@ -138,7 +138,8 @@ function CwrcDialogBridge(writer, config) {
                 });
             }
         },
-        hide: function() {
+        destroy: function() {
+            // TODO
         }
     };
 };

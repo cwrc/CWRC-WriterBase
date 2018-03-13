@@ -83,7 +83,7 @@ function Settings(writer, config) {
                 '<br/><br/><button type="button">Add Schema</button>'+
             '</div>'+
         '</div>'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(w.dialogManager.getDialogWrapper());
     
     buildSchema();
     $('select[name="schema"]', $settingsDialog).nextAll('button').button().click(function() {
@@ -322,7 +322,10 @@ function Settings(writer, config) {
         getSettings: function() {
             return settings;
         },
-        hideAdvanced: hideAdvanced
+        hideAdvanced: hideAdvanced,
+        destroy: function() {
+            $settingsDialog.dialog('destroy');
+        }
     };
 };
 

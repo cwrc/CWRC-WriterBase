@@ -52,8 +52,10 @@ function CWRCWriter(config) {
     w.cwrcRootUrl = config.cwrcRootUrl; // the url which points to the root of the cwrcwriter location
     w.validationUrl = config.validationUrl || 'https://validator.services.cwrc.ca/validator/validate.html';// url for the xml validation
     if (w.cwrcRootUrl == null || w.cwrcRootUrl == '') {
-        if (window.console) console.info("using default cwrcRootUrl");
         w.cwrcRootUrl = window.location.protocol+'//'+window.location.host+'/'+window.location.pathname.split('/')[1]+'/';
+        if (window.console) {
+            console.info('using default cwrcRootUrl', w.cwrcRootUrl);
+        }
     }
     
     w.currentDocId = null;
@@ -287,12 +289,13 @@ function CWRCWriter(config) {
         
         w.editor.remove();
         w.editor.destroy();
-        // TODO detect and destroy modules
-        if (w.tree !== undefined) {
-            w.tree.destroy();
-        }
         
+        w.settings.destroy();
+        w.fileManager.destroy();
+        w.converter.destroy();
+        w.dialogManager.destroy();
         w.layoutManager.destroy();
+        w.eventManager.destroy();
     };
     
     /**
@@ -719,7 +722,7 @@ function CWRCWriter(config) {
     
     w.schemaManager = new SchemaManager(w, {schemas: config.schemas});
     w.entitiesManager = new EntitiesManager(w);
-    w.dialogManager = new DialogManager(w); // needs to load before SettingsDialog
+    w.dialogManager = new DialogManager(w); // needs to load before SettingsDialog, fileManager
     w.tagger = new Tagger(w);
     w.converter = new Converter(w);
     w.fileManager = new FileManager(w);

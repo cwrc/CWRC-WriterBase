@@ -104,7 +104,7 @@ function DialogManager(writer) {
     var dm = {};
 
     dm.addDialog = function(dialogName, DialogClass) {
-        var dialog = new DialogClass(w);
+        var dialog = new DialogClass(w, $cwrcDialogWrapper);
         if (dialog.show === undefined) {
             if (window.console) {
                 console.warn(dialogName+" doesn't have required method \"show\"!");
@@ -145,6 +145,23 @@ function DialogManager(writer) {
         dialogs.message.confirm(config);
     };
     
+    dm.destroy = function() {
+        for (var schema in schemaDialogs) {
+            var dialogsForSchema = schemaDialogs[schema];
+            for (var d in dialogsForSchema) {
+                dialogsForSchema[d].destroy();
+            }
+        }
+        
+        for (var d in dialogs) {
+            if (dialogs[d].destroy !== undefined) {
+                dialogs[d].destroy();
+            } else {
+                if (window.console) console.warn('cannot destroy', d);
+            }
+        }
+    };
+    
     var defaultDialogs = {
         message: Message,
         popup: Popup,
@@ -177,7 +194,7 @@ function DialogManager(writer) {
             // TODO destroy previously loaded dialogs
             for (var dialogName in schemaDialogsMaps[schemaMappingsId]) {
                 var dialog = schemaDialogsMaps[schemaMappingsId][dialogName];
-                schemaDialogs[schemaMappingsId][dialogName] = new dialog(w);
+                schemaDialogs[schemaMappingsId][dialogName] = new dialog(w, $cwrcDialogWrapper);
             }
         }
     };

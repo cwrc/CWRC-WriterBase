@@ -313,8 +313,11 @@ DialogForm.prototype = {
             $(this).accordion('option', 'active', false);
         });
         
+        // if we have an entity dialog inside a note entity, we need to stop the parent note entity from also receiving close and save events
         this.$el.one('beforeClose', function(event) {
-            // if we have an entity dialog inside a note entity, we need to stop the parent note entity from also receiving beforeClose
+            event.stopPropagation();
+        });
+        this.$el.one('beforeSave', function(event) {
             event.stopPropagation();
         });
         
@@ -428,6 +431,10 @@ DialogForm.prototype = {
             this.attributesWidget.destroy();
         }
         
+        if (this.cwrcWriter != null) {
+            this.cwrcWriter.destroy();
+        }
+        
         $('[data-transform]', this.$el).each(function(index, el) {
             var formEl = $(el);
             var transform = formEl.data('transform');
@@ -441,7 +448,7 @@ DialogForm.prototype = {
             }
         });
         
-        this.$el.empty();
+        this.$el.remove();
     }
 };
 

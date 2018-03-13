@@ -34,10 +34,12 @@ function Relations(config) {
     
     var $relations = $('#'+id);
     
-    $relations.find('.moduleFooter button[role=add]').button().click(function() {
+    var $addButton = $relations.find('.moduleFooter button[role=add]').button();
+    $addButton.click(function() {
         w.dialogManager.show('triple');
     });
-    $relations.find('.moduleFooter button[role=remove]').button().click(function() {
+    var $removeButton = $relations.find('.moduleFooter button[role=remove]').button();
+    $removeButton.click(function() {
         var selected = $relations.find('ul li.selected');
         if (selected.length == 1) {
             var i = selected.data('index');
@@ -124,6 +126,12 @@ function Relations(config) {
     
     pm.clear = function() {
         $relations.find('ul').empty();
+    };
+    
+    pm.destroy = function() {
+        $addButton.button('destroy');
+        $removeButton.button('destroy');
+        $('#'+id+'_contextMenu').remove();
     };
     
     // add to writer

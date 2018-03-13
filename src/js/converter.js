@@ -14,7 +14,7 @@ function Converter(writer) {
     var w = writer;
 
     // used by converter.convertTextForExport
-    var $entitiesConverter = $('<div style="display: none;"></div>').appendTo(document.body);
+    var $entitiesConverter = $('<div style="display: none;"></div>').appendTo(w.layoutManager.getWrapper());
 
     /**
      * @lends Converter.prototype
@@ -1068,6 +1068,10 @@ function Converter(writer) {
         };
     }
 
+    converter.destroy = function() {
+        $entitiesConverter.remove();
+    };
+    
     return converter;
 };
 
