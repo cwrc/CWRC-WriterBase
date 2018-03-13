@@ -59,6 +59,7 @@ function CwrcDialogBridge(writer, config) {
                 var query = config.entry.getContent();
                 cD.popSearch[cwrcType]({
                     query: query,
+                    parentEl: w.dialogManager.getDialogWrapper(),
                     success: function(result) {
                         // set id to the uri
                         // assume proper uri passed by the dialogs
@@ -108,6 +109,7 @@ function CwrcDialogBridge(writer, config) {
                 
                 cD.popSearch[cwrcType]({
                     query: query,
+                    parentEl: w.dialogManager.getDialogWrapper(),
                     success: function(result) {
                         // set id to the uri
                         // assume proper uri passed by the dialogs

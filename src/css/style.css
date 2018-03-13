@@ -21,7 +21,7 @@ html, body {
     position: fixed;
     top: 0px;
     left: 0px;
-    z-index: 100;
+    z-index: 1050; /* needs to be higher than bootstrap .modal-backdrop which is 1040 */
 }
 
 .cwrc {
