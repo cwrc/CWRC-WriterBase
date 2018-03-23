@@ -21,7 +21,6 @@ const sinon = require('sinon');
 the configs and modules that we normally require for the CWRC-Writer:
 
 var config = require('./config')
-config.layout = require('./layout-config')
 config.storageDialogs = require('cwrc-git-dialogs');
 config.entityLookupDialogs = require('cwrc-public-entity-dialogs');
 
@@ -33,7 +32,7 @@ our (testable) code will make to the module.  Mocks allow us to:
 
  1.  control what's returned, and so isolate the specific code we want to test.
 For example, if we are testing the constructor, we could mock everything that is passed in ( config, storageDialogs,
-    entityLookupDialogs, and layout)
+    entityLookupDialogs)
  2.  prevent activity like network access that could slow our tests, or introduce network errors.
 
 Rather than make our own mocks we can also use a mocking library like sinon to mock our objects, or even just
@@ -42,7 +41,6 @@ like being able to count how many times one of our mocks was called, mock only c
 */
 const storageDialogs = require('./mocks/storage-dialogs-mock')
 const entityDialogs = require('./mocks/entity-dialogs-mock');
-const layout = require('./mocks/layout-config')
 
 // babel-plugin-istanbul adds instrumentation to the browserified/babelified bundle, during babelification.
 // When the tests are run on the browserified/babelified bundle, the instrumentation records test coverage and puts it in
@@ -165,15 +163,14 @@ test('showLoadDialog with sinon', (assert)=> {
 
 function getConfigForTestingConstructor() {
     return {
-        layout,
         storageDialogs: Object.assign({}, storageDialogs),
         entityLookupDialogs: Object.assign({}, entityDialogs),
-        "validationUrl": "http://validator.services.cwrc.ca/validator/validate.html",
+        "validationUrl": "https://validator.services.cwrc.ca/validator/validate.html",
         "schemas": {
             "tei": {
                 "name": "CWRC Basic TEI Schema",
-                "url": "http://cwrc.ca/schemas/cwrc_tei_lite.rng",
-                "cssUrl": "http://cwrc.ca/templates/css/tei.css",
+                "url": "https://cwrc.ca/schemas/cwrc_tei_lite.rng",
+                "cssUrl": "https://cwrc.ca/templates/css/tei.css",
                 "schemaMappingsId": "tei",
                 "entityTemplates": {
                     "note": "schema/tei/xml/note.xml",
@@ -182,8 +179,8 @@ function getConfigForTestingConstructor() {
             },
             "events": {
                 "name": "Events Schema",
-                "url": "http://cwrc.ca/schemas/orlando_event_v2.rng",
-                "cssUrl": "http://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
+                "url": "https://cwrc.ca/schemas/orlando_event_v2.rng",
+                "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
                 "schemaMappingsId": "orlando",
                 "entityTemplates": {
                     "note": "schema/orlando/xml/note_events.xml",
@@ -192,8 +189,8 @@ function getConfigForTestingConstructor() {
             },
             "biography": {
                 "name": "Biography Schema",
-                "url": "http://cwrc.ca/schemas/orlando_biography_v2.rng",
-                "cssUrl": "http://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
+                "url": "https://cwrc.ca/schemas/orlando_biography_v2.rng",
+                "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
                 "schemaMappingsId": "orlando",
                 "entityTemplates": {
                     "note": "schema/orlando/xml/note_biography.xml",
@@ -202,8 +199,8 @@ function getConfigForTestingConstructor() {
             },
             "writing": {
                 "name": "Writing Schema",
-                "url": "http://cwrc.ca/schemas/orlando_writing_v2.rng",
-                "cssUrl": "http://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
+                "url": "https://cwrc.ca/schemas/orlando_writing_v2.rng",
+                "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
                 "schemaMappingsId": "orlando",
                 "entityTemplates": {
                     "note": "schema/orlando/xml/note_writing.xml",
@@ -212,8 +209,8 @@ function getConfigForTestingConstructor() {
             },
             "cwrcEntry": {
                 "name": "CWRC Entry Schema",
-                "url": "http://cwrc.ca/schemas/cwrc_entry.rng",
-                "cssUrl": "http://cwrc.ca/templates/css/cwrc.css",
+                "url": "https://cwrc.ca/schemas/cwrc_entry.rng",
+                "cssUrl": "https://cwrc.ca/templates/css/cwrc.css",
                 "schemaMappingsId": "cwrcEntry",
                 "entityTemplates": {
                     "note": "schema/cwrcEntry/xml/note.xml",

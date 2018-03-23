@@ -1,4 +1,3 @@
-const layoutThing = require('./mocks/layout-config')
 const test = require('tape');
 
 test.onFinish(()=>{
