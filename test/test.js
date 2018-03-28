@@ -41,6 +41,7 @@ like being able to count how many times one of our mocks was called, mock only c
 */
 const storageDialogs = require('./mocks/storage-dialogs-mock')
 const entityDialogs = require('./mocks/entity-dialogs-mock');
+const config = require('./mocks/config.json')
 
 // babel-plugin-istanbul adds instrumentation to the browserified/babelified bundle, during babelification.
 // When the tests are run on the browserified/babelified bundle, the instrumentation records test coverage and puts it in
@@ -65,7 +66,7 @@ const CWRCWriter = require('../src/js/writer.js')
 // a function to reset the html document and the writer after each test
 function reset() {
     document.write('<html><body><div id="cwrcWriterContainer" style="height:100%;width:100%"></div></body></html>')
-    delete window.writer
+//    delete window.writer
 }
 
 // and call reset to set our initial DOM with the cwrcWriterContainer div
@@ -77,148 +78,303 @@ reset()
     ASSERT - verify that things turned out as we expected
  */
 
-test('constructor', (assert=>{
-    // tell tape how many assertions we'll make in this test
-    // plan throws an error at the end of the test if the actual number of assertions made doesn't match the planned number
-    assert.plan(3)
-    // 'ASSEMBLE'
+test('writer constructor', (t)=>{
+    t.plan(1)
+    
     let configForTestingConstructor = getConfigForTestingConstructor();
-    // 'ACT'
-    window.writer = new CWRCWriter(configForTestingConstructor)
-    // 'ASSERT'
-    let expected = 'some value in the writer maybe or elsewhere'
-    let actual = 'some value in the writer maybe or elsewhere'
-    assert.equal(actual, expected, 'did set the config XXXX value')  // there are also deepEquals methods to compare structure and nested values
-    // assert.ok validates the truthiness of the first argument:
-    let truthyValueOfThingWeAreChecking = typeof CWRCWriter == 'function';
-    assert.ok(truthyValueOfThingWeAreChecking, 'the "require" loaded our constructor')  // ok aliases are assert.true() and assert.assert()
-    assert.pass('some message')  // use this for cases not covered by the other test methods, e.g., if a callback was called.  See example below
-    // YOU'D ADD IN HERE WHATEVER ELSE YOU WANT TO TEST THAT THE CONSTRUCTOR SHOULD AND SHOULDN'T HAVE DONE.
-    reset()
-}))
-
-
-// This test doesn't test CWRC-WriterBase, it is just here to show that two generic methods on assert are 'pass' and 'fail' e.g.,
-test('a timing call', (assert)=> {
-    assert.plan(1)
-    let cb = () => {
-        assert.pass('was called')
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    var handler = function(writer) {
+        t.true(writer.isInitialized, 'writerInitialized');
     }
-    try { setTimeout(cb, 10) } catch(err) {assert.fail('threw an exception')}
+    
+    writer.event('writerInitialized').subscribe(handler);
+})
+
+
+test('writer.loadDocumentXML', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        t.true(body.textContent.indexOf('Sample letter content') !== -1, 'documentLoaded');
+    })
+    
+    loadTEIDoc(writer);
 });
 
-test('init', (assert)=> {
-    assert.plan(1);
-    // ASSEMBLE
-    let configForTestingConstructor = getConfigForTestingConstructor()
-    window.writer = new CWRCWriter(configForTestingConstructor)
-    // ACT
-  //  window.writer.init('cwrcWriterContainer')
-    // ASSERT
-    assert.ok(true, 'did something either in javascript or in the DOM');
-    reset()
+test('writer.getDocument', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    var writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function() {
+        var doc = writer.getDocument();
+        t.true(doc.firstElementChild.textContent.indexOf('Sample letter content') !== -1, 'getDocument');
+    });
+    
+    loadTEIDoc(writer);
 });
 
-// I've included two different ways here to test that calling the showLoadDialog method actually does call the dialog we passed in
-// (as a propery of the config) when we invoked the writer's constructor
-// First, by replacing the 'load' method on our mock:
-test('showLoadDialog', (assert)=> {
-    assert.plan(2);
-    // ASSEMBLE
-    let configForTestingConstructor = getConfigForTestingConstructor()
-    configForTestingConstructor.storageDialogs.load = function(writer){
-        assert.pass('calls storageDialogs.load');
-        assert.equal(writer, window.writer, 'with writer as an argument')
-    }
-
-    window.writer = new CWRCWriter(configForTestingConstructor)
-   // window.writer.init('cwrcWriterContainer')
-    // ACT
-    writer.showLoadDialog()
-    // ASSERT
-   // we already stated our assertions above, even though they aren't actually made until after the showLoadDialog call.
+test('writer.validate', (t)=> {
+    t.plan(2);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    var writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function() {
+        writer.event('validationInitiated').subscribe(function() {
+            t.pass('validationInitiated');
+        });
+        
+        writer.event('documentValidated').subscribe(function(valid, data) {
+            if (valid) {
+                t.pass('documentValidated');
+            } else {
+                t.pass('documentValidated not valid');
+            }
+        });
+        
+        writer.validate();
+    });
+    
+    loadTEIDoc(writer);
 });
 
-// Second, using sinon:
-
-test('showLoadDialog with sinon', (assert)=> {
-    assert.plan(2);
-    // ASSEMBLE
-    let configForTestingConstructor = getConfigForTestingConstructor()
-    var sinonSpy = sinon.spy();
-    configForTestingConstructor.storageDialogs.load = sinonSpy;
-    window.writer = new CWRCWriter(configForTestingConstructor)
-   // window.writer.init('cwrcWriterContainer')
-    // act
-    writer.showLoadDialog()
-    // assert
-    assert.ok(sinonSpy.calledOnce, 'calls storageDialogs.load but only once');
-    assert.ok(sinonSpy.calledWith(window.writer));
+test('writer.selectStructureTag', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        
+        var structTagId = writer.editor.getBody().querySelector('[_tag="div"]').id;
+        writer.event('tagSelected').subscribe(function() {
+            var node = writer.editor.selection.getNode();
+            t.true(node.id === structTagId, 'node selected');
+        });
+                
+        writer.selectStructureTag(structTagId);
+    })
+    
+    loadTEIDoc(writer);
 });
 
-// it's tempting to test more deeply here, like that the storageDialogs.load method correctly sets the
-// document in the writer, but that's a test of the storageDialogs module, and so
-// that test should be done in the storageDialogs module.
+/* // replaced by addSchemaTag test
+test('writer.tagger.addStructureTag', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        writer.event('tagAdded').subscribe(function(tagEl) {
+            t.pass('tag added');
+        });
+        
+        var structTagId = writer.editor.getBody().querySelector('[_tag="div"]').id;
+        writer.tagger.addStructureTag({
+            bookmark: {
+                tagId: structTagId
+            },
+            action: 'inside',
+            attributes: {
+                _tag: 'unclear'
+            }
+        });
+    })
+    
+    loadTEIDoc(writer);
+});
+*/
+
+test('writer.tagger.editStructureTag', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        writer.event('tagEdited').subscribe(function(tagEl) {
+            t.pass('tag edited');
+        });
+        
+        var structTagId = writer.editor.getBody().querySelector('[_tag="div"]').id;
+        writer.tagger.editStructureTag(window.$('#'+structTagId, writer.editor.getBody()), {
+            style: 'good'
+        });
+    })
+    
+    loadTEIDoc(writer);
+});
+
+test('writer.tagger.addEntity.Note', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        var $okButton = window.$('.ui-dialog-buttonset .ui-button:visible');
+        $okButton.click();
+        
+        var ents = writer.entitiesManager.getEntities();
+        var cnt1 = 0;
+        for (var key in ents) {
+            cnt1++;
+        }
+        
+        writer.event('tagSelected').subscribe(function(tagId) {
+//            writer.editor.currentBookmark = writer.editor.selection.getBookmark(1);
+//            writer.dialogManager.show('note', {type: 'note'});
+            writer.tagger.addEntity('note');
+            setTimeout(function() {
+                var $saveButton = window.$('.ui-dialog-buttonset .ui-button:visible:eq(1)');
+                $saveButton.click();
+                
+                var ents = writer.entitiesManager.getEntities();
+                var cnt2 = 0;
+                for (var key in ents) {
+                    cnt2++;
+                }
+                t.true(cnt2 == cnt1+1, 'entity added');
+            }, 250);
+        });
+        
+        var structTagId = writer.editor.getBody().querySelector('[_tag="title"]').id;
+        writer.selectStructureTag(structTagId);
+    })
+    
+    loadTEIDoc(writer);
+});
+
+test('schemaTags addSchemaTag', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        var $okButton = window.$('.ui-dialog-buttonset .ui-button:visible');
+        $okButton.click();
+        
+        writer.event('tagSelected').subscribe(function(tagId) {
+            var d = writer.dialogManager.getDialog('schemaTags');
+            d.addSchemaTag({key: 'unclear'});
+            setTimeout(function() {
+                writer.event('tagAdded').subscribe(function(tagEl) {
+                    t.pass('schema tag added');
+                });
+                
+                var $saveButton = window.$('.ui-dialog-buttonset .ui-button:visible:eq(1)');
+                $saveButton.click();
+            }, 250);
+        });
+        
+        var structTagId = writer.editor.getBody().querySelector('[_tag="title"]').id;
+        writer.selectStructureTag(structTagId);
+    })
+    
+    loadTEIDoc(writer);
+});
+
+test('settings showTags', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        var $okButton = window.$('.ui-dialog-buttonset .ui-button:visible');
+        $okButton.click();
+        
+        var $settingsButton = window.$('.headerButtons div:eq(0)');
+        $settingsButton.click();
+        
+        var $checkbox = window.$('.ui-dialog .showstructbrackets');
+        $checkbox.click();
+        
+        var $applyButton = window.$('.ui-dialog-buttonset .ui-button:visible:eq(2)');
+        $applyButton.click();
+        
+        var bodyClasses = writer.editor.getBody().className;
+        t.true(bodyClasses.indexOf('showStructBrackets') !== -1, 'tags showing');
+    })
+    
+    loadTEIDoc(writer);
+});
+
+function loadTEIDoc(writer) {
+    var teiDoc = `<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://cwrc.ca/schemas/cwrc_tei_lite.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-stylesheet type="text/css" href="https://cwrc.ca/templates/css/tei.css"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cw="http://cwrc.ca/ns/cw#" xmlns:w="http://cwrctc.artsrn.ualberta.ca/#"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cw="http://cwrc.ca/ns/cw#" xmlns:oa="http://www.w3.org/ns/oa#" xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<rdf:Description rdf:about="https://dev-cwrc-writer.cwrc.ca//editor/documents/null">
+    <cw:mode>0</cw:mode>
+    <cw:allowOverlap>false</cw:allowOverlap>
+</rdf:Description>
+<rdf:Description xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:about="http://id.cwrc.ca/annotation/33c377f1-21fa-4594-9b1f-93d7e387fc8a">
+    <oa:hasTarget xmlns:oa="http://www.w3.org/ns/oa#" rdf:resource="http://id.cwrc.ca/target/168ba39d-2bb9-464d-b33a-013fa630d2c1"/>
+    <oa:hasBody xmlns:oa="http://www.w3.org/ns/oa#" rdf:resource="http://cwrc-dev-01.srv.ualberta.ca/islandora/object/73c334d3-2629-4f63-835b-23fc0a706d7c"/>
+    <oa:annotatedBy xmlns:oa="http://www.w3.org/ns/oa#" rdf:resource=""/>
+    <oa:annotatedAt xmlns:oa="http://www.w3.org/ns/oa#">2018-03-27T20:11:15.715Z</oa:annotatedAt>
+    <oa:serializedBy xmlns:oa="http://www.w3.org/ns/oa#" rdf:resource=""/>
+    <oa:serializedAt xmlns:oa="http://www.w3.org/ns/oa#">2018-03-27T20:11:15.715Z</oa:serializedAt>
+    <rdf:type rdf:resource="http://www.w3.org/ns/oa#Annotation"/>
+    <oa:motivatedBy xmlns:oa="http://www.w3.org/ns/oa#" rdf:resource="http://www.w3.org/ns/oa#tagging"/>
+    <oa:motivatedBy xmlns:oa="http://www.w3.org/ns/oa#" rdf:resource="http://www.w3.org/ns/oa#identifying"/>
+    <cw:hasCertainty xmlns:cw="http://cwrc.ca/ns/cw#" rdf:resource="http://cwrc.ca/ns/cw#definite"/>
+    <cw:cwrcInfo xmlns:cw="http://cwrc.ca/ns/cw#">{"id":"http://viaf.org/viaf/39569752","name":"Brown, Miquel","repository":"viaf"}</cw:cwrcInfo>
+    <cw:cwrcAttributes xmlns:cw="http://cwrc.ca/ns/cw#">{"cert":"definite","type":"real","ref":"http://viaf.org/viaf/39569752"}</cw:cwrcAttributes>
+</rdf:Description>
+<rdf:Description xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:about="http://cwrc-dev-01.srv.ualberta.ca/islandora/object/73c334d3-2629-4f63-835b-23fc0a706d7c">
+    <rdf:type rdf:resource="http://www.w3.org/ns/oa#SemanticTag"/>
+    <rdf:type rdf:resource="http://xmlns.com/foaf/0.1/Person"/>
+</rdf:Description>
+<rdf:Description xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:about="http://id.cwrc.ca/target/168ba39d-2bb9-464d-b33a-013fa630d2c1">
+    <oa:hasSource xmlns:oa="http://www.w3.org/ns/oa#" rdf:resource="http://id.cwrc.ca/doc/9a813236-4b4e-4f31-b418-7a183a285b5e"/>
+    <rdf:type rdf:resource="http://www.w3.org/ns/oa#SpecificResource"/>
+    <oa:hasSelector xmlns:oa="http://www.w3.org/ns/oa#" rdf:resource="http://id.cwrc.ca/selector/6b4bbd1a-b887-498b-b5f7-be401bfcd6d9"/>
+</rdf:Description>
+<rdf:Description xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:about="http://id.cwrc.ca/selector/6b4bbd1a-b887-498b-b5f7-be401bfcd6d9">
+    <rdf:value>xpointer(//persName[@annotationId="ent_1"])</rdf:value>
+    <rdf:type rdf:resource="http://www.w3.org/ns/oa#FragmentSelector"/>
+</rdf:Description>
+</rdf:RDF>
+    <text>
+        <body>
+            <div type="letter">
+                <head>
+                    <title>Sample Letter Title</title>
+                </head>
+                <opener>
+                    <note type="setting">
+                        <p>Some opening note describing the writing setting</p>
+                    </note>
+                    <dateline>
+                        <date>Some date (set date value in attribute).</date>
+                    </dateline>
+                    <salute>Some salutation, e.g. "Dearest <persName annotationId="ent_1" cert="definite" type="real" ref="http://viaf.org/viaf/39569752">Miquel</persName>"</salute>
+                </opener>
+                <p>Sample letter content</p>
+                <closer>
+                    <salute>Some closing salutation, e.g. "With love..."</salute>
+                    <signed>Sender name and/or signature.</signed>
+                </closer>
+            </div>
+        </body>
+    </text>
+</TEI>`;
+    writer.loadDocumentXML(teiDoc);
+}
 
 
 function getConfigForTestingConstructor() {
-    return {
-        storageDialogs: Object.assign({}, storageDialogs),
-        entityLookupDialogs: Object.assign({}, entityDialogs),
-        "validationUrl": "https://validator.services.cwrc.ca/validator/validate.html",
-        "schemas": {
-            "tei": {
-                "name": "CWRC Basic TEI Schema",
-                "url": "https://cwrc.ca/schemas/cwrc_tei_lite.rng",
-                "cssUrl": "https://cwrc.ca/templates/css/tei.css",
-                "schemaMappingsId": "tei",
-                "entityTemplates": {
-                    "note": "schema/tei/xml/note.xml",
-                    "citation": "schema/tei/xml/citation.xml"
-                }
-            },
-            "events": {
-                "name": "Events Schema",
-                "url": "https://cwrc.ca/schemas/orlando_event_v2.rng",
-                "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
-                "schemaMappingsId": "orlando",
-                "entityTemplates": {
-                    "note": "schema/orlando/xml/note_events.xml",
-                    "citation": "schema/orlando/xml/citation_events.xml"
-                }
-            },
-            "biography": {
-                "name": "Biography Schema",
-                "url": "https://cwrc.ca/schemas/orlando_biography_v2.rng",
-                "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
-                "schemaMappingsId": "orlando",
-                "entityTemplates": {
-                    "note": "schema/orlando/xml/note_biography.xml",
-                    "citation": "schema/orlando/xml/citation_biography.xml"
-                }
-            },
-            "writing": {
-                "name": "Writing Schema",
-                "url": "https://cwrc.ca/schemas/orlando_writing_v2.rng",
-                "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
-                "schemaMappingsId": "orlando",
-                "entityTemplates": {
-                    "note": "schema/orlando/xml/note_writing.xml",
-                    "citation": "schema/orlando/xml/citation_writing.xml"
-                }
-            },
-            "cwrcEntry": {
-                "name": "CWRC Entry Schema",
-                "url": "https://cwrc.ca/schemas/cwrc_entry.rng",
-                "cssUrl": "https://cwrc.ca/templates/css/cwrc.css",
-                "schemaMappingsId": "cwrcEntry",
-                "entityTemplates": {
-                    "note": "schema/cwrcEntry/xml/note.xml",
-                    "citation": "schema/cwrcEntry/xml/citation.xml"
-                }
-            }
-        },
-        "defaultDocument": "templates/letter",
-        "container":"cwrcWriterContainer"
-    }
+    config.storageDialogs = storageDialogs;
+    config.entityLookupDialogs = entityDialogs;
+    return config;
 }

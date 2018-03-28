@@ -20,8 +20,8 @@
             "cssUrl": "https://cwrc.ca/templates/css/tei.css",
             "schemaMappingsId": "tei",
             "entityTemplates": {
-                "note": "https://dev-cwrc-writer.cwrc.ca/schema/tei/xml/note.xml",
-                "citation": "https://dev-cwrc-writer.cwrc.ca/schema/tei/xml/citation.xml"
+                "note": "../src/js/schema/tei/xml/note.xml",
+                "citation": "../src/js/schema/tei/xml/citation.xml"
             }
         },
         "events": {
@@ -30,8 +30,8 @@
             "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
             "schemaMappingsId": "orlando",
             "entityTemplates": {
-                "note": "https://dev-cwrc-writer.cwrc.ca/schema/orlando/xml/note_events.xml",
-                "citation": "https://dev-cwrc-writer.cwrc.ca/schema/orlando/xml/citation_events.xml"
+                "note": "../src/js/schema/orlando/xml/note_events.xml",
+                "citation": "../src/js/schema/orlando/xml/citation_events.xml"
             }
         },
         "biography": {
@@ -40,8 +40,8 @@
             "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
             "schemaMappingsId": "orlando",
             "entityTemplates": {
-                "note": "https://dev-cwrc-writer.cwrc.ca/schema/orlando/xml/note_biography.xml",
-                "citation": "https://dev-cwrc-writer.cwrc.ca/schema/orlando/xml/citation_biography.xml"
+                "note": "../src/js/schema/orlando/xml/note_biography.xml",
+                "citation": "../src/js/schema/orlando/xml/citation_biography.xml"
             }
         },
         "writing": {
@@ -50,8 +50,8 @@
             "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
             "schemaMappingsId": "orlando",
             "entityTemplates": {
-                "note": "https://dev-cwrc-writer.cwrc.ca/schema/orlando/xml/note_writing.xml",
-                "citation": "https://dev-cwrc-writer.cwrc.ca/schema/orlando/xml/citation_writing.xml"
+                "note": "../src/js/schema/orlando/xml/note_writing.xml",
+                "citation": "../src/js/schema/orlando/xml/citation_writing.xml"
             }
         },
         "cwrcEntry": {
@@ -60,10 +60,11 @@
             "cssUrl": "https://cwrc.ca/templates/css/cwrc.css",
             "schemaMappingsId": "cwrcEntry",
             "entityTemplates": {
-                "note": "https://dev-cwrc-writer.cwrc.ca/schema/cwrcEntry/xml/note.xml",
-                "citation": "https://dev-cwrc-writer.cwrc.ca/schema/cwrcEntry/xml/citation.xml"
+                "note": "../src/js/schema/cwrcEntry/xml/note.xml",
+                "citation": "../src/js/schema/cwrcEntry/xml/citation.xml"
             }
         }
     },
-    "defaultDocument": "templates/letter"
+    "defaultDocument": "templates/letter",
+    "container":"cwrcWriterContainer"
 }
