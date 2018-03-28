@@ -39,9 +39,8 @@ function FileManager(writer) {
         buttons: {
             'Ok': function() {
                 var newDocString = $('textarea', $edit).val();
-                var xmlDoc = w.utilities.stringToXML(newDocString);
                 $edit.dialog('close');
-                fm.loadDocumentFromXml(xmlDoc);
+                fm.loadDocumentFromXml(newDocString);
             },
             'Cancel': function() {
                 $edit.dialog('close');
@@ -128,7 +127,9 @@ function FileManager(writer) {
      */
     fm.loadDocumentFromXml = function(docXml) {
         w.event('loadingDocument').publish();
-        //window.location.hash = '';
+        if (typeof docXml === 'string') {
+            docXml = w.utilities.stringToXML(docXml);
+        }
         w.converter.processDocument(docXml);
     };
     
