@@ -234,6 +234,10 @@ function CWRCWriter(config) {
     w.showLoadDialog = function() {
         w.storageDialogs.load(w)
     }
+    
+    w.showSaveDialog = function() {
+        w.storageDialogs.save(w);
+    };
 
     w.validate = function(callback) {
         var docText = w.converter.getDocumentContent(false);
@@ -996,13 +1000,13 @@ function CWRCWriter(config) {
             ed.addButton('newbutton', {title: 'New', image: w.cwrcRootUrl+'img/page_white_text.png',
                 onclick: function() {
                   //  w.fileManager.newDocument();
-                  w.storageDialogs.save(w)
+                  w.showSaveDialog();
                 }
             });
             ed.addButton('savebutton', {title: 'Save', image: w.cwrcRootUrl+'img/save.png',
                 onclick: function() {
                    // w.fileManager.saveDocument();
-                   w.storageDialogs.save(w)
+                   w.showSaveDialog();
                 }
             });
             ed.addButton('saveasbutton', {title: 'Save As', image: w.cwrcRootUrl+'img/save_as.png',
@@ -1013,7 +1017,7 @@ function CWRCWriter(config) {
             ed.addButton('loadbutton', {title: 'Load', image: w.cwrcRootUrl+'img/folder_page.png',
                 onclick: function() {
                     //w.dialogManager.show('filemanager', {type: 'loader'});
-                    w.storageDialogs.load(w)
+                    w.storageDialogs.load(w);
                 }
             });
             
