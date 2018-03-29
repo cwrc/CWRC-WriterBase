@@ -66,7 +66,6 @@ const CWRCWriter = require('../src/js/writer.js')
 // a function to reset the html document and the writer after each test
 function reset() {
     document.write('<html><body><div id="cwrcWriterContainer" style="height:100%;width:100%"></div></body></html>')
-//    delete window.writer
 }
 
 // and call reset to set our initial DOM with the cwrcWriterContainer div
@@ -86,6 +85,7 @@ test('writer constructor', (t)=>{
     
     var handler = function(writer) {
         t.true(writer.isInitialized, 'writerInitialized');
+        reset();
     }
     
     writer.event('writerInitialized').subscribe(handler);
@@ -100,6 +100,7 @@ test('writer.loadDocumentXML', (t)=> {
     
     writer.event('documentLoaded').subscribe(function(success, body) {
         t.true(body.textContent.indexOf('Sample letter content') !== -1, 'documentLoaded');
+        reset();
     })
     
     loadTEIDoc(writer);
@@ -114,6 +115,7 @@ test('writer.getDocument', (t)=> {
     writer.event('documentLoaded').subscribe(function() {
         var doc = writer.getDocument();
         t.true(doc.firstElementChild.textContent.indexOf('Sample letter content') !== -1, 'getDocument');
+        reset();
     });
     
     loadTEIDoc(writer);
@@ -136,6 +138,7 @@ test('writer.validate', (t)=> {
             } else {
                 t.pass('documentValidated not valid');
             }
+            reset();
         });
         
         writer.validate();
@@ -156,6 +159,7 @@ test('writer.selectStructureTag', (t)=> {
         writer.event('tagSelected').subscribe(function() {
             var node = writer.editor.selection.getNode();
             t.true(node.id === structTagId, 'node selected');
+            reset();
         });
                 
         writer.selectStructureTag(structTagId);
@@ -164,33 +168,46 @@ test('writer.selectStructureTag', (t)=> {
     loadTEIDoc(writer);
 });
 
-/* // replaced by addSchemaTag test
-test('writer.tagger.addStructureTag', (t)=> {
+test('tinymce plugin contextmenu', (t)=> {
     t.plan(1);
     
     let configForTestingConstructor = getConfigForTestingConstructor();
     let writer = new CWRCWriter(configForTestingConstructor)
     
     writer.event('documentLoaded').subscribe(function(success, body) {
-        writer.event('tagAdded').subscribe(function(tagEl) {
-            t.pass('tag added');
-        });
+        var $okButton = window.$('.ui-dialog-buttonset .ui-button:visible');
+        $okButton.click();
         
-        var structTagId = writer.editor.getBody().querySelector('[_tag="div"]').id;
-        writer.tagger.addStructureTag({
-            bookmark: {
-                tagId: structTagId
-            },
-            action: 'inside',
-            attributes: {
-                _tag: 'unclear'
-            }
-        });
+        writer.editor.fire('contextmenu');
+        
+        var visible = window.$('.mce-floatpanel:visible');
+        t.true(visible.length === 1, 'context menu shown');
+        reset();
     })
     
     loadTEIDoc(writer);
 });
-*/
+
+test('tinymce plugin schematags', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        var $okButton = window.$('.ui-dialog-buttonset .ui-button:visible');
+        $okButton.click();
+        
+        var $tagsButton = window.$('.mce-toolbar-grp button:eq(0)');
+        $tagsButton.click();
+        
+        var visible = window.$('.mce-floatpanel:visible');
+        t.true(visible.length === 2, 'schematags menu shown');
+        reset();
+    })
+    
+    loadTEIDoc(writer);
+});
 
 test('writer.tagger.editStructureTag', (t)=> {
     t.plan(1);
@@ -201,6 +218,7 @@ test('writer.tagger.editStructureTag', (t)=> {
     writer.event('documentLoaded').subscribe(function(success, body) {
         writer.event('tagEdited').subscribe(function(tagEl) {
             t.pass('tag edited');
+            reset();
         });
         
         var structTagId = writer.editor.getBody().querySelector('[_tag="div"]').id;
@@ -242,6 +260,7 @@ test('writer.tagger.addEntity.Note', (t)=> {
                     cnt2++;
                 }
                 t.true(cnt2 == cnt1+1, 'entity added');
+                reset();
             }, 250);
         });
         
@@ -268,6 +287,7 @@ test('schemaTags addSchemaTag', (t)=> {
             setTimeout(function() {
                 writer.event('tagAdded').subscribe(function(tagEl) {
                     t.pass('schema tag added');
+                    reset();
                 });
                 
                 var $saveButton = window.$('.ui-dialog-buttonset .ui-button:visible:eq(1)');
@@ -303,6 +323,78 @@ test('settings showTags', (t)=> {
         
         var bodyClasses = writer.editor.getBody().className;
         t.true(bodyClasses.indexOf('showStructBrackets') !== -1, 'tags showing');
+        reset();
+    })
+    
+    loadTEIDoc(writer);
+});
+
+test('structureTree contextMenu', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        var $okButton = window.$('.ui-dialog-buttonset .ui-button:visible');
+        $okButton.click();
+        
+        var $anchor = window.$('.jstree-anchor:eq(2)');
+        
+        $anchor.contextmenu();
+        
+        var visible = window.$('.jstree-contextmenu:visible');
+        t.true(visible.length === 1, 'context menu shown');
+        reset();
+    })
+    
+    loadTEIDoc(writer);
+});
+
+test('relations', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    configForTestingConstructor.modules = {
+        west: ['relations','structure','entities'],
+        east: ['selection'],
+        south: ['validation']
+    }
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        var $okButton = window.$('.ui-dialog-buttonset .ui-button:visible');
+        $okButton.click();
+        
+        var $addButton = window.$('.ui-layout-pane-west .ui-tabs-panel:eq(0) button[role="add"]');
+        
+        $addButton.click();
+        
+        var visible = window.$('.triplesDialog:visible')
+        t.true(visible.length === 1, 'triples dialog shown');
+        reset();
+    })
+    
+    loadTEIDoc(writer);
+});
+
+test('imageViewer', (t)=> {
+    t.plan(1);
+    
+    let configForTestingConstructor = getConfigForTestingConstructor();
+    configForTestingConstructor.modules = {
+        west: ['relations','structure','entities'],
+        east: ['imageViewer'],
+        south: ['validation']
+    }
+    let writer = new CWRCWriter(configForTestingConstructor)
+    
+    writer.event('documentLoaded').subscribe(function(success, body) {
+        var $okButton = window.$('.ui-dialog-buttonset .ui-button:visible');
+        $okButton.click();
+        
+        t.pass();
+        reset();
     })
     
     loadTEIDoc(writer);
