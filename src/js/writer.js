@@ -1,9 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
-
 var fscreen = require('fscreen')['default'];
-
 window.tinymce = require('tinymce');
 
 require('tinymce/themes/modern/theme.js');
