@@ -73,9 +73,9 @@ function Converter(writer) {
         
         if (root.length == 0) {
             if (window.console) {
-                console.warn('no root found for', w.root);
+                console.warn('converter: no root found for', w.root);
             }
-            return '';
+            root = body.find('[_tag]:eq(0)'); // fallback
         }
         
         // make sure the root has the right namespaces for validation purposes
