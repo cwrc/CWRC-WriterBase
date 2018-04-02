@@ -119,16 +119,20 @@ function DialogManager(writer) {
     };
     
     dm.show = function(type, config) {
+        var dialog;
         if (type.indexOf('schema/') === 0) {
             var typeParts = type.split('/');
             type = typeParts[1];
-            schemaDialogs[w.schemaManager.getCurrentSchema().schemaMappingsId][type].show(config);
+            dialog = schemaDialogs[w.schemaManager.getCurrentSchema().schemaMappingsId][type];
         } else {
             if (dialogs[type]) {
-                dialogs[type].show(config);
+                dialog = dialogs[type];
             } else if (schemaDialogs[w.schemaManager.getCurrentSchema().schemaMappingsId][type]) {
-                schemaDialogs[w.schemaManager.getCurrentSchema().schemaMappingsId][type].show(config);
+                dialog = schemaDialogs[w.schemaManager.getCurrentSchema().schemaMappingsId][type];
             }
+        }
+        if (dialog !== undefined) {
+            dialog.show(config);
         }
     };
     
