@@ -73,7 +73,7 @@ function Validation(config) {
         }
         
         $('warning', resultDoc).each(function(index, el) {
-            var id = '';
+            var id = null;
             
             var type = el.nodeName;
             var message = $(this).find('message').text();
@@ -83,7 +83,8 @@ function Validation(config) {
             
             if (elementId != '') {
                 id = elementId;
-            } else if (path != '') {
+            }
+            if (id == null && path != '') {
                 var editorPath = '';
                 var tags = path.split('/');
                 for (var i = 0; i < tags.length; i++) {
@@ -103,7 +104,8 @@ function Validation(config) {
                 editorPath = editorPath.substr(0, editorPath.length-3);
                 var docEl = $(editorPath, w.editor.getBody());
                 id = docEl.attr('id');
-            } else if (!isNaN(column)) {
+            }
+            if (id == null && !isNaN(column)) {
                 var docSubstring = docString.substring(0, column);
                 var tags = docSubstring.match(/<.*?>/g);
                 if (tags != null) {
@@ -151,37 +153,44 @@ function Validation(config) {
                 }
             }
             
-            var messageParts;
-            var messageDivLoc = message.indexOf(';');
-            if (messageDivLoc != -1) {
-                messageParts = [message.slice(0, messageDivLoc+1), message.slice(messageDivLoc+2)];
+            if (id != null) {
+                var messageParts;
+                var messageDivLoc = message.indexOf(';');
+                if (messageDivLoc != -1) {
+                    messageParts = [message.slice(0, messageDivLoc+1), message.slice(messageDivLoc+2)];
+                } else {
+                    messageParts = [message];
+                }
+                
+                var messageHtml = '<li class="'+(type=='warning'?'ui-state-error':'ui-state-highlight')+'">'+
+                    '<span class="ui-icon '+(type=='warning'?'ui-icon-alert':'ui-icon-info')+'" style="float: left; margin-right: 4px;"></span>'+
+                    'Path: '+path+'<br/>'+
+                    'Message: '+messageParts[0];
+                if (messageParts[1] !== undefined) {
+                    messageHtml += ' <span class="message_more">more...</span><span style="display: none;">'+messageParts[1]+'</span>';
+                }
+                messageHtml += '</li>';
+                
+                var item = list.append(messageHtml).find('li:last');
+                item.find('[class="message_more"]').click(function() {
+                    $(this).next('span').show();
+                    $(this).hide();
+                });
+                
+                item.data('id', id);
             } else {
-                messageParts = [message];
+                if (window.console) {
+                    console.warn("validation: couldn't find element for "+path);
+                }
             }
-            
-            var messageHtml = '<li class="'+(type=='warning'?'ui-state-error':'ui-state-highlight')+'">'+
-                '<span class="ui-icon '+(type=='warning'?'ui-icon-alert':'ui-icon-info')+'" style="float: left; margin-right: 4px;"></span>'+
-                'Path: '+path+'<br/>'+
-                'Message: '+messageParts[0];
-            if (messageParts[1] !== undefined) {
-                messageHtml += ' <span class="message_more">more...</span><span style="display: none;">'+messageParts[1]+'</span>';
-            }
-            messageHtml += '</li>';
-            
-            var item = list.append(messageHtml).find('li:last');
-            item.find('[class="message_more"]').click(function() {
-                $(this).next('span').show();
-                $(this).hide();
-            });
-            
-            item.data('id', id);
         });
         
         list.find('li').click(function() {
+            list.find('li').removeClass('selected');
+            $(this).addClass('selected');
+            
             var id = $(this).data('id');
-            if (id) {
-                w.selectStructureTag(id);
-            }
+            w.selectStructureTag(id);
         });
         
         w.layoutManager.showModule('validation');

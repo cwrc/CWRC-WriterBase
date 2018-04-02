@@ -417,7 +417,7 @@ html, body {
     background-color: #fff;
 }
 
-.relationsList li.selected {
+.relationsList li.selected, .validationList li.selected {
     background-color: #d3d3d3 !important;
 }
 
