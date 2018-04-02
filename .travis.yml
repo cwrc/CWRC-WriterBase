@@ -13,7 +13,7 @@ script:
   - npm run check-coverage
 after_success:
   - npm run report-coverage
-  - npm run travis-deploy-once "npm run semantic-release"
+  - travis-deploy-once "npm run semantic-release"
 branches:
   except:
     - /^v\d+\.\d+\.\d+$/
