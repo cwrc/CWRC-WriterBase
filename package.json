@@ -101,7 +101,8 @@
     "debug:copy:html": "copyfiles -u 1 \"src/html/*\" build/ && copyfiles -f test/forDebug/index.html build/",
     "debug:copy:xml": "copyfiles -u 3 \"src/js/schema/*/xml/*\" build/schema/",
     "debug:tinymce:copyskin": "copyfiles -u 2 \"node_modules/tinymce/skins/lightgray/**/*\" build/js/",
-    "debug:build:js": "mkdirp build/js && browserify test/forDebug/debug.js -o build/js/debug.js --debug --verbose -g deamdify"
+    "debug:build:js": "mkdirp build/js && browserify test/forDebug/debug.js -o build/js/debug.js --debug --verbose -g deamdify",
+    "travis-deploy-once": "travis-deploy-once"
   },
   "config": {
     "commitizen": {
