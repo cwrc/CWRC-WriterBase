@@ -108,6 +108,13 @@ function Entity(config) {
     }
 }
 
+Entity.getTitleFromContent = function(content) {
+    var content = content.replace(/\s+/g, ' ');
+    if (content.length <= 34) return content;
+    var title = content.substring(0, 34) + '&#8230;';
+    return title;
+};
+
 Entity.prototype = {
     constructor: Entity,
     
@@ -128,6 +135,7 @@ Entity.prototype = {
     },
     setContent: function(content) {
         this.content = content;
+        this.title = Entity.getTitleFromContent(this.content);
     },
     getTitle: function() {
         var info = this.getLookupInfo();
