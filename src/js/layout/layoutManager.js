@@ -36,9 +36,11 @@ function LayoutManager(writer, config) {
     }
     this.modulesLayout = config.modules || defaultModulesLayout;
     
+    this.modules = [];
+    
     this.mode; // 'reader' or 'annotator'
     
-    var container = config.container;
+    this.$container = config.container;
     
     var name = config.name;
     var editorId = config.editorId;
@@ -72,11 +74,11 @@ function LayoutManager(writer, config) {
     html += `
     </div>`;
     
-    $(container).html(html);
+    this.$container.html(html);
     
-    this.$wrapper = $(container).find('.cwrcWrapper').first();
-    this.$loadingMask = $(container).find('.cwrcLoadingMask').first();
-    this.$headerButtons = $(container).find('.headerButtons').first();
+    this.$wrapper = this.$container.find('.cwrcWrapper').first();
+    this.$loadingMask = this.$container.find('.cwrcLoadingMask').first();
+    this.$headerButtons = this.$container.find('.headerButtons').first();
     
     var panelMinWidth = 275;
     
@@ -170,9 +172,10 @@ function LayoutManager(writer, config) {
         var modules = this.modulesLayout[region];
         if (Array.isArray(modules)) {
             modules.forEach(function(module) {
-                initModule(editorId, this.w, module);
+                var module = initModule(editorId, this.w, module);
+                this.modules.push(module);
             }.bind(this));
-            var $region = $(container).find('.ui-layout-'+region);
+            var $region = this.$container.find('.ui-layout-'+region);
             $region.tabs({
                 activate: function(event, ui) {
                     $.layout.callbacks.resizeTabLayout(event, ui);
@@ -182,7 +185,8 @@ function LayoutManager(writer, config) {
                 }
             });
         } else {
-            initModule(editorId, this.w, modules);
+            var module = initModule(editorId, this.w, modules);
+            this.modules.push(module);
         }
     }
     
@@ -312,6 +316,23 @@ LayoutManager.prototype = {
     
     getHeaderButtonsParent: function() {
         return this.$headerButtons;
+    },
+    
+    destroy: function() {
+        for (var i = 0; i < this.modules.length; i++) {
+            var mod = this.modules[i];
+            if (mod.destroy !== undefined) {
+                mod.destroy();
+            } else {
+                if (window.console) {
+                    console.warn('no destroy method for', mod);
+                }
+            }
+        }
+        
+        this.$outerLayout.destroy(true);
+        
+        this.$container.empty(); // can't use "remove" or note dialogs can't be re-opened
     }
 }
 

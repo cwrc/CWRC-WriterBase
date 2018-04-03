@@ -3,7 +3,7 @@
 var $ = require('jquery');
 require('jquery-popup');
     
-function Popup(writer) {
+function Popup(writer, parentEl) {
     var w = writer;
     
     var attributeSelector = '';
@@ -11,7 +11,7 @@ function Popup(writer) {
     var linkSelector = '';
     
     var popupId = w.getUniqueId('popupDialog');
-    var $popupEl = $('<div id="'+popupId+'"></div>').appendTo(document.body);
+    var $popupEl = $('<div id="'+popupId+'"></div>').appendTo(parentEl)
     $popupEl.popup({
         autoOpen: false,
         resizable: false,
@@ -245,6 +245,9 @@ function Popup(writer) {
             } else {
                 attributePopup(config.id);
             }
+        },
+        destroy: function() {
+            // TODO
         }
     }
 }

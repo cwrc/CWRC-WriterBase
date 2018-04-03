@@ -70,7 +70,11 @@ function Selection(config) {
     selection.showSelection = function() {
         w.layoutManager.showModule('selection');
         updateSelection(true);
-    }
+    };
+    
+    selection.destroy = function() {
+        $('#'+id+'selectionContents').remove();
+    };
     
     // add to writer
     w.selection = selection;

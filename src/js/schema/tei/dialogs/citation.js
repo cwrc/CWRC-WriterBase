@@ -1,7 +1,7 @@
 var $ = require('jquery');
 var DialogForm = require('dialogForm');
 
-module.exports = function(writer) {
+module.exports = function(writer, parentEl) {
     var w = writer;
 
     var id = w.getUniqueId('citationForm_');
@@ -16,7 +16,7 @@ module.exports = function(writer) {
             '<div data-transform="writer" style="width: 100%; height: 100%; border: none;"/>'+
         '</div>'+
         '<input type="hidden" id="'+id+'_ref" data-type="hidden" data-mapping="ref"/>'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(parentEl);
 
     var dialog = new DialogForm({
         writer: w,
@@ -37,6 +37,9 @@ module.exports = function(writer) {
     return {
         show: function(config) {
             dialog.show(config);
+        },
+        destroy: function() {
+            dialog.destroy();
         }
     };
 };

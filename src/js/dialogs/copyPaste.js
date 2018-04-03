@@ -3,7 +3,7 @@
 var $ = require('jquery');
 
     
-function CopyPaste(writer) {
+function CopyPaste(writer, parentEl) {
     var w = writer;
     
     var firstCopy = true;
@@ -17,7 +17,7 @@ function CopyPaste(writer) {
     var $copyPasteDialog = $(''+
     '<div>'+
         '<div class="content"></div>'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(parentEl)
     
     $copyPasteDialog.dialog({
         title: 'Copy & Paste Help',
@@ -74,8 +74,8 @@ function CopyPaste(writer) {
             
             $copyPasteDialog.dialog('open');
         },
-        hide: function() {
-            $copyPasteDialog.dialog('close');
+        destroy: function() {
+            $copyPasteDialog.dialog('destroy');
         }
     };
     

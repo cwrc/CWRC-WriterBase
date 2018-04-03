@@ -200,14 +200,20 @@ function Validation(config) {
         $('#'+id+'_indicator').hide();
         $('#'+id+' > ul').empty();
     };
-    
 
-    $('#'+id+'_buttons button[role=validate]').button().click(function() {
+    var $validateButton = $('#'+id+'_buttons button[role=validate]').button();
+    $validateButton.click(function() {
         w.validate();
     });
-    $('#'+id+'_buttons button[role=clear]').button().click(function() {
+    var $clearButton = $('#'+id+'_buttons button[role=clear]').button();
+    $clearButton.click(function() {
         validation.clearResult();
     });
+    
+    validation.destroy = function() {
+        $validateButton.button('destroy');
+        $clearButton.button('destroy');
+    };
     
     // add to writer
     w.validation = validation;

@@ -26,7 +26,7 @@ function FileManager(writer) {
     var $edit = $(''+
     '<div>'+
         '<textarea style="height: 98%; width: 98%; font-family: monospace;" spellcheck="false"></textarea>'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(w.dialogManager.getDialogWrapper());
     
     $edit.dialog({
         title: 'Edit Source',
@@ -145,6 +145,10 @@ function FileManager(writer) {
                 }
             }
         });
+    };
+    
+    fm.destroy = function() {
+        $edit.dialog('destroy');
     };
     
     return fm;

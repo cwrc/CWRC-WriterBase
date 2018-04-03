@@ -5,13 +5,13 @@ var $ = require('jquery');
 require('jquery-ui/ui/widgets/dialog');
 require('jquery-ui/ui/widgets/progressbar');
     
-function LoadingIndicator(writer) {
+function LoadingIndicator(writer, parentEl) {
     var w = writer;
     
     var $loadingIndicator = $(''+
     '<div class="loadingIndicatorDialog">'+
         '<div class="progressBar"><div class="progressLabel"></div></div>'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(parentEl)
     
     $loadingIndicator.dialog({
         title: 'CWRC-Writer',
@@ -96,6 +96,10 @@ function LoadingIndicator(writer) {
         },
         hide: function() {
             $loadingIndicator.dialog('close');
+        },
+        destroy: function() {
+            progressBar.progressbar('destroy');
+            $loadingIndicator.dialog('destroy');
         }
     };
 };

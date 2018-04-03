@@ -5,7 +5,7 @@ require('jquery-watermark');
 
 require('jquery-ui/ui/widgets/button');
     
-function Triple(writer) {
+function Triple(writer, parentEl) {
     var w = writer;
     
     var precidateList = {
@@ -23,7 +23,7 @@ function Triple(writer) {
         '<div class="currentRelation">'+
             '<p></p><button type="button">Add Relation</button>'+
         '</div>'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(parentEl)
     
     $triple.dialog({
         title: 'Add Relation',
@@ -200,9 +200,8 @@ function Triple(writer) {
             
             $triple.dialog('open');
         },
-
-        hide: function() {
-            $triple.dialog('close');
+        destroy: function() {
+            $triple.dialog('destroy');
         }
     };
 };

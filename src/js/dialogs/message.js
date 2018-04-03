@@ -3,7 +3,7 @@
 var $ = require('jquery');
 
     
-function Message(writer) {
+function Message(writer, parentEl) {
     var w = writer;
     
     function createMessageDialog(config) {
@@ -15,7 +15,7 @@ function Message(writer) {
             '<span class="ui-state-error" style="border: none;"><span style="float: left; margin-right: 4px;" class="ui-icon ui-icon-alert"></span></span>'+
             '<span class="message"></span>'+
             '</p>'+
-        '</div>').appendTo(document.body);
+        '</div>').appendTo(parentEl)
         
         var title = config.title;
         var modal = config.modal == null ? true : config.modal;
@@ -74,7 +74,9 @@ function Message(writer) {
             });
             $message.dialog('open');
         },
-        hide: function() {
+        destroy: function() {
+            // TODO
+            //$message.dialog('destroy');
         }
     };
 };

@@ -6,7 +6,7 @@ var DialogForm = require('dialogForm');
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/datepicker');
 
-module.exports = function(writer) {
+module.exports = function(writer, parentEl) {
     
     var w = writer;
     var today = new Date();
@@ -48,7 +48,7 @@ module.exports = function(writer) {
             '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
             '</div>'+
         '</div>'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(parentEl);
     
     var dialog = new DialogForm({
         writer: w,
@@ -79,9 +79,8 @@ module.exports = function(writer) {
         buttonImage: w.cwrcRootUrl+'img/calendar.png',
         buttonImageOnly: true
     });
-    // wrap the datepicker div with our custom class
     // TODO find a better way to do this
-    $('#ui-datepicker-div').wrap('<div class="cwrc" />');
+    $('#ui-datepicker-div').appendTo(parentEl);
     
     var $startDate = $('#'+id+'_startDate');
     $startDate.focus(function() {
@@ -231,6 +230,11 @@ module.exports = function(writer) {
     return {
         show: function(config) {
             dialog.show(config);
+        },
+        destroy: function() {
+            $dateInput.datepicker('destroy');
+            dateRange.datepicker('destroy');
+            dialog.destroy();
         }
     };
 };

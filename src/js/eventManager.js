@@ -273,6 +273,10 @@ function EventManager(writer) {
         return events;
     };
     
+    e.destroy = function() {
+        // TODO empty callbacks
+    };
+    
     return e;
 };
 

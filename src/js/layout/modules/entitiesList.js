@@ -3,7 +3,6 @@
 var $ = require('jquery');
 
 require('jquery-ui/ui/widgets/button');
-require('jquery-ui/ui/widgets/checkboxradio');
 require('jquery-ui/ui/widgets/controlgroup');
 require('jquery-contextmenu');
     
@@ -265,6 +264,16 @@ function EntitiesList(config) {
     
     pm.remove = function(id) {
         $entities.find('li[name="'+id+'"]').remove();
+    };
+    
+    pm.destroy = function() {
+        $seqButton.button('destroy');
+        $catButton.button('destroy');
+        $entities.find('.sortBy').controlgroup('destroy');
+        
+        $('#'+id+'_contextMenu').remove();
+        
+        $entities.remove();
     };
     
     // add to writer

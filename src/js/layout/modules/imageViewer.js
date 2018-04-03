@@ -94,7 +94,12 @@ function ImageViewer(config) {
         currentIndex = -1;
         
         osdReset();
-    }
+    };
+    
+    iv.destroy = function() {
+        osd.destroy();
+        osd = null;
+    };
     
     function osdReset() {
         osd.drawer.clear();

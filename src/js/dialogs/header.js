@@ -3,7 +3,7 @@
 var $ = require('jquery');
 
     
-function Header(writer) {
+function Header(writer, parentEl) {
     var w = writer;
     
     var $headerLink = $('<div class="editHeader">Edit Header</div>').appendTo(w.layoutManager.getHeaderButtonsParent());
@@ -11,7 +11,7 @@ function Header(writer) {
     var $headerDialog = $(''+
     '<div class="headerDialog">'+
     '<div><textarea></textarea></div>'+
-    '</div>').appendTo(document.body);
+    '</div>').appendTo(parentEl)
     
     $headerDialog.dialog({
         title: 'Edit Header',
@@ -68,8 +68,8 @@ function Header(writer) {
         show: function(config) {
             doOpen();
         },
-        hide: function() {
-            $headerDialog.dialog('close');
+        destroy: function() {
+            $headerDialog.dialog('destroy');
         }
     };
 };
