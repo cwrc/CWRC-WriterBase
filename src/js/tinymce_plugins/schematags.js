@@ -7,8 +7,7 @@ require('jquery-watermark');
 
 tinymce.PluginManager.add('schematags', function(editor) {
     
-    // re-implementing tinymce.ui.Menu so that we can set autohide to false
-   // tinymce.ui.CWRCMenu = tinymce.ui.FloatPanel.extend({
+    // re-implementing tinymce.ui.Menu to use dialogWrapper and so that we can set autohide
     tinymce.ui.Factory.add('cwrcmenu', tinymce.ui.FloatPanel.extend({
         Defaults: {
             defaultType: 'menuitem',
@@ -22,7 +21,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
         init: function(settings) {
             var self = this;
 
-            settings.autohide = false; // don't autohide
+            settings.autohide = settings.autohide == undefined ? true : settings.autohide;
             settings.constrainToViewport = true;
 
             if (settings.itemDefaults) {
@@ -76,6 +75,10 @@ tinymce.PluginManager.add('schematags', function(editor) {
             });
 
             return self._super();
+        },
+        
+        getContainerElm: function() {
+            return editor.writer.dialogManager.getDialogWrapper()[0];
         }
     }));
     
@@ -126,6 +129,10 @@ tinymce.PluginManager.add('schematags', function(editor) {
         hideMenu: function() {
             var self = this;
             self.hidePanel();
+        },
+        
+        getContainerElm: function() {
+            return editor.writer.dialogManager.getDialogWrapper()[0];
         }
     }));
     
@@ -313,6 +320,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
                 }
             },{
                 type: 'cwrcmenu',
+                autohide: false,
                 style: 'position: relative !important;',
                 items: []
             }]
