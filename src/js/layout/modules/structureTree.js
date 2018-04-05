@@ -53,18 +53,6 @@ $.vakata.context._show_submenu = function (o) {
     }).width(e.outerWidth()-2);
 };
 
-$(document).on('context_hide.vakata', function(e) {
-    var filterParent = $('.filterParent', e.element);
-    filterParent.hide();
-});
-
-// resize submenus to fit document height
-$(document).on('context_show.vakata', function(e, data) {
-    var menuBottom = data.element.outerHeight() + data.element.position().top;
-    var maxHeight = Math.min(500, menuBottom - 50);
-    var submenus = data.element.find('.submenu ul');
-    submenus.css('max-height', maxHeight+'px');
-});
 
 /**
  * @class StructureTree
@@ -818,6 +806,22 @@ function StructureTree(config) {
 //        var o = marker.offset();
 //        marker.offset({top: o.top-6, left: o.left-2});
     });
+    
+    $(document).on('context_hide.vakata', function(e) {
+        var filterParent = $('.filterParent', e.element);
+        filterParent.hide();
+    });
+
+    $(document).on('context_show.vakata', function(e, data) {
+        var $el = data.element;
+        $el.appendTo(w.dialogManager.getDialogWrapper());
+        // resize submenus to fit document height
+        var menuBottom = $el.outerHeight() + $el.position().top;
+        var maxHeight = Math.min(500, menuBottom - 50);
+        var submenus = $el.find('.submenu ul');
+        submenus.css('max-height', maxHeight+'px');
+    });
+    
     $tree.on('copy_node.jstree', function(e, data) {
         _onDragDrop(data, true);
     });
