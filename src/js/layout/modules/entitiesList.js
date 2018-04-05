@@ -35,7 +35,7 @@ function EntitiesList(config) {
     
     // TODO remove context menu IDs
     // TODO background icons have no dimensions
-    $(document.body).append(''+
+    $('#'+w.containerId).append(''+
         '<div id="'+id+'_contextMenu" class="contextMenu" style="display: none;">'+
             '<ul>'+
                 '<li id="editEntity"><ins style="background:url('+w.cwrcRootUrl+'img/tag_blue_edit.png) center center no-repeat;" />Edit Entity</li>'+
@@ -191,6 +191,7 @@ function EntitiesList(config) {
         
         if (w.isReadOnly !== true) {
             $entities.find('ul.entitiesList > li').contextMenu(id+'_contextMenu', {
+                el: w.layoutManager.getWrapper(),
                 bindings: {
                     'editEntity': function(tag) {
                         w.tagger.editTag($(tag).attr('name'));

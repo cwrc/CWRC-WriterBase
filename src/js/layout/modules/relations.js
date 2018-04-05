@@ -24,7 +24,7 @@ function Relations(config) {
             '</div>'+
         '</div>');
     
-    $(document.body).append(''+
+    $('#'+w.containerId).append(''+
         '<div id="'+id+'_contextMenu" class="contextMenu" style="display: none;">'+
             '<ul>'+
                 '<li id="removeRelation"><ins style="background:url('+w.cwrcRootUrl+'img/cross.png) center center no-repeat;" />Remove Relation</li>'+
@@ -91,6 +91,7 @@ function Relations(config) {
         }).click(function() {
             $(this).addClass('selected').siblings().removeClass('selected');
         }).contextMenu(id+'_contextMenu', {
+            el: w.layoutManager.getWrapper(),
             bindings: {
                 'removeRelation': function(r) {
                     var i = $(r).data('index');

@@ -814,7 +814,7 @@ function StructureTree(config) {
 
     $(document).on('context_show.vakata', function(e, data) {
         var $el = data.element;
-        $el.appendTo(w.dialogManager.getDialogWrapper());
+        $el.appendTo(w.layoutManager.getWrapper());
         // resize submenus to fit document height
         var menuBottom = $el.outerHeight() + $el.position().top;
         var maxHeight = Math.min(500, menuBottom - 50);

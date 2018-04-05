@@ -75,10 +75,6 @@ tinymce.PluginManager.add('schematags', function(editor) {
             });
 
             return self._super();
-        },
-        
-        getContainerElm: function() {
-            return editor.writer.dialogManager.getDialogWrapper()[0];
         }
     }));
     
@@ -129,10 +125,6 @@ tinymce.PluginManager.add('schematags', function(editor) {
         hideMenu: function() {
             var self = this;
             self.hidePanel();
-        },
-        
-        getContainerElm: function() {
-            return editor.writer.dialogManager.getDialogWrapper()[0];
         }
     }));
     

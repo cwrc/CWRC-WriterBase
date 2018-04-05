@@ -36,7 +36,14 @@ function CWRCWriter(config) {
     
     w.initialConfig = config;
     
-    w.layout = null; // jquery ui layout object
+    w.containerId;
+    if (config.container === undefined) {
+        alert('Error: no container supplied for CWRCWriter!');
+        return;
+    } else {
+        w.containerId = config.container;
+    }
+    
     w.editor = null; // reference to the tinyMCE instance we're creating, set in setup
     
     w.structs = {}; // structs store
@@ -364,8 +371,8 @@ function CWRCWriter(config) {
             if (fscreen.fullscreenElement !== null) {
                 fscreen.exitFullscreen();
             } else {
-                var wrapper = w.layoutManager.getWrapper()[0];
-                fscreen.requestFullscreen(wrapper);
+                var el = $('#'+w.containerId)[0];
+                fscreen.requestFullscreen(el);
             }
         }
     };
@@ -697,18 +704,6 @@ function CWRCWriter(config) {
         alert('Error: you must specify entity lookups in the CWRCWriter config for full functionality!');
     }
     
-    var $container;
-    if (config.container === undefined) {
-        alert('Error: no container supplied for CWRCWriter!');
-        return;
-    } else {
-        if (typeof config.container === 'string') {
-            $container = $('#'+config.container);
-        } else {
-            $container = $(config.container);
-        }
-    }
-    
     w.eventManager = new EventManager(w);
     w.utilities = new Utilities(w);
     $(document.body).addClass('cwrc');
@@ -719,7 +714,7 @@ function CWRCWriter(config) {
         name: 'CWRC-Writer 1.0',
         editorId: editorId,
         modules: config.modules,
-        container: $container
+        container: $('#'+w.containerId)
     });
     
     w.schemaManager = new SchemaManager(w, {schemas: config.schemas});
@@ -778,6 +773,8 @@ function CWRCWriter(config) {
     tinymce.baseURL = w.cwrcRootUrl+'/js'; // need for skin
     tinymce.init({
         selector: '#'+editorId,
+        
+        ui_container: '#'+w.containerId,
         
         skin_url: w.cwrcRootUrl+'css/tinymce',
         
