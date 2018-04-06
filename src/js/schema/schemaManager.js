@@ -59,13 +59,43 @@ function SchemaManager(writer, config) {
      */
     sm.getCurrentSchema = function() {
         return sm.schemas[sm.schemaId];
-    },
+    };
     
+    sm._root = null;
     /**
-     * The URL for the current CSS
-     * @member {String}
+     * Get the root element.
+     * @returns {String}
      */
-    sm.currentCSS = null;
+    sm.getRoot = function() {
+        return sm._root;
+    };
+    
+    sm._header = null;
+    /**
+     * Get the header element.
+     * @returns {String}
+     */
+    sm.getHeader = function() {
+        return sm._header;
+    };
+    
+    sm._idName = null;
+    /**
+     * Get the name of the ID attribute.
+     * @returns {String}
+     */
+    sm.getIdName = function() {
+        return sm._idName;
+    };
+    
+    sm._css = null;
+    /**
+     * Get the URL for the CSS
+     * @returns {String}
+     */
+    sm.getCSS = function() {
+        return sm._css;
+    };
     
     /**
      * Add a schema to the list.
@@ -82,7 +112,7 @@ function SchemaManager(writer, config) {
         sm.schemas[id] = config;
         w.event('schemaAdded').publish(id);
         return id;
-    },
+    };
     
     /**
      * Load a new schema.
@@ -118,14 +148,11 @@ function SchemaManager(writer, config) {
                     startEl = $('define[name="'+startName+'"] element', sm.schemaXML).attr('name');
                 }
                 
-                w.root = startEl;
-    //          w.editor.settings.forced_root_block = w.root;
-    //          w.editor.schema.addCustomElements(w.root);
-    //          w.editor.schema.addCustomElements(w.root.toLowerCase());
+                sm._root = startEl;
+                sm._header = sm.mapper.getHeaderTag();
+                sm._idName = sm.mapper.getIdAttributeName();
                 
-                w.header = sm.mapper.getHeaderTag();
-                w.idName = sm.mapper.getIdAttributeName();
-                
+                // TODO is this necessary
                 var additionalBlockElements = sm.mapper.getBlockLevelElements();
                 var blockElements = w.editor.schema.getBlockElements();
                 for (var i = 0; i < additionalBlockElements.length; i++) {
@@ -157,8 +184,8 @@ function SchemaManager(writer, config) {
                     elements.sort();
                     
                     // hide the header
-                    var tagName = w.utilities.getTagForEditor(w.header);
-                    schemaTags += tagName+'[_tag='+w.header+'] { display: none !important; }';
+                    var tagName = w.utilities.getTagForEditor(sm._header);
+                    schemaTags += tagName+'[_tag='+sm._header+'] { display: none !important; }';
                     
                     $('#schemaTags', w.editor.getDoc()).text(schemaTags);
                     
@@ -167,8 +194,8 @@ function SchemaManager(writer, config) {
                     if (callback == null) {
                         var text = '';
                         if (startText) text = 'Paste or type your text here.';
-                        var tag = w.utilities.getTagForEditor(w.root);
-                        w.editor.setContent('<'+tag+' _tag="'+w.root+'">'+text+'</'+tag+'>');
+                        var tag = w.utilities.getTagForEditor(sm._root);
+                        w.editor.setContent('<'+tag+' _tag="'+sm._root+'">'+text+'</'+tag+'>');
                     }
                     
                     sm.schemaJSON = w.utilities.xmlToJSON($('grammar', sm.schemaXML)[0]);
@@ -241,7 +268,7 @@ function SchemaManager(writer, config) {
         $('#schemaRules', w.editor.dom.doc).remove();
         
         $.ajax({url: url}).then(function(data) {
-            sm.currentCSS = url;
+            sm._css = url;
             
             var cssObj = cssParser(data);
             var rules = cssObj.stylesheet.rules;

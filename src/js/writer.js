@@ -65,13 +65,6 @@ function CWRCWriter(config) {
     
     w.currentDocId = null;
     
-    // root block element, should come from schema
-    w.root = '';
-    // header element: hidden in editor view, can only edit from structure tree
-    w.header = '';
-    // id attribute name, based on schema
-    w.idName = '';
-    
     // is the editor initialized
     w.isInitialized = false;
     
@@ -758,7 +751,7 @@ function CWRCWriter(config) {
 //    w.event('documentLoaded').subscribe(function() {
 //        // try putting the cursor in the body
 //        setTimeout(function() {
-//            var bodyTag = $('[_tag='+w.header+']', w.editor.getBody()).next()[0];
+//            var bodyTag = $('[_tag='+w.schemaManager.getHeader()+']', w.editor.getBody()).next()[0];
 //            if (bodyTag != null) {
 //                w.editor.selection.select(bodyTag);
 //                w.editor.selection.collapse(true);

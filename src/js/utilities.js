@@ -468,7 +468,7 @@ function Utilities(writer) {
     };
     
     u.isTagBlockLevel = function(tagName) {
-        if (tagName == w.root) return true;
+        if (tagName == w.schemaManager.getRoot()) return true;
         return w.editor.schema.getBlockElements()[tagName] != null;
     };
     
@@ -482,7 +482,7 @@ function Utilities(writer) {
     };
     
     u.getRootTag = function() {
-        return $('[_tag='+w.root+']', w.editor.getBody());
+        return $('[_tag='+w.schemaManager.getRoot()+']', w.editor.getBody());
     };
     
     u.getDocumentationForTag = function(tag) {
@@ -490,6 +490,21 @@ function Utilities(writer) {
         var doc = $('a\\:documentation, documentation', element).first().text();
         return doc;
     };
+    
+    u.getFullNameForTag = function(tag) {
+        var element = $('element[name="'+tag+'"]', w.schemaManager.schemaXML);
+        var doc = $('a\\:documentation, documentation', element).first().text();
+        return getFullNameFromDocumentation(doc);
+    };
+    
+    function getFullNameFromDocumentation(documentation) {
+        // if the tag name is an abbreviation, we expect the full name to be at the beginning of the doc, in parentheses
+        var hit = /^\((.*?)\)/.exec(documentation);
+        if (hit !== null) {
+            return hit[1];
+        }
+        return '';
+    }
     
     function supportsLocalStorage() {
         try {
@@ -612,10 +627,13 @@ function Utilities(writer) {
             if (child.parents('element').length > 0 && level > 0) {
                 return; // don't get elements/attributes from other elements
             }
+            var docs = $('a\\:documentation, documentation', child).first().text();
+            var fullName = getFullNameFromDocumentation(docs);
             var childObj = {
                 name: child.attr('name'),
+                fullName: fullName,
                 level: level+0,
-                documentation: $('a\\:documentation, documentation', child).first().text()
+                documentation: docs
             };
             if (type == 'attribute') {
                 childObj.required = child.parent('optional').length == 0;
@@ -676,7 +694,10 @@ function Utilities(writer) {
             });
             if (docs != null && docs['#text'] !== undefined) {
                 docs = docs['#text'];
+            } else if (docs == null) {
+                docs = '';
             }
+            var fullName = getFullNameFromDocumentation(docs);
             
             if (child.anyName) {
                 children.push('anyName');
@@ -695,6 +716,7 @@ function Utilities(writer) {
             if (!duplicate) {
                 var childObj = {
                     name: child['@name'],
+                    fullName: fullName,
                     level: level+0,
                     documentation: docs
                 };
@@ -834,13 +856,13 @@ function Utilities(writer) {
                     var element = elements[i];
                     var defHits = {};
                     var level = 0;
-                    _getChildrenJSON(element, defHits, level, config.type, children);
-                    
+                    _getChildrenJSON(element, defHits, level, config.type, children); 
                     if (children.indexOf('anyName') != -1) {
                         children = [];
                         // anyName means include all elements
                         for (i = 0; i < w.schemaManager.schema.elements.length; i++) {
                             var el = w.schemaManager.schema.elements[i];
+                            // TODO need to add more info than just the name
                             children.push({
                                 name: el
                             });
@@ -951,9 +973,25 @@ function Utilities(writer) {
                     }
                 }
                 if (parent.$key === 'element') {
+                    var docs = null;
+                    _queryDown(parent, function(item) {
+                        if (item['a:documentation']) {
+                            docs = item['a:documentation'];
+                            return false;
+                        }
+                    });
+                    if (docs != null && docs['#text'] !== undefined) {
+                        docs = docs['#text'];
+                    } else if (docs == null) {
+                        docs = '';
+                    }
+                    var fullName = getFullNameFromDocumentation(docs);
+                    
                     parents.push({
                         name: parent['@name'],
-                        level: level
+                        fullName: fullName,
+                        level: level,
+                        documentation: docs
                     });
                 } else {
                     if (!defHits[parent['@name']]) {
@@ -1069,7 +1107,7 @@ function Utilities(writer) {
      * @returns boolean
      */
     u.canTagContainText = function(tag) {
-        if (tag == w.root) return false;
+        if (tag == w.schemaManager.getRoot()) return false;
         
         if (useLocalStorage) {
             var localData = localStorage['cwrc.'+tag+'.text'];
