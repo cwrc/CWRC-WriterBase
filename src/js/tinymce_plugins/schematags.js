@@ -134,17 +134,22 @@ tinymce.PluginManager.add('schematags', function(editor) {
      * @returns {Array} The array of tags.
      */
     function getTagsMenu(action) {
-        var menuItems = [];
-        var imageUrl = editor.writer.cwrcRootUrl+'img/';
-        var schema = editor.writer.schemaManager.schema;
         action = action === undefined ? "add" : action;
         
-        for (var i = 0; i < schema.elements.length; i++) {
-            var key = schema.elements[i];
+        var menuItems = [];
+        var imageUrl = editor.writer.cwrcRootUrl+'img/';
+        var schemaElements = editor.writer.schemaManager.schema.elements;
+        for (var i = 0; i < schemaElements.length; i++) {
+            var tag = schemaElements[i];
+            var text = tag;
+            var fullName = editor.writer.utilities.getFullNameForTag(tag);
+            if (fullName !== '') {
+                text += ' ('+fullName+')';
+            }
             menuItems.push({
                 type: 'menuitem',
-                text: key,
-                key: key,
+                text: text,
+                key: tag,
                 action: action,
                 initialFilterState: null,
                 image: imageUrl+'tag_blue.png',
@@ -208,7 +213,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
         }
         
         var validKeys = [];
-        if (filterKey != editor.writer.header) {
+        if (filterKey != editor.writer.schemaManager.getHeader()) {
             validKeys = editor.writer.utilities.getChildrenForTag({tag: filterKey, returnType: 'names'});
         }
         var count = 0, disCount = 0;
@@ -271,12 +276,12 @@ tinymce.PluginManager.add('schematags', function(editor) {
                 
                 var action = this.settings.action;
                 
-                $(textbox.getEl()).watermark('Filter');
-                $(textbox.getEl()).width(menu.getEl().offsetWidth);
-                
                 var items = getTagsMenu(action);
                 menu.append(items);
                 menu.reflow();
+                
+                $(textbox.getEl()).watermark('Filter');
+                $(textbox.getEl()).width(menu.getEl().offsetWidth);
                 
                 editor.writer.event('schemaLoaded').subscribe(function() {
                     var oldItems = menu.items().toArray();

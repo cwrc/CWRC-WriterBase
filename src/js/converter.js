@@ -69,20 +69,21 @@ function Converter(writer) {
         
         // XML
         
-        var root = body.children('[_tag='+w.root+']');
+        var root = w.schemaManager.getRoot();
+        var $rootEl = body.children('[_tag='+root+']');
         
-        if (root.length == 0) {
+        if ($rootEl.length == 0) {
             if (window.console) {
-                console.warn('converter: no root found for', w.root);
+                console.warn('converter: no root found for', root);
             }
-            root = body.find('[_tag]:eq(0)'); // fallback
+            $rootEl = body.find('[_tag]:eq(0)'); // fallback
         }
         
         // make sure the root has the right namespaces for validation purposes
-        var struct = w.structs[root.attr('id')];
+        var struct = w.structs[$rootEl.attr('id')];
         // add them to the structs entry and they'll get added to the markup later
         struct['xmlns:cw'] = 'http://cwrc.ca/ns/cw#';
-        if (w.root === 'TEI') {
+        if (root === 'TEI') {
             struct['xmlns'] = 'http://www.tei-c.org/ns/1.0';
         }
         if (includeRDF) {
@@ -93,14 +94,14 @@ function Converter(writer) {
 
         var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
         xmlString += '<?xml-model href="'+w.schemaManager.getCurrentSchema().url+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
-        var currentCSS = w.schemaManager.currentCSS || w.schemaManager.getCurrentSchema().cssUrl;
+        var currentCSS = w.schemaManager.getCSS() || w.schemaManager.getCurrentSchema().cssUrl;
         xmlString += '<?xml-stylesheet type="text/css" href="'+currentCSS+'"?>\n';
         
-        var tags = _nodeToStringArray(root);
+        var tags = _nodeToStringArray($rootEl);
         xmlString += tags[0];
 
         var bodyString = '';
-        root.contents().each(function(index, el) {
+        $rootEl.contents().each(function(index, el) {
             if (el.nodeType == 1) {
                 bodyString += converter.buildXMLString($(el));
             } else if (el.nodeType == 3) {
@@ -216,7 +217,7 @@ function Converter(writer) {
                         var attValue = structEntry[key];
                         if (attName == 'id') {
                             // leave out IDs
-    //                        attName = w.idName;
+    //                        attName = w.schemaManager.getIdName();
                         } else {
     //                        var validVal = converter.convertTextForExport(attValue);
                             openingTag += ' '+attName+'="'+attValue+'"';
@@ -624,9 +625,9 @@ function Converter(writer) {
         // TODO add flag
         convertEntityTags(doc);
         
-        var root = doc.documentElement;
+        var rootEl = doc.documentElement;
 
-        var editorString = converter.buildEditorString(root, !w.isReadOnly);
+        var editorString = converter.buildEditorString(rootEl, !w.isReadOnly);
         w.editor.setContent(editorString, {format: 'raw'}); // format is raw to prevent html parser and serializer from messing up whitespace
 
         insertEntities();
@@ -649,10 +650,10 @@ function Converter(writer) {
         
         var msgObj = {};
         if (w.isReadOnly !== true) {
-            if (root.nodeName.toLowerCase() !== w.root.toLowerCase()) {
+            if (rootEl.nodeName.toLowerCase() !== w.schemaManager.getRoot().toLowerCase()) {
                 w.dialogManager.show('message', {
                     title: 'Schema Mismatch',
-                    msg: 'The wrong schema is specified.<br/>Schema root: '+w.root+'<br/>Document root: '+root.nodeName+'<br/><br/>Go to <b>Settings</b> to change the schema association.',
+                    msg: 'The wrong schema is specified.<br/>Schema root: '+w.schemaManager.getRoot()+'<br/>Document root: '+rootEl.nodeName+'<br/><br/>Go to <b>Settings</b> to change the schema association.',
                     type: 'error'
                 });
             } else if (w.isEmbedded !== true) {

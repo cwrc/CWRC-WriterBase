@@ -153,7 +153,7 @@ function SchemaTags(writer, parentEl) {
             var parentTag = params.parentTag;
             action = params.action;
             
-            if (key === w.header) {
+            if (key === w.schemaManager.getHeader()) {
                 w.dialogManager.show('header');
                 return;
             } else {
@@ -203,7 +203,7 @@ function SchemaTags(writer, parentEl) {
         
         editSchemaTag: function($tag) {
             var tagName = $tag.attr('_tag');
-            if (tagName == w.header) {
+            if (tagName == w.schemaManager.getHeader()) {
                 w.dialogManager.show('header');
                 return;
             }

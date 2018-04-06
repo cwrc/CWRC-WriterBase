@@ -10,7 +10,7 @@ function Header(writer, parentEl) {
     
     var $headerDialog = $(''+
     '<div class="headerDialog">'+
-    '<div><textarea></textarea></div>'+
+    '<div><textarea style="height: 98%; width: 98%; font-family: monospace;" spellcheck="false"></textarea></div>'+
     '</div>').appendTo(parentEl)
     
     $headerDialog.dialog({
@@ -40,7 +40,7 @@ function Header(writer, parentEl) {
                 $(xml).find('head').children().each(function(index, el) {
                     headerString += w.converter.buildEditorString(el);
                 });
-                $('[_tag="'+w.header+'"]', w.editor.getBody()).html(headerString);
+                $('[_tag="'+w.schemaManager.getHeader()+'"]', w.editor.getBody()).html(headerString);
                 
                 $headerDialog.dialog('close');
             },
@@ -52,7 +52,7 @@ function Header(writer, parentEl) {
     
     function doOpen() {
         var headerString = '';
-        var headerEl = $('[_tag="'+w.header+'"]', w.editor.getBody());
+        var headerEl = $('[_tag="'+w.schemaManager.getHeader()+'"]', w.editor.getBody());
         headerEl.children().each(function(index, el) {
             headerString += w.converter.buildXMLString($(el));
         });

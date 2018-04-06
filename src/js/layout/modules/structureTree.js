@@ -100,7 +100,7 @@ function StructureTree(config) {
             
             tree.clear();
             
-            var rootNode = $('[_tag="'+w.root+'"]', w.editor.getBody());
+            var rootNode = $('[_tag="'+w.schemaManager.getRoot()+'"]', w.editor.getBody());
             if (rootNode.length === 0) {
                 // fallback if schema/root has changed
                 rootNode = $('[_tag]', w.editor.getBody()).first();
@@ -267,7 +267,7 @@ function StructureTree(config) {
             }
 
             if (!external) {
-                if (!isEntity && w.structs[id]._tag == w.header) {
+                if (!isEntity && w.structs[id]._tag == w.schemaManager.getHeader()) {
                     w.dialogManager.show('header');
                 } else {
                     ignoreSelect = true; // set to true so tree.highlightNode code isn't run by editor's onNodeChange handler
@@ -345,7 +345,7 @@ function StructureTree(config) {
         // structure tag
         } else if (node.attr('_tag')) {
             var tag = node.attr('_tag');
-            if (w.isReadOnly === false || (w.isReadOnly && (tag === w.root || tree.tagFilter.indexOf(tag.toLowerCase()) !== -1))) {
+            if (w.isReadOnly === false || (w.isReadOnly && (tag === w.schemaManager.getRoot() || tree.tagFilter.indexOf(tag.toLowerCase()) !== -1))) {
                 var id = node.attr('id');
                 var info = w.structs[id];
                 
@@ -361,8 +361,8 @@ function StructureTree(config) {
                 if (info) {
                     var text = info._tag;
                     if (w.isReadOnly) {
-                        if (tag === w.root) {
-                            text = w.root;// || w.currentDocId;
+                        if (tag === w.schemaManager.getRoot()) {
+                            text = w.schemaManager.getRoot();// || w.currentDocId;
                         } else {
                             text = w.utilities.getTitleFromContent(node.text());
                         }
@@ -419,7 +419,7 @@ function StructureTree(config) {
                 lastEntry = nodeData;
             }
             
-            if (node.attr('_tag') != w.header) {
+            if (node.attr('_tag') != w.schemaManager.getHeader()) {
                 _doUpdate(node.children(), newNodeParent, level+1, lastEntry);
             }
         });
@@ -536,12 +536,11 @@ function StructureTree(config) {
             tag = tags[i];
             key = tag.name;
             inserted = true;
-            var doc = tag.documentation;
-            if (doc == '') {
-                doc = key;
+            if (tag.fullName !== '') {
+                key += ' ('+tag.fullName+')';
             }
             inserts[key] = {
-                label: '<span title="'+doc+'">'+key+'</span>',
+                label: '<span>'+key+'</span>',
                 icon: w.cwrcRootUrl+'img/tag_blue.png',
                 key: key,
                 action: function(obj) {
@@ -674,7 +673,7 @@ function StructureTree(config) {
                 var tag = $('#'+tagId, w.editor.getBody())[0];
                 if (tag === undefined) return {};                
                 var tagName = tag.getAttribute('_tag');
-                if (tagName == w.root || tagName == w.header) return {};
+                if (tagName == w.schemaManager.getRoot() || tagName == w.schemaManager.getHeader()) return {};
                 
                 var path = w.utilities.getElementXPath(tag);
                 var validKeys = w.utilities.getChildrenForTag({tag: tagName, path: path, type: 'element', returnType: 'array'});
