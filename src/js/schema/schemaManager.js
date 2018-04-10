@@ -291,6 +291,7 @@ function SchemaManager(writer, config) {
             
             $('head', w.editor.dom.doc).append('<style id="schemaRules" type="text/css" />');
             $('#schemaRules', w.editor.dom.doc).text(cssString);
+            // we need to also append to document in order for note popups to be styled
             $('#schemaRules', w.editor.dom.doc).clone().appendTo($('head', document));
         }, function(err) {
             w.dialogManager.show('message', {title: 'Error', msg: 'Error loading schema CSS from: '+url, type: 'error'});
