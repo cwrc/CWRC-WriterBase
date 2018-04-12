@@ -80,6 +80,14 @@ function LayoutManager(writer, config) {
     this.$loadingMask = this.$container.find('.cwrcLoadingMask').first();
     this.$headerButtons = this.$container.find('.headerButtons').first();
     
+    if (this.w.isReadOnly || this.w.isAnnotator) {
+        var $fullscreenButton = $('<div>Toggle Fullscreen</div>').appendTo(this.$headerButtons);
+        var writer = this.w;
+        $fullscreenButton.click(function() {
+            writer.toggleFullScreen();
+        });
+    }
+    
     var panelMinWidth = 275;
     
     var outerLayoutConfig = {
