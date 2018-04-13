@@ -81,7 +81,7 @@ function LayoutManager(writer, config) {
     this.$headerButtons = this.$container.find('.headerButtons').first();
     
     if (this.w.isReadOnly || this.w.isAnnotator) {
-        var $fullscreenButton = $('<div>Toggle Fullscreen</div>').appendTo(this.$headerButtons);
+        var $fullscreenButton = $('<div class="fullscreenLink out">Fullscreen</div>').appendTo(this.$headerButtons);
         var writer = this.w;
         $fullscreenButton.click(function() {
             writer.toggleFullScreen();

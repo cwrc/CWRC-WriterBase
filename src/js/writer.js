@@ -359,6 +359,7 @@ function CWRCWriter(config) {
         return result;
     };
     
+    
     w.toggleFullScreen = function() {
         if (fscreen.fullscreenEnabled) {
             if (fscreen.fullscreenElement !== null) {
@@ -369,6 +370,37 @@ function CWRCWriter(config) {
             }
         }
     };
+    
+    w.isFullScreen = function() {
+        if (fscreen.fullscreenEnabled && fscreen.fullscreenElement !== null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    fscreen.addEventListener('fullscreenchange', function() {
+        var fscreenButton = w.editor.theme.panel.find('button#fullscreen');
+        if (fscreenButton.length == 1) {
+            if (fscreen.fullscreenElement !== null) {
+                fscreenButton[0].$el.find('i').css('background-image', 'url("'+w.cwrcRootUrl+'img/arrow_in.png")');
+            } else {
+                fscreenButton[0].$el.find('i').css('background-image', 'url("'+w.cwrcRootUrl+'img/arrow_out.png")');
+            }
+        }
+        if (w.isReadOnly || w.isAnnotator) {
+            var $fscreenLink = w.layoutManager.getHeaderButtonsParent().find('.fullscreenLink');
+            if ($fscreenLink.length == 1) {
+                if (fscreen.fullscreenElement !== null) {
+                    $fscreenLink.removeClass('out').addClass('in');
+                    $fscreenLink.text('Exit Fullscreen');
+                } else {
+                    $fscreenLink.removeClass('in').addClass('out');
+                    $fscreenLink.text('Fullscreen');
+                }
+            }
+        }
+    });
     
     function _fireNodeChange(nodeEl) {
         // fire the onNodeChange event
@@ -1046,7 +1078,7 @@ function CWRCWriter(config) {
                     w.dialogManager.show('triple');
                 }
             });
-            ed.addButton('fullscreen', {title: 'Toggle Fullscreen', image: w.cwrcRootUrl+'img/arrow_out.png',
+            ed.addButton('fullscreen', {name: 'fullscreen', title: 'Toggle Fullscreen', image: w.cwrcRootUrl+'img/arrow_out.png',
                 onclick: function() {
                     w.toggleFullScreen();
                 }
