@@ -181,7 +181,7 @@ function DialogManager(writer) {
         schemaTags: SchemaTags
     };
     
-    if (w.isEmbedded !== true) {
+    if (w.isReadOnly !== true && w.isAnnotator !== true && w.isEmbedded !== true) {
         defaultDialogs.header = Header;
     }
     

@@ -80,6 +80,14 @@ function LayoutManager(writer, config) {
     this.$loadingMask = this.$container.find('.cwrcLoadingMask').first();
     this.$headerButtons = this.$container.find('.headerButtons').first();
     
+    if (this.w.isReadOnly || this.w.isAnnotator) {
+        var $fullscreenButton = $('<div class="fullscreenLink out">Fullscreen</div>').appendTo(this.$headerButtons);
+        var writer = this.w;
+        $fullscreenButton.click(function() {
+            writer.toggleFullScreen();
+        });
+    }
+  
     this.resizeEditor = function() {
         if (this.w.editor) {
             var pane = $(this.w.editor.getContainer().parentElement);
@@ -100,7 +108,6 @@ function LayoutManager(writer, config) {
             this.w.editor.theme.resizeTo('100%', newHeight);
         }
     }
-    
     
     var panelMinWidth = 275;
     

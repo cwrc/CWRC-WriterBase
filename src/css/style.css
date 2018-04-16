@@ -101,6 +101,11 @@ html, body {
     display: inline-block;
     margin-right: 15px;
     cursor: pointer;
+    text-decoration: none;
+}
+
+.headerButtons > div:hover {
+    text-decoration: underline;
 }
 
 .titleLink {
@@ -117,6 +122,16 @@ html, body {
 
 .helpLink {
     background: url("../img/help.png") no-repeat scroll 0 0 transparent;
+    padding-left: 20px;
+}
+
+.fullscreenLink.out {
+    background: url("../img/arrow_out.png") no-repeat scroll 0 0 transparent;
+    padding-left: 20px;
+}
+
+.fullscreenLink.in {
+    background: url("../img/arrow_in.png") no-repeat scroll 0 0 transparent;
     padding-left: 20px;
 }
 
