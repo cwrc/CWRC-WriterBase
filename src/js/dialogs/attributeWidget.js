@@ -106,16 +106,20 @@ AttributeWidget.prototype = {
             isRequired = att.required;
             
             if (AttributeWidget.disallowedAttributes.indexOf(att.name.toLowerCase()) === -1) {
+                var displayName = att.name;
+                if (att.fullName !== '') {
+                    displayName += ' ('+att.fullName+')';
+                }
                 var display = 'block';
                 var requiredClass = isRequired ? ' required' : '';
                 if (this.mode == AttributeWidget.EDIT && previousVals[att.name]) {
                     display = 'block';
-                    attributeSelector += '<li data-name="'+att.name+'" class="selected'+requiredClass+'">'+att.name+'</li>';
+                    attributeSelector += '<li data-name="'+att.name+'" class="selected'+requiredClass+'">'+displayName+'</li>';
                 } else {
                     display = 'none';
-                    attributeSelector += '<li data-name="'+att.name+'" class="'+requiredClass+'">'+att.name+'</li>';
+                    attributeSelector += '<li data-name="'+att.name+'" class="'+requiredClass+'">'+displayName+'</li>';
                 }
-                currAttString += '<div data-name="form_'+att.name+'" style="display:'+display+';"><label>'+att.name+'</label>';
+                currAttString += '<div data-name="form_'+att.name+'" style="display:'+display+';"><label>'+displayName+'</label>';
                 if (att.documentation != '') {
                     currAttString += '<ins class="ui-icon ui-icon-help" title="'+att.documentation+'">&nbsp;</ins>';
                 }

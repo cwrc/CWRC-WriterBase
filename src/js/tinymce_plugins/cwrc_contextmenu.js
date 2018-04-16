@@ -102,15 +102,14 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
               }
             });
             
-            menu = new tinymce.ui.Menu({
+            menu = tinymce.ui.Factory.create('cwrcmenu', {
                 style: 'max-height: none !important;',
                 minWidth: 195,
                 classes: 'cwrc',
                 items: items,
                 context: 'contextmenu'
             });
-
-            menu.renderTo(document.body);
+            menu.renderTo(menu.getContainerElm());
             
             editor.on('remove', function() {
                 menu.remove();
@@ -198,7 +197,7 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
         classes: 'cwrc',
         icon: 'cwrc',
         menu: {
-            type: 'menu',
+            type: 'cwrcmenu',
             classes: 'cwrc',
             items: [{
                 text: 'Tag Person',

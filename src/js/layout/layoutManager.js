@@ -87,6 +87,27 @@ function LayoutManager(writer, config) {
             writer.toggleFullScreen();
         });
     }
+  
+    this.resizeEditor = function() {
+        if (this.w.editor) {
+            var pane = $(this.w.editor.getContainer().parentElement);
+            var containerHeight = pane.height();
+            
+            var toolbars = pane[0].querySelectorAll('.mce-toolbar, .mce-statusbar, .mce-menubar');
+            var toolbarsLength = toolbars.length;
+            var barsHeight = 0;
+            for (var i = 0; i < toolbarsLength; i++) {
+                var toolbar = toolbars[i];
+                if (!toolbar.classList.contains('mce-sidebar-toolbar')) {
+                    var barHeight = $(toolbar).height();
+                    barsHeight += barHeight;
+                }
+            }
+            
+            var newHeight = containerHeight - barsHeight - 8;
+            this.w.editor.theme.resizeTo('100%', newHeight);
+        }
+    }
     
     var panelMinWidth = 275;
     
@@ -111,9 +132,7 @@ function LayoutManager(writer, config) {
     if (this.modulesLayout.west !== undefined) {
         outerLayoutConfig.west = {
             size: 'auto',
-            minSize: panelMinWidth,
-            onresize_end: function(region, pane, state, options) {
-            }
+            minSize: panelMinWidth
         };
     }
     
@@ -121,9 +140,7 @@ function LayoutManager(writer, config) {
         outerLayoutConfig.east = {
             size: 'auto',
             minSize: panelMinWidth,
-            initClosed: true,
-            onresize_end: function(region, pane, state, options) {
-            }
+            initClosed: true
         };
     }
     
@@ -140,23 +157,7 @@ function LayoutManager(writer, config) {
         },
         center: {
             onresize_end: function(region, pane, state, options) {
-                if (this.w.editor) {
-                    var containerHeight = pane.height();
-                    
-                    var toolbars = pane[0].querySelectorAll('.mce-toolbar, .mce-statusbar, .mce-menubar');
-                    var toolbarsLength = toolbars.length;
-                    var barsHeight = 0;
-                    for (var i = 0; i < toolbarsLength; i++) {
-                        var toolbar = toolbars[i];
-                        if (!toolbar.classList.contains('mce-sidebar-toolbar')) {
-                            var barHeight = $(toolbar).height();
-                            barsHeight += barHeight;
-                        }
-                    }
-                    
-                    var newHeight = containerHeight - barsHeight - 8;
-                    this.w.editor.theme.resizeTo('100%', newHeight);
-                }
+                this.resizeEditor();
             }.bind(this)
         }
     };
@@ -168,8 +169,6 @@ function LayoutManager(writer, config) {
             initClosed: true,
             activate: function(event, ui) {
                 $.layout.callbacks.resizeTabLayout(event, ui);
-            },
-            onresize_end: function(region, pane, state, options) {
             }
         };
     }
@@ -198,7 +197,6 @@ function LayoutManager(writer, config) {
         }
     }
     
-    
     var isLoading = false;
     var doneLayout = false;
     
@@ -214,6 +212,7 @@ function LayoutManager(writer, config) {
             doResize();
         }
     }.bind(this);
+    
     var doResize = function() {
         this.$outerLayout.options.onresizeall_end = function() {
             doneLayout = true;
