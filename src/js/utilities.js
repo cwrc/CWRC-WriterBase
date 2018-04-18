@@ -1261,6 +1261,28 @@ function Utilities(writer) {
         });
     };
     
+    /**
+     * Get the offset position of an element, relative to cwrc-writer container
+     * @param {Element} el The element
+     * @returns {Object} position An object container top and left properties
+     */
+    u.getOffsetPosition = function(el) {
+        var $el = $(el);
+        var position = $el.position();
+        var parent = w.layoutManager.getContainer();
+        
+        var offP = $el.offsetParent();
+        while(parent.find(offP).length == 1) {
+            var pos = offP.position();
+            position.top += pos.top;
+            position.left += pos.left;
+            
+            offP = offP.offsetParent();
+        }
+        
+        return position;
+    };
+    
     return u;
 };
 

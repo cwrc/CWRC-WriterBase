@@ -119,7 +119,13 @@ tinymce.PluginManager.add('schematags', function(editor) {
                 self.panel.show();
             }
 
-            self.panel.moveRel(self.getEl(), settings.popoverAlign || (self.isRtl() ? ['bc-tr', 'bc-tc'] : ['bc-tl', 'bc-tc']));
+            var $button = $(self.getEl());
+            var position = editor.writer.utilities.getOffsetPosition($button);
+            position.top += $button.outerHeight();
+            self.panel.moveTo(position.left, position.top);
+            
+//            self.panel.moveRel(self.getEl(), settings.popoverAlign || (self.isRtl() ? ['bc-tr', 'bc-tc'] : ['bc-tl', 'bc-tc']));
+            
         },
         // implement hideMenu for when used as menuitem
         hideMenu: function() {

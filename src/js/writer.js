@@ -792,6 +792,21 @@ function CWRCWriter(config) {
 //        }, 50);
 //    });
 
+    var addButtonToEditor = function(buttonId, settings) {
+        // adjust the location of the tooltip
+        settings.onmouseenter = function(e) {
+            var tt = this.tooltip();
+            var button = $(this.$el[0]);
+            var position = w.utilities.getOffsetPosition(button);
+            
+            position.left += $(tt.$el[0]).outerWidth()*-0.5 + button.outerWidth()*0.5;
+            position.top += button.outerHeight();
+            
+            tt.moveTo(position.left, position.top);
+        };
+        w.editor.addButton(buttonId, settings);
+    };
+    
     /**
      * Init tinymce
      */
@@ -953,67 +968,67 @@ function CWRCWriter(config) {
                 return w.schemaManager.schema;
             });
             
-            ed.addButton('addperson', {title: 'Tag Person', image: w.cwrcRootUrl+'img/user.png',
+            addButtonToEditor('addperson', {title: 'Tag Person', image: w.cwrcRootUrl+'img/user.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'person');
                 }
             });
-            ed.addButton('addplace', {title: 'Tag Place', image: w.cwrcRootUrl+'img/world.png',
+            addButtonToEditor('addplace', {title: 'Tag Place', image: w.cwrcRootUrl+'img/world.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'place');
                 }
             });
-            ed.addButton('adddate', {title: 'Tag Date', image: w.cwrcRootUrl+'img/calendar.png',
+            addButtonToEditor('adddate', {title: 'Tag Date', image: w.cwrcRootUrl+'img/calendar.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'date');
                 }
             });
-            ed.addButton('addevent', {title: 'Tag Event', image: w.cwrcRootUrl+'img/cake.png',
+            addButtonToEditor('addevent', {title: 'Tag Event', image: w.cwrcRootUrl+'img/cake.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'event');
                 }
             });
-            ed.addButton('addorg', {title: 'Tag Organization', image: w.cwrcRootUrl+'img/group.png',
+            addButtonToEditor('addorg', {title: 'Tag Organization', image: w.cwrcRootUrl+'img/group.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'org');
                 }
             });
-            ed.addButton('addcitation', {title: 'Tag Citation', image: w.cwrcRootUrl+'img/vcard.png',
+            addButtonToEditor('addcitation', {title: 'Tag Citation', image: w.cwrcRootUrl+'img/vcard.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'citation');
                 }
             });
-            ed.addButton('addnote', {title: 'Tag Note', image: w.cwrcRootUrl+'img/note.png',
+            addButtonToEditor('addnote', {title: 'Tag Note', image: w.cwrcRootUrl+'img/note.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'note');
                 }
             });
-            ed.addButton('addcorrection', {title: 'Tag Correction', image: w.cwrcRootUrl+'img/error.png',
+            addButtonToEditor('addcorrection', {title: 'Tag Correction', image: w.cwrcRootUrl+'img/error.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'correction');
                 }
             });
-            ed.addButton('addkeyword', {title: 'Tag Keyword', image: w.cwrcRootUrl+'img/key.png',
+            addButtonToEditor('addkeyword', {title: 'Tag Keyword', image: w.cwrcRootUrl+'img/key.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'keyword');
                 }
             });
-            ed.addButton('addlink', {title: 'Tag Link', image: w.cwrcRootUrl+'img/link.png',
+            addButtonToEditor('addlink', {title: 'Tag Link', image: w.cwrcRootUrl+'img/link.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'link');
                 }
             });
-            ed.addButton('addtitle', {title: 'Tag Text/Title', image: w.cwrcRootUrl+'img/book.png',
+            addButtonToEditor('addtitle', {title: 'Tag Text/Title', image: w.cwrcRootUrl+'img/book.png',
                 onclick : function() {
                     ed.execCommand('addEntity', 'title');
                 }
             });
-            ed.addButton('editTag', {title: 'Edit Tag', image: w.cwrcRootUrl+'img/tag_blue_edit.png',
+            addButtonToEditor('editTag', {title: 'Edit Tag', image: w.cwrcRootUrl+'img/tag_blue_edit.png',
                 onclick : function() {
                     ed.execCommand('editTag');
                 }
             });
-            ed.addButton('removeTag', {title: 'Remove Tag', image: w.cwrcRootUrl+'img/tag_blue_delete.png',
+            addButtonToEditor('removeTag', {title: 'Remove Tag', image: w.cwrcRootUrl+'img/tag_blue_delete.png',
                 onclick : function() {
                     if (w.entitiesManager.getCurrentEntity() != null) {
                         w.tagger.removeEntity(w.entitiesManager.getCurrentEntity(), false);
@@ -1022,53 +1037,53 @@ function CWRCWriter(config) {
                     }
                 }
             });
-            ed.addButton('newbutton', {title: 'New', image: w.cwrcRootUrl+'img/page_white_text.png',
+            addButtonToEditor('newbutton', {title: 'New', image: w.cwrcRootUrl+'img/page_white_text.png',
                 onclick: function() {
                   //  w.fileManager.newDocument();
                   w.showSaveDialog();
                 }
             });
-            ed.addButton('savebutton', {title: 'Save', image: w.cwrcRootUrl+'img/save.png',
+            addButtonToEditor('savebutton', {title: 'Save', image: w.cwrcRootUrl+'img/save.png',
                 onclick: function() {
                    // w.fileManager.saveDocument();
                    w.showSaveDialog();
                 }
             });
-            ed.addButton('saveasbutton', {title: 'Save As', image: w.cwrcRootUrl+'img/save_as.png',
+            addButtonToEditor('saveasbutton', {title: 'Save As', image: w.cwrcRootUrl+'img/save_as.png',
                 onclick: function() {
                     w.dialogManager.show('filemanager', {type: 'saver'});
                 }
             });
-            ed.addButton('loadbutton', {title: 'Load', image: w.cwrcRootUrl+'img/folder_page.png',
+            addButtonToEditor('loadbutton', {title: 'Load', image: w.cwrcRootUrl+'img/folder_page.png',
                 onclick: function() {
                     //w.dialogManager.show('filemanager', {type: 'loader'});
                     w.storageDialogs.load(w);
                 }
             });
             
-            ed.addButton('viewmarkup', {title: 'View Markup', image: w.cwrcRootUrl+'img/page_white_code.png',
+            addButtonToEditor('viewmarkup', {title: 'View Markup', image: w.cwrcRootUrl+'img/page_white_code.png',
                 onclick: function() {
                     w.selection.showSelection();
                 }
             });
             
-            ed.addButton('editsource', {title: 'Edit Source', image: w.cwrcRootUrl+'img/page_white_edit.png',
+            addButtonToEditor('editsource', {title: 'Edit Source', image: w.cwrcRootUrl+'img/page_white_edit.png',
                 onclick: function() {
                     w.fileManager.editSource();
                 }
             });
-            ed.addButton('validate', {title: 'Validate', image: w.cwrcRootUrl+'img/validate.png',
+            addButtonToEditor('validate', {title: 'Validate', image: w.cwrcRootUrl+'img/validate.png',
                 onclick: function() {
                     w.validate();
                 }
             });
-            ed.addButton('addtriple', {title: 'Add Relation', image: w.cwrcRootUrl+'img/chart_org.png',
+            addButtonToEditor('addtriple', {title: 'Add Relation', image: w.cwrcRootUrl+'img/chart_org.png',
                 onclick: function() {
                     $('#westTabs').tabs('option', 'active', 2);
                     w.dialogManager.show('triple');
                 }
             });
-            ed.addButton('fullscreen', {name: 'fullscreen', title: 'Toggle Fullscreen', image: w.cwrcRootUrl+'img/arrow_out.png',
+            addButtonToEditor('fullscreen', {name: 'fullscreen', title: 'Toggle Fullscreen', image: w.cwrcRootUrl+'img/arrow_out.png',
                 onclick: function() {
                     w.toggleFullScreen();
                 }

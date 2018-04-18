@@ -49,7 +49,7 @@ $.vakata.context._show_submenu = function (o) {
     e.show();
     filterParent.show().offset({
         left: e.offset().left,
-        top: (e.offset().top-filterParent.height())
+        top: (e.offset().top-filterParent.outerHeight())
     }).width(e.outerWidth()-2);
 };
 
@@ -798,9 +798,14 @@ function StructureTree(config) {
     $tree.on('deselect_node.jstree', _onNodeDeselect);
     $(document).on('dnd_start.vakata', function(e, data) {
         data.helper.addClass('cwrc');
+        // TODO fullscreen support
+        if (w.isFullScreen()) {
+            $.vakata.dnd.stop(e);
+        }
+        // data.helper.appendTo(w.layoutManager.getContainer());
     });
     $(document).on('dnd_move.vakata', function(e, data) {
-        // adjust marker pos for our styles
+        // TODO fullscreen support
 //        var marker = $('#jstree-marker');
 //        var o = marker.offset();
 //        marker.offset({top: o.top-6, left: o.left-2});
@@ -813,7 +818,14 @@ function StructureTree(config) {
 
     $(document).on('context_show.vakata', function(e, data) {
         var $el = data.element;
-        $el.appendTo(w.layoutManager.getWrapper());
+        $el.css('width', $el.width());
+        $el.appendTo(w.layoutManager.getContainer());
+        
+        var position = w.utilities.getOffsetPosition(data.reference);
+        position.left += data.reference.outerWidth()*0.9;
+        position.top += data.reference.outerHeight()*0.5;
+        $el.css('left', position.left).css('top', position.top);
+        
         // resize submenus to fit document height
         var menuBottom = $el.outerHeight() + $el.position().top;
         var maxHeight = Math.min(500, menuBottom - 50);

@@ -317,6 +317,10 @@ LayoutManager.prototype = {
         this.$innerLayout.resizeAll();
     },
 
+    getContainer: function() {
+        return this.$container;
+    },
+    
     getWrapper: function() {
         return this.$wrapper;
     },

@@ -77,7 +77,15 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
                             ctrl.hideMenu();
                         }
                     });
-                    e.control.showPanel(); 
+                    e.control.showPanel();
+                    var $controlEl = $(e.control.$el[0]);
+                    var parentWidth = $controlEl.outerWidth();
+                    var childWidth = e.control.panel.layoutRect().w;
+                    if ($controlEl.offset().left + parentWidth + childWidth > document.documentElement.offsetWidth) {
+                        e.control.panel.moveBy(-childWidth, -$controlEl.outerHeight());
+                    } else {
+                        e.control.panel.moveBy(parentWidth, -$controlEl.outerHeight());
+                    }
                 }
             },{
                 text: '|'
@@ -99,6 +107,14 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
                       }
                   });
                   e.control.showPanel(); 
+                  var $controlEl = $(e.control.$el[0]);
+                  var parentWidth = $controlEl.outerWidth();
+                  var childWidth = e.control.panel.layoutRect().w;
+                  if ($controlEl.offset().left + parentWidth + childWidth > document.documentElement.offsetWidth) {
+                      e.control.panel.moveBy(-childWidth, -$controlEl.outerHeight());
+                  } else {
+                      e.control.panel.moveBy(parentWidth, -$controlEl.outerHeight());
+                  }
               }
             });
             
@@ -178,16 +194,11 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
         
         menu.show();
 
-        // Position menu
-        var pos = {x: e.pageX, y: e.pageY};
+        var position = editor.writer.utilities.getOffsetPosition(editor.getContentAreaContainer());
+        position.left += e.pageX;
+        position.top += e.pageY;
 
-        if (!editor.inline) {
-            pos = tinymce.DOM.getPos(editor.getContentAreaContainer());
-            pos.x += e.clientX;
-            pos.y += e.clientY;
-        }
-
-        menu.moveTo(pos.x, pos.y);
+        menu.moveTo(position.left, position.top);
     });
     
     items = [{
@@ -199,6 +210,19 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
         menu: {
             type: 'cwrcmenu',
             classes: 'cwrc',
+            onmove: function(e) {
+                var parent = $(e.control.parent().$el[0]);
+                var position = editor.writer.utilities.getOffsetPosition(parent);
+                var parentWidth = parent.outerWidth();
+                var childWidth = e.control.layoutRect().w;
+                if (parent.offset().left + parentWidth + childWidth > document.documentElement.offsetWidth) {
+                    position.left -= childWidth;
+                } else {
+                    position.left += parentWidth;
+                }
+                
+                e.control.layoutRect({x: position.left, y: position.top}).repaint();
+            },
             items: [{
                 text: 'Tag Person',
                 icon: 'icon', // need an icon entry for any of the images to show
