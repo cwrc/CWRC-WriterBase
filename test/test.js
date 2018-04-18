@@ -64,12 +64,15 @@ const CWRCWriter = require('../src/js/writer.js')
 
 
 // a function to reset the html document and the writer after each test
-function reset() {
+function reset(writer) {
+    if (writer != null) {
+        writer.layoutManager.destroy();
+    }
     document.write('<html><body><div id="cwrcWriterContainer" style="height:100%;width:100%"></div></body></html>')
 }
 
 // and call reset to set our initial DOM with the cwrcWriterContainer div
-reset()
+reset(null);
 
 /* A common way to organize tests is with the three A's:
     ASSEMBLE - prepare everything we need for the test, e.g., setup mocks
@@ -85,7 +88,7 @@ test('writer constructor', (t)=>{
     
     var handler = function(writer) {
         t.true(writer.isInitialized, 'writerInitialized');
-        reset();
+        reset(writer);
     }
     
     writer.event('writerInitialized').subscribe(handler);
@@ -100,7 +103,7 @@ test('writer.loadDocumentXML', (t)=> {
     
     writer.event('documentLoaded').subscribe(function(success, body) {
         t.true(body.textContent.indexOf('Sample letter content') !== -1, 'documentLoaded');
-        reset();
+        reset(writer);
     })
     
     loadTEIDoc(writer);
@@ -110,12 +113,12 @@ test('writer.getDocument', (t)=> {
     t.plan(1);
     
     let configForTestingConstructor = getConfigForTestingConstructor();
-    var writer = new CWRCWriter(configForTestingConstructor)
+    let writer = new CWRCWriter(configForTestingConstructor)
     
     writer.event('documentLoaded').subscribe(function() {
         var doc = writer.getDocument();
         t.true(doc.firstElementChild.textContent.indexOf('Sample letter content') !== -1, 'getDocument');
-        reset();
+        reset(writer);
     });
     
     loadTEIDoc(writer);
@@ -125,7 +128,7 @@ test('writer.validate', (t)=> {
     t.plan(2);
     
     let configForTestingConstructor = getConfigForTestingConstructor();
-    var writer = new CWRCWriter(configForTestingConstructor)
+    let writer = new CWRCWriter(configForTestingConstructor)
     
     writer.event('documentLoaded').subscribe(function() {
         writer.event('validationInitiated').subscribe(function() {
@@ -138,7 +141,7 @@ test('writer.validate', (t)=> {
             } else {
                 t.pass('documentValidated not valid');
             }
-            reset();
+            reset(writer);
         });
         
         writer.validate();
@@ -159,7 +162,7 @@ test('writer.selectStructureTag', (t)=> {
         writer.event('tagSelected').subscribe(function() {
             var node = writer.editor.selection.getNode();
             t.true(node.id === structTagId, 'node selected');
-            reset();
+            reset(writer);
         });
                 
         writer.selectStructureTag(structTagId);
@@ -182,7 +185,7 @@ test('tinymce plugin contextmenu', (t)=> {
         
         var visible = window.$('.mce-floatpanel:visible');
         t.true(visible.length === 1, 'context menu shown');
-        reset();
+        reset(writer);
     })
     
     loadTEIDoc(writer);
@@ -203,7 +206,7 @@ test('tinymce plugin schematags', (t)=> {
         
         var visible = window.$('.mce-floatpanel:visible');
         t.true(visible.length === 2, 'schematags menu shown');
-        reset();
+        reset(writer);
     })
     
     loadTEIDoc(writer);
@@ -218,7 +221,7 @@ test('writer.tagger.editStructureTag', (t)=> {
     writer.event('documentLoaded').subscribe(function(success, body) {
         writer.event('tagEdited').subscribe(function(tagEl) {
             t.pass('tag edited');
-            reset();
+            reset(writer);
         });
         
         var structTagId = writer.editor.getBody().querySelector('[_tag="div"]').id;
@@ -260,7 +263,7 @@ test('writer.tagger.addEntity.Note', (t)=> {
                     cnt2++;
                 }
                 t.true(cnt2 == cnt1+1, 'entity added');
-                reset();
+                reset(writer);
             }, 250);
         });
         
@@ -287,7 +290,7 @@ test('schemaTags addSchemaTag', (t)=> {
             setTimeout(function() {
                 writer.event('tagAdded').subscribe(function(tagEl) {
                     t.pass('schema tag added');
-                    reset();
+                    reset(writer);
                 });
                 
                 var $saveButton = window.$('.ui-dialog-buttonset .ui-button:visible:eq(1)');
@@ -323,7 +326,7 @@ test('settings showTags', (t)=> {
         
         var bodyClasses = writer.editor.getBody().className;
         t.true(bodyClasses.indexOf('showStructBrackets') !== -1, 'tags showing');
-        reset();
+        reset(writer);
     })
     
     loadTEIDoc(writer);
@@ -345,7 +348,7 @@ test('structureTree contextMenu', (t)=> {
         
         var visible = window.$('.jstree-contextmenu:visible');
         t.true(visible.length === 1, 'context menu shown');
-        reset();
+        reset(writer);
     })
     
     loadTEIDoc(writer);
@@ -367,12 +370,11 @@ test('relations', (t)=> {
         $okButton.click();
         
         var $addButton = window.$('.ui-layout-pane-west .ui-tabs-panel:eq(0) button[role="add"]');
-        
         $addButton.click();
         
         var visible = window.$('.triplesDialog:visible')
         t.true(visible.length === 1, 'triples dialog shown');
-        reset();
+        reset(writer);
     })
     
     loadTEIDoc(writer);
@@ -394,7 +396,7 @@ test('imageViewer', (t)=> {
         $okButton.click();
         
         t.pass();
-        reset();
+        reset(writer);
     })
     
     loadTEIDoc(writer);

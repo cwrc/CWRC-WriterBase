@@ -20,7 +20,7 @@ function LoadingIndicator(writer, parentEl) {
         closeOnEscape: true,
         height: 160,
         width: 300,
-        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
+        position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
         autoOpen: false
     });
     

@@ -26,7 +26,7 @@ function CopyPaste(writer, parentEl) {
         closeOnEscape: true,
         height: 250,
         width: 350,
-        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
+        position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
         autoOpen: false,
         dialogClass: 'splitButtons',
         buttons: [{

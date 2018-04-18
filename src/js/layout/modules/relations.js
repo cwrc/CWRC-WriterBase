@@ -91,7 +91,7 @@ function Relations(config) {
         }).click(function() {
             $(this).addClass('selected').siblings().removeClass('selected');
         }).contextMenu(id+'_contextMenu', {
-            el: w.layoutManager.getWrapper(),
+            el: w.layoutManager.getContainer(),
             bindings: {
                 'removeRelation': function(r) {
                     var i = $(r).data('index');

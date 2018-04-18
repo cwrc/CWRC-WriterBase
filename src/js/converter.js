@@ -14,7 +14,7 @@ function Converter(writer) {
     var w = writer;
 
     // used by converter.convertTextForExport
-    var $entitiesConverter = $('<div style="display: none;"></div>').appendTo(w.layoutManager.getWrapper());
+    var $entitiesConverter = $('<div style="display: none;"></div>').appendTo(w.layoutManager.getContainer());
 
     /**
      * @lends Converter.prototype

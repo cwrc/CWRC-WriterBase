@@ -19,7 +19,7 @@ function Header(writer, parentEl) {
         resizable: true,
         height: 380,
         width: 400,
-        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
+        position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
         autoOpen: false,
         buttons: {
             'Ok': function() {

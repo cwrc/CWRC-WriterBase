@@ -131,7 +131,7 @@ function Settings(writer, config) {
         closeOnEscape: true,
         height: 450,
         width: 450,
-        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
+        position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
         autoOpen: false,
         buttons: [{
             text: 'Revert to Defaults',

@@ -29,7 +29,7 @@ function SchemaTags(writer, parentEl) {
         closeOnEscape: false,
         height: 460,
         width: 550,
-        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
+        position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
         minHeight: 400,
         minWidth: 510,
         autoOpen: false,

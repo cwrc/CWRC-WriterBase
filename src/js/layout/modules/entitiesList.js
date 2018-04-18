@@ -191,7 +191,7 @@ function EntitiesList(config) {
         
         if (w.isReadOnly !== true) {
             $entities.find('ul.entitiesList > li').contextMenu(id+'_contextMenu', {
-                el: w.layoutManager.getWrapper(),
+                el: w.layoutManager.getContainer(),
                 bindings: {
                     'editEntity': function(tag) {
                         w.tagger.editTag($(tag).attr('name'));

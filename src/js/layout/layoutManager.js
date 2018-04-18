@@ -40,21 +40,19 @@ function LayoutManager(writer, config) {
     
     this.mode; // 'reader' or 'annotator'
     
-    this.$container = config.container;
+    this.$container = $('<div id="'+this.w.getUniqueId('cwrc_')+'" class="cwrc cwrcWrapper"></div>').appendTo(config.container);
     
     var name = config.name;
     var editorId = config.editorId;
     
     var html = `
     <div class="cwrc cwrcLoadingMask"><div>Loading ${name}</div></div>
-    
-    <div class="cwrc cwrcWrapper">
-        <div class="cwrc cwrcHeader ui-layout-north">
-            <div class="headerParent ui-widget">
-                <a class="titleLink" href="https://www.cwrc.ca" target="_blank">${name}</a>
-                <div class="headerButtons"></div>
-            </div>
-        </div>`;
+    <div class="cwrc cwrcHeader ui-layout-north">
+        <div class="headerParent ui-widget">
+            <a class="titleLink" href="https://www.cwrc.ca" target="_blank">${name}</a>
+            <div class="headerButtons"></div>
+        </div>
+    </div>`;
     
     html += addPanel(editorId, 'west', this.modulesLayout.west);
     
@@ -71,12 +69,8 @@ function LayoutManager(writer, config) {
     
     html += addPanel(editorId, 'east', this.modulesLayout.east);
     
-    html += `
-    </div>`;
-    
     this.$container.html(html);
     
-    this.$wrapper = this.$container.find('.cwrcWrapper').first();
     this.$loadingMask = this.$container.find('.cwrcLoadingMask').first();
     this.$headerButtons = this.$container.find('.headerButtons').first();
     
@@ -144,7 +138,7 @@ function LayoutManager(writer, config) {
         };
     }
     
-    this.$outerLayout = this.$wrapper.layout(outerLayoutConfig);
+    this.$outerLayout = this.$container.layout(outerLayoutConfig);
     
     var innerLayoutConfig = {
         defaults: {
@@ -173,7 +167,7 @@ function LayoutManager(writer, config) {
         };
     }
     
-    this.$innerLayout = this.$wrapper.find('.ui-layout-center').first().layout(innerLayoutConfig);
+    this.$innerLayout = this.$container.find('.ui-layout-center').first().layout(innerLayoutConfig);
     
     for (var region in this.modulesLayout) {
         var modules = this.modulesLayout[region];
@@ -319,10 +313,6 @@ LayoutManager.prototype = {
 
     getContainer: function() {
         return this.$container;
-    },
-    
-    getWrapper: function() {
-        return this.$wrapper;
     },
     
     getHeaderButtonsParent: function() {

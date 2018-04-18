@@ -45,7 +45,7 @@ function DialogForm(config) {
         }, this),
         height: height,
         width: width,
-        position: { my: "center", at: "center", of: this.w.layoutManager.getWrapper() },
+        position: { my: "center", at: "center", of: this.w.layoutManager.getContainer() },
         autoOpen: false,
         buttons: [{
             text: 'Cancel',

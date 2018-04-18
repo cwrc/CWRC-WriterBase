@@ -55,7 +55,7 @@ function handleResize(dialogEl) {
 function DialogManager(writer) {
     var w = writer;
     
-    var $cwrcDialogWrapper = $('<div class="cwrc cwrcDialogWrapper"></div>').appendTo(w.layoutManager.getWrapper());
+    var $cwrcDialogWrapper = $('<div class="cwrc cwrcDialogWrapper"></div>').appendTo(w.layoutManager.getContainer());
 
     // add event listeners to all of our jquery ui dialogs
     $.extend($.ui.dialog.prototype.options, {

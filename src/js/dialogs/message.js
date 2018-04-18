@@ -26,7 +26,7 @@ function Message(writer, parentEl) {
             closeOnEscape: true,
             height: 300,
             width: 300,
-            position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
+            position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
             autoOpen: false,
             close: function(ev) {
                 $message.dialog('destroy');

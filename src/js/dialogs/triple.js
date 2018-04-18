@@ -32,7 +32,7 @@ function Triple(writer, parentEl) {
         closeOnEscape: true,
         height: 450,
         width: 600,
-        position: { my: "center", at: "center", of: w.layoutManager.getWrapper() },
+        position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
         autoOpen: false,
         buttons: {
             'Close': function() {

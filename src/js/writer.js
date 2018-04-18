@@ -365,7 +365,7 @@ function CWRCWriter(config) {
             if (fscreen.fullscreenElement !== null) {
                 fscreen.exitFullscreen();
             } else {
-                var el = $('#'+w.containerId)[0];
+                var el = w.layoutManager.getContainer()[0];
                 fscreen.requestFullscreen(el);
             }
         }
@@ -807,6 +807,8 @@ function CWRCWriter(config) {
         w.editor.addButton(buttonId, settings);
     };
     
+    var layoutContainerId = w.layoutManager.getContainer().attr('id');
+    
     /**
      * Init tinymce
      */
@@ -814,7 +816,7 @@ function CWRCWriter(config) {
     tinymce.init({
         selector: '#'+editorId,
         
-        ui_container: '#'+w.containerId,
+        ui_container: '#'+layoutContainerId,
         
         skin_url: w.cwrcRootUrl+'css/tinymce',
         

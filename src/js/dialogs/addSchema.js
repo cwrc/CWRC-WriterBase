@@ -33,7 +33,7 @@ function AddSchema(writer, parentEl) {
         title: 'Add Schema',
         height: 300,
         width: 250,
-        position: { my: "center", at: "center", of: w.layoutManager.getWrapper()},
+        position: { my: "center", at: "center", of: w.layoutManager.getContainer()},
         autoOpen: false,
         buttons: {
             'Add': function() {
