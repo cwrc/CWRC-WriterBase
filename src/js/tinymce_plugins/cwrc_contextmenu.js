@@ -78,13 +78,16 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
                         }
                     });
                     e.control.showPanel();
-                    var $controlEl = $(e.control.$el[0]);
-                    var parentWidth = $controlEl.outerWidth();
-                    var childWidth = e.control.panel.layoutRect().w;
-                    if ($controlEl.offset().left + parentWidth + childWidth > document.documentElement.offsetWidth) {
-                        e.control.panel.moveBy(-childWidth, -$controlEl.outerHeight());
+                    
+                    var parent = $(e.control.$el[0]);
+                    var parentWidth = parent.outerWidth();
+                    var position = editor.writer.utilities.getOffsetPosition(parent);
+                    
+                    var childRect = e.control.panel.layoutRect();
+                    if (parentWidth + position.left + childRect.w > $(editor.getContentAreaContainer()).outerWidth()) {
+                        e.control.panel.moveBy(-childRect.w+1, -parent.outerHeight());
                     } else {
-                        e.control.panel.moveBy(parentWidth, -$controlEl.outerHeight());
+                        e.control.panel.moveBy(parentWidth+1, -parent.outerHeight());
                     }
                 }
             },{
@@ -106,14 +109,17 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
                           ctrl.hideMenu();
                       }
                   });
-                  e.control.showPanel(); 
-                  var $controlEl = $(e.control.$el[0]);
-                  var parentWidth = $controlEl.outerWidth();
-                  var childWidth = e.control.panel.layoutRect().w;
-                  if ($controlEl.offset().left + parentWidth + childWidth > document.documentElement.offsetWidth) {
-                      e.control.panel.moveBy(-childWidth, -$controlEl.outerHeight());
+                  e.control.showPanel();
+                  
+                  var parent = $(e.control.$el[0]);
+                  var parentWidth = parent.outerWidth();
+                  var position = editor.writer.utilities.getOffsetPosition(parent);
+                  
+                  var childRect = e.control.panel.layoutRect();
+                  if (parentWidth + position.left + childRect.w > $(editor.getContentAreaContainer()).outerWidth()) {
+                      e.control.panel.moveBy(-childRect.w+1, -parent.outerHeight());
                   } else {
-                      e.control.panel.moveBy(parentWidth, -$controlEl.outerHeight());
+                      e.control.panel.moveBy(parentWidth+1, -parent.outerHeight());
                   }
               }
             });
@@ -197,8 +203,12 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
         var position = editor.writer.utilities.getOffsetPosition(editor.getContentAreaContainer());
         position.left += e.pageX;
         position.top += e.pageY;
+        
+        var container = editor.writer.layoutManager.getContainer();
+        var x = editor.writer.utilities.constrain(position.left, container.outerWidth(), menu.layoutRect().w);
+        var y = editor.writer.utilities.constrain(position.top, container.outerHeight(), menu.layoutRect().h);
 
-        menu.moveTo(position.left, position.top);
+        menu.moveTo(x, y);
     });
     
     items = [{
@@ -212,13 +222,14 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
             classes: 'cwrc',
             onmove: function(e) {
                 var parent = $(e.control.parent().$el[0]);
-                var position = editor.writer.utilities.getOffsetPosition(parent);
                 var parentWidth = parent.outerWidth();
-                var childWidth = e.control.layoutRect().w;
-                if (parent.offset().left + parentWidth + childWidth > document.documentElement.offsetWidth) {
-                    position.left -= childWidth;
+                var position = editor.writer.utilities.getOffsetPosition(parent);
+                
+                var childRect = e.control.layoutRect();
+                if (parentWidth + position.left + childRect.w > $(editor.getContentAreaContainer()).outerWidth()) {
+                    position.left -= childRect.w-2;
                 } else {
-                    position.left += parentWidth;
+                    position.left += parent.outerWidth();
                 }
                 
                 e.control.layoutRect({x: position.left, y: position.top}).repaint();

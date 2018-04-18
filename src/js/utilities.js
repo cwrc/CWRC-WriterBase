@@ -1283,6 +1283,26 @@ function Utilities(writer) {
         return position;
     };
     
+    /**
+     * Constrain a value. Useful when positioning an element within another element.
+     * @param {Number} value The x or y value of the element
+     * @param {Number} max The max to constrain within
+     * @param {Number} size The size of the element
+     * @returns {Number} value The constrained value
+     */
+    u.constrain = function(value, max, size) {
+        if (value < 0) {
+            return 0;
+        }
+
+        if (value + size > max) {
+            value = max - size;
+            return value < 0 ? 0 : value;
+        }
+
+        return value;
+    }
+    
     return u;
 };
 
