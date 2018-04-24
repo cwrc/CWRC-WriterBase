@@ -259,7 +259,7 @@ function EntitiesList(config) {
         buildString(entity.getAttributes());
         infoString += '</ul>';
         return '<li class="'+entity.getType()+'" name="'+entity.getId()+'">'+
-            '<span class="box"/><span class="entityTitle">'+entity.getTitle()+'</span><div class="info">'+infoString+'</div>'+
+            '<span class="box"/><span class="entityTitle">'+entity.getContent()+'</span><div class="info">'+infoString+'</div>'+
         '</li>';
     };
     

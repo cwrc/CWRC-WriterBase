@@ -143,7 +143,7 @@ function Triple(writer, parentEl) {
             }
         }
         
-        $('.currentRelation p', $triple).text(str);
+        $('.currentRelation p', $triple).html(str);
         
         if (enable) {
             $('.currentRelation button', $triple).button('enable');
@@ -154,7 +154,7 @@ function Triple(writer, parentEl) {
     
     var buildEntity = function(entity) {
         return '<li class="'+entity.getType()+'" name="'+entity.getId()+'">'+
-            '<span class="box"/><span class="entityTitle">'+entity.getTitle()+'</span>'+
+            '<span class="box"/><span class="entityTitle">'+entity.getContent()+'</span>'+
         '</li>';
     };
     

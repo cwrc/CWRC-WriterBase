@@ -371,11 +371,6 @@ html, body {
 .entitiesList .entityTitle {
     font-size: 1em;
     vertical-align: 6px;
-    text-overflow: ellipsis;
-    display: inline-block;
-    white-space: nowrap;
-    width: 85%;
-    overflow: hidden;
 }
 
 .entitiesList .selected .entityTitle {
@@ -403,12 +398,7 @@ html, body {
 }
 
 .entitiesList li {
-    height: 22px;
     list-style: none;
-}
-
-.entitiesList li.selected {
-    height: auto;
 }
 
 .entitiesList > li:hover {
@@ -681,7 +671,6 @@ html, body {
 .triplesDialog .currentRelation p {
     margin: 5px;
     font-size: 1em;
-    height: 20px;
 }
 
 .triplesDialog .column > ul {
@@ -690,13 +679,11 @@ html, body {
 }
 
 .triplesDialog .column > ul li {
-    white-space: nowrap;
     list-style: none;
     margin: 0;
 }
 
 .triplesDialog .entitiesList li.selected {
-    height: 22px;
 }
 
 .triplesDialog .column.predicate ul {
