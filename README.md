@@ -156,7 +156,7 @@ Options that can be set on the configuration object:
   * `name`: String. The schema title.
   * `url`: String. An URL that links to the schema (RELAX NG) file.
   * `cssUrl`: String. An URL that links to the CSS associated with this schema.
-  * `schemaMappingsId`: String. The directory name in the (schema directory)[https://github.com/cwrc/CWRC-WriterBase/tree/master/src/js/schema] from which to load mapping and dialogs files for the schema.
+  * `schemaMappingsId`: String. The directory name in the [schema directory](src/js/schema) from which to load mapping and dialogs files for the schema.
   * `entityTemplates`: Object. Lists URLs for use by citation and note entity dialogs.
 * `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of plugins to set in the CWRC-Writer toolbars. Possible values: `addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, viewsource, editsource, validate, savebutton, loadbutton`.
 
@@ -192,7 +192,7 @@ Overlapping annotations, those that cross XML tags, are disallowed by default. E
 
 ### Writer object
 
-The object returned by the constructor is defined here: [writer.js](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/writer.js).  The typical properties and methods you'd want to use when implementing your own storage and/or entity dialogs are:
+The object returned by the constructor is defined here: [writer.js](src/js/writer.js).  The typical properties and methods you'd want to use when implementing your own storage and/or entity dialogs are:
 
 #### Properties
 
@@ -210,17 +210,23 @@ boolean
 
 #### Methods
 
-###### loadDocument(xmlDoc)
-*Loads a parsed XML document into the editor*
+###### loadDocumentURL(docUrl)
+*Loads an XML document from an URL into the editor*
+
+###### loadDocumentXML(docXml)
+*Loads an XML document (either a (XML Document)[https://developer.mozilla.org/en-US/docs/Web/API/XMLDocument] or a stringified version of such) into the editor*
 
 ###### getDocument()
 *Returns the parsed XML document from the editor*
 
 ###### getDocRawContent()
-*Returns the raw textual content from the editor, including xml tags*
+*Returns the raw content (HTML) from the editor*
 
 ###### showLoadDialog()
 *Convenience method to call the load() method of the object set in the storageDialogs property of the config object passed to the writer.*
+
+###### showSaveDialog()
+*Convenience method to call the save() method of the object set in the storageDialogs property of the config object passed to the writer.*
 
 ###### validate (callback)
 *Validates the current document*
