@@ -96,7 +96,7 @@ Each method is invoked by the CWRC-WriterBase whenever the end user clicks the '
 
 Each method spawns a dialog that prompts the user to load or save.  Because `load(writer)` and `save(writer)` are passed an instance of the CWRC writer object, all of the methods defined below in [API](#writer-object) are available, to allow get and set of the XML in the writer.
 
-We also define an authenticate method on our cwrc-git-dialogs object to handle the Oauth authentication of GitHub.  You may implement your authentication however you like.  If you want to follow our approach you can see it (here)[https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/app.js] where we authenticate before instantiating the CWRC-WriterBase.  
+We also define an authenticate method on our cwrc-git-dialogs object to handle the Oauth authentication of GitHub.  You may implement your authentication however you like.  If you want to follow our approach you can see it [here](https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/app.js) where we authenticate before instantiating the CWRC-WriterBase.  
 
 #### Entity Lookup API
 
@@ -121,8 +121,8 @@ You can use any of these sources, and supplement them with your own sources.  [C
 
 The CWRC-WriterBase exports a single constructor function that takes one argument, a configuration object.
 
-See [https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/config.js] for an example of a base configuration file, and  
-[https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/app.js] to see the configuration file loaded, extended, and passed into the constructor.
+See [CWRC-GitWriter/src/js/config.js](https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/config.js) for an example of a base configuration file, and  
+[CWRC-GitWriter/src/js/app.js](https://github.com/cwrc/CWRC-GitWriter/blob/master/src/js/app.js) to see the configuration file loaded, extended, and passed into the constructor.
 
 ### Configuration Object
 
@@ -214,7 +214,7 @@ boolean
 *Loads an XML document from an URL into the editor*
 
 ###### loadDocumentXML(docXml)
-*Loads an XML document (either a (XML Document)[https://developer.mozilla.org/en-US/docs/Web/API/XMLDocument] or a stringified version of such) into the editor*
+*Loads an XML document (either a [XML Document](https://developer.mozilla.org/en-US/docs/Web/API/XMLDocument) or a stringified version of such) into the editor*
 
 ###### getDocument()
 *Returns the parsed XML document from the editor*
