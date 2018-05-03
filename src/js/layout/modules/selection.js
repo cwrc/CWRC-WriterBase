@@ -2,7 +2,8 @@
 
 var $ = require('jquery');
 var Prism = require('prismjs');
-    
+require('jquery-ui/ui/widgets/checkboxradio');
+
 /**
  * @class Selection
  * @param {Object} config
@@ -15,21 +16,48 @@ function Selection(config) {
     
     var id = w.getUniqueId('selection_');
     
+    var selectionTrimLength = 100000;
+    
+    var showFullDoc = false;
+    
     var lastUpdate = new Date().getTime();
     
     w.utilities.addCSS('css/prism-ghcolors.css');
     $('#'+config.parentId).append(`
     <div class="moduleParent">
         <div id="${id}" class="moduleContent"></div>
+        <div id="${id}_options" class="moduleFooter">
+            <span>Show </span>
+            <label>Selection<input type="radio" name="show" value="selection" checked="true"></label>
+            <label>Document<input type="radio" name="show" value="document"></label>
+        </div>
+        <div id="${id}_selectionContents" style="display: none;"></div>
     </div>
     `);
-    $(document.body).append('<div id="'+id+'selectionContents" style="display: none;"></div>');
     
-    w.event('nodeChanged').subscribe(function() {
+    var $inputs = $('#'+id+'_options input').checkboxradio();
+    $inputs.click(function() {
+        if (this.value == 'document') {
+            showFullDoc = true;
+        } else {
+            showFullDoc = false;
+        }
         updateSelection();
     });
+    
+    var $prismContainer = $('#'+id);
+    
+    var $selectionContents = $('#'+id+'_selectionContents');
+        
+    w.event('nodeChanged').subscribe(function() {
+        if (!showFullDoc || (showFullDoc && $prismContainer.text() == '')) {
+            updateSelection();
+        }
+    });
     w.event('tagSelected').subscribe(function(tagId) {
-        updateSelection();
+        if (!showFullDoc || (showFullDoc && $prismContainer.text() == '')) {
+            updateSelection();
+        }
     });
     
     /**
@@ -40,40 +68,31 @@ function Selection(config) {
     function updateSelection(useDoc) {
         var timestamp = new Date().getTime();
         var timeDiff = timestamp - lastUpdate; // track to avoid double update on nodeChanged/tagSelected combo
-        if ($('#'+id).is(':visible') && timeDiff > 250) {
+        if ($prismContainer.is(':visible') && timeDiff > 250) {
             lastUpdate = new Date().getTime();
             
             var contents = '';
-            if (w.editor.selection.isCollapsed() && useDoc) {
+            if (showFullDoc || (w.editor.selection.isCollapsed() && useDoc)) {
                 contents = w.editor.getBody().firstChild.cloneNode(true);
             } else {
                 var range = w.editor.selection.getRng(true);
                 contents = range.cloneContents();
             }
             
-            $('#'+id+'selectionContents').html(contents);
-            var xmlString = w.converter.buildXMLString($('#'+id+'selectionContents'));
-            var escapedContents = w.utilities.escapeHTMLString(xmlString);   //$('#selectionContents')[0].innerHTML
-            if (escapedContents.length < 100000) {
-                if (escapedContents != '\uFEFF') {
-                    $('#'+id).html('<pre style="width:100%;height:100%;padding:0;margin:0;border:none !important;"><code class="language-markup">'+escapedContents+'</code></pre>');
-                    Prism.highlightElement($('#'+id+' code')[0]);
-                } else {
-                    $('#'+id).html('<pre><code>Nothing selected.</code></pre>');
-                }
-            } else {
-                $('#'+id).html('<pre><code>The selection is too large to display.</code></pre>');
+            $selectionContents.html(contents);
+            var xmlString = w.converter.buildXMLString($selectionContents);
+            var escapedContents = w.utilities.escapeHTMLString(xmlString);
+            if (escapedContents.length > selectionTrimLength) {
+                escapedContents = escapedContents.substring(0, selectionTrimLength);// + '&hellip;';
             }
+            $prismContainer.html('<pre style="width:100%;height:100%;padding:0;margin:0;border:none !important;"><code class="language-markup" style="white-space: pre-wrap;">'+escapedContents+'</code></pre>');
+            Prism.highlightElement($('code', $prismContainer)[0]);
         }
     }
     
     selection.showSelection = function() {
         w.layoutManager.showModule('selection');
         updateSelection(true);
-    };
-    
-    selection.destroy = function() {
-        $('#'+id+'selectionContents').remove();
     };
     
     // add to writer
