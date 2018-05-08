@@ -101,12 +101,7 @@ function EventManager(writer) {
      * @param {Element} body The editor body element
      */
     w.event('documentLoaded');
-    /**
-     * The user has requested to save the document
-     * @event Writer#documentSaveRequested
-     * @param {String} docId The document ID
-     */
-    w.event('documentSaveRequested');
+
     /**
      * A document was saved
      * @event Writer#documentSaved
@@ -176,14 +171,7 @@ function EventManager(writer) {
      * @param {Object} event Event object
      */
     w.event('writerKeyup');
-    
-    /**
-     * The user has requested an entity lookup
-     * @event Writer#entityLookupRequested
-     * @param {String} type Entity type (person, place, etc)
-     * @param {String} query Query string
-     */
-    w.event('entityLookupRequested');
+        
     /**
      * An entity was added to the document
      * @event Writer#entityAdded

@@ -2,6 +2,7 @@
 
 var $ = require('jquery');
 
+require('jquery-ui/ui/widgets/dialog');
     
 function Header(writer, parentEl) {
     var w = writer;

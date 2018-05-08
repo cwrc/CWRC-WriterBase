@@ -585,8 +585,6 @@ function Converter(writer) {
         var editorString = converter.buildEditorString(root, !w.isReadOnly);
         w.editor.setContent(editorString, {format: 'raw'});
         
-        w.editor.undoManager.clear()
-        
         w.event('documentLoaded').publish(false, w.editor.getBody());
     }
     
@@ -642,9 +640,6 @@ function Converter(writer) {
 
         // clean up leftover w.structs entries removed during entity insertion
         w.tagger.findNewAndDeletedTags();
-
-        // reset the undo manager
-        w.editor.undoManager.clear();
 
         w.event('documentLoaded').publish(true, w.editor.getBody());
         

@@ -258,13 +258,6 @@ function CWRCWriter(config) {
         }
         w.converter.processDocument(docXml);
     };
-    
-    w.closeDocument = function() {
-//        if (w.editor.isDirty()) {
-//        } else {
-//            w.storageDialogs.load(w)
-//        }
-    };
 
     w.showLoadDialog = function() {
         w.storageDialogs.load(w)
@@ -272,6 +265,21 @@ function CWRCWriter(config) {
     
     w.showSaveDialog = function() {
         w.storageDialogs.save(w);
+    };
+    
+    w.showSaveAsDialog = function() {
+//        w.storageDialogs.saveAs(w);
+    };
+    
+    w.saveAndExit = function() {
+        
+    };
+    
+    w.closeDocument = function() {
+//        if (w.editor.isDirty()) {
+//        } else {
+//            w.storageDialogs.load(w)
+//        }
     };
 
     w.validate = function(callback) {
@@ -787,6 +795,25 @@ function CWRCWriter(config) {
         showStructBrackets: false
     });
     
+    w.event('documentLoaded').subscribe(function() {
+        w.editor.undoManager.clear();
+        w.editor.isNotDirty = true;
+// the following is superseded by the converter's document loaded message    
+//      // try putting the cursor in the body
+//      setTimeout(function() {
+//          var bodyTag = $('[_tag='+w.schemaManager.getHeader()+']', w.editor.getBody()).next()[0];
+//          if (bodyTag != null) {
+//              w.editor.selection.select(bodyTag);
+//              w.editor.selection.collapse(true);
+//              _fireNodeChange(bodyTag);
+//          }
+//      }, 50);
+    });
+
+    w.event('documentSaved').subscribe(function() {
+        w.editor.isNotDirty = true;
+    });
+    
     $(document.body).mousedown(function(e) {
         _hideContextMenus(e);
     });
@@ -811,19 +838,6 @@ function CWRCWriter(config) {
             
         }
     });
-    
-// this method is superseded by the converter's document loaded message    
-//    w.event('documentLoaded').subscribe(function() {
-//        // try putting the cursor in the body
-//        setTimeout(function() {
-//            var bodyTag = $('[_tag='+w.schemaManager.getHeader()+']', w.editor.getBody()).next()[0];
-//            if (bodyTag != null) {
-//                w.editor.selection.select(bodyTag);
-//                w.editor.selection.collapse(true);
-//                _fireNodeChange(bodyTag);
-//            }
-//        }, 50);
-//    });
 
     var addButtonToEditor = function(buttonId, settings) {
         // adjust the location of the tooltip
@@ -1084,7 +1098,12 @@ function CWRCWriter(config) {
             });
             addButtonToEditor('saveasbutton', {title: 'Save As', image: w.cwrcRootUrl+'img/save_as.png',
                 onclick: function() {
-                    w.dialogManager.show('filemanager', {type: 'saver'});
+                    w.showSaveAsDialog();
+                }
+            });
+            addButtonToEditor('saveexitbutton', {title: 'Save & Exit', image: w.cwrcRootUrl+'img/save_exit.png',
+                onclick: function() {
+                    w.saveAndExit();
                 }
             });
             addButtonToEditor('loadbutton', {title: 'Load', image: w.cwrcRootUrl+'img/folder_page.png',
