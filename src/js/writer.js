@@ -17,7 +17,6 @@ var DialogManager = require('./dialogManager.js');
 var EntitiesManager = require('./entitiesManager.js');
 var Tagger = require('./tagger.js');
 var Converter = require('./converter.js');
-var FileManager = require('./fileManager.js');
 var AnnotationsManager = require('./annotationsManager.js');
 var SettingsDialog = require('./dialogs/settings.js');
 var LayoutManager = require('./layout/layoutManager.js');
@@ -218,22 +217,58 @@ function CWRCWriter(config) {
         w.entitiesManager.highlightEntity();
     };
     
+    /**
+     * Loads a document into the editor
+     * @fires Writer#loadingDocument
+     * @param {String} docUrl An URL pointing to an XML document
+     */
     w.loadDocumentURL = function(docUrl) {
-        w.fileManager.loadDocumentFromUrl(docUrl);
+        w.currentDocId = docUrl;
+        w.event('loadingDocument').publish();
+        $.ajax({
+            url: docUrl,
+            type: 'GET',
+            success: function(doc, status, xhr) {
+                window.location.hash = '';
+                w.converter.processDocument(doc);
+            },
+            error: function(xhr, status, error) {
+                w.currentDocId = null;
+                w.dialogManager.show('message', {
+                    title: 'Error',
+                    msg: 'An error ('+status+') occurred and '+docUrl+' was not loaded.',
+                    type: 'error'
+                });
+                w.event('documentLoaded').publish(false, null);
+            },
+            dataType: 'xml'
+        });
     };
     
     /**
      * Load a document into the editor
+     * @fires Writer#loadingDocument
      * @param docXml The XML content of the document
      * @param schemaURI The URI for the corresponding schema
      */
     w.loadDocumentXML = function(docXml, schemaURI) {
-        w.fileManager.loadDocumentFromXml(docXml);
+        w.event('loadingDocument').publish();
+        if (typeof docXml === 'string') {
+            docXml = w.utilities.stringToXML(docXml);
+        }
+        w.converter.processDocument(docXml);
+    };
+    
+    w.closeDocument = function() {
+//        if (w.editor.isDirty()) {
+//        } else {
+//            w.storageDialogs.load(w)
+//        }
     };
 
     w.showLoadDialog = function() {
         w.storageDialogs.load(w)
-    }
+    };
     
     w.showSaveDialog = function() {
         w.storageDialogs.save(w);
@@ -293,7 +328,6 @@ function CWRCWriter(config) {
         w.editor.destroy();
         
         w.settings.destroy();
-        w.fileManager.destroy();
         w.converter.destroy();
         w.dialogManager.destroy();
         w.layoutManager.destroy();
@@ -744,10 +778,9 @@ function CWRCWriter(config) {
     
     w.schemaManager = new SchemaManager(w, {schemas: config.schemas});
     w.entitiesManager = new EntitiesManager(w);
-    w.dialogManager = new DialogManager(w); // needs to load before SettingsDialog, fileManager
+    w.dialogManager = new DialogManager(w); // needs to load before SettingsDialog
     w.tagger = new Tagger(w);
     w.converter = new Converter(w);
-    w.fileManager = new FileManager(w);
     w.annotationsManager = new AnnotationsManager(w);
     w.settings = new SettingsDialog(w, {
         showEntityBrackets: true,
@@ -1041,13 +1074,11 @@ function CWRCWriter(config) {
             });
             addButtonToEditor('newbutton', {title: 'New', image: w.cwrcRootUrl+'img/page_white_text.png',
                 onclick: function() {
-                  //  w.fileManager.newDocument();
                   w.showSaveDialog();
                 }
             });
             addButtonToEditor('savebutton', {title: 'Save', image: w.cwrcRootUrl+'img/save.png',
                 onclick: function() {
-                   // w.fileManager.saveDocument();
                    w.showSaveDialog();
                 }
             });
@@ -1058,8 +1089,7 @@ function CWRCWriter(config) {
             });
             addButtonToEditor('loadbutton', {title: 'Load', image: w.cwrcRootUrl+'img/folder_page.png',
                 onclick: function() {
-                    //w.dialogManager.show('filemanager', {type: 'loader'});
-                    w.storageDialogs.load(w);
+                    w.showLoadDialog();
                 }
             });
             
@@ -1071,7 +1101,7 @@ function CWRCWriter(config) {
             
             addButtonToEditor('editsource', {title: 'Edit Source', image: w.cwrcRootUrl+'img/page_white_edit.png',
                 onclick: function() {
-                    w.fileManager.editSource();
+                    w.dialogManager.show('editSource');
                 }
             });
             addButtonToEditor('validate', {title: 'Validate', image: w.cwrcRootUrl+'img/validate.png',

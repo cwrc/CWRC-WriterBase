@@ -251,7 +251,7 @@ function initWriter(el) {
         
         var noteUrl = me.w.schemaManager.getCurrentSchema().entityTemplates[me.type];
         if (me.mode === DialogForm.ADD) {
-            me.cwrcWriter.fileManager.loadDocumentFromUrl(noteUrl);
+            me.cwrcWriter.loadDocumentURL(noteUrl);
         } else {
             $.ajax({
                 url: noteUrl,
@@ -263,7 +263,7 @@ function initWriter(el) {
                     var annotation = $(parent, noteDoc).first();
                     annotation.removeAttr('annotationId');
                     var xmlDoc = $(doc).find(parent).replaceWith(annotation).end()[0];
-                    me.cwrcWriter.fileManager.loadDocumentFromXml(xmlDoc);
+                    me.cwrcWriter.loadDocumentXML(xmlDoc);
                 }
             });
         }

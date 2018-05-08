@@ -11,6 +11,7 @@ var DialogForm = require('./dialogs/dialogForm.js');
 var AddSchema = require('./dialogs/addSchema.js');
 var LoadingIndicator = require('./dialogs/loadingIndicator.js');
 var Header = require('./dialogs/header.js');
+var EditSource = require('./dialogs/editSource.js');
 var Message = require('./dialogs/message.js');
 var Triple = require('./dialogs/triple.js');
 var SchemaTags = require('./dialogs/schemaTags.js');
@@ -183,6 +184,7 @@ function DialogManager(writer) {
     
     if (w.isReadOnly !== true && w.isAnnotator !== true && w.isEmbedded !== true) {
         defaultDialogs.header = Header;
+        defaultDialogs.editSource = EditSource;
     }
     
     for (var dialogName in defaultDialogs) {
