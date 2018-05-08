@@ -333,7 +333,7 @@ LayoutManager.prototype = {
         
         this.$outerLayout.destroy(true);
         
-        this.$container.empty(); // can't use "remove" or note dialogs can't be re-opened
+        this.$container.remove();
     }
 }
 

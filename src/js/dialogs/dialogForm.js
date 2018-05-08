@@ -192,6 +192,8 @@ function initWriter(el) {
     
     me.$el.one('beforeClose', function() {
         me.cwrcWriter.destroy();
+        // reset to previous container
+        tinymce.Env.container = me.w.layoutManager.getContainer()[0];
     });
     
     me.$el.one('beforeSave', function() {
