@@ -18,7 +18,7 @@ function Selection(config) {
     
     var selectionTrimLength = 100000;
     
-    var showFullDoc = false;
+    var showFullDoc = true;
     
     var lastUpdate = new Date().getTime();
     
@@ -28,8 +28,8 @@ function Selection(config) {
         <div id="${id}" class="moduleContent"></div>
         <div id="${id}_options" class="moduleFooter">
             <span>Show </span>
-            <label>Selection<input type="radio" name="show" value="selection" checked="true"></label>
-            <label>Document<input type="radio" name="show" value="document"></label>
+            <label>Document<input type="radio" name="show" value="document" checked="true"></label>
+            <label>Selection<input type="radio" name="show" value="selection"></label>
         </div>
         <div id="${id}_selectionContents" style="display: none;"></div>
     </div>
