@@ -579,7 +579,7 @@ function StructureTree(config) {
     
     $tree = $('#'+id);
     
-    w.utilities.addCSS('css/jstree/style-scoped.css');
+    w.utilities.addCSS('css/jstree/style.css');
     
     var plugins = ['wholerow','conditionalselect'];
     if (w.isReadOnly !== true) {
