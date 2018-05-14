@@ -101,8 +101,8 @@
 }
 
 .jstree-default .jstree-node {
-	float: none;
-	width: inherit;
+	float: none !important;
+	width: inherit !important;
 }
 
 /* end overrides */
@@ -122,11 +122,11 @@
   white-space: nowrap;
 }
 .jstree-anchor {
-  display: inline-block;
+  display: inline-block !important;
   color: black;
   white-space: nowrap;
-  padding: 0 4px 0 1px;
-  margin: 0;
+  padding: 0 4px 0 1px !important;
+  margin: 0 !important;
   vertical-align: top;
 }
 .jstree-anchor:focus {
