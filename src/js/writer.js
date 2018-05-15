@@ -459,6 +459,7 @@ function CWRCWriter(config) {
     function _onMouseUpHandler(evt) {
         _hideContextMenus(evt);
         _doHighlightCheck(w.editor, evt);
+        w.event('selectionChanged').publish();
     };
     
     function _onKeyDownHandler(evt) {

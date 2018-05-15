@@ -17,47 +17,49 @@ function Selection(config) {
     var id = w.getUniqueId('selection_');
     
     var selectionTrimLength = 100000;
-    
-    var showFullDoc = true;
-    
+        
     var lastUpdate = new Date().getTime();
+    
+    var showingFullDoc = false;
     
     w.utilities.addCSS('css/prism-ghcolors.css');
     $('#'+config.parentId).append(`
     <div class="moduleParent">
         <div id="${id}" class="moduleContent"></div>
-        <div id="${id}_options" class="moduleFooter">
-            <span>Show </span>
-            <label>Document<input type="radio" name="show" value="document" checked="true"></label>
-            <label>Selection<input type="radio" name="show" value="selection"></label>
-        </div>
         <div id="${id}_selectionContents" style="display: none;"></div>
     </div>
     `);
     
-    var $inputs = $('#'+id+'_options input').checkboxradio();
-    $inputs.click(function() {
-        if (this.value == 'document') {
-            showFullDoc = true;
-        } else {
-            showFullDoc = false;
-        }
-        updateSelection();
-    });
-    
     var $prismContainer = $('#'+id);
     
     var $selectionContents = $('#'+id+'_selectionContents');
-        
-    w.event('nodeChanged').subscribe(function() {
-        if (!showFullDoc || (showFullDoc && $prismContainer.text() == '')) {
-            updateSelection();
+    
+    w.event('selectionChanged').subscribe(function() {
+        if (!w.editor.selection.isCollapsed()) {
+            updateView();
+        } else if (!showingFullDoc) {
+            updateView(true);
         }
     });
-    w.event('tagSelected').subscribe(function(tagId) {
-        if (!showFullDoc || (showFullDoc && $prismContainer.text() == '')) {
-            updateSelection();
+    w.event('contentChanged').subscribe(function() {
+        updateView(true);
+    });
+    w.event('nodeChanged').subscribe(function() {
+        if (!showingFullDoc) {
+            updateView();
         }
+    });
+    w.event('tagSelected').subscribe(function() {
+        updateView();
+    });
+    w.event('tagAdded').subscribe(function() {
+        updateView(true);
+    });
+    w.event('tagEdited').subscribe(function() {
+        updateView(true);
+    });
+    w.event('tagRemoved').subscribe(function() {
+        updateView(true);
     });
     
     /**
@@ -65,18 +67,20 @@ function Selection(config) {
      */
     var selection = {};
     
-    function updateSelection(useDoc) {
+    function updateView(useDoc) {
         var timestamp = new Date().getTime();
         var timeDiff = timestamp - lastUpdate; // track to avoid double update on nodeChanged/tagSelected combo
         if ($prismContainer.is(':visible') && timeDiff > 250) {
             lastUpdate = new Date().getTime();
             
             var contents = '';
-            if (showFullDoc || (w.editor.selection.isCollapsed() && useDoc)) {
+            if (useDoc || w.editor.selection.isCollapsed()) {
                 contents = w.editor.getBody().firstChild.cloneNode(true);
+                showingFullDoc = true;
             } else {
                 var range = w.editor.selection.getRng(true);
                 contents = range.cloneContents();
+                showingFullDoc = false;
             }
             
             $selectionContents.html(contents);
@@ -92,11 +96,11 @@ function Selection(config) {
     
     selection.showSelection = function() {
         w.layoutManager.showModule('selection');
-        updateSelection(true);
+        updateView(true);
     };
     
     // add to writer
-    w.selection = selection;
+    w.selection = selection; // needed by view markup button
     
     return selection;
 };

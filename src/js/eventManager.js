@@ -249,6 +249,12 @@ function EventManager(writer) {
     w.event('tagSelected');
     
     /**
+     * The selection in the editor changed
+     * @event Writer@selectionChanged
+     */
+    w.event('selectionChanged');
+    
+    /**
      * @lends EventManager.prototype
      */
     var e = {};
