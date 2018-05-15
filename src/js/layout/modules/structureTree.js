@@ -531,16 +531,16 @@ function StructureTree(config) {
     function _getSubmenu(tags, tagId) {
         var inserts = {};
         var inserted = false;
-        var i, tag, key;
-        for (i = 0; i < tags.length; i++) {
+        var tag, label, key;
+        for (var i = 0; i < tags.length; i++) {
             tag = tags[i];
             key = tag.name;
-            inserted = true;
+            label = tag.name;
             if (tag.fullName !== '') {
-                key += ' ('+tag.fullName+')';
+                label += ' ('+tag.fullName+')';
             }
             inserts[key] = {
-                label: '<span>'+key+'</span>',
+                label: '<span>'+label+'</span>',
                 icon: w.cwrcRootUrl+'img/tag_blue.png',
                 key: key,
                 action: function(obj) {
@@ -562,6 +562,7 @@ function StructureTree(config) {
                     }
                 }
             };
+            inserted = true;
         }
         if (!inserted) {
             inserts['no_tags'] = {
