@@ -227,10 +227,10 @@ AttributeWidget.prototype = {
         
         // validation
         var invalid = [];
-        $('.attsContainer span.required', this.$el).parent().children('label').each(function(index, el) {
-            var entry = attributes[$(this).text()];
+        $('.attsContainer span.required', this.$el).parent().children('input[type!="hidden"], select').each(function(index, el) {
+            var entry = attributes[$(this).attr('name')];
             if (entry === undefined || entry == '') {
-                invalid.push($(this).text());
+                invalid.push($(this).attr('name'));
             }
         });
         if (invalid.length > 0) {
@@ -240,7 +240,7 @@ AttributeWidget.prototype = {
                     $(this).css({borderColor: '#ccc'});
                 });
             }
-            return;
+            return attributes; // still return values even if invalid (for now)
         }
         
         return attributes;
