@@ -33,7 +33,6 @@
     "layout": "./src/js/lib/jquery/plugins/jquery.layout_and_plugins.js"
   },
   "dependencies": {
-    "bootstrap": "3.3.7",
     "css-parse": "^2.0.0",
     "css-stringify": "^2.0.0",
     "fscreen": "1.0.2",
@@ -52,7 +51,7 @@
     "browser-run": "^5.0.0",
     "browserify": "14.3.0",
     "browserify-istanbul": "2.0.0",
-    "codecov.io": "0.1.6",
+    "codecov": "^3.0.2",
     "commitizen": "2.9.6",
     "concat-stream": "1.6.0",
     "copyfiles": "^1.2.0",
