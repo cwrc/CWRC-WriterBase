@@ -516,9 +516,12 @@ function Converter(writer) {
                     });
                     
                     if (schemaId === undefined) {
+                        // check root tag to see if there's a match for entity mappings
+                        var schemaMappingId = determineSchemaFromRootEl(doc.firstElementChild);
                         schemaId = w.schemaManager.addSchema({
                             name: 'Custom Schema',
-                            url: schemaUrl
+                            url: schemaUrl,
+                            schemaMappingsId: schemaMappingId
                         });
                     }
                 } else if (node.nodeName === 'xml-stylesheet') {
@@ -535,20 +538,7 @@ function Converter(writer) {
 
         // TODO this shouldn't be hardcoded
         if (schemaId === undefined) {
-            // determine the schema based on the root element
-            var root = doc.firstElementChild;
-            var rootName = root.nodeName.toLowerCase();
-            if (rootName === 'tei') {
-                schemaId = 'tei';
-            } else if (rootName === 'events') {
-                schemaId = 'events';
-            } else if (rootName === 'biography') {
-                schemaId = 'biography';
-            } else if (rootName === 'writing') {
-                schemaId = 'writing';
-            } else if (rootName === 'cwrc') {
-                schemaId = 'cwrcEntry';
-            }
+            schemaId = determineSchemaFromRootEl(doc.firstElementChild);
         }
 
         if (schemaId === undefined) {
@@ -572,6 +562,22 @@ function Converter(writer) {
             }
         }
     };
+    
+    function determineSchemaFromRootEl(rootEl) {
+        var rootName = rootEl.nodeName.toLowerCase();
+        if (rootName === 'tei') {
+            return 'tei';
+        } else if (rootName === 'events') {
+            return 'events';
+        } else if (rootName === 'biography') {
+            return 'biography';
+        } else if (rootName === 'writing') {
+            return 'writing';
+        } else if (rootName === 'cwrc') {
+            return 'cwrcEntry';
+        }
+        return undefined;
+    }
 
     function doBasicProcessing(doc) {
         w.entitiesManager.reset();
