@@ -203,7 +203,7 @@ AttributeWidget.prototype = {
      */
     getData: function() {
         var attributes = {};
-        $('.attsContainer > div > div:visible', this.$el).children('input[type!="hidden"], select').each(function(index, el) {
+        $('.attsContainer > div:visible', this.$el).children('input[type!="hidden"], select').each(function(index, el) {
             var val = $(this).val();
             if (val !== '') { // ignore blank values
                 attributes[$(this).attr('name')] = val;
