@@ -558,33 +558,33 @@ html, body {
     cursor: pointer;
 }
 
+.attributeWidget {
+    display: flex;
+    flex-direction: row;
+}
+
 .attributeWidget label {
     display: inline;
 }
 
 .attributeWidget input, .attributeWidget select {
-    width: 150px;
+    width: 80%;
     border: 1px solid #ccc;
 }
 
 .attributeWidget .attributeSelector {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     border: 1px solid #999;
-    top: 5px;
-    bottom: 0;
-    width: 130px;
-    position: absolute;
 }
 
 .attributeWidget .attributeSelector ul {
+    flex: 1;
     list-style: none;
     margin: 0;
     padding: 0;
     overflow: auto;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 23px;
-    bottom: 0;
 }
 
 .attributeWidget .attributeSelector li {
@@ -604,15 +604,12 @@ html, body {
 }
 
 .attributeWidget .attsContainer {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    left: 147px;
-    bottom: 0;
+    flex: 2;
+    margin-left: 5px;
     overflow: auto;
 }
 
-.attributeWidget .level1Atts, .attributeWidget .highLevelAtts {
+.attributeWidget .atts {
     float: left;
     clear: left;
 }
@@ -622,10 +619,10 @@ html, body {
 }
 
 .attributeWidget .schemaHelp {
-    float: right;
-    width: 185px;
-    margin-top: 5px;
-    margin-right: 5px;
+    flex: 1;
+    margin-left: 5px;
+    height: 100%;
+    overflow: auto;
 }
 
 .attributeWidget .schemaHelp h3 {

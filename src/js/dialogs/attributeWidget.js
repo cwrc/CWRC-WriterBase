@@ -26,10 +26,8 @@ function AttributeWidget(config) {
         '<ul></ul>'+
     '</div>'+
     '<div class="attsContainer">'+
-        '<div class="level1Atts"></div>'+
-        '<div class="highLevelAtts"></div>'+
-        schemaHelpEl+
-    '</div>');
+    '</div>'+
+    schemaHelpEl);
     
     if (this.$parent !== undefined) {
         // add listeners for other form elements
@@ -68,7 +66,7 @@ AttributeWidget.prototype = {
     buildWidget: function(atts, previousVals, tag) {
         previousVals = previousVals || {};
         
-        $('.attributeSelector ul, .level1Atts, .highLevelAtts, .schemaHelp', this.$el).empty();
+        $('.attributeSelector ul, .attsContainer, .schemaHelp', this.$el).empty();
         this.isDirty = false;
         
         if (this.showSchemaHelp && tag !== undefined) {
@@ -78,25 +76,17 @@ AttributeWidget.prototype = {
             }
         }
         
-        // sort by required, then by name
-        atts.sort(function(a,b) {
-           if (a.required && !b.required) {
-               return -1;
-           } else if (!a.required && b.required) {
-               return 1;
-           } else {
-               if (a.name > b.name) {
-                   return 1;
-               } else if (a.name < b.name) {
-                   return -1;
-               }
-           }
-           return 0;
+        atts.sort(function(a, b) {
+            if (a.name > b.name) {
+                return 1;
+            } else if (a.name < b.name) {
+                return -1;
+            }
+            return 0;
         });
         
         // build atts
-        var level1Atts = '';
-        var highLevelAtts = '';
+        var attsString = '';
         var attributeSelector = '';
         var att, currAttString;
         var isRequired = false;
@@ -146,17 +136,12 @@ AttributeWidget.prototype = {
                 if (isRequired) currAttString += ' <span class="required">*</span>';
                 currAttString += '</div>';
                 
-                if (isRequired) {
-                    level1Atts += currAttString;
-                } else {
-                    highLevelAtts += currAttString;
-                }
+                attsString += currAttString;
             }
         }
         
         $('.attributeSelector ul', this.$el).html(attributeSelector);
-        $('.level1Atts', this.$el).html(level1Atts);
-        $('.highLevelAtts', this.$el).html(highLevelAtts);
+        $('.attsContainer', this.$el).html(attsString);
         
         $('.attributeSelector li', this.$el).click(function() {
             var name = $(this).data('name').replace(/:/g, '\\:');
