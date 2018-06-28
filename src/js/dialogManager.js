@@ -49,15 +49,17 @@ function handleResize(dialogEl) {
     }
 }
 
-/**
- * @class DialogManager
- * @param {Writer} writer
- */
-function DialogManager(writer) {
-    var w = writer;
+var prevAppendTo;
+var prevDialogCreate;
+var prevTooltipOpen;
+var prevPopupCreate;
+function setDialogListeners($cwrcDialogWrapper) {
+    // store previous values (from parent cwrc writer)
+    prevAppendTo = $.ui.dialog.prototype.options.appendTo;
+    prevDialogCreate = $.ui.dialog.prototype.options.create;
+    prevTooltipOpen = $.ui.tooltip.prototype.options.open;
+    prevPopupCreate = $.custom.popup.prototype.options.create;
     
-    var $cwrcDialogWrapper = $('<div class="cwrc cwrcDialogWrapper"></div>').appendTo(w.layoutManager.getContainer());
-
     // add event listeners to all of our jquery ui dialogs
     $.extend($.ui.dialog.prototype.options, {
         appendTo: $cwrcDialogWrapper,
@@ -91,6 +93,32 @@ function DialogManager(writer) {
             });
         }
     });
+}
+
+function restorePreviousDialogListeners() {
+    $.extend($.ui.dialog.prototype.options, {
+        appendTo: prevAppendTo,
+        create: prevDialogCreate
+    });
+    $.extend($.ui.tooltip.prototype.options, {
+        open: prevTooltipOpen
+    });
+    $.extend($.custom.popup.prototype.options, {
+        appendTo: prevAppendTo,
+        create: prevPopupCreate
+    });
+}
+
+/**
+ * @class DialogManager
+ * @param {Writer} writer
+ */
+function DialogManager(writer) {
+    var w = writer;
+    
+    var $cwrcDialogWrapper = $('<div class="cwrc cwrcDialogWrapper"></div>').appendTo(w.layoutManager.getContainer());
+
+    setDialogListeners($cwrcDialogWrapper);
     
     // dialog name, class map
     var dialogs = {};
@@ -165,6 +193,8 @@ function DialogManager(writer) {
                 if (window.console) console.warn('cannot destroy', d);
             }
         }
+        
+        restorePreviousDialogListeners();
     };
     
     var defaultDialogs = {

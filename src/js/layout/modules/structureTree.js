@@ -128,6 +128,11 @@ function StructureTree(config) {
     };
     
     tree.destroy = function() {
+        $(document).off('dnd_start.vakata', handleDnDStart);
+        $(document).off('dnd_move.vakata', handleDnDMove);
+        $(document).off('context_hide.vakata', handleContextHide);
+        $(document).off('context_show.vakata', handleContextShow);
+        
         $.jstree.reference('#'+id).destroy();
     };
     
@@ -797,27 +802,32 @@ function StructureTree(config) {
     
     $tree.on('select_node.jstree', _onNodeSelect);
     $tree.on('deselect_node.jstree', _onNodeDeselect);
-    $(document).on('dnd_start.vakata', function(e, data) {
+    
+    function handleDnDStart(e, data) {
         data.helper.addClass('cwrc');
         // TODO fullscreen support
         if (w.isFullScreen()) {
             $.vakata.dnd.stop(e);
         }
         // data.helper.appendTo(w.layoutManager.getContainer());
-    });
-    $(document).on('dnd_move.vakata', function(e, data) {
+    }
+    $(document).on('dnd_start.vakata', handleDnDStart);
+    
+    function handleDnDMove(e, data) {
         // TODO fullscreen support
 //        var marker = $('#jstree-marker');
 //        var o = marker.offset();
 //        marker.offset({top: o.top-6, left: o.left-2});
-    });
+    }
+    $(document).on('dnd_move.vakata', handleDnDMove);
     
-    $(document).on('context_hide.vakata', function(e) {
+    function handleContextHide(e) {
         var filterParent = $('.filterParent', e.element);
         filterParent.hide();
-    });
+    }
+    $(document).on('context_hide.vakata', handleContextHide);
 
-    $(document).on('context_show.vakata', function(e, data) {
+    function handleContextShow(e, data) {
         var $el = data.element;
         $el.css('width', $el.width());
         $el.appendTo(w.layoutManager.getContainer());
@@ -832,7 +842,8 @@ function StructureTree(config) {
         var maxHeight = Math.min(500, menuBottom - 50);
         var submenus = $el.find('.submenu ul');
         submenus.css('max-height', maxHeight+'px');
-    });
+    }
+    $(document).on('context_show.vakata', handleContextShow);
     
     $tree.on('copy_node.jstree', function(e, data) {
         _onDragDrop(data, true);
