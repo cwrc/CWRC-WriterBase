@@ -361,13 +361,19 @@ function Tagger(writer) {
             var xmlString = w.converter.buildXMLString($tag);
             var xmlEl = w.utilities.stringToXML(xmlString).firstChild;
             var type = w.schemaManager.mapper.getEntityTypeForTag(xmlEl);
+            var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
             var info = w.schemaManager.mapper.getReverseMapping(xmlEl, type);
             var ref = $tag.attr('ref'); // matches ref or REF
             var id = $tag.attr('id');
             w.selectStructureTag(id, true);
             w.editor.currentBookmark = w.editor.selection.getBookmark(1);
             var newId = tagger.finalizeEntity(type, info);
-            tagger.removeStructureTag(id, false); // TODO re-add structure tag if conversion was cancelled
+            if (isNote) {
+                // need to move the note entity outside of the parent since we're removing the parent and its contents
+                var noteTag = $('#'+newId, w.editor.getBody()).detach();
+                $('#'+id, w.editor.getBody()).after(noteTag);
+            }
+            tagger.removeStructureTag(id, isNote); // TODO re-add structure tag if conversion was cancelled
             if (ref == null) {
                 var tag = w.entitiesManager.getEntity(newId);
                 w.editor.currentBookmark = w.editor.selection.getBookmark(1);
