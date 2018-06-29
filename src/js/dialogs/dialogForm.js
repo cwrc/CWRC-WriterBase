@@ -190,10 +190,17 @@ function initWriter(el) {
     
     me.cwrcWriter = new me.w._getClass()(config);
     
+    // move shared tinymce tooltip element to new cwrc writer's container. required for utilities.getOffsetPosition to work properly.
+    var tt = me.w.editor.theme.panel.find('button')[0].tooltip().getEl();
+    $(tt).detach().appendTo(me.cwrcWriter.layoutManager.getContainer());
+    
     me.$el.one('beforeClose', function() {
         me.cwrcWriter.destroy();
         // reset to previous container
         tinymce.Env.container = me.w.layoutManager.getContainer()[0];
+        
+        // move shared tooltip back to previous container
+        $(tt).detach().appendTo(me.w.layoutManager.getContainer());
     });
     
     me.$el.one('beforeSave', function() {

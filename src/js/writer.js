@@ -855,6 +855,7 @@ function CWRCWriter(config) {
     };
     
     var layoutContainerId = w.layoutManager.getContainer().attr('id');
+    tinymce.Env.container = w.layoutManager.getContainer()[0]; // need to explicitly set container for embedded cwrc writers
     
     /**
      * Init tinymce
