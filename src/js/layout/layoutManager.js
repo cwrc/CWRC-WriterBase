@@ -216,6 +216,7 @@ function LayoutManager(writer, config) {
             }
         }.bind(this);
         this.$outerLayout.resizeAll(); // now that the editor is loaded, set proper sizing
+        this.$outerLayout.resizeAll(); // need to call a second time because resize bar is misplaced initially
     }.bind(this);
     
     this.w.event('loadingDocument').subscribe(onLoad);
