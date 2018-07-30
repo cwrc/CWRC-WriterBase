@@ -596,6 +596,7 @@ function StructureTree(config) {
     $tree.jstree({
         plugins: plugins,
         core: {
+            worker: false, // transpiler messing up web worker so set this false, see: https://github.com/vakata/jstree/issues/1717
             check_callback: true, // enable tree modifications
             animation: false,
             themes: {
@@ -857,7 +858,7 @@ function StructureTree(config) {
     $tree.on('keydown.jstree', function(e) {
         //console.log(e.which);
     });
-    $tree.on('loaded.jstree', function(e, data) {
+    $tree.on('ready.jstree', function(e, data) {
         initialized = true;
         if (updatePending) {
             tree.update();
