@@ -177,9 +177,13 @@ function Popup(writer, parentEl) {
             }
         }
         
-        if (url != null) {
-            doPopup(url, 'link');
-            $popupEl.parent().find('.ui-dialog-title').on('click', doClick);
+        if (url !== null) {
+            if (url.indexOf('http') === 0) {
+                doPopup(url, 'link');
+                $popupEl.parent().find('.ui-dialog-title').on('click', doClick);
+            } else {
+                doPopup(url, 'tag');
+            }
         }
     };
     
