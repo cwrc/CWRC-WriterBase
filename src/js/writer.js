@@ -344,24 +344,45 @@ function CWRCWriter(config) {
     
     /**
      * Get the current document from the editor
-     * @returns {Document} The XML document
+     * @param {Boolean} [asString=false] True to return a string
+     * @returns {Document|String} The XML document
      */
-    w.getDocument = function() {
+    w.getDocument = function(asString) {
         var docString = w.converter.getDocumentContent(true);
-        var doc = null;
-        try {
-            var parser = new DOMParser();
-            doc = parser.parseFromString(docString, 'application/xml');
-        } catch(e) {
-            w.dialogManager.show('message', {
-                title: 'Error',
-                msg: 'There was an error getting the document:'+e,
-                type: 'error'
-            });
+        if (asString === true) {
+            return docString;
+        } else {
+            var doc = null;
+            try {
+                var parser = new DOMParser();
+                doc = parser.parseFromString(docString, 'application/xml');
+            } catch(e) {
+                w.dialogManager.show('message', {
+                    title: 'Error',
+                    msg: 'There was an error getting the document:'+e,
+                    type: 'error'
+                });
+            }
+            return doc;
         }
-        return doc;
     };
 
+    /**
+     * Set the current document for the editor
+     * @param {Document|String} document Can be one of: URL, XML document, XML string
+     */
+    w.setDocument = function(document) {
+        if (typeof document === 'string' && document.indexOf('http') === 0) {
+            w.loadDocumentURL(document);
+        } else {
+            w.loadDocumentXML(document);
+        }
+    };
+
+    /**
+     * Get the raw HTML representation of the document
+     * @returns {String}
+     */
     w.getDocRawContent = function() {
         return w.editor.getContent({format: 'raw'})
     };
