@@ -486,6 +486,10 @@ function CWRCWriter(config) {
     function _onKeyDownHandler(evt) {
         w.editor.lastKeyPress = evt.which; // store the last key press
         if (w.isReadOnly) {
+            if ((tinymce.isMac ? evt.metaKey : evt.ctrlKey) && evt.which == 70) {
+                // allow search
+                return;
+            }
             evt.preventDefault();
             return;
         }
