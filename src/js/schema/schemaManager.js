@@ -115,6 +115,50 @@ function SchemaManager(writer, config) {
     };
     
     /**
+     * Gets the url associated with the schema
+     * @param {String} schemaId The ID of the schema
+     * @returns {String} url The url for the schema
+     */
+    sm.getUrlForSchema = function(schemaId) {
+        var schemaEntry = sm.schemas[schemaId];
+        if (schemaEntry !== undefined) {
+            var schemaUrl = schemaEntry.url;
+            return schemaUrl;
+        } else {
+            return null;
+        }
+    };
+
+    /**
+     * Gets the name of the root element for the schema
+     * @param {String} schemaId The ID of the schema
+     * @param {Function} callback Callback for when the request is complete
+     * @returns {String} root The root name
+     */
+    sm.getRootForSchema = function(schemaId, callback) {
+        var url = sm.getUrlForSchema(schemaId);
+        if (url) {
+            $.when(
+                $.ajax({
+                    url: url,
+                    dataType: 'xml'
+                })
+            ).then(function(resp) {
+                var rootEl = $('start element:first', resp).attr('name');
+                if (!rootEl) {
+                    var startName = $('start ref:first', resp).attr('name');
+                    rootEl = $('define[name="'+startName+'"] element', resp).attr('name');
+                }
+                callback(rootEl);
+            }, function(resp) {
+                callback(null);
+            });
+        } else {
+            callback(null);
+        }
+    }
+
+    /**
      * Load a new schema.
      * @fires Writer#schemaLoaded
      * @param {String} schemaId The ID of the schema to load (from the config)

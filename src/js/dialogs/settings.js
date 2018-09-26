@@ -91,27 +91,27 @@ function Settings(writer, config) {
     });
     
     $settingsLink.click(function() {
-        $('select[name="fontsize"] > option[value="'+settings.fontSize+'"]', $settingsDialog).attr('selected', true);
-        $('select[name="fonttype"] > option[value="'+settings.fontFamily+'"]', $settingsDialog).attr('selected', true);
+        $('select[name="fontsize"] > option[value="'+settings.fontSize+'"]', $settingsDialog).prop('selected', true);
+        $('select[name="fonttype"] > option[value="'+settings.fontFamily+'"]', $settingsDialog).prop('selected', true);
         $settingsDialog.find('.showentitybrackets').prop('checked', settings.showEntityBrackets);
         $settingsDialog.find('.showstructbrackets').prop('checked', settings.showStructBrackets);
         if (w.mode === w.XML) {
-            $('select[name="editormode"] > option[value="xml"]', $settingsDialog).attr('selected', true);
+            $('select[name="editormode"] > option[value="xml"]', $settingsDialog).prop('selected', true);
         } else if (w.mode === w.XMLRDF){
             if (w.allowOverlap) {
-                $('select[name="editormode"] > option[value="xmlrdfoverlap"]', $settingsDialog).attr('selected', true);
+                $('select[name="editormode"] > option[value="xmlrdfoverlap"]', $settingsDialog).prop('selected', true);
             } else {
-                $('select[name="editormode"] > option[value="xmlrdf"]', $settingsDialog).attr('selected', true);
+                $('select[name="editormode"] > option[value="xmlrdf"]', $settingsDialog).prop('selected', true);
             }
         } else if (w.mode === w.RDF) {
-            $('select[name="editormode"] > option[value="rdf"]', $settingsDialog).attr('selected', true);
+            $('select[name="editormode"] > option[value="rdf"]', $settingsDialog).prop('selected', true);
         }
         if (w.annotationMode === w.XML) {
-            $('select[name="annotations"] > option[value="xml"]', $settingsDialog).attr('selected', true);
+            $('select[name="annotations"] > option[value="xml"]', $settingsDialog).prop('selected', true);
         } else {
-            $('select[name="annotations"] > option[value="json"]', $settingsDialog).attr('selected', true);
+            $('select[name="annotations"] > option[value="json"]', $settingsDialog).prop('selected', true);
         }
-        $('select[name="schema"] > option[value="'+w.schemaManager.schemaId+'"]', $settingsDialog).attr('selected', true);
+        $('select[name="schema"] > option[value="'+w.schemaManager.schemaId+'"]', $settingsDialog).prop('selected', true);
         $settingsDialog.dialog('open');
     });
     
@@ -154,13 +154,11 @@ function Settings(writer, config) {
     });
     
     function buildSchema() {
-        var schemasHTML;
-        for(var schema in w.schemaManager.schemas){
+        var schemasHTML = '';
+        for (var schema in w.schemaManager.schemas) {
             schemasHTML += '<option value="' + schema + '">' + w.schemaManager.schemas[schema]['name'] + '</option>';
         }
-        if(schemasHTML) {
-            $('select[name="schema"]', $settingsDialog).html(schemasHTML);
-        }
+        $('select[name="schema"]', $settingsDialog).html(schemasHTML);
     }
     
     function applySettings() {
@@ -265,21 +263,62 @@ function Settings(writer, config) {
             }
             settings.showStructBrackets = $settingsDialog.find('.showstructbrackets').prop('checked');
             
-            var schemaId = $('select[name="schema"]', $settingsDialog).val();
-            if (schemaId !== w.schemaManager.schemaId) {
-                w.event('schemaChanged').publish(schemaId);
-            }
-            
             var styles = {
                 fontSize: settings.fontSize,
                 fontFamily: settings.fontFamily
             };
             w.editor.dom.setStyles(w.editor.dom.getRoot(), styles);
-            
-            $settingsDialog.dialog('close');
+
+            var schemaId = $('select[name="schema"]', $settingsDialog).val();
+            if (schemaId !== w.schemaManager.schemaId) {
+                changeApplyButton(true);
+                w.schemaManager.getRootForSchema(schemaId, function(rootName) {
+                    changeApplyButton(false);
+                    if (rootName === null) {
+                        w.dialogManager.show('message', {
+                            title: 'Error',
+                            msg: 'The root element of the schema could not be determined and so it will not be used.',
+                            type: 'error'
+                        });
+                        $settingsDialog.dialog('close');
+                    } else if (w.schemaManager.getRoot() !== rootName) {
+                        w.dialogManager.confirm({
+                            title: 'Warning',
+                            msg: '<p>The root element ('+rootName+') required by the selected schema is different from the root element ('+w.schemaManager.getRoot()+') of the current document.</p>'+
+                                '<p>Applying this schema change will cause a document loading error.</p><p>Continue?</p>',
+                            type: 'info',
+                            callback: function(doIt) {
+                                if (doIt) {
+                                    $settingsDialog.dialog('close');
+                                    w.event('schemaChanged').publish(schemaId);
+                                } else {
+                                    $('select[name="schema"] > option[value="'+w.schemaManager.schemaId+'"]', $settingsDialog).prop('selected', true);
+                                }
+                            }
+                        });
+                    } else {
+                        $settingsDialog.dialog('close');
+                        w.event('schemaChanged').publish(schemaId);
+                    }
+                })
+            } else {
+                $settingsDialog.dialog('close');
+            }
         }
     };
     
+    function changeApplyButton(isLoading) {
+        var buttons = $settingsDialog.dialog('option', 'buttons')
+        if (isLoading) {
+            buttons[2].icon = 'ui-icon-clock'
+            buttons[2].disabled = true
+        } else {
+            buttons[2].icon = undefined
+            buttons[2].disabled = false
+        }
+        $settingsDialog.dialog('option', 'buttons', buttons)
+    }
+
     function setDefaults() {
         $('select[name="fontsize"]', $settingsDialog).val(defaultSettings.fontSize);
         $('select[name="fonttype"]', $settingsDialog).val(defaultSettings.fontFamily);
