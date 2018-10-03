@@ -42,21 +42,7 @@ function LoadingIndicator(writer, parentEl) {
     });
     w.event('documentLoaded').subscribe(function(success, docBody) {
         progressBar.progressbar('value', 100);
-        if (success !== true) {
-            progressLabel.text('Error Loading Document');
-            $loadingIndicator.dialog('option', 'buttons', {
-                'Ok': function() {
-                    $loadingIndicator.dialog('close');
-                }
-            });
-        } else {
-            $loadingIndicator.dialog('close');
-            // FIXME need to close immediately because of problems if there's another modal showing
-//            progressLabel.text('Document Loaded');
-//            $loadingIndicator.fadeOut(1000, function() {
-//                $loadingIndicator.dialog('close');
-//            });
-        }
+        $loadingIndicator.dialog('close');
     });
     w.event('schemaLoaded').subscribe(function() {
         progressLabel.text('Schema Loaded');

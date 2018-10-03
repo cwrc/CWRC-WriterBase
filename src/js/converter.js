@@ -497,8 +497,6 @@ function Converter(writer) {
         var cssUrl;
         var loadSchemaCss = true; // whether to load schema css
 
-        // TODO need a better way of tying this to the schemas config
-        
         if (schemaId === undefined) {
             // grab the schema (and css) from xml-model
             for (var i = 0; i < doc.childNodes.length; i++) {
@@ -514,16 +512,6 @@ function Converter(writer) {
                             return false;
                         }
                     });
-                    
-                    if (schemaId === undefined) {
-                        // check root tag to see if there's a match for entity mappings
-                        var schemaMappingId = determineSchemaFromRootEl(doc.firstElementChild);
-                        schemaId = w.schemaManager.addSchema({
-                            name: 'Custom Schema',
-                            url: schemaUrl,
-                            schemaMappingsId: schemaMappingId
-                        });
-                    }
                 } else if (node.nodeName === 'xml-stylesheet') {
                     var xmlStylesheetData = node.data;
                     cssUrl = xmlStylesheetData.match(/href="([^"]*)"/)[1];
@@ -536,18 +524,26 @@ function Converter(writer) {
             w.schemaManager.loadSchemaCSS(cssUrl);
         }
 
-        // TODO this shouldn't be hardcoded
         if (schemaId === undefined) {
-            schemaId = determineSchemaFromRootEl(doc.firstElementChild);
+            schemaId = w.schemaManager.getSchemaIdFromRoot(doc.firstElementChild.nodeName);
         }
 
         if (schemaId === undefined) {
-            w.dialogManager.show('message', {
-                title: 'Error',
-                msg: 'The schema could not be determined but the document was loaded anyways.',
-                type: 'error'
+            w.dialogManager.confirm({
+                title: 'Warning',
+                msg: '<p>The document you are loading is not fully supported by CWRC-Writer. You may not be able to use the ribbon to tag named entities.</p>'+
+                '<p>Load document anyways?</p>',
+                type: 'error',
+                callback: function(doIt) {
+                    if (doIt) {
+                        doBasicProcessing(doc);
+                    } else {
+                        w.event('documentLoaded').publish(false, null);
+                        w.showLoadDialog();
+                    }
+                }
             });
-            doBasicProcessing(doc);
+            
         } else {
             if (schemaId !== w.schemaManager.schemaId) {
                 w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
@@ -562,22 +558,6 @@ function Converter(writer) {
             }
         }
     };
-    
-    function determineSchemaFromRootEl(rootEl) {
-        var rootName = rootEl.nodeName.toLowerCase();
-        if (rootName === 'tei') {
-            return 'tei';
-        } else if (rootName === 'events') {
-            return 'events';
-        } else if (rootName === 'biography') {
-            return 'biography';
-        } else if (rootName === 'writing') {
-            return 'writing';
-        } else if (rootName === 'cwrc') {
-            return 'cwrcEntry';
-        }
-        return undefined;
-    }
 
     function doBasicProcessing(doc) {
         w.entitiesManager.reset();
