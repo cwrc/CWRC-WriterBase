@@ -272,7 +272,7 @@ function Settings(writer, config) {
             var schemaId = $('select[name="schema"]', $settingsDialog).val();
             if (schemaId !== w.schemaManager.schemaId) {
                 changeApplyButton(true);
-                w.schemaManager.getRootForSchema(schemaId, function(rootName) {
+                w.schemaManager.getRootForSchema(schemaId).then(function(rootName) {
                     changeApplyButton(false);
                     if (rootName === null) {
                         w.dialogManager.show('message', {
@@ -300,7 +300,11 @@ function Settings(writer, config) {
                         $settingsDialog.dialog('close');
                         w.event('schemaChanged').publish(schemaId);
                     }
-                })
+                }, function() {
+                    console.warn('getRootSchema failed');
+                    $settingsDialog.dialog('close');
+                    w.event('schemaChanged').publish(schemaId);
+                });
             } else {
                 $settingsDialog.dialog('close');
             }

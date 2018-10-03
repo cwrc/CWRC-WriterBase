@@ -47,23 +47,49 @@ function SchemaManager(writer, config) {
      */
     sm.schemaJSON = null;
     /**
-     * Stores a list of all the elements of the loaded schema
+     * Stores a list of all the elements of the current schema
      * @member {Object}
      * @property {Array} elements The list of elements
      */
     sm.schema = {elements: []};
 
     /**
-     * Gets the schema object for the currently loaded schema.
+     * Gets the schema object for the current schema.
      * @returns {Object}
      */
     sm.getCurrentSchema = function() {
         return sm.schemas[sm.schemaId];
     };
     
+    /**
+     * Stores the root elements of all schemas.
+     */
+    sm._roots = {};
+    function populateRoots() {
+        for (var schemaId in sm.schemas) {
+            sm.getRootForSchema(schemaId).then(function(id, root) {
+                sm._roots[id] = root;
+            }.bind(this, schemaId));
+        }
+    };
+
+    /**
+     * Returns the schemaId associated with a specific root
+     * @param {String} root The root name
+     * @returns {String} The schemaId (or undefined)
+     */
+    sm.getSchemaIdFromRoot = function(root) {
+        for (var schemaId in sm._roots) {
+            if (sm._roots[schemaId] === root) {
+                return schemaId;
+            }
+        }
+        return undefined;
+    };
+
     sm._root = null;
     /**
-     * Get the root element.
+     * Get the root element for the current schema.
      * @returns {String}
      */
     sm.getRoot = function() {
@@ -132,30 +158,36 @@ function SchemaManager(writer, config) {
     /**
      * Gets the name of the root element for the schema
      * @param {String} schemaId The ID of the schema
-     * @param {Function} callback Callback for when the request is complete
-     * @returns {String} root The root name
+     * @returns {Promise} Promise object which resolves to the root name (string)
      */
-    sm.getRootForSchema = function(schemaId, callback) {
-        var url = sm.getUrlForSchema(schemaId);
-        if (url) {
-            $.when(
-                $.ajax({
-                    url: url,
-                    dataType: 'xml'
-                })
-            ).then(function(resp) {
-                var rootEl = $('start element:first', resp).attr('name');
-                if (!rootEl) {
-                    var startName = $('start ref:first', resp).attr('name');
-                    rootEl = $('define[name="'+startName+'"] element', resp).attr('name');
+    sm.getRootForSchema = function(schemaId) {
+        return new Promise(function (resolve, reject) {
+            var root = sm._roots[schemaId];
+            if (root !== undefined) {
+                resolve(root);
+            } else {
+                var url = sm.getUrlForSchema(schemaId);
+                if (url) {
+                    $.when(
+                        $.ajax({
+                            url: url,
+                            dataType: 'xml'
+                        })
+                    ).then(function(resp) {
+                        var rootEl = $('start element:first', resp).attr('name');
+                        if (!rootEl) {
+                            var startName = $('start ref:first', resp).attr('name');
+                            rootEl = $('define[name="'+startName+'"] element', resp).attr('name');
+                        }
+                        resolve(rootEl);
+                    }, function(resp) {
+                        reject(undefined);
+                    });
+                } else {
+                    reject(undefined);
                 }
-                callback(rootEl);
-            }, function(resp) {
-                callback(null);
-            });
-        } else {
-            callback(null);
-        }
+            }
+        });
     }
 
     /**
@@ -342,6 +374,8 @@ function SchemaManager(writer, config) {
         });
     };
     
+    populateRoots();
+
     w.event('schemaChanged').subscribe(function(schemaId) {
         w.schemaManager.schemaId = schemaId;
         w.schemaManager.loadSchema(schemaId, false, true, function() {});
