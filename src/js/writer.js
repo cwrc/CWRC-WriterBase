@@ -66,6 +66,9 @@ function CWRCWriter(config) {
     
     // is the editor initialized
     w.isInitialized = false;
+
+    // has a doc been loaded
+    w.isDocLoaded = false;
     
     // is the editor in readonly mode
     w.isReadOnly = false;
@@ -798,6 +801,20 @@ function CWRCWriter(config) {
     }
     
     w.eventManager = new EventManager(w);
+
+    w.event('documentLoaded').subscribe(function(success) {
+        w.editor.undoManager.clear();
+        w.editor.isNotDirty = true;
+        if (success) {
+            w.isDocLoaded = true;
+        } else {
+            w.isDocLoaded = false;
+        }
+    });
+    w.event('documentSaved').subscribe(function() {
+        w.editor.isNotDirty = true;
+    });
+
     w.utilities = new Utilities(w);
     w.utilities.addCSS('css/style.css');
     
@@ -818,25 +835,6 @@ function CWRCWriter(config) {
     w.settings = new SettingsDialog(w, {
         showEntityBrackets: true,
         showStructBrackets: false
-    });
-    
-    w.event('documentLoaded').subscribe(function() {
-        w.editor.undoManager.clear();
-        w.editor.isNotDirty = true;
-// the following is superseded by the converter's document loaded message    
-//      // try putting the cursor in the body
-//      setTimeout(function() {
-//          var bodyTag = $('[_tag='+w.schemaManager.getHeader()+']', w.editor.getBody()).next()[0];
-//          if (bodyTag != null) {
-//              w.editor.selection.select(bodyTag);
-//              w.editor.selection.collapse(true);
-//              _fireNodeChange(bodyTag);
-//          }
-//      }, 50);
-    });
-
-    w.event('documentSaved').subscribe(function() {
-        w.editor.isNotDirty = true;
     });
     
     $(document.body).mousedown(function(e) {
