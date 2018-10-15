@@ -482,7 +482,7 @@ function Utilities(writer) {
     };
     
     u.getRootTag = function() {
-        return $('[_tag='+w.schemaManager.getRoot()+']', w.editor.getBody());
+        return $('[_tag]:first', w.editor.getBody());
     };
     
     u.getDocumentationForTag = function(tag) {

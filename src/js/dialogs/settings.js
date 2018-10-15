@@ -274,6 +274,7 @@ function Settings(writer, config) {
                 changeApplyButton(true);
                 w.schemaManager.getRootForSchema(schemaId).then(function(rootName) {
                     changeApplyButton(false);
+                    var currRootName = w.utilities.getRootTag().attr('_tag');
                     if (rootName === null) {
                         w.dialogManager.show('message', {
                             title: 'Error',
@@ -281,10 +282,10 @@ function Settings(writer, config) {
                             type: 'error'
                         });
                         $settingsDialog.dialog('close');
-                    } else if (w.schemaManager.getRoot() !== rootName) {
+                    } else if (currRootName !== rootName) {
                         w.dialogManager.confirm({
                             title: 'Warning',
-                            msg: '<p>The root element ('+rootName+') required by the selected schema is different from the root element ('+w.schemaManager.getRoot()+') of the current document.</p>'+
+                            msg: '<p>The root element ('+rootName+') required by the selected schema is different from the root element ('+currRootName+') of the current document.</p>'+
                                 '<p>Applying this schema change will cause a document loading error.</p><p>Continue?</p>',
                             type: 'info',
                             callback: function(doIt) {
