@@ -9,6 +9,7 @@ require('./tinymce_plugins/cwrc_contextmenu.js');
 require('./tinymce_plugins/cwrc_path.js');
 require('./tinymce_plugins/schematags.js');
 require('./tinymce_plugins/treepaste.js');
+require('./tinymce_plugins/prevent_delete.js');
 
 var EventManager = require('./eventManager.js');
 var Utilities = require('./utilities.js');
@@ -937,7 +938,7 @@ function CWRCWriter(config) {
         
         valid_elements: '*[*]', // allow everything
         
-        plugins: 'schematags,cwrc_contextmenu,cwrcpath', //paste
+        plugins: 'schematags,cwrc_contextmenu,cwrcpath,preventdelete', //paste
         toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,viewmarkup,editsource,|,validate,savebutton,loadbutton,|,fullscreen' : config.buttons1,
         toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
         toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
