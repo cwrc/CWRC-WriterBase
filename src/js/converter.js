@@ -494,6 +494,7 @@ function Converter(writer) {
         // clear current doc
         w.editor.setContent('', {format: 'raw'});
         var schemaId = schemaIdOverride;
+        var schemaUrl;
         var cssUrl;
         var loadSchemaCss = true; // whether to load schema css
 
@@ -503,7 +504,7 @@ function Converter(writer) {
                 var node = doc.childNodes[i];
                 if (node.nodeName === 'xml-model') {
                     var xmlModelData = node.data;
-                    var schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
+                    schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
                     // Search the known schemas, if the url matches it must be the same one.
                     $.each(w.schemaManager.schemas, function(id, schema) {
                         var aliases = schema.aliases || [];
@@ -524,7 +525,7 @@ function Converter(writer) {
             w.schemaManager.loadSchemaCSS(cssUrl);
         }
 
-        if (schemaId === undefined) {
+        if (schemaUrl === undefined && schemaId === undefined) {
             schemaId = w.schemaManager.getSchemaIdFromRoot(doc.firstElementChild.nodeName);
         }
 
@@ -536,7 +537,22 @@ function Converter(writer) {
                 type: 'error',
                 callback: function(doIt) {
                     if (doIt) {
-                        doBasicProcessing(doc);
+                        if (schemaUrl !== undefined) {
+                            var customSchemaId = w.schemaManager.addSchema({
+                                name: 'Custom Schema',
+                                url: schemaUrl,
+                                cssUrl: cssUrl
+                            });
+                            w.schemaManager.loadSchema(customSchemaId, false, cssUrl !== undefined, function(success) {
+                                if (success) {
+                                    doProcessing(doc);
+                                } else {
+                                    doBasicProcessing(doc);
+                                }
+                            });
+                        } else {
+                            doBasicProcessing(doc);
+                        }
                     } else {
                         w.event('documentLoaded').publish(false, null);
                         w.showLoadDialog();
