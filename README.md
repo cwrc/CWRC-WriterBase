@@ -155,6 +155,7 @@ Options that can be set on the configuration object:
 * `config.schemas`: Object. A map of schema objects that can be used in the CWRC-Writer. Each entry should contain the following:
   * `name`: String. The schema title.
   * `url`: String. An URL that links to the schema (RELAX NG) file.
+  * `altUrl`: String. An alternative URL that links to the schema file. This can be used in the rare case that you want to match against a particular schema URL, but load the schema from another location (e.g. to avoid CORS errors).
   * `cssUrl`: String. An URL that links to the CSS associated with this schema.
   * `schemaMappingsId`: String. The directory name in the [schema directory](src/js/schema) from which to load mapping and dialogs files for the schema.
   * `entityTemplates`: Object. Lists URLs for use by citation and note entity dialogs.

@@ -202,8 +202,10 @@ function SchemaManager(writer, config) {
         var schemaEntry = sm.schemas[schemaId];
         if (schemaEntry !== undefined) {
             sm.schemaId = schemaId;
-            var baseUrl = ''; // TODO review if this is necessary
             var schemaUrl = schemaEntry.url;
+            if (schemaEntry.altUrl !== undefined) {
+                schemaUrl = schemaEntry.altUrl;
+            }
             var schemaMappingsId = schemaEntry.schemaMappingsId;
             
             sm.mapper.loadMappings(schemaMappingsId);
@@ -296,7 +298,7 @@ function SchemaManager(writer, config) {
                     if (schemaBase != null) {
                         url = schemaBase + schemaFile;
                     } else {
-                        url = baseUrl + 'schema/'+schemaFile;
+                        url = 'schema/'+schemaFile;
                     }
                     
                     $.ajax({
