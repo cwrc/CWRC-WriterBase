@@ -163,39 +163,45 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
             }
         }
         
+        var isSchemaCustom = editor.writer.schemaManager.isSchemaCustom();
+        
         menu.items().each(function(item) {
             item.show();
-            if (item.settings.category != 'tagEntity' && editor.plugins.cwrc_contextmenu.entityTagsOnly === true) {
-                item.hide();
+            if (item.settings.category !== undefined) {
+                if (isSchemaCustom && item.settings.category.toLowerCase().indexOf('entity') !== -1) {
+                    item.hide();
+                }
+                if (item.settings.category !== 'tagEntity' && editor.plugins.cwrc_contextmenu.entityTagsOnly === true) {
+                    item.hide();
+                }
+                if (item.settings.category === 'convertEntity' && isTagEntity === false) {
+                    item.hide();
+                }
+                if (item.settings.category === 'modifyStruct' && currentTag.struct === null) {
+                    item.hide();
+                }
+                if (item.settings.category === 'modifyTag' && currentTag.entity === null && currentTag.struct === null) {
+                    item.hide();
+                }
+                if (item.settings.category === 'editTag' && currentTag.struct === null) {
+                    item.hide();
+                }
+                if (item.settings.category === 'editEntity' && currentTag.entity === null) {
+                    item.hide();
+                }
+                if (item.settings.category === 'pasteTag' && editor.copiedElement.element === null) {
+                    item.hide();
+                }
+                if (item.settings.category === 'pasteEntity' && editor.entityCopy === null) {
+                    item.hide();
+                }
+                if (item.settings.category === 'copyTag' && currentTag.struct === null) {
+                    item.hide();
+                }
+                if (item.settings.category === 'copyEntity' && currentTag.entity === null) {
+                    item.hide();
+                }
             }
-            if (item.settings.category == 'convertEntity' && isTagEntity === false) {
-                item.hide();
-            }
-            if (item.settings.category == 'modifyStruct' && currentTag.struct == null) {
-                item.hide();
-            }
-            if (item.settings.category == 'modifyTag' && currentTag.entity == null && currentTag.struct == null) {
-                item.hide();
-            }
-            if (item.settings.category == 'editTag' && currentTag.struct == null) {
-                item.hide();
-            }
-            if (item.settings.category == 'editEntity' && currentTag.entity == null) {
-                item.hide();
-            }
-            if (item.settings.category == 'pasteTag' && editor.copiedElement.element == null) {
-                item.hide();
-            }
-            if (item.settings.category == 'pasteEntity' && editor.entityCopy == null) {
-                item.hide();
-            }
-            if (item.settings.category == 'copyTag' && currentTag.struct == null) {
-                item.hide();
-            }
-            if (item.settings.category == 'copyEntity' && currentTag.entity == null) {
-                item.hide();
-            }
-            
         });
         
         menu.show();

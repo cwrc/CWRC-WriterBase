@@ -98,7 +98,7 @@ function SchemaManager(writer, config) {
     
     sm._header = null;
     /**
-     * Get the header element.
+     * Get the header element for the current schema.
      * @returns {String}
      */
     sm.getHeader = function() {
@@ -107,7 +107,7 @@ function SchemaManager(writer, config) {
     
     sm._idName = null;
     /**
-     * Get the name of the ID attribute.
+     * Get the name of the ID attribute for the current schema.
      * @returns {String}
      */
     sm.getIdName = function() {
@@ -116,11 +116,19 @@ function SchemaManager(writer, config) {
     
     sm._css = null;
     /**
-     * Get the URL for the CSS
+     * Get the URL for the CSS for the current schema.
      * @returns {String}
      */
     sm.getCSS = function() {
         return sm._css;
+    };
+
+    /**
+     * Is the current schema custom? I.e. is it lacking entity mappings?
+     * @returns {Boolean}
+     */
+    sm.isSchemaCustom = function() {
+        return sm.getCurrentSchema().schemaMappingsId === undefined;
     };
     
     /**

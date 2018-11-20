@@ -1042,57 +1042,57 @@ function CWRCWriter(config) {
                 return w.schemaManager.schema;
             });
             
-            addButtonToEditor('addperson', {title: 'Tag Person', image: w.cwrcRootUrl+'img/user.png',
+            addButtonToEditor('addperson', {title: 'Tag Person', image: w.cwrcRootUrl+'img/user.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'person');
                 }
             });
-            addButtonToEditor('addplace', {title: 'Tag Place', image: w.cwrcRootUrl+'img/world.png',
+            addButtonToEditor('addplace', {title: 'Tag Place', image: w.cwrcRootUrl+'img/world.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'place');
                 }
             });
-            addButtonToEditor('adddate', {title: 'Tag Date', image: w.cwrcRootUrl+'img/calendar.png',
+            addButtonToEditor('adddate', {title: 'Tag Date', image: w.cwrcRootUrl+'img/calendar.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'date');
                 }
             });
-            addButtonToEditor('addevent', {title: 'Tag Event', image: w.cwrcRootUrl+'img/cake.png',
+            addButtonToEditor('addevent', {title: 'Tag Event', image: w.cwrcRootUrl+'img/cake.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'event');
                 }
             });
-            addButtonToEditor('addorg', {title: 'Tag Organization', image: w.cwrcRootUrl+'img/group.png',
+            addButtonToEditor('addorg', {title: 'Tag Organization', image: w.cwrcRootUrl+'img/group.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'org');
                 }
             });
-            addButtonToEditor('addcitation', {title: 'Tag Citation', image: w.cwrcRootUrl+'img/vcard.png',
+            addButtonToEditor('addcitation', {title: 'Tag Citation', image: w.cwrcRootUrl+'img/vcard.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'citation');
                 }
             });
-            addButtonToEditor('addnote', {title: 'Tag Note', image: w.cwrcRootUrl+'img/note.png',
+            addButtonToEditor('addnote', {title: 'Tag Note', image: w.cwrcRootUrl+'img/note.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'note');
                 }
             });
-            addButtonToEditor('addcorrection', {title: 'Tag Correction', image: w.cwrcRootUrl+'img/error.png',
+            addButtonToEditor('addcorrection', {title: 'Tag Correction', image: w.cwrcRootUrl+'img/error.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'correction');
                 }
             });
-            addButtonToEditor('addkeyword', {title: 'Tag Keyword', image: w.cwrcRootUrl+'img/key.png',
+            addButtonToEditor('addkeyword', {title: 'Tag Keyword', image: w.cwrcRootUrl+'img/key.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'keyword');
                 }
             });
-            addButtonToEditor('addlink', {title: 'Tag Link', image: w.cwrcRootUrl+'img/link.png',
+            addButtonToEditor('addlink', {title: 'Tag Link', image: w.cwrcRootUrl+'img/link.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'link');
                 }
             });
-            addButtonToEditor('addtitle', {title: 'Tag Text/Title', image: w.cwrcRootUrl+'img/book.png',
+            addButtonToEditor('addtitle', {title: 'Tag Text/Title', image: w.cwrcRootUrl+'img/book.png', entityButton: true,
                 onclick : function() {
                     ed.execCommand('addEntity', 'title');
                 }

@@ -206,6 +206,46 @@ function LayoutManager(writer, config) {
             doResize();
         }
     }.bind(this);
+
+    var handleEntityButtons = function() {
+        if (this.w.schemaManager.isSchemaCustom()) {
+            doHandleEntityButtons(false);
+        } else {
+            doHandleEntityButtons(true);
+        }
+    }.bind(this);
+    var doHandleEntityButtons = function(show) {
+        var controls = this.w.editor.theme.panel.rootControl.controlIdLookup;
+        var entityButtons = [];
+        var entityButtonsParent;
+        var sameParent = true;
+        for (var controlId in controls) {
+            var control = controls[controlId];
+            if (control.settings.entityButton === true) {
+                entityButtons.push(control);
+                if (entityButtonsParent === undefined) {
+                    entityButtonsParent = control.parent();
+                } else if (sameParent && entityButtonsParent !== control.parent()) {
+                    sameParent = false;
+                }
+            }
+        }
+        if (sameParent) {
+            if (show) {
+                entityButtonsParent.show();
+            } else {
+                entityButtonsParent.hide();
+            }
+        } else {
+            entityButtons.forEach(function(button) {
+                if (show) {
+                    button.disabled(false);
+                } else {
+                    button.disabled(true);
+                }
+            })
+        }
+    }.bind(this);
     
     var doResize = function() {
         this.$outerLayout.options.onresizeall_end = function() {
@@ -221,6 +261,7 @@ function LayoutManager(writer, config) {
     
     this.w.event('loadingDocument').subscribe(onLoad);
     this.w.event('documentLoaded').subscribe(onLoadDone);
+    this.w.event('documentLoaded').subscribe(handleEntityButtons);
     this.w.event('writerInitialized').subscribe(doResize);
 }
 
