@@ -58,8 +58,6 @@ function AttributeWidget(config) {
 AttributeWidget.ADD = 0;
 AttributeWidget.EDIT = 1;
 
-AttributeWidget.disallowedAttributes = ['annotationid', 'offsetid'];
-
 AttributeWidget.prototype = {
     constructor: AttributeWidget,
     
@@ -84,6 +82,10 @@ AttributeWidget.prototype = {
             }
             return 0;
         });
+
+        var disallowedAttributes = ['offsetId'];
+        var annotationAttr = this.w.schemaManager.mapper.getAnnotationAttributeName();
+        disallowedAttributes.push(annotationAttr);
         
         // build atts
         var attsString = '';
@@ -95,7 +97,7 @@ AttributeWidget.prototype = {
             currAttString = '';
             isRequired = att.required;
             
-            if (AttributeWidget.disallowedAttributes.indexOf(att.name.toLowerCase()) === -1) {
+            if (disallowedAttributes.indexOf(att.name.toLowerCase()) === -1) {
                 var displayName = att.name;
                 if (att.fullName !== '') {
                     displayName += ' ('+att.fullName+')';

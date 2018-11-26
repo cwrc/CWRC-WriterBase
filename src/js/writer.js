@@ -17,7 +17,7 @@ var SchemaManager = require('./schema/schemaManager.js');
 var DialogManager = require('./dialogManager.js');
 var EntitiesManager = require('./entitiesManager.js');
 var Tagger = require('./tagger.js');
-var Converter = require('./converter.js');
+var Converter = require('./conversion/converter.js');
 var AnnotationsManager = require('./annotationsManager.js');
 var SettingsDialog = require('./dialogs/settings.js');
 var LayoutManager = require('./layout/layoutManager.js');
@@ -340,7 +340,7 @@ function CWRCWriter(config) {
         w.editor.destroy();
         
         w.settings.destroy();
-        w.converter.destroy();
+        w.utilities.destroy();
         w.dialogManager.destroy();
         w.layoutManager.destroy();
         w.eventManager.destroy();

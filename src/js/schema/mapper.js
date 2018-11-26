@@ -42,7 +42,8 @@ Mapper.getRangeString = function(entity) {
     var range = entity.getRange();
 
     var annoId = range.annotationId || entity.getId();
-    rangeString += ' annotationId="'+annoId+'"';
+    var annotationAttributeName = range.annotationAttributeName;
+    rangeString += ' '+annotationAttributeName+'="'+annoId+'"';
 
     if (range.offsetId !== undefined) {
         rangeString += ' offsetId="'+range.offsetId+'"';
@@ -59,6 +60,7 @@ Mapper.getRangeString = function(entity) {
 Mapper.getAttributesFromXml = function(xml) {
     var attrs = {};
     $.map(xml.attributes, function(att) {
+        // TODO include annotationAttributeName, but how?
         if (att.name === 'annotationId' || att.name === 'offsetId' || att.name === 'cwrcStructId') {
             // don't include
         } else {
@@ -140,6 +142,13 @@ Mapper.getDefaultReverseMapping = function(xml, customMappings, nsPrefix) {
     return obj;
 };
 
+/**
+ * Returns the result of an xpath query on the passed xml
+ * @param {Element} xmlContext Must be an element, can't be a document
+ * @param {String} xpathExpression
+ * @param {String} nsPrefix
+ * @returns {Element|undefined}
+ */
 Mapper.getXpathResult = function(xmlContext, xpathExpression, nsPrefix) {
     nsPrefix = nsPrefix || '';
     var nsUri = xmlContext.namespaceURI;
@@ -360,6 +369,28 @@ Mapper.prototype = {
      */
     getIdAttributeName: function() {
         return this.getMappings().id;
+    },
+
+    /**
+     * Returns the name for the annotation attribute for the current schema.
+     * @returns {String}
+     */
+    getAnnotationAttributeName: function() {
+        return this.getMappings().annotationAttribute;
+    },
+
+    /**
+     * Returns the CSS selector for the RDF parent for the current schema.
+     * @param {Boolean} convertToJquery If true, converts CSS namespace selector to jquery namespace selector
+     * @returns {String}
+     */
+    getRdfParentSelector: function(convertToJquery) {
+        convertToJquery = convertToJquery === undefined ? false : convertToJquery;
+        var selector = this.getMappings().rdfParentSelector;
+        if (convertToJquery) {
+            selector = selector.replace(/\|/g, '\\:');
+        }
+        return selector;
     },
 
     /**

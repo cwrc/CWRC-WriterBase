@@ -10,6 +10,9 @@ var ObjTree = require('objtree');
 function Utilities(writer) {
     var w = writer;
     
+    // created in and used by convertTextForExport
+    var $entitiesConverter;
+
     var useLocalStorage = false;//supportsLocalStorage();
     
     var BLOCK_TAG = 'div';
@@ -61,6 +64,27 @@ function Utilities(writer) {
         var json = xotree.parseDOM(xml);
         return json;
     };
+
+    /**
+     * Converts HTML entities to unicode, while preserving those that must be escaped as entities.
+     * @param {String} text The text to convert
+     * @returns {String} The converted text
+     */
+    u.convertTextForExport = function(text) {
+        if ($entitiesConverter === undefined) {
+            $entitiesConverter = $('<div style="display: none;"></div>').appendTo(w.layoutManager.getContainer());
+        }
+        var newText = text;
+        if (newText != null) {
+            if (newText.match(/&.+?;/gim)) { // match all entities
+                $entitiesConverter[0].innerHTML = newText;
+                newText = $entitiesConverter[0].innerText || $entitiesConverter[0].firstChild.nodeValue;
+            }
+            // the following characters must be escaped
+            newText = newText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        }
+        return newText;
+    }
     
     u.addCSS = function(cssHref) {
         var fullHref = w.cwrcRootUrl+cssHref;
@@ -1302,6 +1326,10 @@ function Utilities(writer) {
 
         return value;
     }
+
+    u.destroy = function() {
+        $entitiesConverter.remove();
+    };
     
     return u;
 };

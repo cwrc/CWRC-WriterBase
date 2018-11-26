@@ -571,14 +571,14 @@ function Tagger(writer) {
             var val = obj[key];
             if ($.isArray(val)) {
                 for (var i = 0; i < val.length; i++) {
-                    obj[key][i] = w.converter.convertTextForExport(val[i]);
+                    obj[key][i] = w.utilities.convertTextForExport(val[i]);
                 }
             } else if ($.isPlainObject(val)) {
                 for (var subkey in val) {
-                    obj[key][subkey] = w.converter.convertTextForExport(val[subkey]);
+                    obj[key][subkey] = w.utilities.convertTextForExport(val[subkey]);
                 }
             } else {
-                obj[key] = w.converter.convertTextForExport(val);
+                obj[key] = w.utilities.convertTextForExport(val);
             }
         }
     }

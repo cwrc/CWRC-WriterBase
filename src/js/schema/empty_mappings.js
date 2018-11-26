@@ -5,6 +5,11 @@ module.exports = {
 
 // The name of the ID attribute
 id: '',
+// The name of the attribute to use for annotation IDs
+annotationAttribute: '',
+// The CSS selector for the parent of the RDF data.
+// Expected format is a combination of element names and the child selector, e.g. TEI > teiHeader > xenoData
+rdfParentSelector: '',
 // The name of the header tag
 header: '',
 // Additional block level elements that should be added to TinyMCE

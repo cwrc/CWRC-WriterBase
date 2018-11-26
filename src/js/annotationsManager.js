@@ -384,12 +384,27 @@ AnnotationsManager.prototype = {
             '\n</rdf:Description>';
         }
 
-        var rdfHead = '<rdf:RDF';
+        var rdfHead = '';
+        var rdfTail = '';
+        
+        var rdfParentSelector = me.w.schemaManager.mapper.getRdfParentSelector();
+        var rdfParents = rdfParentSelector.split(/\s*>\s*/);
+        rdfParents.forEach(function(parent) {
+            // include all the elements in between the root/header and rdf:RDF
+            if (parent !== me.w.schemaManager.getRoot() && parent !== me.w.schemaManager.getHeader() && parent !== 'rdf|RDF') {
+                rdfHead += '<'+parent.replace('|', ':')+'>';
+                rdfTail = '</'+parent.replace('|', ':')+'>' + rdfTail;
+            }
+        });
+        rdfTail = '</rdf:RDF>' + rdfTail;
+        
+        rdfHead += '<rdf:RDF';
         for (var name in namespaces) {
             rdfHead += ' xmlns:'+name+'="'+namespaces[name]+'"';
         }
+        rdfHead += '>\n';
 
-        rdfString = rdfHead + '>\n' + rdfString + '\n</rdf:RDF>\n';
+        rdfString = rdfHead + rdfString + rdfTail;
 
         return rdfString;
     },
@@ -409,6 +424,8 @@ AnnotationsManager.prototype = {
             var rangeObj;
             var el;
 
+            var annotationAttributeName = this.w.schemaManager.mapper.getAnnotationAttributeName();
+
             var rdfs = rdf.parent('rdf\\:RDF, RDF');            
             var doc = rdfs.parents().last()[0].parentNode;
             
@@ -424,6 +441,7 @@ AnnotationsManager.prototype = {
                 if (xpathStart != null && xpathEnd != null) {
                     rangeObj = {
                         id: id,
+                        annotationAttributeName: annotationAttributeName,
                         parentStart: xpathStart.parentId,
                         startOffset: xpathStart.offset,
                         parentEnd: xpathEnd.parentId,
@@ -439,6 +457,7 @@ AnnotationsManager.prototype = {
 
                 rangeObj = {
                     id: id,
+                    annotationAttributeName: annotationAttributeName,
                     el: xpathObj.el,
                     parentStart: xpathObj.parentId
                 };
@@ -660,6 +679,7 @@ AnnotationsManager.prototype = {
                 var rangeObj = {};
                 var id;
                 var el;
+                var annotationAttributeName = this.w.schemaManager.mapper.getAnnotationAttributeName();
                 // matching element
                 if (selectorType.indexOf('FragmentSelector') !== -1) {
                     var xpointer = selector.find('rdf\\:value, value').text();
@@ -669,6 +689,7 @@ AnnotationsManager.prototype = {
                     el = xpathObj.el;
                     rangeObj = {
                         id: id,
+                        annotationAttributeName: annotationAttributeName,
                         el: xpathObj.el,
                         parentStart: xpathObj.parentId
                     };
@@ -684,6 +705,7 @@ AnnotationsManager.prototype = {
                     if (xpathStart != null && xpathEnd != null) {
                         rangeObj = {
                             id: id,
+                            annotationAttributeName: annotationAttributeName,
                             parentStart: xpathStart.parentId,
                             startOffset: xpathStart.offset,
                             parentEnd: xpathEnd.parentId,
@@ -737,8 +759,12 @@ AnnotationsManager.prototype = {
     },
     
     _parseXpointer: function(xpointer, doc) {
+        var me = this;
+
         var nsr = doc.createNSResolver(doc.documentElement);
         var defaultNamespace = doc.documentElement.getAttribute('xmlns');
+
+        var annotationAttr = me.w.schemaManager.mapper.getAnnotationAttributeName();
 
         function nsResolver(prefix) {
             return nsr.lookupNamespaceURI(prefix) || defaultNamespace;
@@ -767,7 +793,7 @@ AnnotationsManager.prototype = {
             try {
                 result = doc.evaluate(foopath, doc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
             } catch (e) {
-                this.w.dialogManager.show('message', {
+                me.w.dialogManager.show('message', {
                     title: 'Error',
                     msg: 'There was an error evaluating an XPath:<br/>'+e,
                     type: 'error'
@@ -777,10 +803,21 @@ AnnotationsManager.prototype = {
                 var xpathEl = $(result.singleNodeValue);
 
                 var parentId;
-                if (offset == null) {
-                    parentId = xpathEl.attr('annotationId');
-                } else {
+                if (offset != null) {
                     parentId = xpathEl.attr('offsetId');
+                } else {
+                    parentId = xpathEl.attr(annotationAttr);
+                    if (parentId == null) {
+                        // could be a legacy doc, parse the xpointer to try to find the id attr
+                        var attrMatch = xpath.match(/(@)(\w+)(=)/);
+                        if (attrMatch !== null) {
+                            var legacyAttr = attrMatch[2];
+                            parentId = xpathEl.attr(legacyAttr);
+                            if (window.console) {
+                                console.warn('annotationsManager: legacy doc, using old attribute name', legacyAttr);
+                            }
+                        }
+                    }
                 }
                 if (parentId == null) {
                     // assign a struct ID now, to associate with the entity
@@ -788,7 +825,7 @@ AnnotationsManager.prototype = {
                     if (window.console) {
                         console.warn('null ID for xpointer!');
                     }
-                    parentId = this.w.getUniqueId('struct_');
+                    parentId = me.w.getUniqueId('struct_');
                 } else {
                     var idNum = parseInt(parentId.split('_')[1]);
                     if (idNum >= tinymce.DOM.counter) tinymce.DOM.counter = idNum+1;
