@@ -183,12 +183,24 @@ function XML2CWRC(writer) {
             $rdfs.remove();
 
             var rdfParent = $(doc).find(w.schemaManager.mapper.getRdfParentSelector(true));
-            var currNode = rdfParent[0].nodeName;
-            // remove all the nodes between the root or header and the rdf parent (including the rdf parent)
-            while (currNode !== w.schemaManager.getHeader() && currNode !== w.schemaManager.getRoot()) {
-                rdfParent = rdfParent.parent();
-                rdfParent.children(currNode).remove();
-                currNode = rdfParent[0].nodeName;
+            if (rdfParent.length > 0) {
+                var currNode = rdfParent[0].nodeName;
+                // remove all the nodes between the root or header and the rdf parent (including the rdf parent)
+                while (currNode !== w.schemaManager.getHeader() && currNode !== w.schemaManager.getRoot()) {
+                    rdfParent = rdfParent.parent();
+                    if (rdfParent.length === 0) {
+                        if (window.console) {
+                            console.warn('xml2cwrc: went beyond doc root');
+                        }
+                        break;
+                    }
+                    rdfParent.children(currNode).remove();
+                    currNode = rdfParent[0].nodeName;
+                }
+            } else {
+                if (window.console) {
+                    console.warn('xml2cwrc: couldn\'t find the rdfParent');
+                }
             }
         } else {
             w.mode = w.XMLRDF;
