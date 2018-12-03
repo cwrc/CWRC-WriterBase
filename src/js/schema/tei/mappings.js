@@ -173,10 +173,8 @@ correction: {
         
         if (corrText) {
             xml += '>';
-            xml += '<sic'+rangeString;
-            xml += '>'+Mapper.TEXT_SELECTION+'</sic>';
-            xml += '<corr'+rangeString;
-            xml += '>'+corrText+'</corr></choice>';
+            xml += '<sic>'+Mapper.TEXT_SELECTION+'</sic>';
+            xml += '<corr>'+corrText+'</corr></choice>';
         } else {
             xml += '>'+Mapper.TEXT_SELECTION+'</'+tag+'>';
         }
