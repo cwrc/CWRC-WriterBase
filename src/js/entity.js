@@ -69,12 +69,9 @@ function Entity(config) {
     /**
      * Values used to identify the text range of the entity. Mainly set by converter when loading a document.
      * @type Object
-     * @params id
-     * @params annotationAttributeName
-     * @params el
-     * @params parentStart
+     * @params startId
      * @params startOffset
-     * @params parentEnd
+     * @params endId
      * @params endOffset
      */
     this.annotationRange = {};

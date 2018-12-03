@@ -23,8 +23,8 @@ function CWRC2XML(writer) {
         // remove highlights
         w.entitiesManager.highlightEntity();
 
-        var body = $(w.editor.getBody()).clone(false);
-        prepareText(body);
+        var $body = $(w.editor.getBody()).clone(false);
+        prepareText($body);
         
         // RDF
         
@@ -45,13 +45,13 @@ function CWRC2XML(writer) {
         // XML
         
         var root = w.schemaManager.getRoot();
-        var $rootEl = body.children('[_tag='+root+']');
+        var $rootEl = $body.children('[_tag='+root+']');
         
         if ($rootEl.length == 0) {
             if (window.console) {
                 console.warn('converter: no root found for', root);
             }
-            $rootEl = body.find('[_tag]:eq(0)'); // fallback
+            $rootEl = $body.find('[_tag]:eq(0)'); // fallback
         }
         
         // make sure the root has the right namespaces for validation purposes
@@ -75,17 +75,44 @@ function CWRC2XML(writer) {
         if (includeRDF) {
             // parse the selector and find the relevant node
             var selector = w.schemaManager.mapper.getRdfParentSelector();
-            var cwrcSelector = selector.replace(/(\w+)/g, '[_tag=$&]'); // modify the selector to match the cwrc writer format
-            var cwrcSelectorNodes = cwrcSelector.split(/\s*>\s*/);
-            var currNode = body;
-            for (var i = 0; i < cwrcSelectorNodes.length; i++) {
-                var nextNode = currNode.children(cwrcSelectorNodes[i]);
-                if (nextNode.length === 0) {
-                    break;
+            var selectorNodes = selector.split('/');
+            var currNode = $body;
+            for (var i = 0; i < selectorNodes.length; i++) {
+                var node = selectorNodes[i];
+                if (node !== '') {
+                    if (node.indexOf('::') === -1) {
+                        var jquerySelector = '[_tag='+node+']';
+                        if (node === '*') {
+                            jquerySelector = '[_tag]';
+                        }
+                        var nextNode = currNode.children(jquerySelector).first();
+                        if (nextNode.length === 1) {
+                            currNode = nextNode;
+                        } else {
+                            // node doesn't exist so add it
+                            currNode = $('<div _tag="'+node+'" />').appendTo(currNode.parent());
+                        }
+                    } else {
+                        // axis handling
+                        var parts = node.split('::');
+                        var axis = parts[0];
+                        node = parts[1];
+                        switch(axis) {
+                            case 'preceding-sibling':
+                                currNode = $('<div _tag="'+node+'" />').insertBefore(currNode);
+                                break;
+                            case 'following-sibling':
+                                currNode = $('<div _tag="'+node+'" />').insertAfter(currNode);
+                                break;
+                            default:
+                                console.warn('cwrc2xml: axis',axis,'not supported');
+                                break;
+                        }
+                    }
                 }
-                currNode = nextNode;
             }
-            if (currNode !== body) { 
+
+            if (currNode !== $body) { 
                 xmlString += cwrc2xml.buildXMLString($rootEl, currNode, rdfString);
             } else {
                 if (window.console) {
@@ -98,16 +125,6 @@ function CWRC2XML(writer) {
         }
         
         xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
-
-        if (includeRDF === false) {
-            // strip out RDF related ids
-            var annotationAttr = w.schemaManager.mapper.getAnnotationAttributeName();
-            var regex = new RegExp('\s?('+annotationAttr+'|offsetId)=".*?"', 'g');
-            // xmlString = xmlString.replace(/\s?(annotation|offset)Id=".*?"/g, '');
-            xmlString = xmlString.replace(regex, '');
-        }
-
-        // xmlString += rdfString + bodyString + tags[1];
 
         return xmlString;
     };
@@ -138,10 +155,10 @@ function CWRC2XML(writer) {
     
     /**
      * Determine and set the range objects for each entity.
+     * Used later to construct the RDF.
      * @param {jQuery} body The text body
      */
     function setEntityRanges(body) {
-        var annotationAttr = w.schemaManager.mapper.getAnnotationAttributeName();
 
         // get the overlapping entity IDs, in the order that they appear in the document.
         var overlappingEntNodes = $('[_entity][class~="start"]', body).not('[_tag]').not('[_note]');
@@ -162,18 +179,9 @@ function CWRC2XML(writer) {
         // set annotationAttrs for entities
         w.entitiesManager.eachEntity(function(entityId, entry) {
             var entity = $('#'+entityId, w.editor.getBody());
-            if (entity.length === 0) {
-                // shouldn't be here
-                if (window.console) {
-                    console.warn('no entity element found for', entityId);
-                }
-            } else {
-                // get the xpath for the entity's tag
-                entity[0].setAttribute(annotationAttr, entityId);
+            if (entity.length === 1) {
                 var range = {};
-                var tag = entry.getTag();
-                range.start = '//'+tag+'[@'+annotationAttr+'="'+entityId+'"]';
-                range.annotationId = entityId;
+                range.start = w.utilities.getElementXPath(entity[0]);
                 $.extend(entry.getRange(), range);
             }
         });
@@ -196,25 +204,15 @@ function CWRC2XML(writer) {
             var id = currNode.attr('id');
             var tag = currNode.attr('_tag');
     
-            var annotationAttr = w.schemaManager.mapper.getAnnotationAttributeName();
-    
             var structEntry = w.structs[id];
             var entityEntry = w.entitiesManager.getEntity(id);
             if (entityEntry && tag) {
                 array = w.schemaManager.mapper.getMapping(entityEntry);
-            } else if (structEntry) {
+            } else if (tag) {
                 if (tag === '#comment') {
                     array = ['<!-- ', ' -->'];
                 } else {
                     var openingTag = '<'+tag;
-                    var cwrcAnnotationAttr = currNode[0].getAttribute(annotationAttr);
-                    if (cwrcAnnotationAttr != null) {
-                        openingTag += ' '+annotationAttr+'="'+cwrcAnnotationAttr+'"';
-                    }
-                    var cwrcOffsetId = currNode[0].getAttribute('offsetId');
-                    if (cwrcOffsetId != null) {
-                        openingTag += ' offsetId="'+cwrcOffsetId+'"';
-                    }
                     for (var key in structEntry) {
                         if (key.indexOf('_') != 0) {
                             var attName = key;
@@ -327,14 +325,7 @@ function CWRC2XML(writer) {
 
         function doRangeGet($el, isEnd) {
             var parent = $el.parents('[_tag]').first();
-            var parentId = parent.attr('id');
-            if (parentId == null) {
-                parentId = w.getUniqueId('struct_');
-            } else if (w.entitiesManager.getEntity(parentId) !== undefined) {
-                w.entitiesManager.getEntity(parentId).getRange().offsetId = parentId;
-            }
-            parent.attr('offsetId', parentId);
-            var xpath = '//'+parent.attr('_tag')+'[@offsetId="'+parentId+'"]';
+            var xpath = w.utilities.getElementXPath(parent[0]);
             var offset = getOffsetFromParentForEntity(entityId, parent, isEnd);
             return [xpath, offset];
         }
@@ -354,6 +345,7 @@ function CWRC2XML(writer) {
         return range;
     }
     
+    // Converts HTML entities to unicode, while preserving those that must be escaped as entities.
     function _recursiveTextConversion(parentNode) {
         var contents = $(parentNode).contents();
         contents.each(function(index, el) {

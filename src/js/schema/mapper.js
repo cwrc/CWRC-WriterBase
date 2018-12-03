@@ -33,26 +33,6 @@ Mapper.getAttributeString = function(attObj) {
 };
 
 /**
- * Gets the range string for the entity
- * @param {Entity} entity
- * @returns {String}
- */
-Mapper.getRangeString = function(entity) {
-    var rangeString = '';
-    var range = entity.getRange();
-
-    var annoId = range.annotationId || entity.getId();
-    var annotationAttributeName = range.annotationAttributeName;
-    rangeString += ' '+annotationAttributeName+'="'+annoId+'"';
-
-    if (range.offsetId !== undefined) {
-        rangeString += ' offsetId="'+range.offsetId+'"';
-    }
-
-    return rangeString;
-};
-
-/**
  * Gets entity markup attributes from xml. Assumes all other attributes have been removed.
  * @param xml {xml} The xml
  * @returns {Object} key/value pairs
@@ -79,7 +59,6 @@ Mapper.getAttributesFromXml = function(xml) {
 Mapper.getTagAndDefaultAttributes = function(entity) {
     var tag = entity.getTag();
     var xml = '<'+tag;
-    xml += Mapper.getRangeString(entity);
     xml += Mapper.getAttributeString(entity.getAttributes());
     return xml;
 };
@@ -372,25 +351,11 @@ Mapper.prototype = {
     },
 
     /**
-     * Returns the name for the annotation attribute for the current schema.
+     * Returns the xpath selector for the RDF parent for the current schema.
      * @returns {String}
      */
-    getAnnotationAttributeName: function() {
-        return this.getMappings().annotationAttribute;
-    },
-
-    /**
-     * Returns the CSS selector for the RDF parent for the current schema.
-     * @param {Boolean} convertToJquery If true, converts CSS namespace selector to jquery namespace selector
-     * @returns {String}
-     */
-    getRdfParentSelector: function(convertToJquery) {
-        convertToJquery = convertToJquery === undefined ? false : convertToJquery;
-        var selector = this.getMappings().rdfParentSelector;
-        if (convertToJquery) {
-            selector = selector.replace(/\|/g, '\\:');
-        }
-        return selector;
+    getRdfParentSelector: function() {
+        return this.getMappings().rdfParentSelector;
     },
 
     /**

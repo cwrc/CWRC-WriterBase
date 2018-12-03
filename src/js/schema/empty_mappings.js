@@ -5,10 +5,8 @@ module.exports = {
 
 // The name of the ID attribute
 id: '',
-// The name of the attribute to use for annotation IDs
-annotationAttribute: '',
-// The CSS selector for the parent of the RDF data.
-// Expected format is a combination of element names and the child selector, e.g. TEI > teiHeader > xenoData
+// The XPath selector for the parent of the RDF data, e.g. /TEI/teiHeader/fileDesc/following-sibling::xenoData
+// Currently there's only support for single separators (/ not //), and an axis on the last element
 rdfParentSelector: '',
 // The name of the header tag
 header: '',

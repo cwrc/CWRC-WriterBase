@@ -270,8 +270,6 @@ function initWriter(el) {
                     var parent = me.showConfig.entry.getTag();
                     var noteDoc = $.parseXML(me.showConfig.entry.getNoteContent());
                     var annotation = $(parent, noteDoc).first();
-                    var annotationAttr = me.w.schemaManager.mapper.getAnnotationAttributeName();
-                    annotation.removeAttr(annotationAttr);
                     var xmlDoc = $(doc).find(parent).replaceWith(annotation).end()[0];
                     me.cwrcWriter.loadDocumentXML(xmlDoc);
                 }

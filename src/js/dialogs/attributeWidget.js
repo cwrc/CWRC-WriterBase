@@ -84,8 +84,6 @@ AttributeWidget.prototype = {
         });
 
         var disallowedAttributes = ['offsetId'];
-        var annotationAttr = this.w.schemaManager.mapper.getAnnotationAttributeName();
-        disallowedAttributes.push(annotationAttr);
         
         // build atts
         var attsString = '';

@@ -131,7 +131,7 @@ function XML2CWRC(writer) {
     function isLegacyDocument(doc) {
         var hasRdf = $(doc).find('rdf\\:RDF, RDF').length > 0;
         var hasOldAnnotationIds = $(doc).find('*[annotationId], *[offsetId]').length > 0;
-        var hasOldRdfParent = $(doc).find(w.schemaManager.mapper.getRdfParentSelector(true)).length === 0;
+        var hasOldRdfParent = w.utilities.evaluateXPath(doc, w.schemaManager.mapper.getRdfParentSelector()) === null;
         return hasRdf && (hasOldAnnotationIds || hasOldRdfParent);
     }
 
@@ -182,8 +182,8 @@ function XML2CWRC(writer) {
 
             $rdfs.remove();
 
-            var rdfParent = $(doc).find(w.schemaManager.mapper.getRdfParentSelector(true));
-            if (rdfParent.length > 0) {
+            var rdfParent = $(w.utilities.evaluateXPath(doc, w.schemaManager.mapper.getRdfParentSelector()));
+            if (rdfParent.length === 1) {
                 var currNode = rdfParent[0].nodeName;
                 // remove all the nodes between the root or header and the rdf parent (including the rdf parent)
                 while (currNode !== w.schemaManager.getHeader() && currNode !== w.schemaManager.getRoot()) {
@@ -205,11 +205,11 @@ function XML2CWRC(writer) {
         } else {
             w.mode = w.XMLRDF;
             w.allowOverlap = false;
-            processEntities($(doc.documentElement));
+            autoConvertEntityTags(doc);
         }
 
         // TODO add flag
-        autoConvertEntityTags(doc);
+        autoConvertEntityTags(doc, ['link']);
 
         var editorString = xml2cwrc.buildEditorString(rootEl, !w.isReadOnly);
         w.editor.setContent(editorString, {format: 'raw'}); // format is raw to prevent html parser and serializer from messing up whitespace
@@ -263,36 +263,13 @@ function XML2CWRC(writer) {
     xml2cwrc.doProcessing = doProcessing;
 
     /**
-     * Recursively builds offset info from entity tags.
-     */
-    function processEntities(parent) {
-        var annotationAttr = w.schemaManager.mapper.getAnnotationAttributeName();
-        if (xml2cwrc.isLegacyDocument) {
-            annotationAttr = 'annotationId';
-        }
-        parent.contents().each(function(index, element) {
-            if (this.nodeType !== Node.TEXT_NODE) {
-                var node = $(this);
-                var id = node.attr(annotationAttr);
-                if (id != null && node.parents('['+annotationAttr+'='+id+']').length === 0) { // don't try to process tags related to parent entity
-                    var entityType = processEntity(this);
-                    if (entityType !== 'note' && entityType !== 'citation') {
-                        // TODO test handling for entities inside correction and keyword
-                        processEntities(node);
-                    }
-                } else {
-                    processEntities(node);
-                }
-            }
-        });
-    }
-
-    /**
      * Scan document for entities that could be converted
+     * @param {Document} doc The document
+     * @param {Array} [typesToConvert] An array of entity types to convert, defaults to all types
      */
-    function autoConvertEntityTags(doc) {
+    function autoConvertEntityTags(doc, typesToConvert) {
         var entityTagNames = [];
-        var typesToConvert = ['link'];
+        typesToConvert = typesToConvert === undefined ? ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'] : typesToConvert;
         
         var entityMappings = w.schemaManager.mapper.getMappings().entities;
         for (var type in entityMappings) {
@@ -331,8 +308,6 @@ function XML2CWRC(writer) {
         if (entityType !== null) {
             var info = w.schemaManager.mapper.getReverseMapping(el, entityType);
 
-            var annotationAttributeName = w.schemaManager.mapper.getAnnotationAttributeName();
-
             var config = {
                 id: id,
                 type: entityType,
@@ -341,9 +316,7 @@ function XML2CWRC(writer) {
                 noteContent: info.noteContent,
                 cwrcLookupInfo: info.cwrcInfo,
                 range: {
-                    id: id,
-                    annotationAttributeName: annotationAttributeName,
-                    parentStart: structId
+                    startId: structId
                 }
             };
             if (info.properties !== undefined) {
@@ -376,8 +349,6 @@ function XML2CWRC(writer) {
         
         var editorString = '';
 
-        var annotationAttr = w.schemaManager.mapper.getAnnotationAttributeName();
-
         function doBuild(currentNode, forceInline) {
             var tag = currentNode.nodeName;
             var $node = $(currentNode);
@@ -385,7 +356,6 @@ function XML2CWRC(writer) {
             // TODO ensure that block level elements aren't inside inline level elements, the inline parent will be removed by the browser
             // temp fix: force inline level for children if parent is inline
 
-            var isEntity = (xml2cwrc.isLegacyDocument ? $node.attr('annotationId') : $node.attr(annotationAttr)) != null; // temp entity tag needs to be inline, otherwise spaces around entity text will disappear
             var tagName;
             if (forceInline) {
                 tagName = 'span';
@@ -429,9 +399,9 @@ function XML2CWRC(writer) {
             $(currentNode.attributes).each(function(index, att) {
                 var attName = att.name;
 
-                // replace legacy id with proper id
-                if (xml2cwrc.isLegacyDocument && attName === 'annotationId') {
-                    attName = annotationAttr;
+                // don't include legacy attributes
+                if (xml2cwrc.isLegacyDocument && attName === 'annotationId' || attName === 'offsetId') {
+                    return true;
                 }
 
                 var attValue = w.utilities.convertTextForExport(att.value);
@@ -440,10 +410,7 @@ function XML2CWRC(writer) {
                     editorString += ' '+attName+'="'+attValue+'"';
                 }
 
-                // TODO account for offsetId
-                if (attName !== annotationAttr && attName !== 'offsetId') {
-                    w.structs[id][attName] = attValue;
-                }
+                w.structs[id][attName] = attValue;
             });
 
             if ($node.is(':empty')) {
@@ -478,11 +445,6 @@ function XML2CWRC(writer) {
         // editor needs focus in order for entities to be properly inserted
         w.editor.focus();
 
-        var annotationAttr = w.schemaManager.mapper.getAnnotationAttributeName();
-        if (xml2cwrc.isLegacyDocument) {
-            annotationAttr = 'annotationId';
-        }
-
         var entityNodes = []; // keep track of the nodes so we can remove them afterwards
 
         var body = w.editor.getBody();
@@ -499,18 +461,18 @@ function XML2CWRC(writer) {
             range = entry.getRange();
 
             // just rdf, no markup
-            if (range.parentEnd) {
-                var parent = $('#'+range.parentStart, body);
+            if (range.endId) {
+                var parent = $('#'+range.startId, body);
                 var result = getTextNodeFromParentAndOffset(parent, range.startOffset);
                 startNode = result.textNode;
                 startOffset = result.offset;
-                parent = $('#'+range.parentEnd, body);
+                parent = $('#'+range.endId, body);
                 result = getTextNodeFromParentAndOffset(parent, range.endOffset);
                 endNode = result.textNode;
                 endOffset = result.offset;
             // markup
-            } else if (range.parentStart) {
-                var entityNode = $('#'+range.parentStart, body);
+            } else if (range.startId) {
+                var entityNode = $('#'+range.startId, body);
                 startNode = entityNode[0];
                 endNode = entityNode[0];
 
@@ -602,6 +564,9 @@ function XML2CWRC(writer) {
                 textTag.contents().unwrap(); // keep the text inside the textTag
             }
 
+            // FIXME
+            // TODO how to accomplish this without annotationId
+            var annotationAttr = 'annotationId';
             var annotationId = $node.attr(annotationAttr);
             $('['+annotationAttr+'="'+annotationId+'"]', $node).remove(); // remove all child elements with matching ID
 
@@ -622,7 +587,7 @@ function XML2CWRC(writer) {
         });
 
         // remove annotationId and offsetId
-        $('['+annotationAttr+']', body).each(function(index, el) {
+        $('[annotationId]', body).each(function(index, el) {
             $(el).removeAttr(annotationAttr);
         });
         $('[offsetId]', body).each(function(index, el) {

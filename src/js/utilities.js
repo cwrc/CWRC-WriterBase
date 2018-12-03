@@ -1162,9 +1162,9 @@ function Utilities(writer) {
     };
     
     /**
-     * Get the XPath for an element.
+     * Get the XPath for an element, using the cwrc _tag attributes.
      * Adapted from the firebug source.
-     * @param {Element} element The element to get the XPath for
+     * @param {Element} element The (cwrc) element to get the XPath for
      * @returns string
      */
     u.getElementXPath = function(element) {
@@ -1198,6 +1198,50 @@ function Utilities(writer) {
         }
 
         return paths.length ? "/" + paths.join("/") : null;
+    };
+
+    /**
+     * Runs the specified xpath on the specified doc.
+     * Adds support for default namespace.
+     * @param {Document} doc
+     * @param {String} xpath
+     * @returns {Node} The result, or null
+     */
+    u.evaluateXPath = function(doc, xpath) {
+        var nsr = doc.createNSResolver(doc.documentElement);
+        var defaultNamespace = doc.documentElement.getAttribute('xmlns');
+
+        function nsResolver(prefix) {
+            return nsr.lookupNamespaceURI(prefix) || defaultNamespace;
+        }
+
+        // default namespace hack (http://stackoverflow.com/questions/9621679/javascript-xpath-and-default-namespaces)
+        var foopath;
+        if (defaultNamespace !== null) {
+            // grouped matches: 1 separator, 2 axis, 3 namespace, 4 element name, 5 predicate
+            // add foo namespace to the element name
+            foopath = xpath.replace(/(\/{1,2})([\w-]+::)?(\w+?:)?(\w+)(\[.*?\])?/g, function(match, p1, p2, p3, p4, p5) {
+                if (p3 !== undefined) {
+                    // already has a namespace
+                    return match;
+                } else {
+                    return [p1,p2,'foo:',p4,p5].join('');
+                }
+            });
+        } else {
+            foopath = xpath;
+        }
+
+        var result;
+        try {
+            result = doc.evaluate(foopath, doc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+        } catch (e) {
+            if (window.console) {
+                console.warn('utilities.evaluateXPath: there was an error evaluating the xpath', e)
+            }
+            return null;
+        }
+        return result.singleNodeValue;
     };
     
     /**

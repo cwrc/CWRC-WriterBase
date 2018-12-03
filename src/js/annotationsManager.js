@@ -299,6 +299,11 @@ AnnotationsManager.prototype = {
         return anno;
     },
     
+    /**
+     * Get the RDF string that represents all the annotations in the document.
+     * @param {String} format The annotation format ('xml' or 'json).
+     * @returns {String} The RDF string.
+     */
     getAnnotations: function(format) {
         format = format || 'xml';
 
@@ -384,21 +389,8 @@ AnnotationsManager.prototype = {
             '\n</rdf:Description>';
         }
 
-        var rdfHead = '';
-        var rdfTail = '';
-        
-        var rdfParentSelector = me.w.schemaManager.mapper.getRdfParentSelector();
-        var rdfParents = rdfParentSelector.split(/\s*>\s*/);
-        rdfParents.forEach(function(parent) {
-            // include all the elements in between the root/header and rdf:RDF
-            if (parent !== me.w.schemaManager.getRoot() && parent !== me.w.schemaManager.getHeader() && parent !== 'rdf|RDF') {
-                rdfHead += '<'+parent.replace('|', ':')+'>';
-                rdfTail = '</'+parent.replace('|', ':')+'>' + rdfTail;
-            }
-        });
-        rdfTail = '</rdf:RDF>' + rdfTail;
-        
-        rdfHead += '<rdf:RDF';
+        var rdfHead = '<rdf:RDF';
+        var rdfTail = '</rdf:RDF>';
         for (var name in namespaces) {
             rdfHead += ' xmlns:'+name+'="'+namespaces[name]+'"';
         }
@@ -420,51 +412,13 @@ AnnotationsManager.prototype = {
         var rdf = $(rdfEl);
         var json = JSON.parse(rdf.text());
         if (json != null) {
-            var id;
-            var rangeObj;
-            var el;
-
-            var annotationAttributeName = this.w.schemaManager.mapper.getAnnotationAttributeName();
-
+            newEntity = {};
+            
             var rdfs = rdf.parent('rdf\\:RDF, RDF');            
             var doc = rdfs.parents().last()[0].parentNode;
             
-            var selector = json.hasTarget.hasSelector;
-            if (selector['@type'] == 'oa:TextPositionSelector') {
-                id = this.w.getUniqueId('ent_');
-
-                var xpointerStart = selector['oa:start'];
-                var xpointerEnd = selector['oa:end'];
-                var xpathStart = this._parseXpointer(xpointerStart, doc);
-                var xpathEnd = this._parseXpointer(xpointerEnd, doc);
-
-                if (xpathStart != null && xpathEnd != null) {
-                    rangeObj = {
-                        id: id,
-                        annotationAttributeName: annotationAttributeName,
-                        parentStart: xpathStart.parentId,
-                        startOffset: xpathStart.offset,
-                        parentEnd: xpathEnd.parentId,
-                        endOffset: xpathEnd.offset
-                    };
-                }
-            } else if (selector['@type'] == 'oa:FragmentSelector') {
-                var xpointer = selector['rdf:value'];
-                var xpathObj = this._parseXpointer(xpointer, doc);
-
-                id = xpathObj.parentId;
-                el = xpathObj.el;
-
-                rangeObj = {
-                    id: id,
-                    annotationAttributeName: annotationAttributeName,
-                    el: xpathObj.el,
-                    parentStart: xpathObj.parentId
-                };
-            }
-
-            // determine type
-            var type = null;
+            // determine entity type
+            var entityType = null;
             
             var bodyTypes = json.hasBody['@type'];
             var needsMotivation = bodyTypes.indexOf('cnt:ContentAsText') !== -1;
@@ -473,8 +427,8 @@ AnnotationsManager.prototype = {
             }
             for (var i = 0; i < bodyTypes.length; i++) {
                 var typeUri = bodyTypes[i];
-                type = this.w.annotationsManager.getEntityTypeForAnnotation(typeUri);
-                if (type != null) {
+                entityType = this.w.annotationsManager.getEntityTypeForAnnotation(typeUri);
+                if (entityType != null) {
                     break;
                 }
             }
@@ -483,7 +437,7 @@ AnnotationsManager.prototype = {
             var typeInfo = {};
             var propObj = {};
             
-            switch (type) {
+            switch (entityType) {
             case 'date':
                 var dateString = json.hasBody['xsd:date'];
                 var dateParts = dateString.split('/');
@@ -518,42 +472,39 @@ AnnotationsManager.prototype = {
                 break;
             }
             
-            var noteContent;
-            var tag;
-            if (el !== undefined) {
-                tag = el[0].nodeName;
-                
-                // FIXME why are we finding type twice?
-                var entityType = this.w.schemaManager.mapper.getEntityTypeForTag(el[0]);
-                if (entityType !== type) {
-                    if (window.console) {
-                        console.warn('type mismatch', type, entityType, el[0]);
-                    }
-                }
-                
-                var info = this.w.schemaManager.mapper.getReverseMapping(el[0], entityType);
-                $.extend(propObj, info.customValues);
-                $.extend(json.cwrcAttributes, info.attributes);
+            var rangeObj;
+            var selector = json.hasTarget.hasSelector;
+            if (selector['@type'] == 'oa:TextPositionSelector') {
+                var xpointerStart = selector['oa:start'];
+                var xpointerEnd = selector['oa:end'];
+                rangeObj = this._getRangeObject(doc, xpointerStart, xpointerEnd);
+            } else if (selector['@type'] == 'oa:FragmentSelector') {
+                // process the element for attributes, etc.
+                var xpointer = selector['rdf:value'];
+                rangeObj = this._getRangeObject(doc, xpointer);
 
-                if (type === 'note' || type === 'citation') {
-                    noteContent = this.w.utilities.xmlToString(el[0]);
-                    rangeObj.el.contents().remove();
+                var el = $(doc).find('[cwrcStructId='+rangeObj.startId+']')[0];
+                newEntity.tag = el.nodeName;
+                
+                var info = this.w.schemaManager.mapper.getReverseMapping(el, entityType);
+                $.extend(propObj, info.customValues);
+                $.extend(cwrcAttributes, info.attributes);
+
+                if (entityType === 'note' || entityType === 'citation') {
+                    newEntity.noteContent = this.w.utilities.xmlToString(el);
+                    $(el).contents().remove();
                 }
             }
             
             // FIXME cwrcAttributes
             $.extend(propObj, typeInfo);
 
-            newEntity = {
-                id: id,
-                tag: tag,
-                type: type,
-                attributes: json.cwrcAttributes,
-                customValues: propObj,
-                noteContent: noteContent,
-                cwrcLookupInfo: json.cwrcInfo,
-                range: rangeObj
-            };
+            newEntity.id = this.w.getUniqueId('ent_');
+            newEntity.type = entityType;
+            newEntity.attributes = json.cwrcAttributes;
+            newEntity.customValues = propObj;
+            newEntity.cwrcLookupInfo = json.cwrcInfo;
+            newEntity.range = rangeObj;
         }
         
         return newEntity;
@@ -590,13 +541,14 @@ AnnotationsManager.prototype = {
                     console.warn('can\'t determine type for', xml);
                 }
             } else {
-                var type = this.w.annotationsManager.getEntityTypeForAnnotation(typeUri);
+                var entityType = this.w.annotationsManager.getEntityTypeForAnnotation(typeUri);
+                newEntity = {};
     
                 // get type specific info
                 var typeInfo = {};
                 var propObj = {};
                 
-                switch (type) {
+                switch (entityType) {
                     case 'date':
                         var dateString = body.find('xsd\\:date, date').text();
                         var dateParts = dateString.split('/');
@@ -677,175 +629,121 @@ AnnotationsManager.prototype = {
     
                 // range
                 var rangeObj = {};
-                var id;
-                var el;
-                var annotationAttributeName = this.w.schemaManager.mapper.getAnnotationAttributeName();
                 // matching element
                 if (selectorType.indexOf('FragmentSelector') !== -1) {
+                    // process the element for attributes, etc.
                     var xpointer = selector.find('rdf\\:value, value').text();
-                    var xpathObj = this._parseXpointer(xpointer, doc);
+                    rangeObj = this._getRangeObject(doc, xpointer);
+
+                    var el = $(doc).find('[cwrcStructId='+rangeObj.startId+']')[0];
+                    newEntity.tag = el.nodeName;
+                    
+                    var info = this.w.schemaManager.mapper.getReverseMapping(el, entityType);
+                    $.extend(propObj, info.customValues);
+                    $.extend(cwrcAttributes, info.attributes);
     
-                    id = xpathObj.parentId;
-                    el = xpathObj.el;
-                    rangeObj = {
-                        id: id,
-                        annotationAttributeName: annotationAttributeName,
-                        el: xpathObj.el,
-                        parentStart: xpathObj.parentId
-                    };
+                    if (entityType === 'note' || entityType === 'citation') {
+                        newEntity.noteContent = this.w.utilities.xmlToString(el);
+                        $(el).contents().remove();
+                    }
                 // offset
                 } else {
                     var xpointerStart = selector.find('oa\\:start, start').text();
                     var xpointerEnd = selector.find('oa\\:end, end').text();
-                    var xpathStart = this._parseXpointer(xpointerStart, doc);
-                    var xpathEnd = this._parseXpointer(xpointerEnd, doc);
-    
-                    id = this.w.getUniqueId('ent_');
-    
-                    if (xpathStart != null && xpathEnd != null) {
-                        rangeObj = {
-                            id: id,
-                            annotationAttributeName: annotationAttributeName,
-                            parentStart: xpathStart.parentId,
-                            startOffset: xpathStart.offset,
-                            parentEnd: xpathEnd.parentId,
-                            endOffset: xpathEnd.offset
-                        };
-                    }
-                }
-    
-                // process the element for attributes, etc.
-                var noteContent;
-                var tag;
-                if (el !== undefined) {
-                    tag = el[0].nodeName;
-                    
-                    // FIXME why are we finding type twice?
-                    var entityType = this.w.schemaManager.mapper.getEntityTypeForTag(el[0]);
-                    if (entityType !== type) {
-                        if (window.console) {
-                            console.warn('type mismatch', type, entityType, el[0]);
-                        }
-                    }
-                    
-                    var info = this.w.schemaManager.mapper.getReverseMapping(el[0], entityType);
-                    $.extend(propObj, info.customValues);
-                    $.extend(cwrcAttributes, info.attributes);
-    
-                    if (type === 'note' || type === 'citation') {
-                        noteContent = this.w.utilities.xmlToString(el[0]);
-                        rangeObj.el.contents().remove();
-                    }
+                    rangeObj = this._getRangeObject(doc, xpointerStart, xpointerEnd);
                 }
     
                 // FIXME cwrcAttributes
                 $.extend(propObj, typeInfo);
-                newEntity = {
-                    id: id,
-                    tag: tag,
-                    type: type,
-                    attributes: cwrcAttributes,
-                    customValues: propObj,
-                    noteContent: noteContent,
-                    cwrcLookupInfo: cwrcLookupObj,
-                    range: rangeObj,
-                    uris: annotationObj
-                };
-            
+
+                newEntity.id = this.w.getUniqueId('ent_');
+                newEntity.type = entityType;
+                newEntity.attributes = cwrcAttributes;
+                newEntity.customValues = propObj;
+                newEntity.cwrcLookupInfo = cwrcLookupObj;
+                newEntity.range = rangeObj;
+                newEntity.uris = annotationObj;
             }
         }
         
         return newEntity;
     },
-    
-    _parseXpointer: function(xpointer, doc) {
-        var me = this;
 
-        var nsr = doc.createNSResolver(doc.documentElement);
-        var defaultNamespace = doc.documentElement.getAttribute('xmlns');
-
-        var annotationAttr = me.w.schemaManager.mapper.getAnnotationAttributeName();
-
-        function nsResolver(prefix) {
-            return nsr.lookupNamespaceURI(prefix) || defaultNamespace;
+    /**
+     * Gets the range object for xpointer(s).
+     * Adds cwrcStructId to the matched elements for later entity processing.
+     * @param {Document} doc
+     * @param {String} xpointerStart 
+     * @param {String} [xpointerEnd]
+     * @return {Object}
+     */
+    _getRangeObject: function(doc, xpointerStart, xpointerEnd) {
+        var rangeObj = {};
+        
+        var xpathStart = this._parseXPointer(xpointerStart, doc);
+        if (xpathStart !== null) {
+            var startId = this.w.getUniqueId('struct_');
+            $(xpathStart.el).attr('cwrcStructId', startId);
+            if (xpointerEnd !== undefined) {
+                var xpathEnd = this._parseXPointer(xpointerEnd, doc);
+                if (xpathEnd !== null) {                    
+                    var endId = this.w.getUniqueId('struct_');
+                    $(xpathEnd.el).attr('cwrcStructId', endId);
+                    rangeObj = {
+                        startId: startId,
+                        startOffset: xpathStart.offset,
+                        endId: endId,
+                        endOffset: xpathEnd.offset
+                    };
+                }
+            } else {
+                rangeObj = {
+                    startId: startId
+                };
+            }
         }
 
-        // parse the xpointer, get the el associated with the xpath, assign a temp. ID for later usage
-        // expected format: xpointer(string-range(XPATH,"",OFFSET))
-        // regex assumes no parentheses in xpath
-        function doParseXpointer(xpointer, doc) {
+        return rangeObj;
+    },
+
+    /**
+     * Parses the xpointer, and returns the element associated with the xpath.
+     * Expected non-range format: xpointer(XPATH)
+     * Expected range format: xpointer(string-range(XPATH,"",OFFSET))
+     * Regex assumes no parentheses in xpath
+     * @param {String} xpointer 
+     * @param {Document} doc 
+     * @returns {Object} An object with id, el and offset properties
+     */
+    _parseXPointer: function(xpointer, doc) {
+        var xpath;
+        var offset = null;
+        if (xpointer.indexOf('string-range') === -1) {
+            var regex = new RegExp(/xpointer\((.*)?\)$/); // regex for isolating xpath
+            var content = regex.exec(xpointer)[1];
+            xpath = content;
+        } else {
             var regex = new RegExp(/xpointer\((?:string-range\()?([^\)]*)\)+/); // regex for isolating xpath and offset
             var content = regex.exec(xpointer)[1];
             var parts = content.split(',');
-            var xpath = parts[0];
-            var offset = null;
+            xpath = parts[0];
             if (parts[2]) {
                 offset = parseInt(parts[2]);
             }
+        }            
 
-            var foopath;
-            if (defaultNamespace !== null) {
-                foopath = xpath.replace(/\/\//g, '//foo:'); // default namespace hack (http://stackoverflow.com/questions/9621679/javascript-xpath-and-default-namespaces)
-            } else {
-                foopath = xpath;
+        var result = this.w.utilities.evaluateXPath(doc, xpath);
+        if (result != null) {
+            return {
+                el: result,
+                offset: offset
+            };
+        } else {
+            if (window.console) {
+                console.warn('Could not find node for: '+xpath);
             }
-            var result;
-            try {
-                result = doc.evaluate(foopath, doc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-            } catch (e) {
-                me.w.dialogManager.show('message', {
-                    title: 'Error',
-                    msg: 'There was an error evaluating an XPath:<br/>'+e,
-                    type: 'error'
-                });
-            }
-            if (result.singleNodeValue != null) {
-                var xpathEl = $(result.singleNodeValue);
-
-                var parentId;
-                if (offset != null) {
-                    parentId = xpathEl.attr('offsetId');
-                } else {
-                    parentId = xpathEl.attr(annotationAttr);
-                    if (parentId == null) {
-                        // could be a legacy doc, parse the xpointer to try to find the id attr
-                        var attrMatch = xpath.match(/(@)(\w+)(=)/);
-                        if (attrMatch !== null) {
-                            var legacyAttr = attrMatch[2];
-                            parentId = xpathEl.attr(legacyAttr);
-                            if (window.console) {
-                                console.warn('annotationsManager: legacy doc, using old attribute name', legacyAttr);
-                            }
-                        }
-                    }
-                }
-                if (parentId == null) {
-                    // assign a struct ID now, to associate with the entity
-                    // later we'll insert it as the real struct ID value
-                    if (window.console) {
-                        console.warn('null ID for xpointer!');
-                    }
-                    parentId = me.w.getUniqueId('struct_');
-                } else {
-                    var idNum = parseInt(parentId.split('_')[1]);
-                    if (idNum >= tinymce.DOM.counter) tinymce.DOM.counter = idNum+1;
-                }
-                xpathEl.attr('cwrcStructId', parentId);
-
-                return {
-                    el: xpathEl,
-                    parentId: parentId,
-                    offset: offset
-                };
-            } else {
-                if (window.console) {
-                    console.warn('Could not find node for: '+xpath);
-                }
-                return null;
-            }
+            return null;
         }
-        
-        return doParseXpointer(xpointer, doc);
     },
     
     /**

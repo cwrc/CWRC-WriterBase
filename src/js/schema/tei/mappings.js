@@ -26,8 +26,7 @@ function handleGraphics($tag) {
 module.exports = {
 
 id: 'xml:id',
-annotationAttribute: 'ana',
-rdfParentSelector: 'TEI > teiHeader > xenoData',
+rdfParentSelector: '/TEI/teiHeader/fileDesc/following-sibling::xenoData',
 header: 'teiHeader',
 blockElements: ['argument', 'back', 'bibl', 'biblFull', 'biblScope', 'body', 'byline', 'category', 'change', 'cit', 'classCode', 'elementSpec', 'macroSpec', 'classSpec', 'closer', 'creation', 'date', 'distributor', 'div', 'div1', 'div2', 'div3', 'div4', 'div5', 'div6', 'div7', 'docAuthor', 'edition', 'editionStmt', 'editor', 'eg', 'epigraph', 'extent', 'figure', 'front', 'funder', 'group', 'head', 'dateline', 'idno', 'item', 'keywords', 'l', 'label', 'langUsage', 'lb', 'lg', 'list', 'listBibl', 'note', 'noteStmt', 'opener', 'p', 'principal', 'publicationStmt', 'publisher', 'pubPlace', 'q', 'rendition', 'resp', 'respStmt', 'salute', 'samplingDecl', 'seriesStmt', 'signed', 'sp', 'sponsor', 'tagUsage', 'taxonomy', 'textClass', 'titlePage', 'titlePart', 'trailer', 'TEI', 'teiHeader', 'text', 'authority', 'availability', 'fileDesc', 'sourceDesc', 'revisionDesc', 'catDesc', 'encodingDesc', 'profileDesc', 'projectDesc', 'docDate', 'docEdition', 'docImprint', 'docTitle'],
 urlAttributes: ['ref', 'target'],
@@ -97,11 +96,7 @@ place: {
         
         var precision = entity.getCustomValue('precision');
         if (precision !== undefined) {
-            xml += '<precision';
-            var id = entity.getRange().annotationId;
-            var annotationAttributeName = entity.getRange().annotationAttributeName;
-            if (id !== undefined) xml += ' '+annotationAttributeName+'="'+id+'"';
-            xml += ' precision="'+precision+'" />';
+            xml += '<precision precision="'+precision+'" />';
         }
         var tag = entity.getTag();
         xml += '</'+tag+'>';
@@ -172,10 +167,8 @@ correction: {
         } else {
             tag = 'corr';
         }
-        var rangeString = Mapper.getRangeString(entity);
         
         var xml = '<'+tag;
-        xml += rangeString;
         xml += Mapper.getAttributeString(entity.getAttributes());
         
         if (corrText) {
@@ -302,7 +295,6 @@ citation: {
     isNote: true,
     mapping: function(entity) {
         var xml = '<note';
-        xml += Mapper.getRangeString(entity);
         xml += ' type="citation"><bibl';
         xml += ' ref="'+entity.getAttribute('ref')+'"';
         xml += '>';
@@ -342,12 +334,11 @@ keyword: {
     },
     mapping: function(entity) {
         var keywords = entity.getCustomValue('keywords');
-        var rangeString = Mapper.getRangeString(entity);
         
         var xml = '';
         for (var i = 0; i < keywords.length; i++) {
             xml += Mapper.getTagAndDefaultAttributes(entity);
-            xml += '><term'+rangeString+'>'+keywords[i]+'</term></note>';
+            xml += '><term>'+keywords[i]+'</term></note>';
         }
         return xml;
     },

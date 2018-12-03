@@ -24,8 +24,7 @@ function handleGraphics($tag) {
 module.exports = {
 
 id: 'ID',
-annotationAttribute: 'annotationId',
-rdfParentSelector: 'CWRC > CWRCHEADER',
+rdfParentSelector: '/CWRC/CWRCHEADER',
 header: 'CWRCHEADER',
 blockElements: [],
 urlAttributes: ['URL', 'REF'],

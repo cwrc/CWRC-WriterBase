@@ -24,8 +24,7 @@ function handleGraphics($tag) {
 module.exports = {
 
 id: 'ID',
-annotationAttribute: 'annotationId',
-rdfParentSelector: '* > ORLANDOHEADER',
+rdfParentSelector: '/*/ORLANDOHEADER',
 header: 'ORLANDOHEADER',
 blockElements: ['DIV0', 'DIV1', 'EVENT', 'ORLANDOHEADER', 'DOCAUTHOR', 'DOCEDITOR', 'DOCEXTENT', 'PUBLICATIONSTMT', 'TITLESTMT', 'PUBPLACE', 'L', 'P', 'HEADING', 'CHRONEVENT', 'CHRONSTRUCT'],
 urlAttributes: ['URL', 'REF'],
@@ -91,9 +90,8 @@ place: {
         var xml = Mapper.getTagAndDefaultAttributes(entity);
         
         var tag = entity.getCustomValue('tag');
-        var rangeString = Mapper.getRangeString(entity);
         
-        xml += '><'+tag+rangeString;
+        xml += '><'+tag;
         xml += '>'+Mapper.TEXT_SELECTION+'</'+tag+'>';
         
         tag = entity.getTag();
