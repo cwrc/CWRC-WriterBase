@@ -116,7 +116,7 @@ place: {
                 }
             }
         }
-        mapping.customValues = {tag: type};
+        mapping.properties = {tag: type};
         return mapping;
     },
     annotation: function(entity, format) {

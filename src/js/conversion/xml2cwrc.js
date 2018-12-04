@@ -211,6 +211,19 @@ function XML2CWRC(writer) {
         // TODO add flag
         autoConvertEntityTags(doc, ['link']);
 
+        // remove mapping related elements
+        w.entitiesManager.eachEntity(function(entityId, entity) {
+            var range = entity.getRange();
+            if (range.endId === undefined) {
+                var $node = $(doc).find('[cwrcStructId='+range.startId+']');
+                if (w.schemaManager.mapper.isEntityTypeNote(entity.getType())) {
+                    $node.contents().remove();
+                } else {
+                    $node.find(':not(:text)').remove();
+                }
+            }
+        });
+
         var editorString = xml2cwrc.buildEditorString(rootEl, !w.isReadOnly);
         w.editor.setContent(editorString, {format: 'raw'}); // format is raw to prevent html parser and serializer from messing up whitespace
 
@@ -294,14 +307,13 @@ function XML2CWRC(writer) {
     /**
      * Process the tag of an entity, and creates a new entry in the manager.
      * @param {Element} el The XML element
-     * @returns {String} entityType
      */
     function processEntity(el) {
-        var node = $(el);
+        var $node = $(el);
         var id = w.getUniqueId('ent_');
 
         var structId = w.getUniqueId('struct_');
-        node.attr('cwrcStructId', structId);
+        $node.attr('cwrcStructId', structId);
 
         var entityType = w.schemaManager.mapper.getEntityTypeForTag(el);
 
@@ -326,13 +338,7 @@ function XML2CWRC(writer) {
             }
 
             var entity = w.entitiesManager.addEntity(config);
-            
-            if (w.schemaManager.mapper.isEntityTypeNote(entityType)) {
-                node.contents().remove();
-            }
         }
-
-        return entityType;
     }
 
     /**

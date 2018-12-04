@@ -76,25 +76,25 @@ Mapper.getDefaultMapping = function(entity) {
 };
 
 Mapper.getDefaultReverseMapping = function(xml, customMappings, nsPrefix) {
-    function getValueFromXpath(xpath) {
-        var val;
-        var result = Mapper.getXpathResult(xml, xpath, nsPrefix);
+    function getValueFromXPath(xpath) {
+        var value;
+        var result = Mapper.getXPathResult(xml, xpath, nsPrefix);
         if (result !== undefined) {
             switch (result.nodeType) {
                 case Node.ELEMENT_NODE:
-                    val = Mapper.xmlToString(result);
+                    value = Mapper.xmlToString(result);
                     break;
                 case Node.TEXT_NODE:
-                    val = $(result).text();
+                    value = $(result).text();
                     break;
                 case Node.ATTRIBUTE_NODE:
-                    val = $(result).val();
+                    value = $(result).val();
                     break;
                 case undefined:
-                    val = result;
+                    value = result;
             }
         }
-        return val;
+        return value;
     }
     
     var obj = {};
@@ -104,14 +104,14 @@ Mapper.getDefaultReverseMapping = function(xml, customMappings, nsPrefix) {
                 obj[key] = {};
                 for (var key2 in customMappings[key]) {
                     var xpath = customMappings[key][key2];
-                    var val = getValueFromXpath(xpath);
+                    var val = getValueFromXPath(xpath);
                     if (val !== undefined) {
                         obj[key][key2] = val;
                     }
                 }
             } else if (typeof customMappings[key] === 'string') {
                 var xpath = customMappings[key];
-                var val = getValueFromXpath(xpath);
+                var val = getValueFromXPath(xpath);
                 obj[key] = val;
             }
         }
@@ -128,7 +128,7 @@ Mapper.getDefaultReverseMapping = function(xml, customMappings, nsPrefix) {
  * @param {String} nsPrefix
  * @returns {Element|undefined}
  */
-Mapper.getXpathResult = function(xmlContext, xpathExpression, nsPrefix) {
+Mapper.getXPathResult = function(xmlContext, xpathExpression, nsPrefix) {
     nsPrefix = nsPrefix || '';
     var nsUri = xmlContext.namespaceURI;
     if (nsUri === null && nsPrefix !== '') {
@@ -246,7 +246,7 @@ Mapper.prototype = {
         for (var type in mappings.entities) {
             var xpath = mappings.entities[type].xpathSelector;
             if (xpath !== undefined && isElement) {
-                var result = Mapper.getXpathResult(el, xpath, this.w.schemaManager.getCurrentSchema().schemaMappingsId);
+                var result = Mapper.getXPathResult(el, xpath, this.w.schemaManager.getCurrentSchema().schemaMappingsId);
                 if (result !== undefined) {
                     resultType = type;
                     break; // prioritize xpath

@@ -181,7 +181,7 @@ function CWRC2XML(writer) {
             var entity = $('#'+entityId, w.editor.getBody());
             if (entity.length === 1) {
                 var range = {};
-                range.start = w.utilities.getElementXPath(entity[0]);
+                range.startXPath = w.utilities.getElementXPath(entity[0]);
                 $.extend(entry.getRange(), range);
             }
         });
@@ -327,7 +327,7 @@ function CWRC2XML(writer) {
             var parent = $el.parents('[_tag]').first();
             var xpath = w.utilities.getElementXPath(parent[0]);
             var offset = getOffsetFromParentForEntity(entityId, parent, isEnd);
-            return [xpath, offset];
+            return {xpath: xpath, offset: offset};
         }
 
         var entitySpans = $('[name="'+entityId+'"]', w.editor.getBody());
@@ -335,12 +335,12 @@ function CWRC2XML(writer) {
         var entityEnd = entitySpans.last();
 
         var infoStart = doRangeGet(entityStart, false);
-        range.start = infoStart[0];
-        range.startOffset = infoStart[1];
+        range.startXPath = infoStart.xpath;
+        range.startOffset = infoStart.offset;
 
         var infoEnd = doRangeGet(entityEnd, true);
-        range.end = infoEnd[0];
-        range.endOffset = infoEnd[1];
+        range.endXPath = infoEnd.xpath;
+        range.endOffset = infoEnd.offset;
 
         return range;
     }

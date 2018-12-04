@@ -127,17 +127,17 @@ AnnotationsManager.commonAnnotation = function(entity, types, motivations, forma
             '\n\t<rdf:type rdf:resource="http://www.w3.org/ns/oa#SpecificResource"/>'+
             '\n\t<oa:hasSelector rdf:resource="'+selectorId+'"/>'+
         '\n</rdf:Description>';
-        if (range.end) {
+        if (range.endXPath) {
             selectorString += ''+
             '\n<rdf:Description rdf:about="'+selectorId+'">'+
-                '\n\t<oa:start>xpointer(string-range('+range.start+',"",'+range.startOffset+'))</oa:start>'+
-                '\n\t<oa:end>xpointer(string-range('+range.end+',"",'+range.endOffset+'))</oa:end>'+
+                '\n\t<oa:start>xpointer(string-range('+range.startXPath+',"",'+range.startOffset+'))</oa:start>'+
+                '\n\t<oa:end>xpointer(string-range('+range.endXPath+',"",'+range.endOffset+'))</oa:end>'+
                 '\n\t<rdf:type rdf:resource="http://www.w3.org/ns/oa#TextPositionSelector"/>'+
             '\n</rdf:Description>';
         } else {
             selectorString += ''+
             '\n<rdf:Description rdf:about="'+selectorId+'">'+
-                '\n\t<rdf:value>xpointer('+range.start+')</rdf:value>'+
+                '\n\t<rdf:value>xpointer('+range.startXPath+')</rdf:value>'+
                 '\n\t<rdf:type rdf:resource="http://www.w3.org/ns/oa#FragmentSelector"/>'+
             '\n</rdf:Description>';
         }
@@ -224,20 +224,20 @@ AnnotationsManager.commonAnnotation = function(entity, types, motivations, forma
             annotation.cwrcAttributes = attributes;
         }
         
-        if (range.end) {
+        if (range.endXPath) {
             annotation.hasTarget.hasSelector = {
                 '@id': selectorId,
                 '@type': 'oa:TextPositionSelector',
                 'dcterms:conformsTo': 'http://tools.ietf.org/rfc/rfc3023',
-                'oa:start': 'xpointer(string-range('+range.start+',"",'+range.startOffset+'))',
-                'oa:end': 'xpointer(string-range('+range.end+',"",'+range.endOffset+'))',
+                'oa:start': 'xpointer(string-range('+range.startXPath+',"",'+range.startOffset+'))',
+                'oa:end': 'xpointer(string-range('+range.endXPath+',"",'+range.endOffset+'))',
             };
         } else {
             annotation.hasTarget.hasSelector = {
                 '@id': selectorId,
                 '@type': 'oa:FragmentSelector',
                 'dcterms:conformsTo': 'http://tools.ietf.org/rfc/rfc3023',
-                'rdf:value': 'xpointer('+range.start+')'
+                'rdf:value': 'xpointer('+range.startXPath+')'
             };
         }
     }
@@ -492,7 +492,6 @@ AnnotationsManager.prototype = {
 
                 if (entityType === 'note' || entityType === 'citation') {
                     newEntity.noteContent = this.w.utilities.xmlToString(el);
-                    $(el).contents().remove();
                 }
             }
             
@@ -644,7 +643,6 @@ AnnotationsManager.prototype = {
     
                     if (entityType === 'note' || entityType === 'citation') {
                         newEntity.noteContent = this.w.utilities.xmlToString(el);
-                        $(el).contents().remove();
                     }
                 // offset
                 } else {
