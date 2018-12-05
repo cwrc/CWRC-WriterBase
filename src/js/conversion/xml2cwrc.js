@@ -53,12 +53,23 @@ function XML2CWRC(writer) {
                 if (node.nodeName === 'xml-model') {
                     var xmlModelData = node.data;
                     schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
+                    schemaUrl = schemaUrl.split(/^.*?\/\//)[1]; // remove the protocol in order to disregard http/https
                     // Search the known schemas, if the url matches it must be the same one.
                     $.each(w.schemaManager.schemas, function(id, schema) {
-                        var aliases = schema.aliases || [];
-                        if (schemaUrl == schema.url || $.inArray(schemaUrl, aliases) !== -1) {
+                        if (schema.url.indexOf(schemaUrl) !== -1) {
                             schemaId = id;
                             return false;
+                        }
+                        if (schema.aliases !== undefined) {
+                            $.each(schema.aliases, function(index, alias) {
+                                if (alias.indexOf(schemaUrl) !== -1) {
+                                    schemaId = id;
+                                    return false;
+                                }
+                            });
+                            if (schemaId !== undefined) {
+                                return false;
+                            }
                         }
                     });
                 } else if (node.nodeName === 'xml-stylesheet') {
