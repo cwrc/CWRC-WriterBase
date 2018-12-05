@@ -215,10 +215,15 @@ function XML2CWRC(writer) {
         w.entitiesManager.eachEntity(function(entityId, entity) {
             var range = entity.getRange();
             if (range.endId === undefined) {
+                var entityType = entity.getType();
                 var $node = $(doc).find('[cwrcStructId='+range.startId+']');
-                if (w.schemaManager.mapper.isEntityTypeNote(entity.getType())) {
+                if (w.schemaManager.mapper.isEntityTypeNote(entityType)) {
                     $node.contents().remove();
                 } else {
+                    var textTag = w.schemaManager.mapper.getTextTag(entityType);
+                    if (textTag !== '') {
+                        $node.find(textTag).contents().unwrap();
+                    }
                     $node.find(':not(:text)').remove();
                 }
             }
