@@ -111,33 +111,35 @@ DialogForm.processForm = function(dialogInstance) {
     
     $('[data-type]', dialogInstance.$el).not('[data-type="attributes"]').each(function(index, el) {
         var formEl = $(this);
-        var type = formEl.data('type');
-        var mapping = formEl.data('mapping');
-        if (mapping !== undefined) {
-            var dataKey = 'attributes';
-            var isCustom = mapping.indexOf('custom.') === 0;
-            var isProperty = mapping.indexOf('prop.') === 0;
-            if (isCustom) {
-                mapping = mapping.replace(/^custom\./, '');
-                dataKey = 'customValues';
-            } else if (isProperty) {
-                mapping = mapping.replace(/^prop\./, '');
-                dataKey = 'properties';
-            }
-            switch (type) {
-                case 'radio':
-                    var val = formEl.find('input:checked').val();
-                    data[dataKey][mapping] = val;
-                    break;
-                case 'textbox':
-                case 'hidden':
-                case 'select':
-                    var val = formEl.val();
-                    // only override if the value isn't blank
-                    if (val !== '') {
+        if (formEl.parents('.cwrcDialogWrapper').length === 1) { // ignore child forms inserted by note mini-writers
+            var type = formEl.data('type');
+            var mapping = formEl.data('mapping');
+            if (mapping !== undefined) {
+                var dataKey = 'attributes';
+                var isCustom = mapping.indexOf('custom.') === 0;
+                var isProperty = mapping.indexOf('prop.') === 0;
+                if (isCustom) {
+                    mapping = mapping.replace(/^custom\./, '');
+                    dataKey = 'customValues';
+                } else if (isProperty) {
+                    mapping = mapping.replace(/^prop\./, '');
+                    dataKey = 'properties';
+                }
+                switch (type) {
+                    case 'radio':
+                        var val = formEl.find('input:checked').val();
                         data[dataKey][mapping] = val;
-                    }
-                    break;
+                        break;
+                    case 'textbox':
+                    case 'hidden':
+                    case 'select':
+                        var val = formEl.val();
+                        // only override if the value isn't blank
+                        if (val !== '') {
+                            data[dataKey][mapping] = val;
+                        }
+                        break;
+                }
             }
         }
     });
