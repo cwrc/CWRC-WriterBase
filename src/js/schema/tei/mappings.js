@@ -292,10 +292,7 @@ citation: {
     textTag: 'bibl',
     isNote: true,
     mapping: function(entity) {
-        var xml = '<note';
-        xml += ' type="citation"><bibl';
-        xml += ' ref="'+entity.getAttribute('ref')+'"';
-        xml += '>';
+        var xml = '<note type="citation"><bibl><ref target="'+entity.getLookupInfo().id+'"/>';
         
         var content = entity.getNoteContent();
         if (content) {
@@ -308,7 +305,7 @@ citation: {
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: 'tei:bibl/@ref'},
+            cwrcInfo: {id: 'tei:bibl/tei:ref/@target'},
             noteContent: '.'
         }, 'tei');
     },
