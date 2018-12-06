@@ -16,6 +16,7 @@ module.exports = function(writer, parentEl) {
             '<div data-transform="writer" style="width: 100%; height: 100%; border: none;"/>'+
         '</div>'+
         '<input type="hidden" id="'+id+'_ref" data-type="hidden" data-mapping="ref"/>'+
+        '<input type="hidden" id="'+id+'_type" data-type="hidden" data-mapping="type"/>'+
     '</div>').appendTo(parentEl);
 
     var dialog = new DialogForm({
@@ -28,6 +29,7 @@ module.exports = function(writer, parentEl) {
     });
 
     dialog.$el.on('dialogopen', function(e, ui) {
+        $('#'+id+'_type').val('citation');
         var cwrcInfo = dialog.currentData.cwrcInfo;
         if (cwrcInfo !== undefined) {
             $('#'+id+'_ref').val(cwrcInfo.id);
