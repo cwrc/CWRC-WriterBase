@@ -1372,7 +1372,9 @@ function Utilities(writer) {
     }
 
     u.destroy = function() {
-        $entitiesConverter.remove();
+        if ($entitiesConverter !== undefined) {
+            $entitiesConverter.remove();
+        }
     };
     
     return u;

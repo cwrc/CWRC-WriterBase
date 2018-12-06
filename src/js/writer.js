@@ -240,7 +240,7 @@ function CWRCWriter(config) {
                 w.currentDocId = null;
                 w.dialogManager.show('message', {
                     title: 'Error',
-                    msg: 'An error ('+status+') occurred and '+docUrl+' was not loaded.',
+                    msg: 'An error occurred and '+docUrl+' was not loaded.',
                     type: 'error'
                 });
                 w.event('documentLoaded').publish(false, null);

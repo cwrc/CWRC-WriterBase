@@ -69,7 +69,11 @@ function SchemaManager(writer, config) {
         for (var schemaId in sm.schemas) {
             sm.getRootForSchema(schemaId).then(function(id, root) {
                 sm._roots[id] = root;
-            }.bind(this, schemaId));
+            }.bind(this, schemaId), function(error) {
+                if (window.console) {
+                    console.warn(error);
+                }
+            });
         }
     };
 
@@ -189,10 +193,10 @@ function SchemaManager(writer, config) {
                         }
                         resolve(rootEl);
                     }, function(resp) {
-                        reject(undefined);
+                        reject('schemaManager.getRootForSchema: could not connect to '+url);
                     });
                 } else {
-                    reject(undefined);
+                    reject('schemaManager.getRootForSchema: no url for '+schemaId);
                 }
             }
         });

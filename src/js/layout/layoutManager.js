@@ -206,14 +206,7 @@ function LayoutManager(writer, config) {
             doResize();
         }
     }.bind(this);
-
-    var handleEntityButtons = function() {
-        if (this.w.schemaManager.isSchemaCustom()) {
-            doHandleEntityButtons(false);
-        } else {
-            doHandleEntityButtons(true);
-        }
-    }.bind(this);
+    
     var doHandleEntityButtons = function(show) {
         var controls = this.w.editor.theme.panel.rootControl.controlIdLookup;
         var entityButtons = [];
@@ -261,7 +254,13 @@ function LayoutManager(writer, config) {
     
     this.w.event('loadingDocument').subscribe(onLoad);
     this.w.event('documentLoaded').subscribe(onLoadDone);
-    this.w.event('documentLoaded').subscribe(handleEntityButtons);
+    this.w.event('documentLoaded').subscribe(function(success) {
+        if (!success || this.w.schemaManager.isSchemaCustom()) {
+            doHandleEntityButtons(false);
+        } else {
+            doHandleEntityButtons(true);
+        }
+    }.bind(this));
     this.w.event('writerInitialized').subscribe(doResize);
 }
 
