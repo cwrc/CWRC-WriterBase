@@ -58,9 +58,7 @@ function CWRCWriter(config) {
     w.validationUrl = config.validationUrl || 'https://validator.services.cwrc.ca/validator/validate.html';// url for the xml validation
     if (w.cwrcRootUrl == null || w.cwrcRootUrl == '') {
         w.cwrcRootUrl = window.location.protocol+'//'+window.location.host+'/'+window.location.pathname.split('/')[1]+'/';
-        if (window.console) {
-            console.info('using default cwrcRootUrl', w.cwrcRootUrl);
-        }
+        console.info('using default cwrcRootUrl', w.cwrcRootUrl);
     }
     
     w.currentDocId = null;
@@ -326,7 +324,7 @@ function CWRCWriter(config) {
      * Destroy the CWRC-Writer
      */
     w.destroy = function() {
-        if (window.console) console.log('destroying', w.editor.id);
+        console.info('destroying', w.editor.id);
         
         try {
             // clear the editor first (large docs can cause the browser to freeze)

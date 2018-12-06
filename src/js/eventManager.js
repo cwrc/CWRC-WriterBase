@@ -26,9 +26,7 @@ function EventManager(writer) {
             callbacks = $.Callbacks();
             event = {
                 publish: function() {
-                    if (window.console) {
-                        console.debug('CWRC-Writer "'+this.event+'":', arguments);
-                    }
+                    console.debug('CWRC-Writer "'+this.event+'":', arguments);
                     callbacks.fire.apply(this, arguments);
                 },
                 subscribe: callbacks.add,

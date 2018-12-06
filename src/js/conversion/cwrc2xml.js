@@ -48,9 +48,7 @@ function CWRC2XML(writer) {
         var $rootEl = $body.children('[_tag='+root+']');
         
         if ($rootEl.length == 0) {
-            if (window.console) {
-                console.warn('converter: no root found for', root);
-            }
+            console.warn('converter: no root found for', root);
             $rootEl = $body.find('[_tag]:eq(0)'); // fallback
         }
         
@@ -115,9 +113,7 @@ function CWRC2XML(writer) {
             if (currNode !== $body) { 
                 xmlString += cwrc2xml.buildXMLString($rootEl, currNode, rdfString);
             } else {
-                if (window.console) {
-                    console.warn('cwrc2xml: couldn\'t find rdfParent for',selector);
-                }
+                console.warn('cwrc2xml: couldn\'t find rdfParent for',selector);
                 xmlString += cwrc2xml.buildXMLString($rootEl);
             }
         } else {

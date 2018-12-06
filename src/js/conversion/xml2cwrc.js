@@ -200,18 +200,14 @@ function XML2CWRC(writer) {
                 while (currNode !== w.schemaManager.getHeader() && currNode !== w.schemaManager.getRoot()) {
                     rdfParent = rdfParent.parent();
                     if (rdfParent.length === 0) {
-                        if (window.console) {
-                            console.warn('xml2cwrc: went beyond doc root');
-                        }
+                        console.warn('xml2cwrc: went beyond doc root');
                         break;
                     }
                     rdfParent.children(currNode).remove();
                     currNode = rdfParent[0].nodeName;
                 }
             } else {
-                if (window.console) {
-                    console.warn('xml2cwrc: couldn\'t find the rdfParent');
-                }
+                console.warn('xml2cwrc: couldn\'t find the rdfParent');
             }
         } else {
             w.mode = w.XMLRDF;
@@ -393,9 +389,7 @@ function XML2CWRC(writer) {
             // first check our special cwrcStructId attribute, finally generate a new one
             var id = $node.attr('id');
             if (id !== undefined) {
-                if (window.console) {
-                    console.warn('Node already had ID!', id);
-                }
+                console.warn('Node already had ID!', id);
                 $node.removeAttr('id');
             }
             id = $node.attr('cwrcStructId');
@@ -549,9 +543,7 @@ function XML2CWRC(writer) {
                         }
                     }
                 } catch (e) {
-                    if (window.console) {
-                        console.warn(e);
-                    }
+                    console.warn(e);
                 }
             }
         });

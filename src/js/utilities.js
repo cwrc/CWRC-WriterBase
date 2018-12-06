@@ -872,9 +872,7 @@ function Utilities(writer) {
                 elements = _getElementEntries(config.tag);
             }
             if (elements.length == 0) {
-                if (window.console) {
-                    console.warn('Cannot find element for: '+config.tag);
-                }
+                console.warn('utilities: cannot find element for '+config.tag);
             } else {
                 for (var i = 0; i < elements.length; i++) {
                     var element = elements[i];
@@ -1045,9 +1043,7 @@ function Utilities(writer) {
                 elements = _getElementEntries(config.tag);
             }
             if (elements.length == 0) {
-                if (window.console) {
-                    console.warn('Cannot find element for: '+config.tag);
-                }
+                console.warn('utilities: cannot find element for '+config.tag);
             } else {
                 for (var i = 0; i < elements.length; i++) {
                     var el = elements[i];
@@ -1236,9 +1232,7 @@ function Utilities(writer) {
         try {
             result = doc.evaluate(foopath, doc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
         } catch (e) {
-            if (window.console) {
-                console.warn('utilities.evaluateXPath: there was an error evaluating the xpath', e)
-            }
+            console.warn('utilities.evaluateXPath: there was an error evaluating the xpath', e)
             return null;
         }
         return result.singleNodeValue;

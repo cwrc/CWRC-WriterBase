@@ -165,7 +165,7 @@ function SchemaTags(writer, parentEl) {
             }
             tagId = w.editor.currentBookmark.tagId;
             if (tagId == null) {
-                if (window.console) console.warn('No tagId found');
+                console.warn('schemaTags: no tagId found');
             }
             w.editor.selection.moveToBookmark(w.editor.currentBookmark);
             

@@ -179,9 +179,7 @@ function Validation(config) {
                 
                 item.data('id', id);
             } else {
-                if (window.console) {
-                    console.warn("validation: couldn't find element for "+path);
-                }
+                console.warn("validation: couldn't find element for "+path);
             }
         });
         

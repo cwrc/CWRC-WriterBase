@@ -366,9 +366,7 @@ LayoutManager.prototype = {
             if (mod.destroy !== undefined) {
                 mod.destroy();
             } else {
-                if (window.console) {
-                    console.warn('no destroy method for', mod);
-                }
+                console.warn('layoutManager: no destroy method for', mod);
             }
         }
         

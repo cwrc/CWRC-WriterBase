@@ -293,9 +293,7 @@ Mapper.prototype = {
                     try {
                         content = $.parseXML(content);
                     } catch(e) {
-                        if (window.console) {
-                            console.warn("error parsing xml:", content);
-                        }
+                        console.warn("mapper: error parsing xml:", content);
                     }
                 }
             }

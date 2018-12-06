@@ -70,9 +70,7 @@ function SchemaManager(writer, config) {
             sm.getRootForSchema(schemaId).then(function(id, root) {
                 sm._roots[id] = root;
             }.bind(this, schemaId), function(error) {
-                if (window.console) {
-                    console.warn(error);
-                }
+                console.warn(error);
             });
         }
     };

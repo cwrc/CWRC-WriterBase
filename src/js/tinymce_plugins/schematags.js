@@ -212,9 +212,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
                 id = w.entitiesManager.getCurrentEntity();
                 filterKey = w.entitiesManager.getEntity(id).getTag();
             } else {
-                if (window.console) {
-                    console.warn('In unknown tag', node);
-                }
+                console.warn('schematags: in unknown tag', node);
             }
         }
         

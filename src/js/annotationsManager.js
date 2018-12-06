@@ -536,9 +536,7 @@ AnnotationsManager.prototype = {
             }
             
             if (typeUri == null) {
-                if (window.console) {
-                    console.warn('can\'t determine type for', xml);
-                }
+                console.warn('can\'t determine type for', xml);
             } else {
                 var entityType = this.w.annotationsManager.getEntityTypeForAnnotation(typeUri);
                 newEntity = {};
@@ -737,9 +735,7 @@ AnnotationsManager.prototype = {
                 offset: offset
             };
         } else {
-            if (window.console) {
-                console.warn('Could not find node for: '+xpath);
-            }
+            console.warn('Could not find node for: '+xpath);
             return null;
         }
     },

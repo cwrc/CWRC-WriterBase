@@ -135,14 +135,10 @@ function DialogManager(writer) {
     dm.addDialog = function(dialogName, DialogClass) {
         var dialog = new DialogClass(w, $cwrcDialogWrapper);
         if (dialog.show === undefined) {
-            if (window.console) {
-                console.warn(dialogName+" doesn't have required method \"show\"!");
-            }
+            console.warn(dialogName+" doesn't have required method \"show\"!");
         }
         if (dialog.destroy === undefined) {
-            if (window.console) {
-                console.warn(dialogName+" doesn't have required method \"destroy\"!");
-            }
+            console.warn(dialogName+" doesn't have required method \"destroy\"!");
         }
         dialogs[dialogName] = dialog;
         return dialog;
@@ -190,7 +186,7 @@ function DialogManager(writer) {
             if (dialogs[d].destroy !== undefined) {
                 dialogs[d].destroy();
             } else {
-                if (window.console) console.warn('cannot destroy', d);
+                console.warn('dialogManager: cannot destroy', d);
             }
         }
         

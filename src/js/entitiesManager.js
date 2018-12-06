@@ -93,9 +93,7 @@ EntitiesManager.prototype = {
         if (entity instanceof Entity) {
             this.entities[id] = entity;
         } else {
-            if (window.console) {
-                console.warn('Trying to set a non-Entity object.');
-            }
+            console.warn('entitiesManager: trying to set a non-Entity object.');
         }
     },
     
