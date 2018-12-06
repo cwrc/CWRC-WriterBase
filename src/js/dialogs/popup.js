@@ -214,16 +214,6 @@ function Popup(writer, parentEl) {
             body.on('mouseover', attributeSelector, attributeMouseover);
         }
         
-        var elKeys = w.schemaManager.mapper.getPopupElements();
-        elementSelector = '';
-        $.map(elKeys, function(val, i) {
-            elementSelector += '[_tag="'+val+'"]';
-            if (i < elKeys.length-1) elementSelector += ',';
-        });
-        if (elementSelector != '') {
-            body.on('mouseover', elementSelector, elementMouseover);
-        }
-        
         var urlKeys = w.schemaManager.mapper.getUrlAttributes();
         linkSelector = '';
         $.map(urlKeys, function(val, i) {
@@ -232,6 +222,16 @@ function Popup(writer, parentEl) {
         });
         if (linkSelector != '') {
             body.on('mouseover', linkSelector, linkMouseover);
+        }
+
+        var elKeys = w.schemaManager.mapper.getPopupElements();
+        elementSelector = '';
+        $.map(elKeys, function(val, i) {
+            elementSelector += '[_tag="'+val+'"]';
+            if (i < elKeys.length-1) elementSelector += ',';
+        });
+        if (elementSelector != '') {
+            body.on('mouseover', elementSelector, elementMouseover);
         }
     }
     
