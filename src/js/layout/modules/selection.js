@@ -73,23 +73,27 @@ function Selection(config) {
         if ($prismContainer.is(':visible') && timeDiff > 250) {
             lastUpdate = new Date().getTime();
             
-            var contents = '';
+            var xmlString = '';
             if (useDoc || w.editor.selection.isCollapsed()) {
-                contents = w.editor.getBody().firstChild.cloneNode(true);
+                xmlString = w.converter.getDocumentContent(true);
                 showingFullDoc = true;
             } else {
                 var range = w.editor.selection.getRng(true);
-                contents = range.cloneContents();
+                var contents = range.cloneContents();
+                $selectionContents.html(contents);
+                xmlString = w.converter.buildXMLString($selectionContents);
                 showingFullDoc = false;
             }
             
-            $selectionContents.html(contents);
-            var xmlString = w.converter.buildXMLString($selectionContents);
             var escapedContents = w.utilities.escapeHTMLString(xmlString);
             if (escapedContents.length > selectionTrimLength) {
                 escapedContents = escapedContents.substring(0, selectionTrimLength);// + '&hellip;';
             }
-            $prismContainer.html('<pre style="width:100%;height:100%;padding:0;margin:0;border:none !important;"><code class="language-markup" style="white-space: pre-wrap;">'+escapedContents+'</code></pre>');
+            $prismContainer.html(
+                '<pre style="width:100%;height:100%;padding:0;margin:0;border:none !important;"><code class="language-markup" style="white-space: pre-wrap;">'
+                    +escapedContents+
+                '</code></pre>'
+            );
             Prism.highlightElement($('code', $prismContainer)[0]);
         }
     }
