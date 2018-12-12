@@ -272,6 +272,7 @@ function initWriter(el) {
                     var parent = me.showConfig.entry.getTag();
                     var noteDoc = $.parseXML(me.showConfig.entry.getNoteContent());
                     var annotation = $(parent, noteDoc).first();
+                    annotation.attr('_entity', 'true'); // stop auto conversion of note entity by xml2cwrc
                     var xmlDoc = $(doc).find(parent).replaceWith(annotation).end()[0];
                     me.cwrcWriter.loadDocumentXML(xmlDoc);
                 }
