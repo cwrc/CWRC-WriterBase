@@ -614,15 +614,18 @@ function Tagger(writer) {
                 cwrcLookupInfo: info.cwrcInfo
             });
             
+            // need to add entity before adding tag, due to race condition with structureTree
+            var entry = w.entitiesManager.addEntity(entity);
             var content = tagger.addEntityTag(id, type, tag);
+            
             var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
             if (isNote) {
                 var xmlcontent = w.schemaManager.mapper.getNoteContentForEntity(entity);
                 content = xmlcontent.documentElement.textContent.trim();
             }
+            
             entity.setContent(content);
             
-            var entry = w.entitiesManager.addEntity(entity);
             updateEntityInfo(entry, info);
             
             $.when(

@@ -293,7 +293,6 @@ function StructureTree(config) {
         // entity tag
         if (w.isReadOnly === false && node.attr('_entity') && (node.attr('_tag') || node.attr('_note'))) {
             var id = node.attr('name');
-            var entity = w.entitiesManager.getEntity(id);
             var type = node.attr('_type');
             var tag = node.attr('_tag');
             if (tag == null) {
@@ -306,7 +305,8 @@ function StructureTree(config) {
                 state: {opened: level < 3}
             };
             
-            if (w.schemaManager.mapper.isEntityTypeNote(type)) {
+            var entity = w.entitiesManager.getEntity(id);
+            if (entity !== undefined && w.schemaManager.mapper.isEntityTypeNote(type)) {
                 var content = w.schemaManager.mapper.getNoteContentForEntity(entity);
                 switch($.type(content)) {
                     case 'array':
