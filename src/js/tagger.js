@@ -602,6 +602,17 @@ function Tagger(writer) {
             
             sanitizeObject(info.attributes);
             sanitizeObject(info.customValues);
+
+            var content;
+            var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
+            if (isNote) {
+                var xmlcontent = $.parseXML(info.noteContent);
+                content = xmlcontent.documentElement.textContent.trim();
+            } else {
+                content = w.editor.selection.getContent();
+                // strip tags and extra whitespace
+                content = content.replace(/<\/?[^>]+>/g, '').replace(/^\s+|\s+$/g, '');
+            }
             
             // create entity here so we can set content properly before adding it to the manager
             var entity = new Entity({
@@ -610,21 +621,15 @@ function Tagger(writer) {
                 tag: tag,
                 attributes: info.attributes,
                 customValues: info.customValues,
+                content: content,
                 noteContent: info.noteContent,
                 cwrcLookupInfo: info.cwrcInfo
             });
             
             // need to add entity before adding tag, due to race condition with structureTree
             var entry = w.entitiesManager.addEntity(entity);
-            var content = tagger.addEntityTag(id, type, tag);
-            
-            var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
-            if (isNote) {
-                var xmlcontent = w.schemaManager.mapper.getNoteContentForEntity(entity);
-                content = xmlcontent.documentElement.textContent.trim();
-            }
-            
-            entity.setContent(content);
+
+            tagger.addEntityTag(id, type, tag);
             
             updateEntityInfo(entry, info);
             
