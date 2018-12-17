@@ -162,10 +162,6 @@ function CWRCWriter(config) {
             var rng = w.editor.dom.createRng();
             if (selectContentsOnly) {
                 if (tinymce.isWebKit) {
-    //                $('[data-mce-bogus]', node).remove();
-    //                node.prepend('<span data-mce-bogus="1">\uFEFF</span>').append('<span data-mce-bogus="1">\uFEFF</span>');
-    //                rng.setStart(nodeEl.firstChild, 0);
-    //                rng.setEnd(nodeEl.lastChild, nodeEl.lastChild.length);
                     if (nodeEl.firstChild == null) {
                         node.append('\uFEFF');
                     }
@@ -175,19 +171,7 @@ function CWRCWriter(config) {
                 }
             } else {
                 $('[data-mce-bogus]', node.parent()).remove();
-                // no longer seems necessary
-//                if (tinymce.isWebKit) {
-//                    // if no nextElementSibling then only the contents will be copied in webkit
-//                    if (nodeEl.nextElementSibling == null) {
-//                        // sibling needs to be visible otherwise it doesn't count
-//                        node.after('<span data-mce-bogus="1" style="display: inline;">\uFEFF</span>');
-//                    }
-//                    node.before('<span data-mce-bogus="1" style="display: inline;">\uFEFF</span>').after('<span data-mce-bogus="1" style="display: inline;">\uFEFF</span>');
-//                    rng.setStart(nodeEl.previousSibling.firstChild, 0);
-//                    rng.setEnd(nodeEl.nextSibling.firstChild, 0);
-//                } else {
-                    rng.selectNode(nodeEl);
-//                }
+                rng.selectNode(nodeEl);
             }
             
             w.editor.selection.setRng(rng);
@@ -212,6 +196,18 @@ function CWRCWriter(config) {
                 w.editor.focus();
                 w.event('tagSelected').publish(id, selectContentsOnly);
             }, 0);
+
+            if (w.isReadOnly === false) {
+                // if we're dealing with a note, then open it for editing
+                var entity = w.entitiesManager.getEntity(id);
+                var isNote = false;
+                if (entity !== undefined) {
+                    isNote = w.schemaManager.mapper.isEntityTypeNote(entity.getType());
+                }
+                if (isNote) {
+                    w.tagger.editTag(id);
+                }
+            }
         }
     };
     
