@@ -79,11 +79,6 @@ function XML2CWRC(writer) {
             }
         }
 
-        if (cssUrl !== undefined) {
-            loadSchemaCss = false;
-            w.schemaManager.loadSchemaCSS(cssUrl);
-        }
-
         if (schemaUrl === undefined && schemaId === undefined) {
             schemaId = w.schemaManager.getSchemaIdFromRoot(doc.firstElementChild.nodeName);
         }
@@ -96,13 +91,17 @@ function XML2CWRC(writer) {
                 type: 'error',
                 callback: function(doIt) {
                     if (doIt) {
+                        if (cssUrl !== undefined) {
+                            loadSchemaCss = false;
+                            w.schemaManager.loadSchemaCSS(cssUrl);
+                        }
                         if (schemaUrl !== undefined) {
                             var customSchemaId = w.schemaManager.addSchema({
                                 name: 'Custom Schema',
                                 url: schemaUrl,
                                 cssUrl: cssUrl
                             });
-                            w.schemaManager.loadSchema(customSchemaId, false, cssUrl !== undefined, function(success) {
+                            w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
                                 if (success) {
                                     doProcessing(doc);
                                 } else {
@@ -121,6 +120,10 @@ function XML2CWRC(writer) {
             
         } else {
             if (schemaId !== w.schemaManager.schemaId) {
+                if (cssUrl !== undefined) {
+                    loadSchemaCss = false;
+                    w.schemaManager.loadSchemaCSS(cssUrl);
+                }
                 w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
                     if (success) {
                         doProcessing(doc);
