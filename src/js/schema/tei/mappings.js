@@ -315,46 +315,34 @@ citation: {
 },
 
 keyword: {
-    parentTag: 'note',
-    xpathSelector: 'self::tei:note/tei:term',
+    parentTag: 'seg',
+    xpathSelector: 'self::tei:seg/tei:term',
     textTag: '',
-    isNote: true,
-    getNoteContent: function(entity, returnString) {
-        var keywords = entity.getCustomValue('keywords');
-        if (returnString) {
-            return keywords.join(', ');
-        } else {
-            return keywords;
-        }
-    },
     mapping: function(entity) {
-        var keywords = entity.getCustomValue('keywords');
+        var term = entity.getCustomValue('term');
+        var tag = entity.getTag();
+
+        var xml = Mapper.getTagAndDefaultAttributes(entity)+'>';
+        xml += '<term>'+term+'</term>';
+        xml += '</'+tag+'>';
         
-        var xml = '';
-        for (var i = 0; i < keywords.length; i++) {
-            xml += Mapper.getTagAndDefaultAttributes(entity);
-            xml += '><term>'+keywords[i]+'</term></note>';
-        }
         return xml;
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
-            customValues: {keywords: 'tei:term/text()'}
+            customValues: {term: 'tei:term/text()'}
         }, 'tei');
     },
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, ['oa:Tag', 'cnt:ContentAsText', 'skos:Concept'], 'oa:classifying', format);
         
-        var keywords = entity.getCustomValue('keywords');
+        var term = entity.getCustomValue('term');
         if (format === 'xml') {
             var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
-            for (var i = 0; i < keywords.length; i++) {
-                var keyword = keywords[i];
-                var keywordXml = $.parseXML('<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">'+keyword+'</cnt:chars>');
-                body.prepend(keywordXml.firstChild);
-            }
+            var termXML = $.parseXML('<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">'+term+'</cnt:chars>');
+            body.prepend(termXML.firstChild);
         } else {
-            anno.hasBody['cnt:chars'] = keywords;
+            anno.hasBody['cnt:chars'] = term;
         }
 
         return anno;
