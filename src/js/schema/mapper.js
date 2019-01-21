@@ -66,7 +66,7 @@ Mapper.getTagAndDefaultAttributes = function(entity) {
 /**
  * Similar to the Mapper.getTagAndDefaultAttributes method but closes the tag.
  * @param {Entity} entity
- * @returns
+ * @returns {String}
  */
 Mapper.getDefaultMapping = function(entity) {
     var xml = Mapper.getTagAndDefaultAttributes(entity);
@@ -198,6 +198,11 @@ Mapper.prototype = {
         }
     },
 
+    /**
+     * Gets the XML mapping for the specified entity.
+     * @param {Entity} entity 
+     * @returns {Array} An 2 item array of opening and closing tags. If the tag is empty then it will be in the second index.
+     */
     getMapping: function(entity) {
         var mapping = this.getMappings().entities[entity.getType()].mapping;
         if (mapping === undefined) {
@@ -255,6 +260,7 @@ Mapper.prototype = {
                 var parentTag = mappings.entities[type].parentTag;
                 if (($.isArray(parentTag) && parentTag.indexOf(tag) !== -1) || parentTag === tag) {
                     resultType = type;
+                    break;
                 }
             }
         }
@@ -382,10 +388,29 @@ Mapper.prototype = {
     
     /**
      * Returns the element names that should be displayed in a popup.
+     * @param {Boolean} [convert] True to convert to cwrc format
      * @returns {Array}
      */
-    getPopupElements: function() {
-        return this.getMappings().popupElements || [];
+    getPopupElements: function(convert) {
+        convert === undefined ? false : convert;
+        var popupElements = this.getMappings().popupElements || [];
+        if (convert) {
+            var convertedElements = [];
+            $.map(popupElements, function(val, i) {
+                // check for attribute in selector
+                var openBracketIndex = val.indexOf('[');
+                if (openBracketIndex !== -1) {
+                    var tag = val.substring(0, openBracketIndex);
+                    var att = val.substring(openBracketIndex);
+                    convertedElements.push('[_tag="'+tag+'"]'+att);
+                } else {
+                    convertedElements.push('[_tag="'+val+'"]');
+                }
+            });
+            return convertedElements;
+        } else {
+            return popupElements;
+        }
     }
 };
 

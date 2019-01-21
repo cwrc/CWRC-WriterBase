@@ -537,31 +537,14 @@ html, body {
 }
 
 .cwrc .popup.ui-dialog .ui-widget-header {
-    border: none;
-    background-color: #ffffff;
-    font-weight: normal;
-}
-
-.cwrc .popup.note.ui-dialog .ui-widget-header {
     display: none;
 }
 
 .cwrc .popup.ui-dialog .ui-widget-content {
-    padding: 0;
-}
-
-.cwrc .popup.note.ui-dialog .ui-widget-content {
     padding: .4em 1em;
 }
 
-.cwrc .popup.ui-dialog .ui-dialog-title {
-    width: auto;
-    overflow: auto;
-    white-space: normal;
-    max-height: 250px;
-}
-
-.cwrc .link.ui-dialog .ui-dialog-title {
+.cwrc .popup.link.ui-dialog .ui-widget-content {
     text-decoration: underline;
     cursor: pointer;
 }
