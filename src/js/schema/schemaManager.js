@@ -265,8 +265,8 @@ function SchemaManager(writer, config) {
                         var tag = $(el).attr('name');
                         if (tag != null && elements.indexOf(tag) == -1) {
                             elements.push(tag);
-                            schemaTags += '.showStructBrackets *[_tag='+tag+']:before { color: #aaa !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "<'+tag+'>"; }';
-                            schemaTags += '.showStructBrackets *[_tag='+tag+']:after { color: #aaa !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "</'+tag+'>"; }';
+                            schemaTags += '.showTags *[_tag='+tag+']:before { color: #aaa !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "<'+tag+'>"; }';
+                            schemaTags += '.showTags *[_tag='+tag+']:after { color: #aaa !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "</'+tag+'>"; }';
                         }
                     });
                     elements.sort();

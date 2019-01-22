@@ -10,8 +10,8 @@ function Settings(writer, config) {
     var settings = {
         fontSize: '11pt',
         fontFamily: 'Book Antiqua',
-        showEntityBrackets: false,
-        showStructBrackets: false
+        showEntities: false,
+        showTags: false
     };
     
     $.extend(settings, config);
@@ -54,10 +54,10 @@ function Settings(writer, config) {
             '</select>'+
         '</div>'+
         '<div style="margin-top: 10px;">'+
-            '<label>Show Entity Brackets <input type="checkbox" class="showentitybrackets" /></label>'+
+            '<label>Show Entities <input type="checkbox" class="showentities" /></label>'+
         '</div>'+
         '<div style="margin-top: 10px;">'+
-            '<label>Show Tags <input type="checkbox" class="showstructbrackets" /></label>'+
+            '<label>Show Tags <input type="checkbox" class="showtags" /></label>'+
         '</div>'+
         '<div class="settingsDialogAdvanced">'+
             '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #aaa;">'+
@@ -93,8 +93,8 @@ function Settings(writer, config) {
     $settingsLink.click(function() {
         $('select[name="fontsize"] > option[value="'+settings.fontSize+'"]', $settingsDialog).prop('selected', true);
         $('select[name="fonttype"] > option[value="'+settings.fontFamily+'"]', $settingsDialog).prop('selected', true);
-        $settingsDialog.find('.showentitybrackets').prop('checked', settings.showEntityBrackets);
-        $settingsDialog.find('.showstructbrackets').prop('checked', settings.showStructBrackets);
+        $settingsDialog.find('.showentities').prop('checked', settings.showEntities);
+        $settingsDialog.find('.showtags').prop('checked', settings.showTags);
         if (w.mode === w.XML) {
             $('select[name="editormode"] > option[value="xml"]', $settingsDialog).prop('selected', true);
         } else if (w.mode === w.XMLRDF){
@@ -253,15 +253,15 @@ function Settings(writer, config) {
             settings.fontSize = $('select[name="fontsize"]', $settingsDialog).val();
             settings.fontFamily = $('select[name="fonttype"]', $settingsDialog).val();
             
-            if (settings.showEntityBrackets != $settingsDialog.find('.showentitybrackets').prop('checked')) {
-                $('body', w.editor.getDoc()).toggleClass('showEntityBrackets');
+            if (settings.showEntities != $settingsDialog.find('.showentities').prop('checked')) {
+                $('body', w.editor.getDoc()).toggleClass('showEntities');
             }
-            settings.showEntityBrackets = $settingsDialog.find('.showentitybrackets').prop('checked');
+            settings.showEntities = $settingsDialog.find('.showentities').prop('checked');
             
-            if (settings.showStructBrackets != $settingsDialog.find('.showstructbrackets').prop('checked')) {
-                $('body', w.editor.getDoc()).toggleClass('showStructBrackets');
+            if (settings.showTags != $settingsDialog.find('.showtags').prop('checked')) {
+                $('body', w.editor.getDoc()).toggleClass('showTags');
             }
-            settings.showStructBrackets = $settingsDialog.find('.showstructbrackets').prop('checked');
+            settings.showTags = $settingsDialog.find('.showtags').prop('checked');
             
             var styles = {
                 fontSize: settings.fontSize,
@@ -327,8 +327,8 @@ function Settings(writer, config) {
     function setDefaults() {
         $('select[name="fontsize"]', $settingsDialog).val(defaultSettings.fontSize);
         $('select[name="fonttype"]', $settingsDialog).val(defaultSettings.fontFamily);
-        $settingsDialog.find('.showentitybrackets').prop('checked', defaultSettings.showEntityBrackets);
-        $settingsDialog.find('.showstructbrackets').prop('checked', defaultSettings.showStructBrackets);
+        $settingsDialog.find('.showentities').prop('checked', defaultSettings.showEntities);
+        $settingsDialog.find('.showtags').prop('checked', defaultSettings.showTags);
         
         var editorVal;
         switch(defaultSettings.mode) {

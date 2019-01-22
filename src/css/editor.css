@@ -2,12 +2,12 @@
 
 @import url(https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext);
 
-.showEntityBrackets .entity, .ui-dialog-content .entity {
+.showEntities .entity, .ui-dialog-content .entity {
     border-width: 1px;
     border-bottom-style: dotted;
 }
 
-.showEntityBrackets .entityHighlight .entity {
+.showEntities .entityHighlight .entity {
     border-width: 2px;
 }
 
@@ -44,35 +44,35 @@
 }
 
 
-.showEntityBrackets .person, .ui-dialog-content .person {
+.showEntities .person, .ui-dialog-content .person {
     border-color: #FF0000;
 }
 
-.showEntityBrackets .date, .ui-dialog-content .date {
+.showEntities .date, .ui-dialog-content .date {
     border-color: #FF7400;
 }
 
-.showEntityBrackets .place, .ui-dialog-content .place {
+.showEntities .place, .ui-dialog-content .place {
     border-color: #009999;
 }
 
-.showEntityBrackets .event, .ui-dialog-content .event {
+.showEntities .event, .ui-dialog-content .event {
     border-color: #00CC00;
 }
 
-.showEntityBrackets .org, .ui-dialog-content .org {
+.showEntities .org, .ui-dialog-content .org {
     border-color: #3914AF; 
 }
 
-.showEntityBrackets .title, .ui-dialog-content .title {
+.showEntities .title, .ui-dialog-content .title {
     border-color: #debb00;
 }
 
-.showEntityBrackets .correction, .ui-dialog-content .correction {
+.showEntities .correction, .ui-dialog-content .correction {
     border-color: #FF3300;
 }
 
-.showEntityBrackets .link, .ui-dialog-content .link {
+.showEntities .link, .ui-dialog-content .link {
     border-color: #3366ff;
 }
 
@@ -107,7 +107,7 @@ span:not(.entityHighlight) > .start.keyword::after, div > .start.keyword::after 
     content: url(../img/keyword_inline_large_highlight.png);
 }
 
-.showEntityBrackets .citation.start, .showEntityBrackets .note.start, .showEntityBrackets .keyword.start {
+.showEntities .citation.start, .showEntities .note.start, .showEntities .keyword.start {
     border: none !important;
 }
 

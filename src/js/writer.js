@@ -829,8 +829,8 @@ function CWRCWriter(config) {
     w.converter = new Converter(w);
     w.annotationsManager = new AnnotationsManager(w);
     w.settings = new SettingsDialog(w, {
-        showEntityBrackets: true,
-        showStructBrackets: false
+        showEntities: true,
+        showTags: false
     });
     
     $(document.body).mousedown(function(e) {
@@ -1001,8 +1001,8 @@ function CWRCWriter(config) {
                 
                 var settings = w.settings.getSettings();
                 var body = $(ed.getBody());
-                if (settings.showEntityBrackets) body.addClass('showEntityBrackets');
-                if (settings.showStructBrackets) body.addClass('showStructBrackets');
+                if (settings.showEntities) body.addClass('showEntities');
+                if (settings.showTags) body.addClass('showTags');
                 
                 ed.addCommand('isSelectionValid', w.utilities.isSelectionValid);
                 ed.addCommand('addEntity', w.tagger.addEntity);
