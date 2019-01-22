@@ -40,8 +40,7 @@ Mapper.getAttributeString = function(attObj) {
 Mapper.getAttributesFromXml = function(xml) {
     var attrs = {};
     $.map(xml.attributes, function(att) {
-        // TODO include annotationAttributeName, but how?
-        if (att.name === 'annotationId' || att.name === 'offsetId' || att.name === 'cwrcStructId') {
+        if (att.name === 'annotationId' || att.name === 'offsetId') {
             // don't include
         } else {
             attrs[att.name] = att.value;

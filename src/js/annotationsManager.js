@@ -1,6 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
+var Entity = require('./entity.js');
  
 /**
  * @class AnnotationsManager
@@ -279,8 +280,7 @@ AnnotationsManager.prototype = {
     
     /**
      * Get the annotation object for the entity.
-     * @param {Entity} entity The entity.
-     * @param {Object} entity.annotation The annotation data associated with the entity.
+     * @param {Entity} entity The Entity instance.
      * @param {String} format The annotation format ('xml' or 'json').
      * @returns {Object} The annotation object. 
      */
@@ -300,11 +300,12 @@ AnnotationsManager.prototype = {
     },
     
     /**
-     * Get the RDF string that represents all the annotations in the document.
+     * Get the RDF string that represents the specified annotations.
+     * @param {Array} entities An array of Entity instances
      * @param {String} format The annotation format ('xml' or 'json).
      * @returns {String} The RDF string.
      */
-    getAnnotations: function(format) {
+    getAnnotations: function(entities, format) {
         format = format || 'xml';
 
         var namespaces = {
@@ -323,10 +324,11 @@ AnnotationsManager.prototype = {
         '\n</rdf:Description>';
 
         var me = this;
-        this.w.entitiesManager.eachEntity(function(id, entity) {
+        entities.forEach(function(entity) {
             // TODO temp fix for entities that don't have URIs
             if (entity.getUris().annotationId == null) {
                 // generate the URIs
+                // TODO FIXME getAnnotation runs before these URIs get set
                 $.when(
                     me.w.utilities.getUriForEntity(entity),
                     me.w.utilities.getUriForAnnotation(),
@@ -370,7 +372,6 @@ AnnotationsManager.prototype = {
             if (entity.getNoteContent()) {
                 // get the rdf and append it
                 var xml = me.w.utilities.stringToXML(entity.getNoteContent());
-                // TODO should RDF be in note content???
                 var rdf = $('rdf\\:RDF, RDF', xml);
                 $('[rdf\\:datatype]', rdf).each(function(index, el) {
                     rdfString += me.w.utilities.xmlToString(el);
@@ -401,6 +402,24 @@ AnnotationsManager.prototype = {
         return rdfString;
     },
     
+    /**
+     * Gets an entity config for the specified RDF element.
+     * @param {Element} rdfEl An RDF element containing annotation info
+     * @returns {Object|null} Entity config object
+     */
+    getEntityFromAnnotation: function(rdfEl) {
+        var entityConfig = null;
+        var rdf = $(rdfEl);
+        // json-ld
+        if (rdf.attr('rdf:datatype') == 'http://www.w3.org/TR/json-ld/') {
+            entityConfig = this.getEntityFromJsonAnnotation(rdf[0]);
+        // rdf/xml
+        } else if (rdf.attr('rdf:about')) {
+            entityConfig = this.getEntityFromXmlAnnotation(rdf[0]);
+        }
+        return entityConfig;
+    },
+
     /**
      * Parse JSON and get an Entity config object
      * @param {Element} rdfEl An RDF element containing JSON text
@@ -483,7 +502,7 @@ AnnotationsManager.prototype = {
                 var xpointer = selector['rdf:value'];
                 rangeObj = this._getRangeObject(doc, xpointer);
 
-                var el = $(doc).find('[cwrcStructId='+rangeObj.startId+']')[0];
+                var el = this.w.utilities.evaluateXPath(doc, rangeObj.startXPath);
                 newEntity.tag = el.nodeName;
                 
                 var info = this.w.schemaManager.mapper.getReverseMapping(el, entityType);
@@ -632,7 +651,7 @@ AnnotationsManager.prototype = {
                     var xpointer = selector.find('rdf\\:value, value').text();
                     rangeObj = this._getRangeObject(doc, xpointer);
 
-                    var el = $(doc).find('[cwrcStructId='+rangeObj.startId+']')[0];
+                    var el = this.w.utilities.evaluateXPath(doc, rangeObj.startXPath);
                     newEntity.tag = el.nodeName;
                     
                     var info = this.w.schemaManager.mapper.getReverseMapping(el, entityType);
@@ -667,113 +686,136 @@ AnnotationsManager.prototype = {
 
     /**
      * Gets the range object for xpointer(s).
-     * Adds cwrcStructId to the matched elements for later entity processing.
      * @param {Document} doc
      * @param {String} xpointerStart 
      * @param {String} [xpointerEnd]
      * @return {Object}
      */
     _getRangeObject: function(doc, xpointerStart, xpointerEnd) {
+
+        function parseXPointer(xpointer, doc) {
+            var xpath;
+            var offset = null;
+            if (xpointer.indexOf('string-range') === -1) {
+                var regex = new RegExp(/xpointer\((.*)?\)$/); // regex for isolating xpath
+                var content = regex.exec(xpointer)[1];
+                xpath = content;
+            } else {
+                var regex = new RegExp(/xpointer\((?:string-range\()?([^\)]*)\)+/); // regex for isolating xpath and offset
+                var content = regex.exec(xpointer)[1];
+                var parts = content.split(',');
+                xpath = parts[0];
+                if (parts[2]) {
+                    offset = parseInt(parts[2]);
+                }
+            }            
+    
+            return {
+                xpath: xpath,
+                offset: offset
+            };
+        }
+
         var rangeObj = {};
         
-        var xpathStart = this._parseXPointer(xpointerStart, doc);
-        if (xpathStart !== null) {
-            var startId = this.w.getUniqueId('struct_');
-            $(xpathStart.el).attr('cwrcStructId', startId);
-            if (xpointerEnd !== undefined) {
-                var xpathEnd = this._parseXPointer(xpointerEnd, doc);
-                if (xpathEnd !== null) {                    
-                    var endId = this.w.getUniqueId('struct_');
-                    $(xpathEnd.el).attr('cwrcStructId', endId);
-                    rangeObj = {
-                        startId: startId,
-                        startOffset: xpathStart.offset,
-                        endId: endId,
-                        endOffset: xpathEnd.offset
-                    };
-                }
-            } else {
-                rangeObj = {
-                    startId: startId
-                };
-            }
+        var xpathStart = parseXPointer(xpointerStart, doc);
+        if (xpointerEnd !== undefined) {
+            var xpathEnd = parseXPointer(xpointerEnd, doc);
+            rangeObj = {
+                startXPath: xpathStart.xpath,
+                startOffset: xpathStart.offset,
+                endXPath: xpathEnd.xpath,
+                endOffset: xpathEnd.offset
+            };
+        } else {
+            rangeObj = {
+                startXPath: xpathStart.xpath
+            };
         }
 
         return rangeObj;
-    },
-
-    /**
-     * Parses the xpointer, and returns the element associated with the xpath.
-     * Expected non-range format: xpointer(XPATH)
-     * Expected range format: xpointer(string-range(XPATH,"",OFFSET))
-     * Regex assumes no parentheses in xpath
-     * @param {String} xpointer 
-     * @param {Document} doc 
-     * @returns {Object} An object with id, el and offset properties
-     */
-    _parseXPointer: function(xpointer, doc) {
-        var xpath;
-        var offset = null;
-        if (xpointer.indexOf('string-range') === -1) {
-            var regex = new RegExp(/xpointer\((.*)?\)$/); // regex for isolating xpath
-            var content = regex.exec(xpointer)[1];
-            xpath = content;
-        } else {
-            var regex = new RegExp(/xpointer\((?:string-range\()?([^\)]*)\)+/); // regex for isolating xpath and offset
-            var content = regex.exec(xpointer)[1];
-            var parts = content.split(',');
-            xpath = parts[0];
-            if (parts[2]) {
-                offset = parseInt(parts[2]);
-            }
-        }            
-
-        var result = this.w.utilities.evaluateXPath(doc, xpath);
-        if (result != null) {
-            return {
-                el: result,
-                offset: offset
-            };
-        } else {
-            console.warn('Could not find node for: '+xpath);
-            return null;
-        }
     },
     
     /**
      * Parses the RDF and adds entities to the EntitiesManager.
      * Also processes any relations/triples.
      * @param {Element} rdfEl RDF parent element
+     * @param {Boolean} [isLegacyDocument] True if this is a legacy document (i.e. it uses annotationId)
      */
-    setAnnotations: function(rdfEl) {
-        this.w.entitiesManager.reset();
-        this.w.deletedEntities = {};
+    setAnnotations: function(rdfEl, isLegacyDocument) {
+        isLegacyDocument = isLegacyDocument === undefined ? false : isLegacyDocument;
+
+        var me = this;
+        me.w.entitiesManager.reset();
+        me.w.deletedEntities = {};
         
         var rdfs = $(rdfEl);
         
+        var root = rdfs.parents().last()[0];
+        var doc = root.parentNode;
+
         var triples = [];
+        var noteChildEntities = [];
+
         rdfs.children().each(function(index, el) {
             var rdf = $(el);
+            var entityConfig = me.getEntityFromAnnotation(rdf);
+            if (entityConfig != null) {
+                if (isLegacyDocument) {
+                    // replace annotationId with xpath
+                    var entityEl = me.w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
+                    entityConfig.range.startXPath = me.w.utilities.getElementXPath(entityEl);
+                    if (entityConfig.range.endXPath !== undefined) {
+                        var entityElEnd = me.w.utilities.evaluateXPath(doc, entityConfig.range.endXPath);
+                        entityConfig.range.endXPath = me.w.utilities.getElementXPath(entityElEnd);
+                    }
+                }
 
-            // json-ld
-            if (rdf.attr('rdf:datatype') == 'http://www.w3.org/TR/json-ld/') {
-                var entityConfig = this.getEntityFromJsonAnnotation(rdf[0]);
-                if (entityConfig != null) {
-                    this.w.entitiesManager.addEntity(entityConfig);
-                }
-            // rdf/xml
-            } else if (rdf.attr('rdf:about')) {
-                var entityConfig = this.getEntityFromXmlAnnotation(rdf[0]);
-                if (entityConfig != null) {
-                    this.w.entitiesManager.addEntity(entityConfig);
-                }
-            // triple
-            } else if (rdf.attr('cw:external')){
+                // determine if this entity is inside a note
+                // var noteParent = null;
+                // var entityEl = me.w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
+                // $(entityEl).parentsUntil(root.nodeName).each(function(index, el) {
+                //     var type = me.w.schemaManager.mapper.getEntityTypeForTag(el);
+                //     if (type !== null) {
+                //         if (me.w.schemaManager.mapper.isEntityTypeNote(type)) {
+                //             noteParent = el;
+                //             return false;
+                //         }
+                //     }
+                // });
+                // if (noteParent !== null) {
+                //     noteChildEntities.push({
+                //         noteParentXPath: me.w.utilities.getElementXPath(noteParent),
+                //         entityConfig: entityConfig
+                //     });
+                // } else {
+                    me.w.entitiesManager.addEntity(entityConfig);
+                // }
+            } else if (rdf.attr('cw:external')) {
                 triples.push(rdf);
             }
-        }.bind(this));
+        });
+
+        // add note child entity rdf to the noteContent of the parent note
+        // noteChildEntities.forEach(function(nce) {
+        //     var parentEntity = null;
+        //     me.w.entitiesManager.eachEntity(function(id, ent) {
+        //         if (ent.getRange().startXPath === nce.noteParentXPath) {
+        //             parentEntity = ent;
+        //             return false;
+        //         }
+        //     });
+        //     if (parentEntity !== null) {
+        //         var childEntity = new Entity(nce.entityConfig);
+        //         var rdfObject = me.getAnnotation(childEntity, 'xml');
+        //         // TODO add rdf to parent's note content
+        //     } else {
+        //         console.warn('annotationsManager.setAnnotations: couldn\'t find parent note for child entity', nce);
+        //     }
+
+        // });
         
-        this._processTriples(triples);
+        me._processTriples(triples);
     },
     
     _processTriples: function(triples) {

@@ -1,6 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
+var Entity = require('../entity.js');
 
 /**
  * @class CWRC2XML
@@ -20,28 +21,16 @@ function CWRC2XML(writer) {
      * @returns {String}
      */
     cwrc2xml.getDocumentContent = function(includeRDF) {
+        if (includeRDF && w.mode === w.XML) {
+            includeRDF = false;
+        }
+        
         // remove highlights
         w.entitiesManager.highlightEntity();
 
         var $body = $(w.editor.getBody()).clone(false);
         prepareText($body);
-        
-        // RDF
-        
-        var rdfString = '';
-        if (w.mode === w.RDF || (w.mode === w.XMLRDF && includeRDF)) {
-            var rdfmode;
-            if (w.annotationMode === w.XML) {
-                rdfmode = 'xml';
-            } else {
-                rdfmode = 'json';
-            }
-            rdfString = '\n'+w.annotationsManager.getAnnotations(rdfmode);
-        }
-        if (w.mode === w.RDF) {
-            return rdfString;
-        }
-        
+
         // XML
         
         var root = w.schemaManager.getRoot();
@@ -70,25 +59,59 @@ function CWRC2XML(writer) {
         var currentCSS = w.schemaManager.getCSS() || w.schemaManager.getCurrentSchema().cssUrl;
         xmlString += '<?xml-stylesheet type="text/css" href="'+currentCSS+'"?>\n';
 
+        xmlString += cwrc2xml.buildXMLString($rootEl, includeRDF);
+
+        // RDF
+
         if (includeRDF) {
+            var xmlDoc = w.utilities.stringToXML(xmlString);
+
+            setEntityRanges(xmlDoc);
+
+            var entities = [];
+            w.entitiesManager.eachEntity(function(id, ent) {
+                entities.push(ent);
+            });
+
+            if (w.isEmbedded === false) {
+                var noteChildEntities = processNotes(xmlDoc);
+                entities.concat(noteChildEntities);
+            }
+
+            // clean up temp ids used by setEntityRanges
+            $('[cwrcTempId]', xmlDoc).each(function(index, el) {
+                $(el).removeAttr('cwrcTempId');
+            });
+
+            var rdfString = '';
+            var rdfmode;
+            if (w.annotationMode === w.XML) {
+                rdfmode = 'xml';
+            } else {
+                rdfmode = 'json';
+            }
+            rdfString = '\n'+w.annotationsManager.getAnnotations(entities, rdfmode);
+
             // parse the selector and find the relevant node
+            var $docEl = $(xmlDoc.documentElement);
             var selector = w.schemaManager.mapper.getRdfParentSelector();
             var selectorNodes = selector.split('/');
-            var currNode = $body;
+            var $currNode = $docEl;
             for (var i = 0; i < selectorNodes.length; i++) {
                 var node = selectorNodes[i];
                 if (node !== '') {
                     if (node.indexOf('::') === -1) {
-                        var jquerySelector = '[_tag='+node+']';
-                        if (node === '*') {
-                            jquerySelector = '[_tag]';
-                        }
-                        var nextNode = currNode.children(jquerySelector).first();
-                        if (nextNode.length === 1) {
-                            currNode = nextNode;
+                        if ($currNode[0].nodeName === node) {
+                            continue;
                         } else {
-                            // node doesn't exist so add it
-                            currNode = $('<div _tag="'+node+'" />').appendTo(currNode.parent());
+                            var $nextNode = $currNode.children(node).first();
+                            if ($nextNode.length === 1) {
+                                $currNode = $nextNode;
+                            } else {
+                                // node doesn't exist so add it
+                                // need to use the parse method for case sensitive node names. using parseHTML instead of parseXML because it's more efficient: https://stackoverflow.com/a/28402222
+                                $currNode = $($.parseHTML('<'+node+' />', xmlDoc)).prependTo($currNode);
+                            }
                         }
                     } else {
                         // axis handling
@@ -97,10 +120,10 @@ function CWRC2XML(writer) {
                         node = parts[1];
                         switch(axis) {
                             case 'preceding-sibling':
-                                currNode = $('<div _tag="'+node+'" />').insertBefore(currNode);
+                                $currNode = $($.parseHTML('<'+node+' />', xmlDoc)).insertBefore($currNode);
                                 break;
                             case 'following-sibling':
-                                currNode = $('<div _tag="'+node+'" />').insertAfter(currNode);
+                                $currNode = $($.parseHTML('<'+node+' />', xmlDoc)).insertAfter($currNode);
                                 break;
                             default:
                                 console.warn('cwrc2xml: axis',axis,'not supported');
@@ -110,51 +133,40 @@ function CWRC2XML(writer) {
                 }
             }
 
-            if (currNode !== $body) { 
-                xmlString += cwrc2xml.buildXMLString($rootEl, currNode, rdfString);
+            if ($currNode !== $docEl) {
+                $currNode.append(rdfString);
             } else {
                 console.warn('cwrc2xml: couldn\'t find rdfParent for',selector);
-                xmlString += cwrc2xml.buildXMLString($rootEl);
             }
-        } else {
-            xmlString += cwrc2xml.buildXMLString($rootEl);
+            
+            xmlString = w.utilities.xmlToString(xmlDoc);
         }
-        
+
         xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
 
         return xmlString;
     };
-
-    /**
-     * Get the annotations for the current document
-     * @param {String} mode 'xml' or 'json'
-     * @returns {String} A stringified version, either XML or JSON based on mode param
-     */
-    cwrc2xml.getAnnotations = function(mode) {
-        w.entitiesManager.highlightEntity();
-
-        var body = $(w.editor.getBody()).clone(false);
-        prepareText(body);
-        
-        var rdfString = w.annotationsManager.getAnnotations(mode);
-        return rdfString;
-    };
     
     /**
-     * Prepare text for conversion to XML
+     * Process HTML entities and overlapping entities
      * @param {jQuery} body The text body
      */
     function prepareText(body) {
+        // Convert HTML entities to unicode, while preserving those that must be escaped as entities.
+
+        function _recursiveTextConversion(parentNode) {
+            var contents = $(parentNode).contents();
+            contents.each(function(index, el) {
+                if (el.nodeType == Node.TEXT_NODE) {
+                    el.nodeValue = w.utilities.convertTextForExport(el.nodeValue);
+                } else if (el.nodeType == Node.ELEMENT_NODE) {
+                    _recursiveTextConversion(el);
+                }
+            });
+        };
         _recursiveTextConversion(body);
-        setEntityRanges(body);
-    };
-    
-    /**
-     * Determine and set the range objects for each entity.
-     * Used later to construct the RDF.
-     * @param {jQuery} body The text body
-     */
-    function setEntityRanges(body) {
+
+        // Handle overlapping entities
 
         // get the overlapping entity IDs, in the order that they appear in the document.
         var overlappingEntNodes = $('[_entity][class~="start"]', body).not('[_tag]').not('[_note]');
@@ -171,10 +183,16 @@ function CWRC2XML(writer) {
                 $(el).contents().unwrap();
             });
         });
-        
-        // set annotationAttrs for entities
+    };
+    
+    /**
+     * Determine and set the range objects for each entity.
+     * Used later to construct the RDF.
+     * @param {Document} doc The XML document
+     */
+    function setEntityRanges(doc) {
         w.entitiesManager.eachEntity(function(entityId, entry) {
-            var entity = $('#'+entityId, w.editor.getBody());
+            var entity = $('[cwrcTempId="'+entityId+'"]', doc);
             if (entity.length === 1) {
                 var range = {};
                 range.startXPath = w.utilities.getElementXPath(entity[0]);
@@ -183,17 +201,34 @@ function CWRC2XML(writer) {
         });
     }
 
+    function processNotes(doc) {
+        var noteChildEntities = [];
+        w.entitiesManager.eachEntity(function(entityId, entry) {
+            var entityType = entry.getType();
+            var isNote = w.schemaManager.mapper.isEntityTypeNote(entityType);
+            if (isNote) {
+                var noteContent = $.parseXML(entry.getNoteContent());
+                $('rdf\\:RDF, RDF', noteContent).children().each(function(index, el) {
+                    var entityConfig = w.annotationsManager.getEntityFromAnnotation(el);
+                    if (entityConfig !== null) {
+                        noteChildEntities.push(new Entity(entityConfig));
+                    }
+                });
+            }
+        });
+        return noteChildEntities;
+    }
+
     /**
      * Converts the editor node and its contents into an XML string suitable for export.
      * @param {Element} node
-     * @param {Element} [rdfParent] The parent of the RDF string
-     * @param {String} [rdfString] The RDF string to insert
+     * @param {Boolean} [identifyEntities] If true, adds cwrcTempId to entity elements
      * @returns {String}
      */
-    cwrc2xml.buildXMLString = function(node, rdfParent, rdfString) {
-        var xmlString = '';
+    cwrc2xml.buildXMLString = function(node, identifyEntities) {
+        identifyEntities = identifyEntities === undefined ? false : identifyEntities;
 
-        var includeRDF = rdfParent !== undefined && rdfString !== undefined;
+        var xmlString = '';
 
         function _nodeToStringArray(currNode) {
             var array = [];
@@ -204,6 +239,14 @@ function CWRC2XML(writer) {
             var entityEntry = w.entitiesManager.getEntity(id);
             if (entityEntry && tag) {
                 array = w.schemaManager.mapper.getMapping(entityEntry);
+                if (identifyEntities) {
+                    // add temp id so we can target it later in setEntityRanges
+                    if (array[0] !== '') {
+                        array[0] = array[0].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
+                    } else {
+                        array[1] = array[1].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
+                    }
+                }
             } else if (tag) {
                 if (tag === '#comment') {
                     array = ['<!-- ', ' -->'];
@@ -223,12 +266,6 @@ function CWRC2XML(writer) {
                         }
                     }
                     openingTag += '>';
-                    if (includeRDF) {
-                        if (currNode[0] === rdfParent[0]) {
-                            openingTag += rdfString;
-                            includeRDF = false;
-                        }
-                    }
                     
                     array.push(openingTag);
                     array.push('</'+tag+'>');
@@ -340,18 +377,6 @@ function CWRC2XML(writer) {
 
         return range;
     }
-    
-    // Converts HTML entities to unicode, while preserving those that must be escaped as entities.
-    function _recursiveTextConversion(parentNode) {
-        var contents = $(parentNode).contents();
-        contents.each(function(index, el) {
-            if (el.nodeType == Node.TEXT_NODE) {
-                el.nodeValue = w.utilities.convertTextForExport(el.nodeValue);
-            } else if (el.nodeType == Node.ELEMENT_NODE) {
-                _recursiveTextConversion(el);
-            }
-        });
-    };
 
     /**
      * For debug

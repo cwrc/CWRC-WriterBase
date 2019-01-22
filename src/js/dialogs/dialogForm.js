@@ -174,7 +174,7 @@ function initWriter(el) {
             west: ['structure','entities']
         }
         config.embedded = true;
-        config.mode = 'xml';
+        config.mode = me.w.XML;
         config.allowOverlap = false;
         config.buttons1 = 'schematags,editTag,removeTag,|,addperson,addplace,adddate,addorg,addcitation,addtitle,addcorrection,addkeyword,addlink';
     }
@@ -230,26 +230,7 @@ function initWriter(el) {
         me.cwrcWriter.settings.hideAdvanced();
         
         me.cwrcWriter.event('documentLoaded').subscribe(function() {
-            // TODO remove forced XML/no overlap
-            me.cwrcWriter.mode = me.cwrcWriter.XML;
-            me.cwrcWriter.allowOverlap = false;
-            
             me.cwrcWriter.editor.focus();
-            /*
-            var parentTag = me.cwrcWriter.schemaManager.mapper.getParentTag(me.showConfig.type);
-            var nodeEl = me.cwrcWriter.editor.dom.$('[_tag='+parentTag+']');
-            var nodeChildren = nodeEl.children();
-            while (nodeChildren.length) {
-                nodeEl = nodeChildren;
-                nodeChildren = nodeEl.children();
-            }
-            nodeEl = nodeEl[0];
-            var rng = me.cwrcWriter.editor.dom.createRng();
-            rng.selectNodeContents(nodeEl);
-            var sel = me.cwrcWriter.editor.selection;
-            sel.setRng(rng);
-            sel.collapse(true);
-            */
         });
         
         // in case document is loaded before tree

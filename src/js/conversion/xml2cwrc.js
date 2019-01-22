@@ -192,7 +192,7 @@ function XML2CWRC(writer) {
             w.allowOverlap = allowOverlap === 'true';
             overlapSetFromHeader = true;
 
-            w.annotationsManager.setAnnotations($rdfs);
+            w.annotationsManager.setAnnotations($rdfs, xml2cwrc.isLegacyDocument);
 
             $rdfs.remove();
 
@@ -224,17 +224,20 @@ function XML2CWRC(writer) {
         // remove mapping related elements
         w.entitiesManager.eachEntity(function(entityId, entity) {
             var range = entity.getRange();
-            if (range.endId === undefined) {
+            if (range.endXPath === undefined) {
                 var entityType = entity.getType();
-                var $node = $(doc).find('[cwrcStructId='+range.startId+']');
-                if (w.schemaManager.mapper.isEntityTypeNote(entityType)) {
-                    $node.contents().remove();
-                } else {
-                    var textTag = w.schemaManager.mapper.getTextTag(entityType);
-                    if (textTag !== '') {
-                        $node.find(textTag).contents().unwrap();
+                var node = w.utilities.evaluateXPath(doc, range.startXPath);
+                if (node !== null) {
+                    var $node = $(node);
+                    if (w.schemaManager.mapper.isEntityTypeNote(entityType)) {
+                        $node.contents().remove();
+                    } else {
+                        var textTag = w.schemaManager.mapper.getTextTag(entityType);
+                        if (textTag !== '') {
+                            $node.find(textTag).contents().unwrap();
+                        }
+                        $node.find(':not(:text)').remove();
                     }
-                    $node.find(':not(:text)').remove();
                 }
             }
         });
@@ -296,12 +299,27 @@ function XML2CWRC(writer) {
      * @param {Array} [typesToConvert] An array of entity types to convert, defaults to all types
      */
     function autoConvertEntityTags(doc, typesToConvert) {
+        var potentialEntities = xml2cwrc.findEntities(doc, typesToConvert);
+        potentialEntities.each(function(index, el) {
+            if (el.getAttribute('_entity') == null) {
+                processEntity(el);
+            }
+        });
+    }
+
+    /**
+     * Look for potential entities inside the passed element
+     * @param {Document|Element} el
+     * @param {Array} [typesToFind] An array of entity types to find, defaults to all types
+     * @returns {jQuery} An array of elements
+     */
+    xml2cwrc.findEntities = function(el, typesToFind) {
         var entityTagNames = [];
-        typesToConvert = typesToConvert === undefined ? ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'] : typesToConvert;
+        typesToFind = typesToFind === undefined ? ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'] : typesToFind;
         
         var entityMappings = w.schemaManager.mapper.getMappings().entities;
         for (var type in entityMappings) {
-            if (typesToConvert.length == 0 || typesToConvert.indexOf(type) != -1) {
+            if (typesToFind.length == 0 || typesToFind.indexOf(type) != -1) {
                 var parentTag = entityMappings[type].parentTag;
                 if ($.isArray(parentTag)) {
                     entityTagNames = entityTagNames.concat(parentTag);
@@ -311,12 +329,8 @@ function XML2CWRC(writer) {
             }
         }
 
-        var potentialEntities = $(entityTagNames.join(','), doc);
-        potentialEntities.each(function(index, el) {
-            if (el.getAttribute('_entity') == null) {
-                processEntity(el);
-            }
-        });
+        var potentialEntities = $(entityTagNames.join(','), el);
+        return potentialEntities;
     }
 
     /**
@@ -324,36 +338,46 @@ function XML2CWRC(writer) {
      * @param {Element} el The XML element
      */
     function processEntity(el) {
-        var $node = $(el);
-        var id = w.getUniqueId('ent_');
-
-        var structId = w.getUniqueId('struct_');
-        $node.attr('cwrcStructId', structId);
-
         var entityType = w.schemaManager.mapper.getEntityTypeForTag(el);
-
         if (entityType !== null) {
-            var info = w.schemaManager.mapper.getReverseMapping(el, entityType);
-
-            var config = {
-                id: id,
-                type: entityType,
-                attributes: info.attributes,
-                customValues: info.customValues,
-                noteContent: info.noteContent,
-                cwrcLookupInfo: info.cwrcInfo,
-                range: {
-                    startId: structId
-                }
-            };
-            if (info.properties !== undefined) {
-                for (var key in info.properties) {
-                    config[key] = info.properties[key];
-                }
+            var config = xml2cwrc.getEntityConfigFromElement(el, entityType);
+            
+            config.id = w.getUniqueId('ent_');
+            config.range = {
+                startXPath: w.utilities.getElementXPath(el)
             }
 
             var entity = w.entitiesManager.addEntity(config);
         }
+    }
+
+    /**
+     * Returns a config object suitable for creating an Entity
+     * @param {Element} el The XML element
+     * @param {String} [entityType] The entity type (optional)
+     * @return {Object} The config object
+     */
+    xml2cwrc.getEntityConfigFromElement = function(el, entityType) {
+        if (entityType === undefined) {
+            entityType = w.schemaManager.mapper.getEntityTypeForTag(el);
+        }
+
+        var info = w.schemaManager.mapper.getReverseMapping(el, entityType);
+
+        var config = {
+            type: entityType,
+            attributes: info.attributes,
+            customValues: info.customValues,
+            noteContent: info.noteContent,
+            cwrcLookupInfo: info.cwrcInfo
+        };
+        if (info.properties !== undefined) {
+            for (var key in info.properties) {
+                config[key] = info.properties[key];
+            }
+        }
+
+        return config;
     }
 
     /**
@@ -388,18 +412,11 @@ function XML2CWRC(writer) {
 
             // create structs entries while we build the string
 
-            // determine the ID
-            // first check our special cwrcStructId attribute, finally generate a new one
-            var id = $node.attr('id');
-            if (id !== undefined) {
-                console.warn('Node already had ID!', id);
+            if ($node.attr('id') !== undefined) {
+                console.warn('xml2cwrc.buildEditorString: node already had an ID!', id);
                 $node.removeAttr('id');
             }
-            id = $node.attr('cwrcStructId');
-            $node.removeAttr('cwrcStructId');
-            if (id === undefined) {
-                id = w.getUniqueId('struct_');
-            }
+            var id = w.getUniqueId('struct_');
             editorString += ' id="'+id+'"';
 
             var idNum = parseInt(id.split('_')[1], 10);
@@ -467,6 +484,7 @@ function XML2CWRC(writer) {
         var entityNodes = []; // keep track of the nodes so we can remove them afterwards
 
         var body = w.editor.getBody();
+        var doc = w.editor.getDoc();
         // insert entities
         // TODO handling for recursive entities (notes, citations)
         var entry, range, parent, contents, lengthCount, match, matchingNode, startOffset, endOffset, startNode, endNode;
@@ -480,20 +498,20 @@ function XML2CWRC(writer) {
             range = entry.getRange();
 
             // just rdf, no markup
-            if (range.endId) {
-                var parent = $('#'+range.startId, body);
+            if (range.endXPath) {
+                var parent = w.utilities.evaluateXPath(doc, range.startXPath);
                 var result = getTextNodeFromParentAndOffset(parent, range.startOffset);
                 startNode = result.textNode;
                 startOffset = result.offset;
-                parent = $('#'+range.endId, body);
+                parent = w.utilities.evaluateXPath(doc, range.endXPath);
                 result = getTextNodeFromParentAndOffset(parent, range.endOffset);
                 endNode = result.textNode;
                 endOffset = result.offset;
             // markup
-            } else if (range.startId) {
-                var entityNode = $('#'+range.startId, body);
-                startNode = entityNode[0];
-                endNode = entityNode[0];
+            } else if (range.startXPath) {
+                var entityNode = w.utilities.evaluateXPath(doc, range.startXPath);
+                startNode = entityNode;
+                endNode = entityNode;
 
                 entityNodes.push({entity: entry, node: entityNode});
             }
@@ -551,65 +569,15 @@ function XML2CWRC(writer) {
             }
         });
 
-        // remove all the entity markup
-        $.each(entityNodes, function(index, info) {
-            var entity = info.entity;
-            var $node = info.node;
-
-            var type = entity.getType();
-            //    var tag = $(node).attr('_tag');
-            //    var type = w.schemaManager.mapper.getEntityTypeForTag(node);
-
-            var textTagName = w.schemaManager.mapper.getTextTag(type);
-            if (textTagName !== '') {
-                var selector;
-                if ($.isArray(textTagName)) {
-                    selector = '';
-                    $.each(textTagName, function(i, tag) {
-                        selector += '[_tag="'+tag+'"]';
-                        if (i < textTagName.length - 1) {
-                            selector += ',';
-                        }
-                    });
-                } else {
-                    selector = '[_tag="'+textTagName+'"]';
-                }
-                var textTag = $(selector, $node).first();
-                if (type === 'correction') {
-                    entity.getCustomValues().sicText = textTag.text();
-                }
-                textTag.contents().unwrap(); // keep the text inside the textTag
-            }
-
-            // FIXME
-            // TODO how to accomplish this without annotationId
-            var annotationAttr = 'annotationId';
-            var annotationId = $node.attr(annotationAttr);
-            $('['+annotationAttr+'="'+annotationId+'"]', $node).remove(); // remove all child elements with matching ID
-
-            var id = $node.attr('id');
-            if (w.structs[id] !== undefined) {
-                delete w.structs[id];
-            }
-
-            /*
-            var contents = $node.contents();
-            if (contents.length === 0) {
-                // no contents so just remove the node
-                $node.remove();
-            } else {
-                contents.unwrap();
-            }
-            */
-        });
-
-        // remove annotationId and offsetId
-        $('[annotationId]', body).each(function(index, el) {
-            $(el).removeAttr(annotationAttr);
-        });
-        $('[offsetId]', body).each(function(index, el) {
-            $(el).removeAttr('offsetId');
-        });
+        if (xml2cwrc.isLegacyDocument) {
+            // remove annotationId and offsetId
+            $('[annotationId]', body).each(function(index, el) {
+                $(el).removeAttr(annotationAttr);
+            });
+            $('[offsetId]', body).each(function(index, el) {
+                $(el).removeAttr('offsetId');
+            });
+        }
     }
 
     function getTextNodeFromParentAndOffset(parent, offset) {
@@ -618,17 +586,16 @@ function XML2CWRC(writer) {
 
         function getTextNode(parent) {
             var ret = true;
-            parent.contents().each(function(index, element) {
-                var el = $(this);
+            $(parent).contents().each(function(index, element) {
                 // Not sure why the &nbsp; text nodes would not be counted but as long
                 // as we are consistent in both the saving and loading it should be
                 // fine.
-                if (this.nodeType === Node.TEXT_NODE && this.data !== ' ') {
+                if (element.nodeType === Node.TEXT_NODE && element.data !== ' ') {
                     // Count all the text!
-                    currentOffset += this.length;
+                    currentOffset += element.length;
                     if (currentOffset >= offset) {
-                        currentOffset = offset - (currentOffset - this.length);
-                        textNode = this;
+                        currentOffset = offset - (currentOffset - element.length);
+                        textNode = element;
                         ret = false;
                         return ret;
                     }
@@ -639,7 +606,7 @@ function XML2CWRC(writer) {
                     // count. As the order in which entities are wrapped in spans when the
                     // document is loaded will not be guarantee to be in an order in which
                     // replicates the state the document was in at the time it was saved.
-                    ret = getTextNode(el);
+                    ret = getTextNode(element);
                     return ret;
                 }
             });

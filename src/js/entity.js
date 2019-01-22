@@ -69,12 +69,10 @@ function Entity(config) {
     /**
      * Values used to identify the text range of the entity. Mainly set by converter when loading a document.
      * @type Object
-     * @params startId References the cwrcStructId set during xml2cwrc conversion
-     * @params startOffset The offset associated with either startId or startXPath
-     * @params startXPath The xpath created during cwrc2xml conversion
-     * @params endId References the cwrcStructId set during xml2cwrc conversion
-     * @params endOffset The offset associated with either endId or endXPath
-     * @params endXPath The xpath created during cwrc2xml conversion
+     * @params startXPath
+     * @params startOffset
+     * @params endXPath
+     * @params endOffset
      */
     this.annotationRange = {};
     
