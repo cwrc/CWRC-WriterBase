@@ -354,6 +354,7 @@ function SchemaManager(writer, config) {
      */
     sm.loadSchemaCSS = function(url) {
         $('#schemaRules', w.editor.dom.doc).remove();
+        $('#schemaRules', document).remove();
         
         $.ajax({url: url}).then(function(data) {
             sm._css = url;
