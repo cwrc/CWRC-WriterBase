@@ -9,7 +9,6 @@ function Settings(writer, config) {
     
     var settings = {
         fontSize: '11pt',
-        fontFamily: 'Book Antiqua',
         showEntities: false,
         showTags: false
     };
@@ -37,20 +36,6 @@ function Settings(writer, config) {
                 '<option value="11pt">11pt</option>'+
                 '<option value="12pt">12pt</option>'+
                 '<option value="13pt">13pt</option>'+
-            '</select>'+
-        '</div>'+
-        '<div style="margin-top: 10px;">'+
-            '<label>Font Type</label>'+
-            '<select name="fonttype">'+
-                '<option value="Arial" style="font-family: Arial; font-size: 14px;">Arial</option>'+
-                '<option value="Book Antiqua" style="font-family: Book Antiqua; font-size: 14px;">Book Antiqua</option>'+
-                '<option value="Georgia" style="font-family: Georgia; font-size: 14px;">Georgia</option>'+
-                '<option value="Helvetica" style="font-family: Helvetica; font-size: 14px;">Helvetica</option>'+
-                '<option value="Palatino" style="font-family: Palatino; font-size: 14px;">Palatino</option>'+
-                '<option value="Tahoma" style="font-family: Tahoma; font-size: 14px;">Tahoma</option>'+
-                '<option value="Times New Roman" style="font-family: Times New Roman; font-size: 14px;">Times New Roman</option>'+
-                '<option value="Verdana" style="font-family: Verdana; font-size: 14px;">Verdana</option>'+
-                '<option value="Lato" style="font-family: Lato; font-size: 14px;">Lato</option>'+
             '</select>'+
         '</div>'+
         '<div style="margin-top: 10px;">'+
@@ -92,7 +77,6 @@ function Settings(writer, config) {
     
     $settingsLink.click(function() {
         $('select[name="fontsize"] > option[value="'+settings.fontSize+'"]', $settingsDialog).prop('selected', true);
-        $('select[name="fonttype"] > option[value="'+settings.fontFamily+'"]', $settingsDialog).prop('selected', true);
         $settingsDialog.find('.showentities').prop('checked', settings.showEntities);
         $settingsDialog.find('.showtags').prop('checked', settings.showTags);
         if (w.mode === w.XML) {
@@ -251,7 +235,6 @@ function Settings(writer, config) {
             }
             
             settings.fontSize = $('select[name="fontsize"]', $settingsDialog).val();
-            settings.fontFamily = $('select[name="fonttype"]', $settingsDialog).val();
             
             if (settings.showEntities != $settingsDialog.find('.showentities').prop('checked')) {
                 $('body', w.editor.getDoc()).toggleClass('showEntities');
@@ -264,8 +247,7 @@ function Settings(writer, config) {
             settings.showTags = $settingsDialog.find('.showtags').prop('checked');
             
             var styles = {
-                fontSize: settings.fontSize,
-                fontFamily: settings.fontFamily
+                fontSize: settings.fontSize
             };
             w.editor.dom.setStyles(w.editor.dom.getRoot(), styles);
 
@@ -326,7 +308,6 @@ function Settings(writer, config) {
 
     function setDefaults() {
         $('select[name="fontsize"]', $settingsDialog).val(defaultSettings.fontSize);
-        $('select[name="fonttype"]', $settingsDialog).val(defaultSettings.fontFamily);
         $settingsDialog.find('.showentities').prop('checked', defaultSettings.showEntities);
         $settingsDialog.find('.showtags').prop('checked', defaultSettings.showTags);
         

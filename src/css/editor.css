@@ -1,7 +1,5 @@
 /* This CSS gets applied to the tinymce editor */
 
-@import url(https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext);
-
 .showEntities .entity, .ui-dialog-content .entity {
     border-width: 1px;
     border-bottom-style: dotted;
