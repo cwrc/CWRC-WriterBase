@@ -20,20 +20,8 @@ function Popup(writer, parentEl) {
         minWidth: 40,
         open: function(event, ui) {
             $popupEl.parent().find('.ui-dialog-titlebar-close').hide();
-        }
-    });
-    var popupCloseId;
-    
-    var $currentTag;
-    var setCurrentTag = function(id) {
-        $currentTag = $('#'+id, w.editor.getBody());
-        if ($currentTag.length == 0) {
-            $currentTag = $('[name="'+id+'"]', w.editor.getBody()).first();    
-        }
-    }
-    
-    var doPosition = function() {
-        $popupEl.popup('option', 'position', {
+        },
+        position: {
             my: 'center', at: 'center', of: $currentTag,
             using: function(topLeft, posObj) {
                 var $popupEl = posObj.element.element;
@@ -50,12 +38,24 @@ function Popup(writer, parentEl) {
                 topLeft.top = frameOffset.top + tagOffset.top + $currentTag.height() - editorScrollTop - docScrollTop;
                 topLeft.left = frameOffset.left + tagOffset.left - editorScrollLeft - docScrollLeft;
                 
+                var x = w.utilities.constrain(topLeft.left, $docBody.width(), $popupEl.outerWidth());
+                var y = w.utilities.constrain(topLeft.top, $docBody.height(), $popupEl.outerHeight());
+
                 $popupEl.css({
-                   top: topLeft.top+'px',
-                   left: topLeft.left+'px'
+                    left: x+'px',
+                    top: y+'px'
                 });
             }
-        });
+        }
+    });
+    var popupCloseId;
+    
+    var $currentTag;
+    var setCurrentTag = function(id) {
+        $currentTag = $('#'+id, w.editor.getBody());
+        if ($currentTag.length == 0) {
+            $currentTag = $('[name="'+id+'"]', w.editor.getBody()).first();    
+        }
     }
     
     var doMouseOver = function() {
@@ -102,8 +102,6 @@ function Popup(writer, parentEl) {
             }
         }
         $popupEl.popup('option', 'width', width);
-        
-        doPosition();
         
         clearTimeout(popupCloseId);
         $currentTag.one('mouseout', function() {
