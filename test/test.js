@@ -325,7 +325,7 @@ test('settings showTags', (t)=> {
         $applyButton.click();
         
         var bodyClasses = writer.editor.getBody().className;
-        t.true(bodyClasses.indexOf('showtags') !== -1, 'tags showing');
+        t.true(bodyClasses.indexOf('showTags') !== -1, 'tags showing');
         reset(writer);
     })
     
