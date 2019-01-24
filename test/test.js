@@ -318,14 +318,14 @@ test('settings showTags', (t)=> {
         var $settingsButton = window.$('.headerButtons div:eq(0)');
         $settingsButton.click();
         
-        var $checkbox = window.$('.ui-dialog .showstructbrackets');
+        var $checkbox = window.$('.ui-dialog .showtags');
         $checkbox.click();
         
         var $applyButton = window.$('.ui-dialog-buttonset .ui-button:visible:eq(2)');
         $applyButton.click();
         
         var bodyClasses = writer.editor.getBody().className;
-        t.true(bodyClasses.indexOf('showStructBrackets') !== -1, 'tags showing');
+        t.true(bodyClasses.indexOf('showtags') !== -1, 'tags showing');
         reset(writer);
     })
     
