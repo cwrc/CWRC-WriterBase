@@ -769,13 +769,7 @@ function Tagger(writer) {
             content = content.replace(/^\s+|\s+$/g, '');
         }
         
-        var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
-        
-        if (content !== '') {
-            tagger.insertBoundaryTags(id, type, range, tag);
-        } else if (!isNote){
-            w.emptyTagId = id;
-        }
+        tagger.insertBoundaryTags(id, type, range, tag);
         
         w.editor.undoManager.add();
         

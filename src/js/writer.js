@@ -123,8 +123,6 @@ function CWRCWriter(config) {
     w.OVERLAP = 2;
     w.VALID = 3;
     
-    w.emptyTagId = null; // stores the id of the entities tag to be added
-    
     /**
      * Gets a unique ID for use within CWRC-Writer.
      * @param {String} prefix The prefix to attach to the ID.
@@ -522,28 +520,6 @@ function CWRCWriter(config) {
             entity.setContent(content);
         }
         
-        if (w.emptyTagId) {
-            // alphanumeric keys
-            if (evt.which >= 48 || evt.which <= 90) {
-                var range = w.editor.selection.getRng(true);
-                range.setStart(range.commonAncestorContainer, range.startOffset-1);
-                range.setEnd(range.commonAncestorContainer, range.startOffset+1);
-                w.insertBoundaryTags(w.emptyTagId, w.entitiesManager.getEntity(w.emptyTagId).getType(), range);
-                
-                // TODO get working in IE
-                var tags = $('[name='+w.emptyTagId+']', w.editor.getBody());
-                range = w.editor.selection.getRng(true);
-                range.setStartAfter(tags[0]);
-                range.setEndBefore(tags[1]);
-                range.collapse(false);
-                
-                w.event('entityEdited').publish(w.emptyTagId);
-            } else {
-                w.entitiesManager.removeEntity(w.emptyTagId);
-            }
-            w.emptyTagId = null;
-        }
-        
         if (w.editor.currentNode) {
             // check if the node still exists in the document
             if (w.editor.currentNode.parentNode === null) {
@@ -704,12 +680,6 @@ function CWRCWriter(config) {
         w.editor.currentBookmark = w.editor.selection.getBookmark(1);
         
         w.event('nodeChanged').publish(w.editor.currentNode);
-        
-        if (w.emptyTagId) {
-            w.entitiesManager.removeEntity(w.emptyTagId);
-            w.emptyTagId = null;
-        }
-        
     };
     
     function _onCopyHandler(event) {
