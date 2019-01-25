@@ -904,7 +904,7 @@ function CWRCWriter(config) {
         valid_elements: '*[*]', // allow everything
         
         plugins: 'schematags,cwrc_contextmenu,cwrcpath,preventdelete', //paste
-        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,viewmarkup,editsource,|,validate,savebutton,loadbutton,|,fullscreen' : config.buttons1,
+        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,|,fullscreen' : config.buttons1,
         toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
         toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
         menubar: false,
@@ -1105,6 +1105,12 @@ function CWRCWriter(config) {
             addButtonToEditor('viewmarkup', {title: 'View Markup', image: w.cwrcRootUrl+'img/page_white_code.png',
                 onclick: function() {
                     w.selection.showSelection();
+                }
+            });
+            addButtonToEditor('toggletags', {title: 'Toggle Tags', image: w.cwrcRootUrl+'img/tag.png',
+                onclick: function() {
+                    $('body', w.editor.getDoc()).toggleClass('showTags');
+                    this.active($('body', w.editor.getDoc()).hasClass('showTags'));
                 }
             });
             
