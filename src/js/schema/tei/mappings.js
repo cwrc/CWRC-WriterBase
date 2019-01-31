@@ -31,7 +31,7 @@ header: 'teiHeader',
 blockElements: ['argument', 'back', 'bibl', 'biblFull', 'biblScope', 'body', 'byline', 'category', 'change', 'cit', 'classCode', 'elementSpec', 'macroSpec', 'classSpec', 'closer', 'creation', 'date', 'distributor', 'div', 'div1', 'div2', 'div3', 'div4', 'div5', 'div6', 'div7', 'docAuthor', 'edition', 'editionStmt', 'editor', 'eg', 'epigraph', 'extent', 'figure', 'front', 'funder', 'group', 'head', 'dateline', 'idno', 'item', 'keywords', 'l', 'label', 'langUsage', 'lb', 'lg', 'list', 'listBibl', 'note', 'noteStmt', 'opener', 'p', 'principal', 'publicationStmt', 'publisher', 'pubPlace', 'q', 'rendition', 'resp', 'respStmt', 'salute', 'samplingDecl', 'seriesStmt', 'signed', 'sp', 'sponsor', 'tagUsage', 'taxonomy', 'textClass', 'titlePage', 'titlePart', 'trailer', 'TEI', 'teiHeader', 'text', 'authority', 'availability', 'fileDesc', 'sourceDesc', 'revisionDesc', 'catDesc', 'encodingDesc', 'profileDesc', 'projectDesc', 'docDate', 'docEdition', 'docImprint', 'docTitle'],
 urlAttributes: ['ref', 'target'],
 popupAttributes: [],
-popupElements: ['note'],
+popupElements: ['note[place="bottom"]','note[place="end"]','note[place="margin"]'],
 
 listeners: {
     tagAdded: function(tag) {
@@ -91,16 +91,17 @@ place: {
     parentTag: 'placeName',
     textTag: 'placeName',
     mapping: function(entity) {
-        var xml = Mapper.getTagAndDefaultAttributes(entity);
-        xml += '>'+Mapper.TEXT_SELECTION+'';
+        var startTag = Mapper.getTagAndDefaultAttributes(entity);
         
+        var endTag = '';
         var precision = entity.getCustomValue('precision');
         if (precision !== undefined) {
-            xml += '<precision precision="'+precision+'" />';
+            endTag += '<precision precision="'+precision+'" />';
         }
         var tag = entity.getTag();
-        xml += '</'+tag+'>';
-        return xml;
+        endTag += '</'+tag+'>';
+        
+        return [startTag, endTag];
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
@@ -168,18 +169,17 @@ correction: {
             tag = 'corr';
         }
         
-        var xml = '<'+tag;
-        xml += Mapper.getAttributeString(entity.getAttributes());
+        var startTag = '<'+tag+Mapper.getAttributeString(entity.getAttributes())+'>';
+        var endTag = '';
         
         if (corrText) {
-            xml += '>';
-            xml += '<sic>'+Mapper.TEXT_SELECTION+'</sic>';
-            xml += '<corr>'+corrText+'</corr></choice>';
+            startTag += '<sic>';
+            endTag = '</sic><corr>'+corrText+'</corr></choice>';
         } else {
-            xml += '>'+Mapper.TEXT_SELECTION+'</'+tag+'>';
+            endTag = '</'+tag+'>';
         }
         
-        return xml;
+        return [startTag, endTag];
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
@@ -263,23 +263,10 @@ note: {
     textTag: '',
     isNote: true,
     mapping: function(entity) {
-        var xml = Mapper.getTagAndDefaultAttributes(entity);
-        xml += '>';
-        
-        var content = entity.getNoteContent();
-        if (content) {
-            var xmlDoc = $.parseXML(content);
-            var noteContent = $('note', xmlDoc)[0];
-            xml += noteContent.innerHTML;
-        }
-        var tag = entity.getTag();
-        xml += '</'+tag+'>';
-        return xml;
+        return Mapper.getDefaultMapping(entity);
     },
     reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            noteContent: '.'
-        }, 'tei');
+        return Mapper.getDefaultReverseMapping(xml);
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'bibo:Note', 'oa:commenting', format);
@@ -292,16 +279,9 @@ citation: {
     textTag: 'bibl',
     isNote: true,
     mapping: function(entity) {
-        var xml = '<note type="citation"><bibl><ref target="'+entity.getLookupInfo().id+'"/>';
-        
-        var content = entity.getNoteContent();
-        if (content) {
-            var xmlDoc = $.parseXML(content);
-            var biblContent = $('bibl', xmlDoc)[0];
-            xml += biblContent.innerHTML;
-        }
-        xml += '</bibl></note>';
-        return xml;
+        var startTag = '<note type="citation"><bibl><ref target="'+entity.getLookupInfo().id+'"/>';
+        var endTag = '</bibl></note>';
+        return [startTag, endTag];
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
@@ -317,16 +297,14 @@ citation: {
 keyword: {
     parentTag: 'seg',
     xpathSelector: 'self::tei:seg/tei:term',
-    textTag: '',
+    textTag: 'term',
+    isNote: true,
     mapping: function(entity) {
-        var term = entity.getCustomValue('term');
-        var tag = entity.getTag();
-
-        var xml = Mapper.getTagAndDefaultAttributes(entity)+'>';
-        xml += '<term>'+term+'</term>';
-        xml += '</'+tag+'>';
+        var xml = Mapper.getTagAndDefaultAttributes(entity);
+        xml += '<term>'+entity.getCustomValue('term')+'</term>';
+        xml += '</'+entity.getTag()+'>';
         
-        return xml;
+        return ['', xml];
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {

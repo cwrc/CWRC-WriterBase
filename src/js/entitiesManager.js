@@ -157,13 +157,17 @@ EntitiesManager.prototype = {
         if (prevHighlight.length !== 0) {
             prevHighlight.each(function(index, el) {
                 var $p = $(el);
-                var parent = $p.parent()[0];
-                if ($p.contents().length !== 0) {
-                    $p.contents().unwrap();
+                if ($p.hasClass('noteWrapper')) {
+                    $p.removeClass('entityHighlight');
                 } else {
-                    $p.remove();
+                    var parent = $p.parent()[0];
+                    if ($p.contents().length !== 0) {
+                        $p.contents().unwrap();
+                    } else {
+                        $p.remove();
+                    }
+                    parent.normalize();
                 }
-                parent.normalize();
             });
         }
         if (this.currentEntity !== null) {
@@ -177,14 +181,19 @@ EntitiesManager.prototype = {
             
             var entityTags = $('[name="'+id+'"]', body);
             if (entityTags.length > 0) {
+                var entity = this.getEntity(id);
+                var type = entity.getType();
+
                 // clear selection
                 var rng = this.w.editor.dom.createRng();
                 this.w.editor.selection.setRng(rng);
                 
-                var type = this.getEntity(id).getType();
-                
-                entityTags.wrap('<span class="entityHighlight '+type+'"/>');
-                
+                if (entity.isNote()) {
+                    entityTags.parent('.noteWrapper').removeClass('hide').addClass('entityHighlight');
+                } else {
+                    entityTags.wrap('<span class="entityHighlight '+type+'"/>');
+                    entityTags.parents('.noteWrapper').removeClass('hide'); // if the entity is inside a note, make sure that it's shown
+                }
                 if (bm) {
                     // maintain the original caret position
                     this.w.editor.selection.moveToBookmark(bm);

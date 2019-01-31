@@ -367,16 +367,6 @@ AnnotationsManager.prototype = {
                 rdfString += JSON.stringify(annotation, null, '\t');
                 rdfString += '\n]]></rdf:Description>';
             }
-
-            // process child entities (for note, citation)
-            if (entity.getNoteContent()) {
-                // get the rdf and append it
-                var xml = me.w.utilities.stringToXML(entity.getNoteContent());
-                var rdf = $('rdf\\:RDF, RDF', xml);
-                $('[rdf\\:datatype]', rdf).each(function(index, el) {
-                    rdfString += me.w.utilities.xmlToString(el);
-                });
-            }
         });
 
         // triples
@@ -509,9 +499,7 @@ AnnotationsManager.prototype = {
                 $.extend(propObj, info.customValues);
                 $.extend(cwrcAttributes, info.attributes);
 
-                if (entityType === 'note' || entityType === 'citation') {
-                    newEntity.noteContent = this.w.utilities.xmlToString(el);
-                }
+                newEntity.isNote = this.w.schemaManager.mapper.isEntityTypeNote(entityType);
             }
             
             // FIXME cwrcAttributes
@@ -658,9 +646,7 @@ AnnotationsManager.prototype = {
                     $.extend(propObj, info.customValues);
                     $.extend(cwrcAttributes, info.attributes);
     
-                    if (entityType === 'note' || entityType === 'citation') {
-                        newEntity.noteContent = this.w.utilities.xmlToString(el);
-                    }
+                    newEntity.isNote = this.w.schemaManager.mapper.isEntityTypeNote(entityType);
                 // offset
                 } else {
                     var xpointerStart = selector.find('oa\\:start, start').text();
@@ -745,9 +731,8 @@ AnnotationsManager.prototype = {
     setAnnotations: function(rdfEl, isLegacyDocument) {
         isLegacyDocument = isLegacyDocument === undefined ? false : isLegacyDocument;
 
-        var me = this;
-        me.w.entitiesManager.reset();
-        me.w.deletedEntities = {};
+        this.w.entitiesManager.reset();
+        this.w.deletedEntities = {};
         
         var rdfs = $(rdfEl);
         
@@ -759,68 +744,26 @@ AnnotationsManager.prototype = {
 
         rdfs.children().each(function(index, el) {
             var rdf = $(el);
-            var entityConfig = me.getEntityFromAnnotation(rdf);
+            var entityConfig = this.getEntityFromAnnotation(rdf);
             if (entityConfig != null) {
                 if (isLegacyDocument) {
                     // replace annotationId with xpath
-                    var entityEl = me.w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
-                    entityConfig.range.startXPath = me.w.utilities.getElementXPath(entityEl);
+                    var entityEl = this.w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
+                    entityConfig.range.startXPath = this.w.utilities.getElementXPath(entityEl);
                     if (entityConfig.range.endXPath !== undefined) {
-                        var entityElEnd = me.w.utilities.evaluateXPath(doc, entityConfig.range.endXPath);
-                        entityConfig.range.endXPath = me.w.utilities.getElementXPath(entityElEnd);
+                        var entityElEnd = this.w.utilities.evaluateXPath(doc, entityConfig.range.endXPath);
+                        entityConfig.range.endXPath = this.w.utilities.getElementXPath(entityElEnd);
                     }
                 }
-
-                // determine if this entity is inside a note
-                // var noteParent = null;
-                // var entityEl = me.w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
-                // $(entityEl).parentsUntil(root.nodeName).each(function(index, el) {
-                //     var type = me.w.schemaManager.mapper.getEntityTypeForTag(el);
-                //     if (type !== null) {
-                //         if (me.w.schemaManager.mapper.isEntityTypeNote(type)) {
-                //             noteParent = el;
-                //             return false;
-                //         }
-                //     }
-                // });
-                // if (noteParent !== null) {
-                //     noteChildEntities.push({
-                //         noteParentXPath: me.w.utilities.getElementXPath(noteParent),
-                //         entityConfig: entityConfig
-                //     });
-                // } else {
-                    me.w.entitiesManager.addEntity(entityConfig);
-                // }
+                this.w.entitiesManager.addEntity(entityConfig);
             } else if (rdf.attr('cw:external')) {
                 triples.push(rdf);
             }
-        });
+        }.bind(this));
 
-        // add note child entity rdf to the noteContent of the parent note
-        // noteChildEntities.forEach(function(nce) {
-        //     var parentEntity = null;
-        //     me.w.entitiesManager.eachEntity(function(id, ent) {
-        //         if (ent.getRange().startXPath === nce.noteParentXPath) {
-        //             parentEntity = ent;
-        //             return false;
-        //         }
-        //     });
-        //     if (parentEntity !== null) {
-        //         var childEntity = new Entity(nce.entityConfig);
-        //         var rdfObject = me.getAnnotation(childEntity, 'xml');
-        //         // TODO add rdf to parent's note content
-        //     } else {
-        //         console.warn('annotationsManager.setAnnotations: couldn\'t find parent note for child entity', nce);
-        //     }
+        // process triples
 
-        // });
-        
-        me._processTriples(triples);
-    },
-    
-    _processTriples: function(triples) {
         this.w.triples = [];
-        
         for (var i = 0; i < triples.length; i++) {
             var subject = triples[i];
             var subjectUri = subject.attr('rdf:about');

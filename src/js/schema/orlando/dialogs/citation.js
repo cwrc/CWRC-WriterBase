@@ -11,9 +11,15 @@ module.exports = function(writer, parentEl) {
             '<p>Selected source:</p>'+
             '<span class="tagAs" data-type="tagAs"></span>'+
         '</div>'+
-        '<div class="writerParent">'+
-            '<p>Text of citation:</p>'+
-            '<div data-transform="writer" style="width: 100%; height: 100%; border: none;"/>'+
+        '<div>'+
+            '<label for="'+id+'_noteContent">Citation text</label>'+
+            '<textarea id="'+id+'_noteContent" data-type="textbox" data-mapping="prop.noteContent" style="width: 98%; height: 100px;"></textarea>'+
+            '<p>You will be able to tag and edit the text in the main document.</p>'+
+        '</div>'+
+        '<div data-transform="accordion">'+
+            '<h3>Markup options</h3>'+
+            '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
+            '</div>'+
         '</div>'+
         '<input type="hidden" id="'+id+'_ref" data-type="hidden" data-mapping="ref"/>'+
     '</div>').appendTo(parentEl);
@@ -21,19 +27,27 @@ module.exports = function(writer, parentEl) {
     var dialog = new DialogForm({
         writer: w,
         $el: $el,
-        width: 850,
-        height: 650,
+        width: 600,
+        height: 500,
         type: 'citation',
         title: 'Tag Citation'
     });
-    
-    dialog.$el.on('dialogopen', function(e, ui) {
+
+    dialog.$el.on('beforeShow', function(e, config, dialog) {
+        $('#'+id+'_type').val('citation');
         var cwrcInfo = dialog.currentData.cwrcInfo;
         if (cwrcInfo !== undefined) {
             $('#'+id+'_ref').val(cwrcInfo.id);
         }
+        if (dialog.mode === DialogForm.EDIT) {
+            dialog.$el.find('label[for='+id+'_noteContent]').hide();
+            dialog.$el.find('#'+id+'_noteContent').hide();
+        } else {
+            dialog.$el.find('label[for='+id+'_noteContent]').show();
+            dialog.$el.find('#'+id+'_noteContent').show();
+        }
     });
-    
+
     return {
         show: function(config) {
             dialog.show(config);

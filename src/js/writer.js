@@ -139,11 +139,11 @@ function CWRCWriter(config) {
     };
     
     /**
-     * Selects a structure tag in the editor
-     * @param id The id of the tag to select
-     * @param selectContentsOnly Whether to select only the contents of the tag (defaults to false)
+     * Selects an element in the editor
+     * @param id The id of the element to select
+     * @param selectContentsOnly Whether to select only the contents of the element (defaults to false)
      */
-    w.selectStructureTag = function(id, selectContentsOnly) {
+    w.selectElementById = function(id, selectContentsOnly) {
         selectContentsOnly = selectContentsOnly == null ? false : selectContentsOnly;
         
         w.removeHighlights();
@@ -156,6 +156,9 @@ function CWRCWriter(config) {
         var node = $('#'+id, w.editor.getBody());
         var nodeEl = node[0];
         if (nodeEl != null) {
+            // show the element if it's inside a note
+            node.parents('.noteWrapper').removeClass('hide');
+
             w.editor.currentStruct = id;
             var rng = w.editor.dom.createRng();
             if (selectContentsOnly) {
@@ -175,7 +178,7 @@ function CWRCWriter(config) {
             w.editor.selection.setRng(rng);
             
             // scroll node into view
-            var nodeTop;
+            var nodeTop = 0;
             if (node.is(':hidden')) {
                 node.show();
                 nodeTop = node.position().top;
@@ -194,18 +197,6 @@ function CWRCWriter(config) {
                 w.editor.focus();
                 w.event('tagSelected').publish(id, selectContentsOnly);
             }, 0);
-
-            if (w.isReadOnly === false) {
-                // if we're dealing with a note, then open it for editing
-                var entity = w.entitiesManager.getEntity(id);
-                var isNote = false;
-                if (entity !== undefined) {
-                    isNote = w.schemaManager.mapper.isEntityTypeNote(entity.getType());
-                }
-                if (isNote) {
-                    w.tagger.editTag(id);
-                }
-            }
         }
     };
     
@@ -508,16 +499,15 @@ function CWRCWriter(config) {
         }
 
         // update current entity
-        if (w.entitiesManager.getCurrentEntity() !== null) {
-            var content = '';
-            var entity = w.entitiesManager.getEntity(w.entitiesManager.getCurrentEntity());
-            if (entity.getType() === 'note' || entity.getType() === 'citation') {
-                // shouldn't actually be here since you can't get "inside" these entities
-                content = $($.parseXML(entity.getCustomValues().content)).text();
-            } else {
-                content = $('.entityHighlight', w.editor.getBody()).text();
+        var entityId = w.entitiesManager.getCurrentEntity();
+        if (entityId !== null) {
+            var content = $('.entityHighlight', w.editor.getBody()).text();
+            var entity = w.entitiesManager.getEntity(entityId);
+            if (entity.isNote()) {
+                entity.setNoteContent($('#'+entityId, w.editor.getBody()).html());
             }
             entity.setContent(content);
+            // TODO update entitiesList
         }
         
         if (w.editor.currentNode) {
@@ -602,7 +592,7 @@ function CWRCWriter(config) {
                 newTag.text('\uFEFF'); // insert zero-width non-breaking space so empty tag takes up space
             }
 //            if (!w.utilities.isTagBlockLevel(newTag.attr('_tag'))) {
-//                w.selectStructureTag(newTag.attr('id'), true);
+//                w.selectElementById(newTag.attr('id'), true);
 //            }
         }
         
@@ -632,7 +622,7 @@ function CWRCWriter(config) {
             if (el.getAttribute('_tag') == null && el.classList.contains('entityHighlight') == false) {
                 // TODO review is this is still necessary
                 if (el.getAttribute('data-mce-bogus') != null) {
-                    // artifact from selectStructureTag
+                    // artifact from selectElementById
                     var sibling;
                     var rng = w.editor.selection.getRng(true);
                     if (rng.collapsed) {
@@ -704,12 +694,9 @@ function CWRCWriter(config) {
     function _doHighlightCheck(evt) {
         var range = w.editor.selection.getRng(true);
         
-        var entityClick = false;
-        
         // check if inside boundary tag
         var parent = range.commonAncestorContainer;
         if (parent.nodeType === Node.ELEMENT_NODE && parent.hasAttribute('_entity')) {
-            entityClick = true;
             w.entitiesManager.highlightEntity(); // remove highlight
             if ((w.editor.dom.hasClass(parent, 'start') && evt.which == 37) || 
                 (w.editor.dom.hasClass(parent, 'end') && evt.which != 39)) {
@@ -726,23 +713,14 @@ function CWRCWriter(config) {
         }
         
         var entity = $(range.startContainer).parents('[_entity]')[0];
-        
-//        var entityStart = w.tagger.findEntityBoundary('start', range.startContainer);
-//        var entityEnd = w.tagger.findEntityBoundary('end', range.endContainer);
-        
-        var id, type;
+        var id;
         if (entity != null) {
             id = entity.getAttribute('name');
-            type = w.entitiesManager.getEntity(id).getType();
-            if (type === 'note' || type === 'citation' || type === 'keyword') {
-                // entity marker's clicked so edit the entity
-                w.tagger.editTag(id);
-            }
         } else {
             w.entitiesManager.highlightEntity();
             var parentNode = $(w.editor.selection.getNode());
             if (parentNode.attr('_tag')) {
-                var id = parentNode.attr('id');
+                id = parentNode.attr('id');
                 w.editor.currentStruct = id;
             }
             return;
@@ -931,7 +909,7 @@ function CWRCWriter(config) {
             ed.currentNode = null; // the node that the cursor is currently in
             ed.contextMenuPos = null; // the position of the context menu (used to position related dialog box)
             ed.copiedElement = {selectionType: null, element: null}; // the element that was copied (when first selected through the structure tree)
-            ed.entityCopy = null; // store a copy of an entity for pasting
+            ed.copiedEntity = null; // the entity element that was copied
             ed.lastKeyPress = null; // the last key the user pressed
             
             if (w.isReadOnly === true) {

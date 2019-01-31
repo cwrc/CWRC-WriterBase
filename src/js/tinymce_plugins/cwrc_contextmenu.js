@@ -192,7 +192,7 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
                 if (item.settings.category === 'pasteTag' && editor.copiedElement.element === null) {
                     item.hide();
                 }
-                if (item.settings.category === 'pasteEntity' && editor.entityCopy === null) {
+                if (item.settings.category === 'pasteEntity' && editor.copiedEntity === null) {
                     item.hide();
                 }
                 if (item.settings.category === 'copyTag' && currentTag.struct === null) {

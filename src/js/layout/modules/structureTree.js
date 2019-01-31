@@ -276,7 +276,7 @@ function StructureTree(config) {
                     w.dialogManager.show('header');
                 } else {
                     ignoreSelect = true; // set to true so tree.highlightNode code isn't run by editor's onNodeChange handler
-                    w.selectStructureTag(tree.currentlySelectedNodes, selectContents);
+                    w.selectElementById(tree.currentlySelectedNodes, selectContents);
                 }
             }
         }
@@ -304,49 +304,6 @@ function StructureTree(config) {
                 li_attr: {name: id}, // 'class': type}
                 state: {opened: level < 3}
             };
-            
-            var entity = w.entitiesManager.getEntity(id);
-            if (entity !== undefined && w.schemaManager.mapper.isEntityTypeNote(type)) {
-                var content = w.schemaManager.mapper.getNoteContentForEntity(entity);
-                switch($.type(content)) {
-                    case 'array':
-                        nodeData.children = [];
-                        for (var i = 0; i < content.length; i++) {
-                            nodeData.children.push({
-                                text: content[i],
-                                li_attr: {name: id}
-                            });
-                        }
-                        break;
-                    case 'string':
-                        nodeData.children = [];
-                        nodeData.children.push({
-                            text: content,
-                            li_attr: {name: id}
-                        });
-                        break;
-                    case 'object':
-                        if (content.nodeType !== undefined) {
-                            var root = $(tag, content).first();
-                            
-                            var processChildren = function(children, parent, id) {
-                                children.each(function(index, el) {
-                                    if (parent.children == null) parent.children = [];
-                                    var childData = {
-                                        text: el.nodeName,
-                                        li_attr: {name: id}
-                                    };
-                                    parent.children.push(childData);
-                                    
-                                    processChildren($(el).children(), childData, id);
-                                });
-                            }
-                            
-                            processChildren(root.children(), nodeData, id);
-                        }
-                }
-            }
-            
         // structure tag
         } else if (node.attr('_tag')) {
             var tag = node.attr('_tag');
@@ -499,6 +456,10 @@ function StructureTree(config) {
         var dragNodeEditor = $('#'+dragNode.li_attr.name, w.editor.getBody());
         var dropNodeEditor = $('#'+dropNode.li_attr.name, w.editor.getBody());
         
+        if (dragNodeEditor.parents('.noteWrapper').length > 0) {
+            dragNodeEditor = dragNodeEditor.parents('.noteWrapper').first();
+        }
+
         if (isCopy) {
             dragNodeEditor = dragNodeEditor.clone();
         }
@@ -557,7 +518,7 @@ function StructureTree(config) {
                     } else {
                         var actionType = parentText.match(/\w+$/)[0].toLowerCase();
                         w.editor.currentBookmark = w.editor.selection.getBookmark(1);
-                        if (actionType === 'around') {
+                        if (actionType === 'around' && tree.currentlySelectedNodes.length > 0) {
                             w.editor.currentBookmark.tagId = tree.currentlySelectedNodes;
                         } else {
                             w.editor.currentBookmark.tagId = tagId;
@@ -907,7 +868,7 @@ function StructureTree(config) {
                         w.tagger.removeStructureTag(nodeId, true);
                     } else {
                         w.tagger.removeStructureTagContents(nodeId);
-                        w.selectStructureTag(nodeId, true);
+                        w.selectElementById(nodeId, true);
                     }
             } else if (evt.ctrlKey == false && evt.metaKey == false && evt.which >= 48 && evt.which <= 90) {
                 // handle alphanumeric characters when whole tree node is selected

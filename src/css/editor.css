@@ -5,7 +5,7 @@
     border-bottom-style: dotted;
 }
 
-.showEntities .entityHighlight .entity {
+.showEntities .entityHighlight > .entity {
     border-width: 2px;
 }
 
@@ -74,35 +74,40 @@
     border-color: #3366ff;
 }
 
-/* special handling for note type entities */
-.citation, .note, .keyword {
-    /*height: 16px !important;
-    width: 16px !important;*/
+.noteWrapper::before {
     cursor: pointer;
 }
 
-span:not(.entityHighlight) > .start.note::after, div > .start.note::after {
+.noteWrapper.note::before {
     content: url(../img/note_inline_large.png);
 }
 
-span:not(.entityHighlight) > .start.citation::after, div > .start.citation::after {
+.noteWrapper.citation::before {
     content: url(../img/citation_inline_large.png);
 }
 
-span:not(.entityHighlight) > .start.keyword::after, div > .start.keyword::after {
+.noteWrapper.keyword::before {
     content: url(../img/keyword_inline_large.png);
 }
 
-.entityHighlight > .note::after {
+.noteWrapper.note.entityHighlight::before {
     content: url(../img/note_inline_large_highlight.png);
 }
 
-.entityHighlight > .citation::after {
+.noteWrapper.citation.entityHighlight::before {
     content: url(../img/citation_inline_large_highlight.png);
 }
 
-.entityHighlight > .keyword::after {
+.noteWrapper.keyword.entityHighlight::before {
     content: url(../img/keyword_inline_large_highlight.png);
+}
+
+.noteWrapper > * {
+    display: inherit;
+}
+
+.noteWrapper.hide > * {
+    display: none !important;
 }
 
 .showEntities .citation.start, .showEntities .note.start, .showEntities .keyword.start {

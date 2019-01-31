@@ -15,71 +15,6 @@ function Tagger(writer) {
      */
     var tagger = {};
     
-    /**
-     * Inserts entity boundary tags around the supplied DOM range.
-     * @param {String} id The id of the entity 
-     * @param {String} type The entity type
-     * @param {Range} range The DOM range to insert the tags around
-     * @param {String} [tag] The element name
-     */
-    tagger.insertBoundaryTags = function(id, type, range, tag) {
-        var parentTag;
-        if (tag !== undefined) {
-            parentTag = tag;
-        } else {
-            parentTag = w.schemaManager.mapper.getParentTag(type);
-        }
-        
-        if (w.schemaManager.mapper.isEntityTypeNote(type)) {
-            // handling for note type entities
-            var tag = w.editor.dom.create('span', {
-                '_entity': true, '_note': true, '_tag': parentTag, '_type': type, 'class': 'entity '+type+' start end', 'name': id, 'id': id
-            }, '');
-            var sel = w.editor.selection;
-            sel.setRng(range);
-            if (tinymce.isWebKit) {
-                // chrome seems to mess up the range slightly if not set again
-                sel.setRng(range);
-            }
-            sel.collapse(false);
-            range = sel.getRng(true);
-            range.insertNode(tag);
-            
-            w.editor.dom.bind(tag, 'click', function(e) {
-                var marker = w.editor.dom.get(e.target);
-                var tagId = marker.getAttribute('name');
-                tagger.editTag(tagId);
-            });
-        } else {
-            if (range.startContainer.parentNode != range.endContainer.parentNode) {
-                var nodes = w.utilities.getNodesInBetween(range.startContainer, range.endContainer);
-                
-                var startRange = range.cloneRange();
-                startRange.setEnd(range.startContainer, range.startContainer.length);
-                var start = w.editor.dom.create('span', {
-                    '_entity': true, '_type': type, 'class': 'entity '+type+' start', 'name': id
-                }, '');
-                startRange.surroundContents(start);
-                
-                $.each(nodes, function(index, node) {
-                    $(node).wrap('<span _entity="true" _type="'+type+'" class="entity '+type+'" name="'+id+'" />');
-                });
-                
-                var endRange = range.cloneRange();
-                endRange.setStart(range.endContainer, 0);
-                var end = w.editor.dom.create('span',{
-                    '_entity': true, '_type': type, 'class': 'entity '+type+' end', 'name': id
-                }, '');
-                endRange.surroundContents(end);
-            } else {
-                var start = w.editor.dom.create('span', {
-                    '_entity': true, '_tag': parentTag, '_type': type, 'class': 'entity '+type+' start end', 'name': id, 'id': id
-                }, '');
-                range.surroundContents(start);
-            }
-        }
-    };
-    
     // prevents the user from moving the caret inside a marker
     var _doMarkerClick = function(e) {
         var marker = w.editor.dom.get(e.target);
@@ -168,6 +103,9 @@ function Tagger(writer) {
                 };
             } 
         });
+
+        // new entities (from undo/redo)
+        // TODO
         
         // deleted entities
         w.entitiesManager.eachEntity(function(id, entity) {
@@ -209,7 +147,7 @@ function Tagger(writer) {
      */
     tagger.findDuplicateTags = function() {
         w.entitiesManager.eachEntity(function(id, entity) {
-            var match = $('span[class~="start"][name="'+id+'"]', w.editor.getBody());
+            var match = $('[name="'+id+'"]', w.editor.getBody());
             if (match.length > 1) {
                 match.each(function(index, el) {
                     if (index > 0) {
@@ -360,20 +298,33 @@ function Tagger(writer) {
         if ($tag != null) {
             var xmlString = w.converter.buildXMLString($tag);
             var xmlEl = w.utilities.stringToXML(xmlString).firstChild;
+
             var type = w.schemaManager.mapper.getEntityTypeForTag(xmlEl);
             var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
             var info = w.schemaManager.mapper.getReverseMapping(xmlEl, type);
-            var ref = $tag.attr('ref'); // matches ref or REF
+
+            if (isNote) {
+                if (info.properties === undefined) {
+                    info.properties = {};
+                }
+                info.properties.content = $tag.text();
+                info.properties.noteContent = $tag.html();
+            }
+
+            var ref = $tag.attr('ref'); // matches ref or REF. FIXME hardcoded ref attribute
             var id = $tag.attr('id');
-            w.selectStructureTag(id, true);
+
+            w.selectElementById(id, !isNote);
+            if (isNote) {
+                // place the selection outside of the note tag
+                w.editor.selection.collapse(false);
+            }
+
             w.editor.currentBookmark = w.editor.selection.getBookmark(1);
             var newId = tagger.finalizeEntity(type, info);
-            if (isNote) {
-                // need to move the note entity outside of the parent since we're removing the parent and its contents
-                var noteTag = $('#'+newId, w.editor.getBody()).detach();
-                $('#'+id, w.editor.getBody()).after(noteTag);
-            }
+
             tagger.removeStructureTag(id, isNote); // TODO re-add structure tag if conversion was cancelled
+
             if (ref == null) {
                 var tag = w.entitiesManager.getEntity(newId);
                 w.editor.currentBookmark = w.editor.selection.getBookmark(1);
@@ -409,11 +360,16 @@ function Tagger(writer) {
     tagger.copyTag = function(id) {
         var tag = tagger.getCurrentTag(id);
         if (tag.entity) {
-            w.editor.entityCopy = tag.entity;
-            w.event('entityCopied').publish(id);
+            var clone;
+            if (tag.entity.isNote()) {
+                clone = $('#'+tag.entity.getId(), w.editor.getBody()).parent('.noteWrapper').clone(true);
+            } else {
+                clone = $('#'+tag.entity.getId(), w.editor.getBody()).clone();
+            }
+            w.editor.copiedEntity = clone[0];
         } else if (tag.struct) {
             var clone = $(tag.struct, w.editor.getBody()).clone();
-            w.editor.copiedElement.element = clone.wrapAll('<div />').parent()[0];
+            w.editor.copiedElement.element = clone[0];
             w.editor.copiedElement.selectionType = 0; // tag & contents copied
         }
     };
@@ -423,21 +379,27 @@ function Tagger(writer) {
      * @fires Writer#contentChanged
      */
     tagger.pasteTag = function() {
-        var tag = w.editor.copiedElement.element;
-        if (tag != null) {
+        _doPaste(w.editor.copiedElement.element);
+        w.editor.copiedElement = {selectionType: null, element: null};
+    }
+
+    /**
+     * Performs a paste using the specified element at the current cursor point
+     * @param {Element} element
+     */
+    function _doPaste (element) {
+        if (element != null) {
             w.editor.selection.moveToBookmark(w.editor.currentBookmark);
             var sel = w.editor.selection;
             sel.collapse();
             var rng = sel.getRng(true);
-            rng.insertNode(tag);
+            rng.insertNode(element);
             
             tagger.findDuplicateTags();
             
             w.editor.isNotDirty = false;
             w.event('contentChanged').publish(); // don't use contentPasted since we don't want to trigger copyPaste dialog
         }
-        
-        w.editor.copiedElement = {selectionType: null, element: null};
     }
     
     /**
@@ -446,7 +408,8 @@ function Tagger(writer) {
      * @param {String} [tag] The element name
      */
     tagger.addEntity = function(type, tag) {
-        var result = w.utilities.isSelectionValid();
+        var isNote = w.schemaManager.mapper.isEntityTypeNote(type); // treat notes like structs, i.e. allow no selection
+        var result = w.utilities.isSelectionValid(isNote);
         if (result === w.NO_SELECTION) {
             w.dialogManager.show('message', {
                 title: 'Error',
@@ -506,18 +469,15 @@ function Tagger(writer) {
      * @param {Object} info.properties Key/value pairs of Entity properties
      * @param {Object} info.cwrcInfo CWRC lookup info
      * @param {Object} info.customValues Any additional custom values
-     * @param {Object} info.noteContent XML content specific to notes
      */
     function updateEntityInfo(entity, info) {
         var id = entity.getId();
-        var type = entity.getType();
         
         // add attributes to tag
-        var disallowedAttributes = ['id', 'class', 'style'];
         var tag = $('[name='+id+'][_tag]', w.editor.getBody());
         if (tag.length === 1) {
             for (var key in info.attributes) {
-                if (disallowedAttributes.indexOf(key) === -1) {
+                if (w.converter.reservedAttributes[key] !== true) {
                     var val = info.attributes[key];
                     tag.attr(key, w.utilities.escapeHTMLString(val));
                 }
@@ -550,16 +510,6 @@ function Tagger(writer) {
         for (var key in info.customValues) {
             entity.setCustomValue(key, info.customValues[key]);
         }
-        
-        var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
-        if (isNote) {
-            if (info.noteContent) {
-                entity.setNoteContent(info.noteContent);
-            }
-            var xmlcontent = w.schemaManager.mapper.getNoteContentForEntity(entity);
-            var content = xmlcontent.documentElement.textContent.trim();
-            entity.setContent(content);
-        }
     }
     
     /**
@@ -591,48 +541,41 @@ function Tagger(writer) {
      * @returns {String} id The new entity ID
      */
     tagger.finalizeEntity = function(type, info) {
-        w.editor.selection.moveToBookmark(w.editor.currentBookmark);
         if (info != null) {
             var id = w.getUniqueId('ent_');
-            
-            var tag = w.schemaManager.mapper.getParentTag(type);
-            if (info.properties && info.properties.tag) {
-                tag = info.properties.tag;
-            }
             
             sanitizeObject(info.attributes);
             sanitizeObject(info.customValues);
 
-            var content;
-            var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
-            if (isNote) {
-                var xmlcontent = $.parseXML(info.noteContent);
-                content = xmlcontent.documentElement.textContent.trim();
-            } else {
-                content = w.editor.selection.getContent();
-                // strip tags and extra whitespace
-                content = content.replace(/<\/?[^>]+>/g, '').replace(/^\s+|\s+$/g, '');
-            }
-            
-            // create entity here so we can set content properly before adding it to the manager
-            var entity = new Entity({
+            w.editor.selection.moveToBookmark(w.editor.currentBookmark);
+            var sel = w.editor.selection;
+            var range = sel.getRng(true);
+            var content = sel.getContent();
+
+            var config = {
                 id: id,
                 type: type,
-                tag: tag,
+                isNote: w.schemaManager.mapper.isEntityTypeNote(type),
+                content: content,
+                tag: w.schemaManager.mapper.getParentTag(type),
                 attributes: info.attributes,
                 customValues: info.customValues,
-                content: content,
-                noteContent: info.noteContent,
                 cwrcLookupInfo: info.cwrcInfo
-            });
+            };
+
+            if (info.properties && info.properties.noteContent) {
+                if (info.properties.content === undefined || info.properties.content === '') {
+                    info.properties.content = info.properties.noteContent;
+                }
+            }
+            $.extend(config, info.properties);
+
+            // create entity here so we can set content properly before adding it to the manager
+            var entity = new Entity(config);
             
-            // need to add entity before adding tag, due to race condition with structureTree
+            tagger.addEntityTag(entity, range);
             var entry = w.entitiesManager.addEntity(entity);
 
-            tagger.addEntityTag(id, type, tag);
-            
-            updateEntityInfo(entry, info);
-            
             $.when(
                 w.utilities.getUriForEntity(entry),
                 w.utilities.getUriForAnnotation(),
@@ -679,40 +622,8 @@ function Tagger(writer) {
      * @fires Writer#entityPasted
      */
     tagger.pasteEntity = function() {
-        if (w.editor.entityCopy == null) {
-            w.dialogManager.show('message', {
-                title: 'Error',
-                msg: 'No entity to copy!',
-                type: 'error'
-            });
-        } else {
-            var newEntity = w.entitiesManager.cloneEntity(w.editor.entityCopy.getId());
-            var newId = newEntity.getId();
-            w.entitiesManager.setEntity(newId, newEntity);
-            
-            w.editor.selection.moveToBookmark(w.editor.currentBookmark);
-            var sel = w.editor.selection;
-            sel.collapse();
-            var rng = sel.getRng(true);
-            
-            var type = newEntity.getType();
-            var content;
-            if (type === 'note' || type === 'citation' || type === 'keyword') {
-                content = '\uFEFF';
-            } else {
-                content = newEntity.getContent();
-            }
-            
-            var text = w.editor.getDoc().createTextNode(content);
-            rng.insertNode(text);
-            sel.select(text);
-            
-            rng = sel.getRng(true);
-            tagger.insertBoundaryTags(newEntity.getId(), newEntity.getType(), rng);
-            
-            w.editor.isNotDirty = false;
-            w.event('entityPasted').publish(newEntity.getId());
-        }
+        _doPaste(w.editor.copiedEntity);
+        w.editor.copiedEntity = null;
     };
     
     /**
@@ -725,16 +636,25 @@ function Tagger(writer) {
         id = id || w.entitiesManager.getCurrentEntity();
         removeContents = removeContents || false;
         
+        var entity = w.entitiesManager.getEntity(id);
+
         var node = $('[name="'+id+'"]', w.editor.getBody());
         var parent = node[0].parentNode;
-        if (removeContents) {
-            node.remove();
+
+        if (entity.isNote()) {
+            var wrapper = node.parent('.noteWrapper');
+            parent = wrapper[0].parentNode;
+            wrapper.remove();
         } else {
-            var contents = node.contents();
-            if (contents.length > 0) {
-                contents.unwrap();
-            } else {
+            if (removeContents) {
                 node.remove();
+            } else {
+                var contents = node.contents();
+                if (contents.length > 0) {
+                    contents.unwrap();
+                } else {
+                    node.remove();
+                }
             }
         }
         parent.normalize();
@@ -746,36 +666,93 @@ function Tagger(writer) {
     
     /**
      * Add an entity tag.
-     * @param {String} id The id for the entity
-     * @param {String} type The entity type
-     * @param {String} [tag] The entity tag
-     * @returns {String} The text content of the tag
+     * @param {Entity} entity The entity to tag
+     * @param {Range} range The DOM range to apply the tag to
      */
-    tagger.addEntityTag = function(id, type, tag) {
-        var sel = w.editor.selection;
-        var content = sel.getContent();
-        var range = sel.getRng(true);
-        
-        // strip tags
-        content = content.replace(/<\/?[^>]+>/gi, '');
-        
-        // trim whitespace
-        if (range.startContainer === range.endContainer && range.startContainer.nodeType === Node.TEXT_NODE) {
-            var leftTrimAmount = content.match(/^\s{0,1}/)[0].length;
-            var rightTrimAmount = content.match(/\s{0,1}$/)[0].length;
-            range.setStart(range.startContainer, range.startOffset+leftTrimAmount);
-            range.setEnd(range.endContainer, range.endOffset-rightTrimAmount);
+    tagger.addEntityTag = function(entity, range) {
+        var id = entity.getId();
+        var type = entity.getType();
+        var parentTag = entity.getTag();
+
+        if (parentTag === undefined) {
+            parentTag = w.schemaManager.mapper.getParentTag(type);
+        }
+
+        var tagAttributes = {};
+        for (var key in entity.attributes) {
+            if (w.converter.reservedAttributes[key] !== true) {
+                tagAttributes[key] = w.utilities.escapeHTMLString(entity.attributes[key]);
+            }
+        }
+
+        if (entity.isNote()) {
+            // handling for note type entities
+            var tag = w.editor.dom.create(
+                'span',
+                $.extend(tagAttributes, {
+                    '_entity': true, '_note': true, '_tag': parentTag, '_type': type, 'class': 'entity '+type+' start end', 'name': id, 'id': id
+                }),
+                entity.getNoteContent()
+            );
+
+            var sel = w.editor.selection;
             sel.setRng(range);
-            content = content.replace(/^\s+|\s+$/g, '');
+            if (tinymce.isWebKit) {
+                // chrome seems to mess up the range slightly if not set again
+                sel.setRng(range);
+            }
+            sel.collapse(false);
+            range = sel.getRng(true);
+            range.insertNode(tag);
+
+            tagger.addNoteWrapper(tag, type);
+        } else {
+            if (range.startContainer.parentNode != range.endContainer.parentNode) {
+                var nodes = w.utilities.getNodesInBetween(range.startContainer, range.endContainer);
+                
+                var startRange = range.cloneRange();
+                startRange.setEnd(range.startContainer, range.startContainer.length);
+                var start = w.editor.dom.create('span', {
+                    '_entity': true, '_type': type, 'class': 'entity '+type+' start', 'name': id
+                }, '');
+                startRange.surroundContents(start);
+                
+                $.each(nodes, function(index, node) {
+                    $(node).wrap('<span _entity="true" _type="'+type+'" class="entity '+type+'" name="'+id+'" />');
+                });
+                
+                var endRange = range.cloneRange();
+                endRange.setStart(range.endContainer, 0);
+                var end = w.editor.dom.create('span',{
+                    '_entity': true, '_type': type, 'class': 'entity '+type+' end', 'name': id
+                }, '');
+                endRange.surroundContents(end);
+            } else {
+                var start = w.editor.dom.create(
+                    'span',
+                    $.extend(tagAttributes, {
+                        '_entity': true, '_tag': parentTag, '_type': type, 'class': 'entity '+type+' start end', 'name': id, 'id': id
+                    }),
+                    ''
+                );
+                range.surroundContents(start);
+            }
         }
         
-        tagger.insertBoundaryTags(id, type, range, tag);
-        
         w.editor.undoManager.add();
-        
-        return content;
     };
     
+    tagger.addNoteWrapper = function(tag, type) {
+        $(tag)
+            .wrap('<span class="noteWrapper '+type+'" />')
+            .parent().on('click', function(e) {
+                var $target = $(e.target);
+                if ($target.hasClass('noteWrapper')) {
+                    $target.toggleClass('hide');
+                }
+            });
+    };
+
     /**
      * Adds a structure tag to the document, based on the params.
      * @fires Writer#tagAdded
@@ -797,20 +774,28 @@ function Tagger(writer) {
         w.structs[id] = attributes;
         w.editor.currentStruct = id;
         
-        var node;
+        var $node;
         if (bookmark.tagId) {
             // this is used when adding tags through the structure tree
             if ($.isArray(bookmark.tagId)) {
-                node = $('#'+bookmark.tagId.join(',#'), w.editor.getBody());
+                $node = $('#'+bookmark.tagId.join(',#'), w.editor.getBody());
             } else {
-                node = $('#'+bookmark.tagId, w.editor.getBody())[0];
+                $node = $('#'+bookmark.tagId, w.editor.getBody());
             }
         } else {
             // this is meant for user text selections
-            node = bookmark.rng.commonAncestorContainer;
-            while (node.nodeType == 3 || (node.nodeType == 1 && !node.hasAttribute('_tag'))) {
+            var node = bookmark.rng.commonAncestorContainer;
+            while (node.nodeType == Node.TEXT_NODE || (node.nodeType == Node.ELEMENT_NODE && !node.hasAttribute('_tag'))) {
                 node = node.parentNode;
             }
+            $node = $(node);
+        }
+
+        // noteWrapper handling
+        var $noteWrapper = null;
+        var entityType = w.schemaManager.mapper.getEntityTypeForTag($node.attr('_tag'));
+        if (entityType !== null && w.schemaManager.mapper.isEntityTypeNote(entityType)) {
+            $noteWrapper = $node.parent('.noteWrapper');
         }
         
         var tagName = w.utilities.getTagForEditor(attributes._tag);
@@ -826,17 +811,29 @@ function Tagger(writer) {
         var selection = '\uFEFF';
         var content = open_tag + selection + close_tag;
         if (action == 'before') {
-            $(node).before(content);
-        } else if (action == 'after') {
-            $(node).after(content);
-        } else if (action == 'around') {
-            if (node.length > 1) {
-                $(node).wrapAll(content);
+            if ($noteWrapper !== null) {
+                $noteWrapper.before(content);
             } else {
-                $(node).wrap(content);
+                $node.before(content);
+            }
+        } else if (action == 'after') {
+            if ($noteWrapper !== null) {
+                $noteWrapper.after(content);
+            } else {
+                $node.after(content);
+            }
+        } else if (action == 'around') {
+            if ($node.length > 1) {
+                $node.wrapAll(content);
+            } else {
+                if ($noteWrapper !== null) {
+                    $noteWrapper.wrap(content);
+                } else {
+                    $node.wrap(content);
+                }
             }
         } else if (action == 'inside') {
-            $(node).wrapInner(content);
+            $node.wrapInner(content);
         } else {
             // default action = add
             w.editor.selection.moveToBookmark(bookmark);
@@ -856,7 +853,7 @@ function Tagger(writer) {
         w.editor.undoManager.add();
         
         if (selection == '\uFEFF') {
-            w.selectStructureTag(id, true);
+            w.selectElementById(id, true);
         } else if (action == undefined) {
             // place the cursor at the end of the tag's contents
             var rng = w.editor.selection.getRng(true);
@@ -920,7 +917,7 @@ function Tagger(writer) {
      * Remove a structure tag
      * @fires Writer#tagRemoved
      * @param {String} id Then tag id
-     * @param {Boolean} [removeContents] True to remove tag contents only
+     * @param {Boolean} [removeContents] True to remove tag contents as well
      */
     tagger.removeStructureTag = function(id, removeContents) {
         id = id || w.editor.currentStruct;
@@ -930,19 +927,32 @@ function Tagger(writer) {
                 removeContents = true;
             }
         }
-        
+
         var node = $('#'+id, w.editor.getBody());
+        var entry = w.entitiesManager.getEntity(id);
         if (removeContents) {
-            node.remove();
+            if (entry && entry.isNote()) {
+                node.parent('.noteWrapper').remove();
+            } else {
+                node.remove();
+            }
         } else {
-            var parent = node.parent()[0];
+            var parent = node.parent();
             var contents = node.contents();
             if (contents.length > 0) {
                 contents.unwrap();
             } else {
                 node.remove();
             }
-            parent.normalize();
+            if (entry && entry.isNote()) {
+                contents = parent.contents();
+                if (contents.length > 0) {
+                    contents.unwrap();
+                } else {
+                    parent.remove();
+                }
+            }
+            parent[0].normalize();
         }
         
         w.editor.undoManager.add();

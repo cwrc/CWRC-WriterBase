@@ -32,7 +32,7 @@ tinymce.PluginManager.add('cwrcpath', function(editor) {
 //                    editor.nodeChanged();
                     var el = this.row()[e.index].element;
                     var id = el.getAttribute('id');
-                    editor.writer.selectStructureTag(id, false);
+                    editor.writer.selectElementById(id, false);
                 });
 
                 editor.on('nodeChange', function(e) {

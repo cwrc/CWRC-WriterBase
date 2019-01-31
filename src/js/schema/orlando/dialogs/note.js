@@ -13,8 +13,15 @@ module.exports = function(writer, parentEl) {
                 '<input type="radio" id="'+id+'_scho" name="'+id+'_type" value="SCHOLARNOTE" /><label for="'+id+'_scho">Scholarly Note</label>'+
             '</div>'+
         '</div>'+
-        '<div class="writerParent">'+
-            '<div data-transform="writer" style="width: 100%; height: 100%; border: none;"/>'+
+        '<div>'+
+            '<label for="'+id+'_noteContent">Note text</label>'+
+            '<textarea id="'+id+'_noteContent" data-type="textbox" data-mapping="prop.noteContent" style="width: 98%; height: 100px;"></textarea>'+
+            '<p>You will be able to tag and edit the text in the main document.</p>'+
+        '</div>'+
+        '<div data-transform="accordion">'+
+            '<h3>Markup options</h3>'+
+            '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
+            '</div>'+
         '</div>'+
     '</div>').appendTo(parentEl);
     
@@ -27,25 +34,13 @@ module.exports = function(writer, parentEl) {
         title: 'Tag Note'
     });
     
-    $('#'+id+'_type input').click(function() {
-        var newTag = $(this).val();
-        var allOtherTags = $(this).siblings('input').map(function(index, el) {
-            return $(el).val();
-        }).get();
-        var tagsSelector = '';
-        for (var i = 0, len = allOtherTags.length; i < len; i++) {
-            tagsSelector += '*[_tag="'+allOtherTags[i]+'"]';
-            if (len > 1 && i !== len-1) {
-                tagsSelector += ',';
-            }
-        }
-        var parentTag = $(tagsSelector, dialog.cwrcWriter.editor.getBody()).first();
-        dialog.cwrcWriter.tagger.changeTagValue(parentTag, newTag);
-    });
-    
-    dialog.$el.on('dialogopen', function(e, ui) {
-        if (w.isReadOnly) {
-            $('#'+id+'_type').buttonset('disable');
+    dialog.$el.on('beforeShow', function(e, config, dialog) {
+        if (dialog.mode === DialogForm.EDIT) {
+            dialog.$el.find('label[for='+id+'_noteContent]').hide();
+            dialog.$el.find('#'+id+'_noteContent').hide();
+        } else {
+            dialog.$el.find('label[for='+id+'_noteContent]').show();
+            dialog.$el.find('#'+id+'_noteContent').show();
         }
     });
     

@@ -129,14 +129,19 @@ function Utilities(writer) {
     
     u.getPreviousTextNode = function(node) {
         function doGet(currNode) {
+            if (currNode.nodeType == Node.DOCUMENT_NODE) {
+                return null;
+            }
             var prevNode = currNode.previousSibling;
             if (prevNode == null) {
                 prevNode = currNode.parentNode.previousSibling;
-                if (prevNode.nodeType == 1) {
+                if (prevNode == null) {
+                    return doGet(currNode.parentNode);
+                } else if (prevNode.nodeType == Node.ELEMENT_NODE) {
                     prevNode = prevNode.lastChild;
                 }
             }
-            if (prevNode.nodeType == 3) {
+            if (prevNode.nodeType == Node.TEXT_NODE) {
                 return prevNode;
             } else {
                 return doGet(prevNode);
@@ -149,14 +154,19 @@ function Utilities(writer) {
     
     u.getNextTextNode = function(node) {
         function doGet(currNode) {
+            if (currNode.nodeType == Node.DOCUMENT_NODE) {
+                return null;
+            }
             var nextNode = currNode.nextSibling;
             if (nextNode == null) {
                 nextNode = currNode.parentNode.nextSibling;
-                if (nextNode.nodeType == 1) {
+                if (nextNode == null) {
+                    return doGet(currNode.parentNode);
+                } else if (nextNode.nodeType == Node.ELEMENT_NODE) {
                     nextNode = nextNode.firstChild;
                 }
             }
-            if (nextNode.nodeType == 3) {
+            if (nextNode.nodeType == Node.TEXT_NODE) {
                 return nextNode;
             } else {
                 return doGet(nextNode);

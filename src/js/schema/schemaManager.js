@@ -81,6 +81,7 @@ function SchemaManager(writer, config) {
      * @returns {String} The schemaId (or undefined)
      */
     sm.getSchemaIdFromRoot = function(root) {
+        // TODO populateRoots on demand
         for (var schemaId in sm._roots) {
             if (sm._roots[schemaId] === root) {
                 return schemaId;
@@ -387,7 +388,7 @@ function SchemaManager(writer, config) {
         });
     };
     
-    populateRoots();
+    // populateRoots();
 
     w.event('schemaChanged').subscribe(function(schemaId) {
         w.schemaManager.schemaId = schemaId;

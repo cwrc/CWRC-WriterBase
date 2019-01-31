@@ -21,6 +21,7 @@ function XML2CWRC(writer) {
         '_type': true,
         '_tag': true,
         '_textallowed': true,
+        '_note': true,
         'id': true,
         'name': true,
         'class': true
@@ -221,18 +222,17 @@ function XML2CWRC(writer) {
         // TODO add flag
         autoConvertEntityTags(doc, ['link']);
 
-        // remove mapping related elements
+        // additional entity processing:
+        // - remove mapping related elements
         w.entitiesManager.eachEntity(function(entityId, entity) {
             var range = entity.getRange();
             if (range.endXPath === undefined) {
-                var entityType = entity.getType();
                 var node = w.utilities.evaluateXPath(doc, range.startXPath);
                 if (node !== null) {
                     var $node = $(node);
-                    if (w.schemaManager.mapper.isEntityTypeNote(entityType)) {
-                        $node.contents().remove();
+                    if (entity.isNote()) {
                     } else {
-                        var textTag = w.schemaManager.mapper.getTextTag(entityType);
+                        var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
                         if (textTag !== '') {
                             $node.find(textTag).contents().unwrap();
                         }
@@ -481,21 +481,17 @@ function XML2CWRC(writer) {
         // editor needs focus in order for entities to be properly inserted
         w.editor.focus();
 
-        var entityNodes = []; // keep track of the nodes so we can remove them afterwards
-
         var body = w.editor.getBody();
         var doc = w.editor.getDoc();
+        
         // insert entities
-        // TODO handling for recursive entities (notes, citations)
-        var entry, range, parent, contents, lengthCount, match, matchingNode, startOffset, endOffset, startNode, endNode;
         w.entitiesManager.eachEntity(function(id, entry) {
-            matchingNode = null;
-            startNode = null;
-            endNode = null;
-            startOffset = 0;
-            endOffset = 0;
+            var startNode = null;
+            var endNode = null;
+            var startOffset = 0;
+            var endOffset = 0;
 
-            range = entry.getRange();
+            var range = entry.getRange();
 
             // just rdf, no markup
             if (range.endXPath) {
@@ -512,8 +508,6 @@ function XML2CWRC(writer) {
                 var entityNode = w.utilities.evaluateXPath(doc, range.startXPath);
                 startNode = entityNode;
                 endNode = entityNode;
-
-                entityNodes.push({entity: entry, node: entityNode});
             }
 
             if (startNode != null && endNode != null) {
@@ -523,7 +517,7 @@ function XML2CWRC(writer) {
                         var range = w.editor.selection.getRng(true);
                         range.setStart(startNode, startOffset);
                         range.setEnd(endNode, endOffset);
-                        w.tagger.insertBoundaryTags(id, type, range, entry.getTag());
+                        w.tagger.addEntityTag(entry, range);
                     } else {
                         // then tag already exists
                         $(startNode).attr({
@@ -533,16 +527,18 @@ function XML2CWRC(writer) {
                             'name': id,
                             'id': id
                         });
+
+                        if (entry.isNote()) {
+                            w.tagger.addNoteWrapper(startNode, type);
+                            entry.setContent($(startNode).text());
+                            entry.setNoteContent($(startNode).html());
+                        }
                     }
                     if (entry.getContent() === undefined) {
                         // get and set the text content
                         // TODO remove schema specific properties
                         var content = '';
-                        if (type === 'note' || type === 'citation') {
-                            content = $($.parseXML(entry.getNoteContent())).text();
-                        } else if (type === 'keyword') {
-                            content = entry.getCustomValues().keywords.join(', ');
-                        } else if (type === 'correction') {
+                        if (type === 'correction') {
                             content = entry.getCustomValues().corrText;
                         } else {
                             w.entitiesManager.highlightEntity(); // remove highlight

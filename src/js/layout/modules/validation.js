@@ -71,6 +71,13 @@ function Validation(config) {
                     '<span class="ui-icon ui-icon-check" style="float: left; margin-right: 4px;"></span>Your document is valid!'+
                 '</li>');
         }
+
+        // need to temporarily remove all noteWrappers in order for xpath/selector to work
+        w.entitiesManager.eachEntity(function(id, ent) {
+            if (ent.isNote()) {
+                $('#'+id, w.editor.getBody()).unwrap();
+            }
+        });
         
         $('warning', resultDoc).each(function(index, el) {
             var id = null;
@@ -85,6 +92,7 @@ function Validation(config) {
                 id = elementId;
             }
             if (id == null && path != '') {
+                // convert xpath to jquery selector
                 var editorPath = '';
                 var tags = path.split('/');
                 for (var i = 0; i < tags.length; i++) {
@@ -182,13 +190,20 @@ function Validation(config) {
                 console.warn("validation: couldn't find element for "+path);
             }
         });
+
+        // re-add the noteWrappers
+        w.entitiesManager.eachEntity(function(id, ent) {
+            if (ent.isNote()) {
+                w.tagger.addNoteWrapper($('#'+id, w.editor.getBody()), ent.getType());
+            }
+        });
         
         list.find('li').click(function() {
             list.find('li').removeClass('selected');
             $(this).addClass('selected');
             
             var id = $(this).data('id');
-            w.selectStructureTag(id);
+            w.selectElementById(id);
         });
         
         w.layoutManager.showModule('validation');

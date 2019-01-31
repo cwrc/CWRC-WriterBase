@@ -17,6 +17,12 @@ function Entity(config) {
      * @type String
      */
     this.type;
+
+    /**
+     * Is the entity a note
+     * @type Boolean
+     */
+    this._isNote = false;
     
     /**
      * The parent tag of the entity.
@@ -47,7 +53,7 @@ function Entity(config) {
      * Values that can't be directly mapped onto the entity's tag.
      */
     this.customValues = {};
-    
+ 
     /**
      * XML content, used by note-type entities.
      * @type String
@@ -100,6 +106,10 @@ function Entity(config) {
     }
     if (config.noteContent !== undefined) {
         this.noteContent = config.noteContent;
+        this._isNote = true;
+    }
+    if (config.isNote !== undefined) {
+        this._isNote = config.isNote;
     }
     if (config.cwrcLookupInfo !== undefined) {
         this.cwrcLookupInfo = config.cwrcLookupInfo;
@@ -127,6 +137,9 @@ Entity.prototype = {
     },
     getType: function() {
         return this.type;
+    },
+    isNote: function() {
+        return this._isNote;
     },
     getTag: function() {
         return this.tag;
@@ -184,7 +197,7 @@ Entity.prototype = {
     setNoteContent: function(content) {
         this.noteContent = content;
     },
-    
+
     getUris: function() {
         return this.annotationUris;
     },

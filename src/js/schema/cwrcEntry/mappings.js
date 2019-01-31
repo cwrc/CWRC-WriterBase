@@ -164,19 +164,7 @@ note: {
     parentTag: ['RESEARCHNOTE', 'SCHOLARNOTE'],
     isNote: true,
     mapping: function(entity) {
-        var tag = entity.getTag();
-        var xml = Mapper.getTagAndDefaultAttributes(entity);
-        xml += '>';
-        
-        var content = entity.getNoteContent();
-        if (content) {
-            var xmlDoc = $.parseXML(content);
-            var noteContent = $(tag, xmlDoc).first()[0];
-            xml += noteContent.innerHTML;
-        }
-        
-        xml += '</'+tag+'>';
-        return xml;
+        return Mapper.getDefaultMapping(entity);
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
@@ -193,19 +181,7 @@ citation: {
     parentTag: 'BIBCIT',
     isNote: true,
     mapping: function(entity) {
-        var tag = entity.getTag();
-        var xml = Mapper.getTagAndDefaultAttributes(entity);
-        xml += '>';
-        
-        var content = entity.getNoteContent();
-        if (content) {
-            var xmlDoc = $.parseXML(content);
-            var noteContent = $(tag, xmlDoc).first()[0];
-            xml += noteContent.innerHTML;
-        }
-        
-        xml += '</'+tag+'>';
-        return xml;
+        return Mapper.getDefaultMapping(entity);
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
@@ -244,9 +220,6 @@ correction: {
 keyword: {
     parentTag: 'KEYWORDCLASS',
     isNote: true,
-    getNoteContent: function(entity, returnString) {
-        return entity.getAttribute('KEYWORDTYPE');
-    },
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },

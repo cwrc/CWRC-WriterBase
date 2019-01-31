@@ -19,8 +19,6 @@ function Mapper(config) {
     };
 }
 
-Mapper.TEXT_SELECTION = '[[[editorText]]]'; // constant represents the user's text selection when adding an entity
-
 Mapper.getAttributeString = function(attObj) {
     var str = '';
     for (var key in attObj) {
@@ -52,26 +50,28 @@ Mapper.getAttributesFromXml = function(xml) {
 /**
  * Gets the standard mapping for a tag and attributes.
  * Doesn't close the tag, so that further attributes can be added.
- * @param {Entity} entity The Entity from which to fetch attributes
+ * @param {Entity} entity The Entity from which to fetch attributes.
+ * @param {Boolean} [closeTag] True to close the tag (i.e. add >). Default is true.
  * @returns {String}
  */
-Mapper.getTagAndDefaultAttributes = function(entity) {
+Mapper.getTagAndDefaultAttributes = function(entity, closeTag) {
+    closeTag = closeTag === undefined ? true : closeTag;
     var tag = entity.getTag();
     var xml = '<'+tag;
     xml += Mapper.getAttributeString(entity.getAttributes());
+    if (closeTag) {
+        xml += '>';
+    }
     return xml;
 };
 
 /**
- * Similar to the Mapper.getTagAndDefaultAttributes method but closes the tag.
+ * Similar to the Mapper.getTagAndDefaultAttributes method but includes the end tag.
  * @param {Entity} entity
- * @returns {String}
+ * @returns {Array}
  */
 Mapper.getDefaultMapping = function(entity) {
-    var xml = Mapper.getTagAndDefaultAttributes(entity);
-    var tag = entity.getTag();
-    xml += '>'+Mapper.TEXT_SELECTION+'</'+tag+'>';
-    return xml;
+    return [Mapper.getTagAndDefaultAttributes(entity), '</'+entity.getTag()+'>'];
 };
 
 Mapper.getDefaultReverseMapping = function(xml, customMappings, nsPrefix) {
@@ -207,12 +207,7 @@ Mapper.prototype = {
         if (mapping === undefined) {
             return ['', '']; // return array of empty strings if there is no mapping
         }
-        var mappedString = mapping(entity);
-        if (mappedString.indexOf(Mapper.TEXT_SELECTION) === -1) {
-            return ['', mappedString];
-        } else {
-            return mappedString.split(Mapper.TEXT_SELECTION);
-        }
+        return mapping(entity);
     },
 
     /**
@@ -272,39 +267,14 @@ Mapper.prototype = {
      * @return {Boolean}
      */
     isEntityTypeNote: function(type) {
+        if (type == null) {
+            return false;
+        }
         var isNote = this.getMappings().entities[type].isNote;
         if (isNote === undefined) {
             return false;
         } else {
             return isNote;
-        }
-    },
-
-    /**
-     * Gets the content of a note/note-like entity.
-     * @param {Entity} entity The entity
-     * @param {Boolean} returnString True to return a string
-     * @returns {String|Array|XML}
-     */
-    getNoteContentForEntity: function(entity, returnString) {
-        var entry = this.getMappings().entities[entity.getType()];
-        if (entry.isNote) {
-            var content;
-            if (entry.getNoteContent !== undefined) {
-                content = entry.getNoteContent(entity, returnString);
-            } else {
-                content = entity.getNoteContent();
-                if (returnString !== true) {
-                    try {
-                        content = $.parseXML(content);
-                    } catch(e) {
-                        console.warn("mapper: error parsing xml:", content);
-                    }
-                }
-            }
-            return content;
-        } else {
-            return '';
         }
     },
 

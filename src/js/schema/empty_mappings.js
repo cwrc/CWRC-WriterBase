@@ -16,7 +16,7 @@ blockElements: [],
 urlAttributes: [],
 // Attributes that should be shown in a popup in the editor
 popupAttributes: [],
-// Elements, whose contents should be shown in a popup in the editor
+// Elements, whose contents should be shown in a popup in the editor. Can include an attribute selector, e.g. note[place="margin"]
 popupElements: [],
 
 listeners: {
@@ -28,7 +28,7 @@ listeners: {
  * The entries for each entity. Each entity entry needs the following members:
  * parentTag {String|Array}: the XML tag(s) that encapsulates the entity, also used to determine if an XML tag is associated with an entity
  * textTag {String}: the tag that contains the text content of the entity
- * mapping {Function}: a function which accepts an Entity and returns a string of XML to display in the Writer (see Mapper.getDefaultMapping)
+ * mapping {Function}: a function which accepts an Entity and returns an array of start and end XML strings to display in the Writer (see Mapper.getDefaultMapping)
  * reverseMapping {Function}: a function which accepts an XML fragment and returns a JSON object (see Mapper.getDefaultReverseMapping) with the following entries:
  *     attributes: JSON representation of the XML attributes, see Entity.attributes
  *     customValues: JSON object of additional values, see Entity.customValues
@@ -36,9 +36,6 @@ listeners: {
  * 
  * Optional members:
  * isNote {Boolean}: boolean indicating the entity is a "note type" (default is false)
- * getNoteContent {Function}: if the entity is a note it requires this member. This is a function which accepts an Entity and a boolean, and which returns a string or XML, depending on the boolean.
- *     It should return the content of the note (typically, what's inside the parentTag).
- *     NB: replaced by Entity.getNoteContent, currently only used by keyword entities
  * xpathSelector {String}: if the entity can have several different parentTags or if several entities share the same parentTag, this selector can help differentiate
  */
 

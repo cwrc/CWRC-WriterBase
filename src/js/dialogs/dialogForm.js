@@ -29,8 +29,7 @@ function DialogForm(config) {
     this.currentData = {
         attributes: {},
         properties: {},
-        customValues: {},
-        noteContent: {}
+        customValues: {}
     };;
     this.currentId = null; // entity ID
 
@@ -163,105 +162,6 @@ function initAttributeWidget(dialogInstance, config) {
     dialogInstance.attWidgetInit = true;
 };
 
-function initWriter(el) {
-    var me = this;
-    
-    var config = me.cwrcWriterConfig;
-    if (config === undefined) {
-        // defaults
-        var config = $.extend({}, me.w.initialConfig);
-        config.modules = {
-            west: ['structure','entities']
-        }
-        config.embedded = true;
-        config.mode = me.w.XML;
-        config.allowOverlap = false;
-        config.buttons1 = 'schematags,editTag,removeTag,|,addperson,addplace,adddate,addorg,addcitation,addtitle,addcorrection,addkeyword,addlink';
-    }
-    
-    if (el.getAttribute('id') == null || config.container === undefined) {
-        var id = me.w.getUniqueId('miniWriter_');
-        config.container = id;
-        el.setAttribute('id', id);
-    }
-    
-    if (me.cwrcWriterConfig === undefined) {
-        // store defaults
-        me.cwrcWriterConfig = config;
-    }
-    
-    me.cwrcWriter = new me.w._getClass()(config);
-    
-    // move shared tinymce tooltip element to new cwrc writer's container. required for utilities.getOffsetPosition to work properly.
-    var tt = me.w.editor.theme.panel.find('button')[0].tooltip().getEl();
-    $(tt).detach().appendTo(me.cwrcWriter.layoutManager.getContainer());
-    
-    me.$el.one('beforeClose', function() {
-        me.cwrcWriter.destroy();
-        // reset to previous container
-        tinymce.Env.container = me.w.layoutManager.getContainer()[0];
-        
-        // move shared tooltip back to previous container
-        $(tt).detach().appendTo(me.w.layoutManager.getContainer());
-    });
-    
-    me.$el.one('beforeSave', function() {
-        var content = me.cwrcWriter.converter.getDocumentContent();
-        me.currentData.noteContent = content;
-    });
-    if (me.cwrcWriter.isReadOnly) {
-        me.$el.dialog('option', 'buttons', [{
-            text: 'Close',
-            click: function() {
-                me.$el.trigger('beforeCancel');
-                me.$el.trigger('beforeClose');
-                me.$el.dialog('close');
-            }
-        }]);
-    }
-    
-    if (me.cwrcWriter.isInitialized) {
-        postSetup();
-    } else {
-        me.cwrcWriter.event('writerInitialized').subscribe(postSetup);
-    }
-    
-    function postSetup() {
-        me.cwrcWriter.settings.hideAdvanced();
-        
-        me.cwrcWriter.event('documentLoaded').subscribe(function() {
-            me.cwrcWriter.editor.focus();
-        });
-        
-        // in case document is loaded before tree
-        me.cwrcWriter.event('structureTreeInitialized').subscribe(function(tree) {
-            setTimeout(tree.update, 50); // need slight delay to get indents working for some reason
-        });
-        me.cwrcWriter.event('entitiesListInitialized').subscribe(function(el) {
-            setTimeout(el.update, 50);
-        });
-        
-        var noteUrl = me.w.schemaManager.getCurrentSchema().entityTemplates[me.type];
-        if (me.mode === DialogForm.ADD) {
-            me.cwrcWriter.loadDocumentURL(noteUrl);
-        } else {
-            $.ajax({
-                url: noteUrl,
-                type: 'GET',
-                dataType: 'xml',
-                success: function(doc, status, xhr) {
-                    var parent = me.showConfig.entry.getTag();
-                    var noteDoc = $.parseXML(me.showConfig.entry.getNoteContent());
-                    var annotation = $(parent, noteDoc).first();
-                    annotation.attr('_entity', 'true'); // stop auto conversion of note entity by xml2cwrc
-                    var xmlDoc = $(doc).find(parent).replaceWith(annotation).end()[0];
-                    me.cwrcWriter.loadDocumentXML(xmlDoc);
-                }
-            });
-        }
-    }
-}
-
 DialogForm.prototype = {
 
     constructor: DialogForm,
@@ -299,11 +199,6 @@ DialogForm.prototype = {
                     break;
             }
         });
-        $('[data-transform="writer"]', this.$el).each(function(index, el) {
-            this.$el.one('dialogopen', function(e, ui) {
-                initWriter.call(this, el);
-            }.bind(this));
-        }.bind(this));
         $('[data-transform="accordion"]', this.$el).each(function(index, el) {
             $(this).accordion('option', 'active', false);
         });
@@ -319,8 +214,7 @@ DialogForm.prototype = {
         this.currentData = {
             attributes: {},
             properties: {},
-            customValues: {},
-            noteContent: {}
+            customValues: {}
         };
         
         if (this.mode === DialogForm.ADD) {
