@@ -309,11 +309,11 @@ function XML2CWRC(writer) {
 
     /**
      * Look for potential entities inside the passed element
-     * @param {Document|Element} el
+     * @param {Document|Element} contextEl
      * @param {Array} [typesToFind] An array of entity types to find, defaults to all types
      * @returns {jQuery} An array of elements
      */
-    xml2cwrc.findEntities = function(el, typesToFind) {
+    xml2cwrc.findEntities = function(contextEl, typesToFind) {
         var entityTagNames = [];
         typesToFind = typesToFind === undefined ? ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'] : typesToFind;
         
@@ -329,7 +329,10 @@ function XML2CWRC(writer) {
             }
         }
 
-        var potentialEntities = $(entityTagNames.join(','), el);
+        var headerTag = w.schemaManager.mapper.getHeaderTag();
+        var potentialEntities = $(entityTagNames.join(','), contextEl).filter(function(index, el) {
+            return $(el).parents(headerTag).length === 0; // filter out elements inside the header
+        });
         return potentialEntities;
     }
 
