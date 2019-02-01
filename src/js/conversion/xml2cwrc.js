@@ -365,20 +365,19 @@ function XML2CWRC(writer) {
             entityType = w.schemaManager.mapper.getEntityTypeForTag(el);
         }
 
+        var isNote = w.schemaManager.mapper.isEntityTypeNote(entityType);
+
         var info = w.schemaManager.mapper.getReverseMapping(el, entityType);
 
         var config = {
             type: entityType,
+            isNote: isNote,
             attributes: info.attributes,
             customValues: info.customValues,
             noteContent: info.noteContent,
             cwrcLookupInfo: info.cwrcInfo
         };
-        if (info.properties !== undefined) {
-            for (var key in info.properties) {
-                config[key] = info.properties[key];
-            }
-        }
+        $.extend(config, info.properties);
 
         return config;
     }
