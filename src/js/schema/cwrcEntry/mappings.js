@@ -187,7 +187,7 @@ citation: {
         return Mapper.getDefaultReverseMapping(xml, {
             cwrcInfo: {id: 'cwrc:BIBCIT/@REF'},
             noteContent: '.'
-        }, 'cwrc');
+        });
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'dcterms:BibliographicResource', 'cw:citing', format);

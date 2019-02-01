@@ -2,7 +2,6 @@
 'use strict';
 
 var $ = require('jquery');
-var xpath = require('jquery-xpath');
 var Entity = require('../entity.js');
 
 function Mapper(config) {
@@ -74,20 +73,20 @@ Mapper.getDefaultMapping = function(entity) {
     return [Mapper.getTagAndDefaultAttributes(entity), '</'+entity.getTag()+'>'];
 };
 
-Mapper.getDefaultReverseMapping = function(xml, customMappings, nsPrefix) {
+Mapper.getDefaultReverseMapping = function(xml, customMappings) {
     function getValueFromXPath(xpath) {
         var value;
-        var result = Mapper.getXPathResult(xml, xpath, nsPrefix);
+        var result = Mapper.getXPathResult(xml, xpath);
         if (result !== undefined) {
             switch (result.nodeType) {
                 case Node.ELEMENT_NODE:
                     value = Mapper.xmlToString(result);
                     break;
                 case Node.TEXT_NODE:
-                    value = $(result).text();
+                    value = result.textContent;
                     break;
                 case Node.ATTRIBUTE_NODE:
-                    value = $(result).val();
+                    value = result.value;
                     break;
                 case undefined:
                     value = result;
@@ -122,27 +121,50 @@ Mapper.getDefaultReverseMapping = function(xml, customMappings, nsPrefix) {
 
 /**
  * Returns the result of an xpath query on the passed xml
- * @param {Element} xmlContext Must be an element, can't be a document
- * @param {String} xpathExpression
- * @param {String} nsPrefix
+ * @param {Document|Element} contextNode
+ * @param {String} xpath
  * @returns {Element|undefined}
  */
-Mapper.getXPathResult = function(xmlContext, xpathExpression, nsPrefix) {
-    nsPrefix = nsPrefix || '';
-    var nsUri = xmlContext.namespaceURI;
-    if (nsUri === null && nsPrefix !== '') {
-        // remove namespaces
-        var regex = new RegExp(nsPrefix+':', 'g');
-        xpathExpression = xpathExpression.replace(regex, '');
-    }
+Mapper.getXPathResult = function(contextNode, xpath) {
+    var doc = contextNode.ownerDocument;
+
+    // grouped matches: 1 separator, 2 axis, 3 namespace, 4 element name (or function), 5 predicate
+    var regex = /(\/{1,2})([\w-]+::)?(\w+?:)?([\w()]+)(\[.+?\])?/g;
+
+    var nsr = doc.createNSResolver(doc.documentElement);
+    var defaultNamespace = doc.documentElement.getAttribute('xmlns');
 
     var nsResolver = function(prefix) {
-        if (prefix == nsPrefix) return nsUri;
-    };
-    
-    var result = $(xmlContext).xpath(xpathExpression, nsResolver)[0];
-    
-    return result;
+        return nsr.lookupNamespaceURI(prefix) || defaultNamespace;
+    }
+
+    // default namespace hack (http://stackoverflow.com/questions/9621679/javascript-xpath-and-default-namespaces)
+    if (defaultNamespace !== null) {
+        // add foo namespace to the element name
+        xpath = xpath.replace(regex, function(match, p1, p2, p3, p4, p5) {
+            if (p3 !== undefined) {
+                // already has a namespace
+                return match;
+            } else {
+                if (p4.indexOf('()') !== -1) {
+                    // it's a function not an element name
+                    return [p1,p2,p3,p4,p5].join('');
+                } else {
+                    return [p1,p2,'foo:',p4,p5].join('');
+                }
+            }
+        });
+    }
+
+    var result;
+    try {
+        result = doc.evaluate(xpath, contextNode, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+    } catch (e) {
+        console.warn('utilities.evaluateXPath: there was an error evaluating the xpath', e)
+        return undefined;
+    }
+    var nodeResult = result.singleNodeValue;
+    return nodeResult === null ? undefined : nodeResult;
 };
 
 Mapper.xmlToString = function(xmlData) {
@@ -245,7 +267,7 @@ Mapper.prototype = {
         for (var type in mappings.entities) {
             var xpath = mappings.entities[type].xpathSelector;
             if (xpath !== undefined && isElement) {
-                var result = Mapper.getXPathResult(el, xpath, this.w.schemaManager.getCurrentSchema().schemaMappingsId);
+                var result = Mapper.getXPathResult(el, xpath);
                 if (result !== undefined) {
                     resultType = type;
                     break; // prioritize xpath

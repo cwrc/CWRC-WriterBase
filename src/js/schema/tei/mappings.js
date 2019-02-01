@@ -107,7 +107,7 @@ place: {
         return Mapper.getDefaultReverseMapping(xml, {
             cwrcInfo: {id: '@ref'},
             customValues: {precision: 'tei:precision/@precision'}
-        }, 'tei');
+        });
     },
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, 'geo:SpatialThing', null, format);
@@ -183,8 +183,8 @@ correction: {
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
-            customValues: {sicText: 'tei:sic/text()', corrText: 'tei:corr/text(), text()'}
-        }, 'tei');
+            customValues: {sicText: 'tei:sic/text()', corrText: 'tei:corr/text()'}
+        });
     },
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:editing', format);
@@ -287,7 +287,7 @@ citation: {
         return Mapper.getDefaultReverseMapping(xml, {
             cwrcInfo: {id: 'tei:bibl/tei:ref/@target'},
             noteContent: '.'
-        }, 'tei');
+        });
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'dcterms:BibliographicResource', 'cw:citing', format);
@@ -309,7 +309,7 @@ keyword: {
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
             customValues: {term: 'tei:term/text()'}
-        }, 'tei');
+        });
     },
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, ['oa:Tag', 'cnt:ContentAsText', 'skos:Concept'], 'oa:classifying', format);
