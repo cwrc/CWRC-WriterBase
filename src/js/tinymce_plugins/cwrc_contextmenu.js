@@ -209,6 +209,16 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
         var position = editor.writer.utilities.getOffsetPosition(editor.getContentAreaContainer());
         position.left += e.pageX;
         position.top += e.pageY;
+
+        var $editorBody = $(editor.getDoc().documentElement);
+        var $docBody = $(document.documentElement);
+        var editorScrollTop = $editorBody.scrollTop();
+        var editorScrollLeft = $editorBody.scrollLeft();
+        var docScrollTop = $docBody.scrollTop();
+        var docScrollLeft = $docBody.scrollLeft();
+        
+        position.left = position.left - editorScrollLeft - docScrollLeft;
+        position.top = position.top - editorScrollTop - docScrollTop;
         
         var container = editor.writer.layoutManager.getContainer();
         var x = editor.writer.utilities.constrain(position.left, container.outerWidth(), menu.layoutRect().w);
