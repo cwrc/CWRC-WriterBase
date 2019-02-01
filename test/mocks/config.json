@@ -18,51 +18,31 @@
             "name": "CWRC Basic TEI Schema",
             "url": "https://cwrc.ca/schemas/cwrc_tei_lite.rng",
             "cssUrl": "https://cwrc.ca/templates/css/tei.css",
-            "schemaMappingsId": "tei",
-            "entityTemplates": {
-                "note": "../src/js/schema/tei/xml/note.xml",
-                "citation": "../src/js/schema/tei/xml/citation.xml"
-            }
+            "schemaMappingsId": "tei"
         },
         "events": {
             "name": "Events Schema",
             "url": "https://cwrc.ca/schemas/orlando_event_v2.rng",
             "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
-            "schemaMappingsId": "orlando",
-            "entityTemplates": {
-                "note": "../src/js/schema/orlando/xml/note_events.xml",
-                "citation": "../src/js/schema/orlando/xml/citation_events.xml"
-            }
+            "schemaMappingsId": "orlando"
         },
         "biography": {
             "name": "Biography Schema",
             "url": "https://cwrc.ca/schemas/orlando_biography_v2.rng",
             "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
-            "schemaMappingsId": "orlando",
-            "entityTemplates": {
-                "note": "../src/js/schema/orlando/xml/note_biography.xml",
-                "citation": "../src/js/schema/orlando/xml/citation_biography.xml"
-            }
+            "schemaMappingsId": "orlando"
         },
         "writing": {
             "name": "Writing Schema",
             "url": "https://cwrc.ca/schemas/orlando_writing_v2.rng",
             "cssUrl": "https://cwrc.ca/templates/css/orlando_v2_cwrc-writer.css",
-            "schemaMappingsId": "orlando",
-            "entityTemplates": {
-                "note": "../src/js/schema/orlando/xml/note_writing.xml",
-                "citation": "../src/js/schema/orlando/xml/citation_writing.xml"
-            }
+            "schemaMappingsId": "orlando"
         },
         "cwrcEntry": {
             "name": "CWRC Entry Schema",
             "url": "https://cwrc.ca/schemas/cwrc_entry.rng",
             "cssUrl": "https://cwrc.ca/templates/css/cwrc.css",
-            "schemaMappingsId": "cwrcEntry",
-            "entityTemplates": {
-                "note": "../src/js/schema/cwrcEntry/xml/note.xml",
-                "citation": "../src/js/schema/cwrcEntry/xml/citation.xml"
-            }
+            "schemaMappingsId": "cwrcEntry"
         }
     },
     "defaultDocument": "templates/letter",

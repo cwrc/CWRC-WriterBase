@@ -150,7 +150,7 @@ test('writer.validate', (t)=> {
     loadTEIDoc(writer);
 });
 
-test('writer.selectStructureTag', (t)=> {
+test('writer.selectElementById', (t)=> {
     t.plan(1);
     
     let configForTestingConstructor = getConfigForTestingConstructor();
@@ -165,7 +165,7 @@ test('writer.selectStructureTag', (t)=> {
             reset(writer);
         });
                 
-        writer.selectStructureTag(structTagId);
+        writer.selectElementById(structTagId);
     })
     
     loadTEIDoc(writer);
@@ -268,7 +268,7 @@ test('writer.tagger.addEntity.Note', (t)=> {
         });
         
         var structTagId = writer.editor.getBody().querySelector('[_tag="title"]').id;
-        writer.selectStructureTag(structTagId);
+        writer.selectElementById(structTagId);
     })
     
     loadTEIDoc(writer);
@@ -299,7 +299,7 @@ test('schemaTags addSchemaTag', (t)=> {
         });
         
         var structTagId = writer.editor.getBody().querySelector('[_tag="title"]').id;
-        writer.selectStructureTag(structTagId);
+        writer.selectElementById(structTagId);
     })
     
     loadTEIDoc(writer);
@@ -435,7 +435,7 @@ function loadTEIDoc(writer) {
     <oa:hasSelector xmlns:oa="http://www.w3.org/ns/oa#" rdf:resource="http://id.cwrc.ca/selector/6b4bbd1a-b887-498b-b5f7-be401bfcd6d9"/>
 </rdf:Description>
 <rdf:Description xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" rdf:about="http://id.cwrc.ca/selector/6b4bbd1a-b887-498b-b5f7-be401bfcd6d9">
-    <rdf:value>xpointer(//persName[@annotationId="ent_1"])</rdf:value>
+    <rdf:value>xpointer(/TEI/text/body/div/opener/salute/persName)</rdf:value>
     <rdf:type rdf:resource="http://www.w3.org/ns/oa#FragmentSelector"/>
 </rdf:Description>
 </rdf:RDF>
@@ -452,7 +452,7 @@ function loadTEIDoc(writer) {
                     <dateline>
                         <date>Some date (set date value in attribute).</date>
                     </dateline>
-                    <salute>Some salutation, e.g. "Dearest <persName annotationId="ent_1" cert="definite" type="real" ref="http://viaf.org/viaf/39569752">Miquel</persName>"</salute>
+                    <salute>Some salutation, e.g. "Dearest <persName cert="definite" type="real" ref="http://viaf.org/viaf/39569752">Miquel</persName>"</salute>
                 </opener>
                 <p>Sample letter content</p>
                 <closer>
