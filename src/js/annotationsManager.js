@@ -493,6 +493,9 @@ AnnotationsManager.prototype = {
                 rangeObj = this._getRangeObject(doc, xpointer);
 
                 var el = this.w.utilities.evaluateXPath(doc, rangeObj.startXPath);
+                if (el == null) {
+                    return null;
+                }
                 newEntity.tag = el.nodeName;
                 
                 var info = this.w.schemaManager.mapper.getReverseMapping(el, entityType);
@@ -640,6 +643,9 @@ AnnotationsManager.prototype = {
                     rangeObj = this._getRangeObject(doc, xpointer);
 
                     var el = this.w.utilities.evaluateXPath(doc, rangeObj.startXPath);
+                    if (el == null) {
+                        return null;
+                    }
                     newEntity.tag = el.nodeName;
                     
                     var info = this.w.schemaManager.mapper.getReverseMapping(el, entityType);
