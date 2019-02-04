@@ -105,7 +105,17 @@ function Tagger(writer) {
         });
 
         // new entities (from undo/redo)
-        // TODO
+        $('[_entity][class~=start]', w.editor.getBody()).each(function(index, el) {
+            var entityId = $(el).attr('name');
+            var deleted = w.deletedEntities[entityId];
+            if (deleted != null) {
+                updateRequired = true;
+                w.entitiesManager.setEntity(entityId, deleted);
+                delete w.deletedEntities[entityId];
+            } else {
+                // TODO
+            }
+        });
         
         // deleted entities
         w.entitiesManager.eachEntity(function(id, entity) {

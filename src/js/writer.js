@@ -605,7 +605,6 @@ function CWRCWriter(config) {
             
             var doUpdate = w.tagger.findNewAndDeletedTags();
             if (doUpdate) {
-                // TODO seemingly never getting fired
                 w.event('contentChanged').publish(w.editor);
             }
         }
@@ -977,6 +976,7 @@ function CWRCWriter(config) {
                 w.event('writerInitialized').publish(w);
             });
             ed.on('Change',_onChangeHandler);
+            ed.on('Undo Redo',_onChangeHandler);
             ed.on('NodeChange',_onNodeChangeHandler);
             ed.on('copy', _onCopyHandler);
             

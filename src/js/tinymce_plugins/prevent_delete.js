@@ -56,6 +56,7 @@ tinymce.PluginManager.add('preventdelete', function(ed) {
                                 } else {
                                     ed.getDoc().execCommand('insertText', false, evt.key)
                                 }
+                                ed.undoManager.add();
                             }
                         }
                     })
