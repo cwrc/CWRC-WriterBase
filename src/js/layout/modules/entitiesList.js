@@ -33,18 +33,6 @@ function EntitiesList(config) {
             '</div>'+
         '</div>');
     
-    // TODO remove context menu IDs
-    // TODO background icons have no dimensions
-    $('#'+w.containerId).append(''+
-        '<div id="'+id+'_contextMenu" class="contextMenu" style="display: none;">'+
-            '<ul>'+
-                '<li id="editEntity"><ins style="background:url('+w.cwrcRootUrl+'img/tag_blue_edit.png) center center no-repeat;" />Edit Entity</li>'+
-                '<li id="removeEntity"><ins style="background:url('+w.cwrcRootUrl+'img/cross.png) center center no-repeat;" />Remove Entity</li>'+
-                '<li class="separator" id="copyEntity"><ins style="background:url('+w.cwrcRootUrl+'img/tag_blue_copy.png) center center no-repeat;" />Copy Entity</li>'+
-            '</ul>'+
-        '</div>'
-    );
-    
     var $entities = $('#'+id);
     
     var $seqButton = $entities.find('.sequence');
@@ -64,6 +52,39 @@ function EntitiesList(config) {
 //        w.entitiesManager.highlightEntity(w.entitiesManager.getCurrentEntity());
 //    });
     
+    if (w.isReadOnly !== true) {
+        $.contextMenu({
+            selector: '#'+id+' ul.entitiesList > li',
+            zIndex: 10,
+            appendTo: '#'+w.containerId,
+            className: 'cwrc',
+            items: {
+                edit: {
+                    name: 'Edit Entity',
+                    icon: 'tag_edit',
+                    callback: function(key, opt) {
+                        w.tagger.editTag(opt.$trigger.attr('name'));
+                    }
+                },
+                remove: {
+                    name: 'Remove Entity',
+                    icon: 'tag_remove',
+                    callback: function(key, opt) {
+                        w.tagger.removeEntity(opt.$trigger.attr('name'));
+                    }
+                },
+                separator: '',
+                copy: {
+                    name: 'Copy Entity',
+                    icon: 'tag_copy',
+                    callback: function(key, opt) {
+                        w.tagger.copyTag(opt.$trigger.attr('name'));
+                    }
+                }
+            }
+        });
+    }
+
     /**
      * @lends EntitiesList.prototype
      */
@@ -119,60 +140,60 @@ function EntitiesList(config) {
             }
         }
         
-        var entityId, entry, i;
         var entitiesString = '';
-        
         var entityTags = $('[_entity][class~=start]', w.editor.getBody());
         if (sort == 'category') {
             var categories = {};
             entityTags.each(function(index, el) {
-                entityId = $(el).attr('name');
-                if (w.entitiesManager.getEntity(entityId) === undefined) {
-                    var deleted = w.deletedEntities[entityId];
-                    if (deleted != null) {
-                        w.entitiesManager.setEntity(entityId, deleted);
-                        entry = deleted;
-                        delete w.deletedEntities[entityId];
-                    } else {
-                        w.tagger.removeEntity(entityId);
-                        return;
+                var entry = w.entitiesManager.getEntity($(el).attr('name'));
+                if (entry !== undefined) {
+                    var type = entry.getType();
+                    if (categories[type] == null) {
+                        categories[type] = [];
                     }
-                } else {
-                    entry = w.entitiesManager.getEntity(entityId);
+                    categories[type].push(entry);
                 }
-                if (categories[entry.getType()] == null) {
-                    categories[entry.getType()] = [];
-                }
-                categories[entry.getType()].push(entry);
             });
-            var category;
-            for (entityId in categories) {
-                category = categories[entityId];
-                for (i = 0; i < category.length; i++) {
-                    entry = category[i];
+            for (var type in categories) {
+                var category = categories[type];
+                for (var i = 0; i < category.length; i++) {
+                    var entry = category[i];
                     entitiesString += _buildEntity(entry);
                 }
             }
         } else if (sort == 'sequence') {
             entityTags.each(function(index, el) {
-                entityId = $(this).attr('name');
-                if (w.entitiesManager.getEntity(entityId) === undefined) {
-                    var deleted = w.deletedEntities[entityId];
-                    if (deleted != null) {
-                        w.entitiesManager.setEntity(entityId, deleted);
-                        entry = deleted;
-                        delete w.deletedEntities[entityId];
-                    } else {
-                        w.tagger.removeEntity(entityId);
-                        return;
-                    }
-                } else {
-                    entry = w.entitiesManager.getEntity(entityId);
-                }
-                if (entry) {
+                var entry = w.entitiesManager.getEntity($(el).attr('name'));
+                if (entry !== undefined) {
                     entitiesString += _buildEntity(entry);
                 }
             });
+        }
+
+        function _buildEntity(entity) {
+            var infoString = '<ul>';
+            var buildString = function(infoObject) {
+                var urlAttributes = w.schemaManager.mapper.getUrlAttributes();
+                for (var infoKey in infoObject) {
+                    if (showMetaKeys || metaKeys.indexOf(infoKey) == -1) {
+                        var info = infoObject[infoKey];
+                        if (urlAttributes.indexOf(infoKey) !== -1) {
+                            infoString += '<li><strong>'+infoKey+'</strong>: <a href="'+info+'" target="_blank">'+info+'</a></li>';
+                        } else {
+                            if ($.isPlainObject(info)) {
+                                buildString(info);
+                            } else {
+                                infoString += '<li><strong>'+infoKey+'</strong>: '+info+'</li>';
+                            }
+                        }
+                    }
+                }
+            };
+            buildString(entity.getAttributes());
+            infoString += '</ul>';
+            return '<li class="'+entity.getType()+'" name="'+entity.getId()+'">'+
+                '<span class="box"/><span class="entityTitle">'+entity.getContent()+'</span><div class="info">'+infoString+'</div>'+
+            '</li>';
         }
         
         $entities.find('ul.entitiesList').html(entitiesString);
@@ -189,78 +210,13 @@ function EntitiesList(config) {
             w.entitiesManager.highlightEntity(this.getAttribute('name'), null, true);
         });
         
-        if (w.isReadOnly !== true) {
-            $entities.find('ul.entitiesList > li').contextMenu(id+'_contextMenu', {
-                el: w.layoutManager.getContainer(),
-                bindings: {
-                    'editEntity': function(tag) {
-                        w.tagger.editTag($(tag).attr('name'));
-                    },
-                    'removeEntity': function(tag) {
-                        w.tagger.removeEntity($(tag).attr('name'));
-                    },
-                    'copyEntity': function(tag) {
-                        w.tagger.copyTag($(tag).attr('name'));
-                    }
-                },
-                shadow: false,
-                menuStyle: {
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #D4D0C8',
-                    boxShadow: '1px 1px 2px #CCCCCC',
-                    padding: '0px'
-                },
-                itemStyle: {
-                    fontFamily: 'Tahoma,Verdana,Arial,Helvetica',
-                    fontSize: '11px',
-                    color: '#000',
-                    lineHeight: '20px',
-                    padding: '0px',
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                    border: 'none'
-                },
-                itemHoverStyle: {
-                    color: '#000',
-                    backgroundColor: '#DBECF3',
-                    border: 'none'
-                }
-            });
-        }
-        
         if (w.entitiesManager.getCurrentEntity()) {
             $entities.find('ul.entitiesList  > li[name="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('selected').find('div[class="info"]').show();
         }
     };
-    
+
     pm.clear = function() {
         $entities.find('ul').empty();
-    };
-    
-    function _buildEntity(entity) {
-        var infoString = '<ul>';
-        var buildString = function(infoObject) {
-            var urlAttributes = w.schemaManager.mapper.getUrlAttributes();
-            for (var infoKey in infoObject) {
-                if (showMetaKeys || metaKeys.indexOf(infoKey) == -1) {
-                    var info = infoObject[infoKey];
-                    if (urlAttributes.indexOf(infoKey) !== -1) {
-                        infoString += '<li><strong>'+infoKey+'</strong>: <a href="'+info+'" target="_blank">'+info+'</a></li>';
-                    } else {
-                        if ($.isPlainObject(info)) {
-                            buildString(info);
-                        } else {
-                            infoString += '<li><strong>'+infoKey+'</strong>: '+info+'</li>';
-                        }
-                    }
-                }
-            }
-        };
-        buildString(entity.getAttributes());
-        infoString += '</ul>';
-        return '<li class="'+entity.getType()+'" name="'+entity.getId()+'">'+
-            '<span class="box"/><span class="entityTitle">'+entity.getContent()+'</span><div class="info">'+infoString+'</div>'+
-        '</li>';
     };
     
     pm.remove = function(id) {

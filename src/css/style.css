@@ -877,3 +877,28 @@ div.mceDropDown {
 .ui-icon-help {
     cursor: pointer;
 }
+
+
+/* jquery contextmenu */
+
+.cwrc.context-menu-root {
+    font-family: Lato,Arial,Helvetica,sans-serif;
+    font-size: 14px;
+}
+
+.context-menu-item.context-menu-icon {
+    background-repeat: no-repeat;
+    background-position: 6px center;
+}
+
+.context-menu-item.context-menu-icon-tag_edit {
+    background-image: url(../img/tag_blue_edit.png);
+}
+
+.context-menu-item.context-menu-icon-tag_remove {
+    background-image: url(../img/tag_blue_delete.png);
+}
+
+.context-menu-item.context-menu-icon-tag_copy {
+    background-image: url(../img/tag_blue_copy.png);
+}

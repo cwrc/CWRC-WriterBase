@@ -27,9 +27,7 @@
     "objtree": "./src/js/lib/objtree/ObjTree.js",
     "dialogForm": "./src/js/dialogs/dialogForm.js",
     "jquery-watermark": "./src/js/lib/jquery/plugins/jquery.watermark.min.js",
-    "jquery-contextmenu": "./src/js/lib/jquery/plugins/jquery.contextmenu.min.js",
     "jquery-popup": "./src/js/lib/jquery/plugins/jquery.popup.js",
-    "jquery-xpath": "./src/js/lib/jquery/plugins/jquery.xpath.js",
     "layout": "./src/js/lib/jquery/plugins/jquery.layout_and_plugins.js"
   },
   "dependencies": {
@@ -37,6 +35,7 @@
     "css-stringify": "^2.0.0",
     "fscreen": "1.0.2",
     "jquery": "3.2.1",
+    "jquery-contextmenu": "^2.8.0",
     "jquery-ui": "1.12",
     "jstree": "3.3.3",
     "moment": "^2.22.2",

@@ -16,21 +16,13 @@ function Relations(config) {
     var w = config.writer;
     
     var id = config.parentId;
-    $('#'+config.parentId).append(
+    $('#'+id).append(
         '<div class="moduleParent">'+
             '<ul class="moduleContent relationsList"></ul>'+
             '<div class="moduleFooter">'+
                 '<button type="button" role="add">Add Relation</button><button type="button" role="remove">Remove Relation</button>'+
             '</div>'+
         '</div>');
-    
-    $('#'+w.containerId).append(''+
-        '<div id="'+id+'_contextMenu" class="contextMenu" style="display: none;">'+
-            '<ul>'+
-                '<li id="removeRelation"><ins style="background:url('+w.cwrcRootUrl+'img/cross.png) center center no-repeat;" />Remove Relation</li>'+
-            '</ul>'+
-        '</div>'
-    );
     
     var $relations = $('#'+id);
     
@@ -51,6 +43,24 @@ function Relations(config) {
                 msg: 'You must first select a relation to remove.',
                 type: 'error'
             });
+        }
+    });
+
+    $.contextMenu({
+        selector: '#'+id+' ul li',
+        zIndex: 10,
+        appendTo: '#'+w.containerId,
+        className: 'cwrc',
+        items: {
+            remove: {
+                name: 'Remove Relation',
+                icon: 'tag_remove',
+                callback: function(key, opt) {
+                    var i = opt.$trigger.data('index');
+                    w.triples.splice(i, 1);
+                    pm.update();
+                }
+            }
         }
     });
     
@@ -90,38 +100,6 @@ function Relations(config) {
             $(this).data('index', index);
         }).click(function() {
             $(this).addClass('selected').siblings().removeClass('selected');
-        }).contextMenu(id+'_contextMenu', {
-            el: w.layoutManager.getContainer(),
-            bindings: {
-                'removeRelation': function(r) {
-                    var i = $(r).data('index');
-                    w.triples.splice(i, 1);
-                    pm.update();
-                }
-            },
-            shadow: false,
-            menuStyle: {
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #D4D0C8',
-                boxShadow: '1px 1px 2px #CCCCCC',
-                padding: '0px',
-                width: '105px'
-            },
-            itemStyle: {
-                fontFamily: 'Tahoma,Verdana,Arial,Helvetica',
-                fontSize: '11px',
-                color: '#000',
-                lineHeight: '20px',
-                padding: '0px',
-                cursor: 'pointer',
-                textDecoration: 'none',
-                border: 'none'
-            },
-            itemHoverStyle: {
-                color: '#000',
-                backgroundColor: '#DBECF3',
-                border: 'none'
-            }
         });
     };
     

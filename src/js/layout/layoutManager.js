@@ -28,6 +28,7 @@ function LayoutManager(writer, config) {
     
     this.w.utilities.addCSS('css/cwrc12/jquery-ui.css');
     this.w.utilities.addCSS('css/layout-scoped.css');
+    this.w.utilities.addCSS('css/jquery.contextMenu.css');
     
     var defaultModulesLayout = {
         west: ['structure','entities'],
