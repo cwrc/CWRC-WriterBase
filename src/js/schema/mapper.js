@@ -129,7 +129,7 @@ Mapper.getXPathResult = function(contextNode, xpath) {
     var doc = contextNode.ownerDocument;
 
     // grouped matches: 1 separator, 2 axis, 3 namespace, 4 element name (or function), 5 predicate
-    var regex = /(\/{1,2})([\w-]+::)?(\w+?:)?([\w()]+)(\[.+?\])?/g;
+    var regex = /(\/{0,2})([\w-]+::)?(\w+?:)?([\w()]+)(\[.+?\])?/g;
 
     var nsr = doc.createNSResolver(doc.documentElement);
     var defaultNamespace = doc.documentElement.getAttribute('xmlns');
@@ -153,6 +153,11 @@ Mapper.getXPathResult = function(contextNode, xpath) {
                     return [p1,p2,'foo:',p4,p5].join('');
                 }
             }
+        });
+    } else {
+        // remove all namespaces from the xpath
+        xpath = xpath.replace(regex, function(match, p1, p2, p3, p4, p5) {
+            return [p1,p2,p4,p5].join('');
         });
     }
 
