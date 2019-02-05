@@ -155,7 +155,9 @@ AttributeWidget.prototype = {
         });
         
         $('ins', this.$el).tooltip({
-            tooltipClass: 'cwrc-tooltip'
+            classes: {
+                'ui-tooltip': 'cwrc-tooltip'
+            }
         });
         
         $('input, select, option', this.$el).change(function(event) {
