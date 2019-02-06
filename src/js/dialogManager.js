@@ -75,7 +75,7 @@ function setDialogListeners($cwrcDialogWrapper) {
     
     // do the same for tooltips
     $.extend($.ui.tooltip.prototype.options, {
-        open: function(e, ui) {
+        create: function(e, ui) {
             var instance = $(this).tooltip('instance');
             instance.liveRegion = instance.liveRegion.appendTo($cwrcDialogWrapper);
         }
