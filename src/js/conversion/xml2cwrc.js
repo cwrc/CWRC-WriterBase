@@ -221,7 +221,7 @@ function XML2CWRC(writer) {
         }
 
         // TODO add flag
-        autoConvertEntityTags(doc, ['link']);
+        autoConvertEntityTags(doc, ['link', 'note']);
 
         // additional entity processing:
         // - remove mapping related elements
@@ -532,9 +532,9 @@ function XML2CWRC(writer) {
                         });
 
                         if (entry.isNote()) {
-                            w.tagger.addNoteWrapper(startNode, type);
                             entry.setContent($(startNode).text());
                             entry.setNoteContent($(startNode).html());
+                            w.tagger.addNoteWrapper(startNode, type);
                         }
                     }
                     if (entry.getContent() === undefined) {
