@@ -950,7 +950,13 @@ function Utilities(writer) {
                     if (item['@name'] && item['@name'] === tag) {
                         context = item;
                         if (i === tags.length - 1) {
-                            match = item;
+                            if (item['$key'] === 'element') {
+                                match = item;
+                                return false;
+                            } else {
+                                // the name matches but we're in define so drill down further
+                                context = item;
+                            }
                         }
                         return true;
                     }
