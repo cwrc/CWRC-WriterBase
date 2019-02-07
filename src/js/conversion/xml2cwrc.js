@@ -54,16 +54,17 @@ function XML2CWRC(writer) {
                 if (node.nodeName === 'xml-model') {
                     var xmlModelData = node.data;
                     schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
-                    schemaUrl = schemaUrl.split(/^.*?\/\//)[1]; // remove the protocol in order to disregard http/https
-                    // Search the known schemas, if the url matches it must be the same one.
+                     // remove the protocol in order to disregard http/https for improved chances of matching below
+                    var schemaUrlNoProtocol = schemaUrl.split(/^.*?\/\//)[1];
+                    // search the known schemas, if the url matches it must be the same one
                     $.each(w.schemaManager.schemas, function(id, schema) {
-                        if (schema.url.indexOf(schemaUrl) !== -1) {
+                        if (schema.url.indexOf(schemaUrlNoProtocol) !== -1) {
                             schemaId = id;
                             return false;
                         }
                         if (schema.aliases !== undefined) {
                             $.each(schema.aliases, function(index, alias) {
-                                if (alias.indexOf(schemaUrl) !== -1) {
+                                if (alias.indexOf(schemaUrlNoProtocol) !== -1) {
                                     schemaId = id;
                                     return false;
                                 }
