@@ -177,7 +177,7 @@ function EntitiesList(config) {
                 for (var infoKey in infoObject) {
                     if (showMetaKeys || metaKeys.indexOf(infoKey) == -1) {
                         var info = infoObject[infoKey];
-                        if (urlAttributes.indexOf(infoKey) !== -1) {
+                        if (urlAttributes.indexOf(infoKey) !== -1 || info.indexOf('http') === 0) {
                             infoString += '<li><strong>'+infoKey+'</strong>: <a href="'+info+'" target="_blank">'+info+'</a></li>';
                         } else {
                             if ($.isPlainObject(info)) {
