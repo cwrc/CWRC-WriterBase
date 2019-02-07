@@ -16,8 +16,6 @@ blockElements: [],
 urlAttributes: [],
 // Attributes that should be shown in a popup in the editor
 popupAttributes: [],
-// Elements, whose contents should be shown in a popup in the editor. Can include an attribute selector, e.g. note[place="margin"]
-popupElements: [],
 
 listeners: {
     // Listeners to CWRC-Writer events can go here and will subscribe upon mappings load
@@ -37,6 +35,7 @@ listeners: {
  * Optional members:
  * isNote {Boolean}: boolean indicating the entity is a "note type" (default is false)
  * xpathSelector {String}: if the entity can have several different parentTags or if several entities share the same parentTag, this selector can help differentiate
+ * requiresSelection {Boolean}: boolean indicating is a text selection is required to add the entity (as opposed to a point in the text) (default is true)
  */
 
 entities: {

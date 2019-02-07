@@ -418,8 +418,13 @@ function Tagger(writer) {
      * @param {String} [tag] The element name
      */
     tagger.addEntity = function(type, tag) {
-        var isNote = w.schemaManager.mapper.isEntityTypeNote(type); // treat notes like structs, i.e. allow no selection
-        var result = w.utilities.isSelectionValid(isNote);
+        var requiresSelection = w.schemaManager.mapper.doesEntityRequireSelection(type);
+        var result;
+        if (!requiresSelection && w.editor.selection.isCollapsed()) {
+            result = w.VALID;
+        } else {
+            result = w.utilities.isSelectionValid(false);
+        }
         if (result === w.NO_SELECTION) {
             w.dialogManager.show('message', {
                 title: 'Error',
@@ -494,6 +499,14 @@ function Tagger(writer) {
             }
         }
         
+        // the following is mostly here to support TEI keyword entities
+        if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
+            if (entity.isNote()) {
+                var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
+                tag.find('[_tag='+textTag+']').text(info.properties.content);
+            }
+        }
+
         sanitizeObject(info.attributes);
         sanitizeObject(info.customValues);
         

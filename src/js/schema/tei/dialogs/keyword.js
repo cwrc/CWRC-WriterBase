@@ -11,7 +11,7 @@ module.exports = function(writer, parentEl) {
     '<div class="annotationDialog">'+
         '<div>'+
             '<label for="'+id+'_input">Keyword</label>'+
-            '<input type="text" id="'+id+'_input" data-type="textbox" data-mapping="custom.term" style="margin-right: 10px;"/>'+
+            '<input type="text" id="'+id+'_input" data-type="textbox" data-mapping="prop.content" style="margin-right: 10px;"/>'+
         '</div>'+
         '<div data-transform="accordion">'+
             '<h3>Markup options</h3>'+
@@ -32,7 +32,6 @@ module.exports = function(writer, parentEl) {
     dialog.$el.on('beforeSave', function(e, dialog) {
         if (forceSave) {
             dialog.isValid = true;
-            return;
         } else {
             if (dialog.currentData.attributes.ana !== undefined) {
                 dialog.isValid = true;
@@ -52,6 +51,11 @@ module.exports = function(writer, parentEl) {
                 });
             }
         }
+        if (dialog.isValid) {
+            var content = w.utilities.convertTextForExport(dialog.currentData.properties.content);
+            dialog.currentData.properties.content = content;
+            dialog.currentData.properties.noteContent = '<span _tag="term">'+content+'</span>';
+        }
     });
 
     dialog.$el.on('beforeShow', function(e, config) {
@@ -62,6 +66,11 @@ module.exports = function(writer, parentEl) {
             dialog.attributesWidget.setData({type: 'keyword'});
             dialog.attributesWidget.setData({ana: ''});
             dialog.attributesWidget.expand();
+        } else {
+            var noteContent = config.entry.getNoteContent();
+            var noteContentEl = w.utilities.stringToXML(noteContent);
+            var content = noteContentEl.documentElement.textContent;
+            $(this).find('#'+id+'_input').val(content);
         }
     });
 

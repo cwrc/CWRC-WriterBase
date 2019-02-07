@@ -7,8 +7,9 @@ function Popup(writer, parentEl) {
     var w = writer;
     
     var attributeSelector = '';
-    var elementSelector = '';
     var linkSelector = '';
+    var noteMouseoverSelector = '.noteWrapper.hide';
+    var noteClickSelector = '.noteWrapper'; // need a different selector because tagger.addNoteWrapper click event fires before this one (and removes hide class)
     
     var popupId = w.getUniqueId('popupDialog');
     var $popupEl = $('<div id="'+popupId+'"></div>').appendTo(parentEl)
@@ -113,8 +114,9 @@ function Popup(writer, parentEl) {
         $popupEl.parent().on('mouseover', doMouseOver);
         $popupEl.parent().on('mouseout', doMouseOut);
     }
-    
-    var attributePopup = function(popupId) {
+
+    var attributeMouseover = function(e) {
+        var popupId = this.getAttribute('id') || this.getAttribute('name');
         setCurrentTag(popupId);
         
         var popText = null;
@@ -130,22 +132,10 @@ function Popup(writer, parentEl) {
         if (popText != null) {
             doPopup(popText, 'tag');
         }
-    };
+    }
     
-    var elementPopup = function(popupId) {
-        setCurrentTag(popupId);
-        
-        var type = 'tag';
-        var entType = w.schemaManager.mapper.getEntityTypeForTag($currentTag.attr('_tag'));
-        if (entType !== null && w.schemaManager.mapper.isEntityTypeNote(entType)) {
-            type = 'note';
-        }
-        var content = $currentTag[0].outerHTML;
-
-        doPopup(content, type);
-    };
-    
-    var linkPopup = function(entityId) {
+    var linkMouseover = function(e) {
+        var entityId = this.getAttribute('id') || this.getAttribute('name');
         setCurrentTag(entityId);
         
         var url = null;
@@ -166,29 +156,39 @@ function Popup(writer, parentEl) {
                 doPopup(url, 'tag');
             }
         }
-    };
-    
-    var attributeMouseover = function(e) {
-        var id = this.getAttribute('id') || this.getAttribute('name');
-        attributePopup(id);
+    }
+
+    var noteMouseover = function(e) {
+        $currentTag = $(this);
+        var entity = $(this).children('[_entity]');
+        var entityId = entity.attr('id');
+        
+        var entry = w.entitiesManager.getEntity(entityId);
+        var content = entry.getNoteContent();
+        if (content === undefined) {
+            content = entry.getContent();
+        }
+        doPopup(content, 'note');
+    }
+
+    var noteClick = function(e) {
+        // we're showing the note contents so hide the popup
+        $popupEl.popup('close');
     }
     
-    var elementMouseover = function(e) {
-        var id = this.getAttribute('id') || this.getAttribute('name');
-        elementPopup(id);
-    }
-    
-    var linkMouseover = function(e) {
-        var id = this.getAttribute('id') || this.getAttribute('name');
-        linkPopup(id);
-    }
-    
-    var setupListeners = function() {
+    var removeListeners = function() {
         var body = $(w.editor.getBody());
         body.off('mouseover', attributeSelector, attributeMouseover);
-        body.off('mouseover', elementSelector, elementMouseover);
         body.off('mouseover', linkSelector, linkMouseover);
-        
+        body.off('mouseover', noteMouseoverSelector, noteMouseover);
+        body.off('click', noteClickSelector, noteClick);
+    }
+
+    var setupListeners = function() {
+        removeListeners();
+
+        var body = $(w.editor.getBody());
+
         var attKeys = w.schemaManager.mapper.getPopupAttributes();
         attributeSelector = '';
         $.map(attKeys, function(val, i) {
@@ -209,26 +209,18 @@ function Popup(writer, parentEl) {
             body.on('mouseover', linkSelector, linkMouseover);
         }
 
-        var elKeys = w.schemaManager.mapper.getPopupElements(true);
-        elementSelector = elKeys.join(',');
-        if (elementSelector != '') {
-            body.on('mouseover', elementSelector, elementMouseover);
-        }
+        body.on('mouseover', noteMouseoverSelector, noteMouseover);
+        body.on('click', noteClickSelector, noteClick);
     }
     
     w.event('schemaLoaded').subscribe(setupListeners);
     
     return {
         show: function(config) {
-            var type = config.type;
-            if (type === 'link') {
-                linkPopup(config.id);
-            } else {
-                attributePopup(config.id);
-            }
+            console.warn('dialogManager.popup: shouldn\'t call show directly');
         },
         destroy: function() {
-            // TODO
+            removeListeners();
         }
     }
 }

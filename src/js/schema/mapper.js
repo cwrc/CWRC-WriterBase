@@ -306,6 +306,23 @@ Mapper.prototype = {
     },
 
     /**
+     * Checkes is the particular entity type requires a text selection in order to be tagged
+     * @param {String} type The entity type
+     * @return {Boolean}
+     */
+    doesEntityRequireSelection: function(type) {
+        if (type == null) {
+            return true;
+        }
+        var requiresSelection = this.getMappings().entities[type].requiresSelection;
+        if (requiresSelection === undefined) {
+            return true;
+        } else {
+            return requiresSelection;
+        }
+    },
+
+    /**
      * Returns the parent tag for entity when converted to a particular schema.
      * @param type The entity type.
      * @returns {String}
@@ -380,33 +397,6 @@ Mapper.prototype = {
      */
     getPopupAttributes: function() {
         return this.getMappings().popupAttributes || [];
-    },
-    
-    /**
-     * Returns the element names that should be displayed in a popup.
-     * @param {Boolean} [convert] True to convert to cwrc format
-     * @returns {Array}
-     */
-    getPopupElements: function(convert) {
-        convert === undefined ? false : convert;
-        var popupElements = this.getMappings().popupElements || [];
-        if (convert) {
-            var convertedElements = [];
-            $.map(popupElements, function(val, i) {
-                // check for attribute in selector
-                var openBracketIndex = val.indexOf('[');
-                if (openBracketIndex !== -1) {
-                    var tag = val.substring(0, openBracketIndex);
-                    var att = val.substring(openBracketIndex);
-                    convertedElements.push('[_tag="'+tag+'"]'+att);
-                } else {
-                    convertedElements.push('[_tag="'+val+'"]');
-                }
-            });
-            return convertedElements;
-        } else {
-            return popupElements;
-        }
     }
 };
 

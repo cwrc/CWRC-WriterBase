@@ -31,7 +31,6 @@ header: 'teiHeader',
 blockElements: ['argument', 'back', 'bibl', 'biblFull', 'biblScope', 'body', 'byline', 'category', 'change', 'cit', 'classCode', 'elementSpec', 'macroSpec', 'classSpec', 'closer', 'creation', 'date', 'distributor', 'div', 'div1', 'div2', 'div3', 'div4', 'div5', 'div6', 'div7', 'docAuthor', 'edition', 'editionStmt', 'editor', 'eg', 'epigraph', 'extent', 'figure', 'front', 'funder', 'group', 'head', 'dateline', 'idno', 'item', 'keywords', 'l', 'label', 'langUsage', 'lb', 'lg', 'list', 'listBibl', 'note', 'noteStmt', 'opener', 'p', 'principal', 'publicationStmt', 'publisher', 'pubPlace', 'q', 'rendition', 'resp', 'respStmt', 'salute', 'samplingDecl', 'seriesStmt', 'signed', 'sp', 'sponsor', 'tagUsage', 'taxonomy', 'textClass', 'titlePage', 'titlePart', 'trailer', 'TEI', 'teiHeader', 'text', 'authority', 'availability', 'fileDesc', 'sourceDesc', 'revisionDesc', 'catDesc', 'encodingDesc', 'profileDesc', 'projectDesc', 'docDate', 'docEdition', 'docImprint', 'docTitle'],
 urlAttributes: ['ref', 'target'],
 popupAttributes: [],
-popupElements: ['note[place="bottom"]','note[place="end"]','note[place="margin"]'],
 
 listeners: {
     tagAdded: function(tag) {
@@ -262,6 +261,7 @@ note: {
     xpathSelector: 'self::tei:note/node()',
     textTag: '',
     isNote: true,
+    requiresSelection: false,
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
@@ -278,6 +278,7 @@ citation: {
     xpathSelector: 'self::tei:note/tei:bibl',
     textTag: 'bibl',
     isNote: true,
+    requiresSelection: false,
     mapping: function(entity) {
         var startTag = '<note type="citation"><bibl><ref target="'+entity.getLookupInfo().id+'"/>';
         var endTag = '</bibl></note>';
@@ -299,22 +300,19 @@ keyword: {
     xpathSelector: 'self::tei:seg/tei:term',
     textTag: 'term',
     isNote: true,
+    requiresSelection: false,
     mapping: function(entity) {
-        var xml = Mapper.getTagAndDefaultAttributes(entity);
-        xml += '<term>'+entity.getCustomValue('term')+'</term>';
-        xml += '</'+entity.getTag()+'>';
-        
-        return ['', xml];
+        return Mapper.getDefaultMapping(entity);
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
-            customValues: {term: 'tei:term/text()'}
+            content: 'tei:term'
         });
     },
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, ['oa:Tag', 'cnt:ContentAsText', 'skos:Concept'], 'oa:classifying', format);
         
-        var term = entity.getCustomValue('term');
+        var term = entity.getContent();
         if (format === 'xml') {
             var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
             var termXML = $.parseXML('<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">'+term+'</cnt:chars>');

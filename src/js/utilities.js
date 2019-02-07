@@ -258,8 +258,8 @@ function Utilities(writer) {
     
     /**
      * Checks the user selection for overlap issues and entity markers.
-     * @param isStructTag Is the tag a structure tag
-     * @param structAction How is the tag being inserted? (before/after/around/inside)
+     * @param {Boolean} isStructTag Is the tag a structure tag
+     * @param {String} structAction How is the tag being inserted? (before/after/around/inside)
      * @returns {Integer}
      */
     u.isSelectionValid = function(isStructTag, structAction) {
