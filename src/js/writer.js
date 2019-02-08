@@ -951,22 +951,6 @@ function CWRCWriter(config) {
                 if (settings.showEntities) body.addClass('showEntities');
                 if (settings.showTags) body.addClass('showTags');
                 
-                ed.addCommand('isSelectionValid', w.utilities.isSelectionValid);
-                ed.addCommand('addEntity', w.tagger.addEntity);
-                ed.addCommand('editTag', w.tagger.editTag);
-                ed.addCommand('copyTag', w.tagger.copyTag);
-                ed.addCommand('pasteTag', w.tagger.pasteTag);
-                ed.addCommand('changeTag', w.tagger.changeTag);
-                ed.addCommand('splitTag', w.tagger.splitTag);
-                ed.addCommand('removeTag', w.tagger.removeTag);
-                ed.addCommand('pasteEntity', w.tagger.pasteEntity);
-                ed.addCommand('removeEntity', w.tagger.removeEntity);
-                ed.addCommand('addStructureTag', w.tagger.addStructureTag);
-                ed.addCommand('editStructureTag', w.tagger.editStructureTag);
-                ed.addCommand('changeStructureTag', w.changeStructureTag);
-                ed.addCommand('removeHighlights', w.removeHighlights);
-                ed.addCommand('getParentsForTag', w.utilities.getParentsForTag);
-                
                 // highlight tracking
                 body.on('keydown',_onKeyDownHandler).on('keyup',_onKeyUpHandler);
                 // attach mouseUp to doc because body doesn't always extend to full height of editor panel
@@ -980,69 +964,64 @@ function CWRCWriter(config) {
             ed.on('NodeChange',_onNodeChangeHandler);
             ed.on('copy', _onCopyHandler);
             
-            // add schema file and method
-            ed.addCommand('getSchema', function(){
-                return w.schemaManager.schema;
-            });
-            
             addButtonToEditor('addperson', {title: 'Tag Person', image: w.cwrcRootUrl+'img/user.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'person');
+                    w.tagger.addEntity('person');
                 }
             });
             addButtonToEditor('addplace', {title: 'Tag Place', image: w.cwrcRootUrl+'img/world.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'place');
+                    w.tagger.addEntity('place');
                 }
             });
             addButtonToEditor('adddate', {title: 'Tag Date', image: w.cwrcRootUrl+'img/calendar.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'date');
+                    w.tagger.addEntity('date');
                 }
             });
             addButtonToEditor('addevent', {title: 'Tag Event', image: w.cwrcRootUrl+'img/cake.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'event');
+                    w.tagger.addEntity('event');
                 }
             });
             addButtonToEditor('addorg', {title: 'Tag Organization', image: w.cwrcRootUrl+'img/group.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'org');
+                    w.tagger.addEntity('org');
                 }
             });
             addButtonToEditor('addcitation', {title: 'Tag Citation', image: w.cwrcRootUrl+'img/vcard.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'citation');
+                    w.tagger.addEntity('citation');
                 }
             });
             addButtonToEditor('addnote', {title: 'Tag Note', image: w.cwrcRootUrl+'img/note.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'note');
+                    w.tagger.addEntity('note');
                 }
             });
             addButtonToEditor('addcorrection', {title: 'Tag Correction', image: w.cwrcRootUrl+'img/error.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'correction');
+                    w.tagger.addEntity('correction');
                 }
             });
             addButtonToEditor('addkeyword', {title: 'Tag Keyword', image: w.cwrcRootUrl+'img/key.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'keyword');
+                    w.tagger.addEntity('keyword');
                 }
             });
             addButtonToEditor('addlink', {title: 'Tag Link', image: w.cwrcRootUrl+'img/link.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'link');
+                    w.tagger.addEntity('link');
                 }
             });
             addButtonToEditor('addtitle', {title: 'Tag Text/Title', image: w.cwrcRootUrl+'img/book.png', entityButton: true,
                 onclick : function() {
-                    ed.execCommand('addEntity', 'title');
+                    w.tagger.addEntity('title');
                 }
             });
             addButtonToEditor('editTag', {title: 'Edit Tag', image: w.cwrcRootUrl+'img/tag_blue_edit.png',
                 onclick : function() {
-                    ed.execCommand('editTag');
+                    w.tagger.editTag();
                 }
             });
             addButtonToEditor('removeTag', {title: 'Remove Tag', image: w.cwrcRootUrl+'img/tag_blue_delete.png',

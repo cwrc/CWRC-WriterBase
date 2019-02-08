@@ -101,11 +101,11 @@ function SchemaTags(writer, parentEl) {
                     if (w.editor.currentBookmark.tagId == null) {
                         w.editor.currentBookmark.tagId = tagId;
                     }
-                    w.editor.execCommand('addStructureTag', {bookmark: w.editor.currentBookmark, attributes: attributes, action: action});
+                    w.tagger.addStructureTag({bookmark: w.editor.currentBookmark, attributes: attributes, action: action});
                     tagId = null;
                     break;
                 case EDIT:
-                    w.editor.execCommand('editStructureTag', tag, attributes);
+                    w.tagger.editStructureTag(tag, attributes);
                     tag = null;
             }
         }

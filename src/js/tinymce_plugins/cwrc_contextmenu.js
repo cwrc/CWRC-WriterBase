@@ -338,49 +338,49 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
         image: editor.writer.cwrcRootUrl+'img/tag_blue_edit.png',
         category: 'editTag',
         onclick : function() {
-            editor.execCommand('editTag', null);
+            editor.writer.tagger.editTag();
         }
     },{
         text: 'Edit Entity',
         image: editor.writer.cwrcRootUrl+'img/tag_blue_edit.png',
         category: 'editEntity',
         onclick : function() {
-            editor.execCommand('editTag', null);
+            editor.writer.tagger.editTag();
         }
     },{
         text: 'Split Tag',
         image: editor.writer.cwrcRootUrl+'img/arrow_divide.png',
         category: 'modifyStruct',
         onclick : function() {
-            editor.execCommand('splitTag');
+            editor.writer.tagger.splitTag();
         }
     },{
         text: 'Copy Tag & Contents',
         image: editor.writer.cwrcRootUrl+'img/tag_blue_copy.png',
         category: 'copyTag',
         onclick : function() {
-            editor.execCommand('copyTag');
+            editor.writer.tagger.copyTag();
         }
     },{
         text: 'Copy Entity',
         image: editor.writer.cwrcRootUrl+'img/tag_blue_copy.png',
         category: 'copyEntity',
         onclick : function() {
-            editor.execCommand('copyTag');
+            editor.writer.tagger.copyTag();
         }
     },{
         text: 'Paste Tag',
         image: editor.writer.cwrcRootUrl+'img/tag_blue_paste.png',
         category: 'pasteTag',
         onclick : function() {
-            editor.execCommand('pasteTag');
+            editor.writer.tagger.pasteTag();
         }
     },{
         text: 'Paste Entity',
         image: editor.writer.cwrcRootUrl+'img/tag_blue_paste.png',
         category: 'pasteEntity',
         onclick : function() {
-            editor.execCommand('pasteEntity');
+            editor.writer.tagger.pasteEntity();
         }
     },{
       text: '|'  
