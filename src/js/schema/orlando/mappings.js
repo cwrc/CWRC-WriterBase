@@ -155,7 +155,7 @@ date: {
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
-            properties: {tag: 'fn:node-name(.)'}
+            properties: {tag: 'local-name(.)'}
         });
     },
     annotation: function(entity, format) {
@@ -200,8 +200,7 @@ note: {
     },
     reverseMapping: function(xml) {
         return Mapper.getDefaultReverseMapping(xml, {
-            customValues: {parent: 'fn:node-name(.)'},
-            noteContent: '.'
+            properties: {tag: 'local-name(.)'}
         });
     },
     annotation: function(entity, format) {

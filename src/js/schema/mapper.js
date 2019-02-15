@@ -161,15 +161,35 @@ Mapper.getXPathResult = function(contextNode, xpath) {
         });
     }
 
-    var result;
+    var evalResult;
     try {
-        result = doc.evaluate(xpath, contextNode, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+        evalResult = doc.evaluate(xpath, contextNode, nsResolver, XPathResult.ANY_TYPE, null);
     } catch (e) {
         console.warn('utilities.evaluateXPath: there was an error evaluating the xpath', e)
         return undefined;
     }
-    var nodeResult = result.singleNodeValue;
-    return nodeResult === null ? undefined : nodeResult;
+    var result;
+    switch (evalResult.resultType) {
+        case XPathResult.NUMBER_TYPE:
+            result = evalResult.numberValue;
+            break;
+        case XPathResult.STRING_TYPE:
+            result = evalResult.stringValue;
+            break;
+        case XPathResult.BOOLEAN_TYPE:
+            result = evalResult.booleanValue;
+            break;
+        case XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
+        case XPathResult.ORDERED_NODE_ITERATOR_TYPE:
+            result = evalResult.iterateNext();
+            break;
+        case XPathResult.ANY_UNORDERED_NODE_TYPE:
+        case XPathResult.FIRST_ORDERED_NODE_TYPE:
+            result = evalResult.singleNodeValue;
+            break;
+    }
+    if (result === null) result = undefined;
+    return result;
 };
 
 Mapper.xmlToString = function(xmlData) {
