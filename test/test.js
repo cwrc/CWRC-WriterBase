@@ -181,7 +181,8 @@ test('tinymce plugin contextmenu', (t)=> {
         var $okButton = window.$('.ui-dialog-buttonset .ui-button:visible');
         $okButton.click();
         
-        writer.editor.fire('contextmenu');
+        var tag = writer.editor.getBody().querySelector('[_tag="div"]');
+        writer.editor.fire('contextmenu', {target: tag});
         
         var visible = window.$('.mce-floatpanel:visible');
         t.true(visible.length === 1, 'context menu shown');
