@@ -140,26 +140,14 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
         }
         
         // enable/disable items based on current editor state
-        var currentTag = editor.writer.tagger.getCurrentTag();
         
-        if (tinymce.isMac) {
-            // fix for when user right clicks on a tag that doesn't already have focus
-            if (currentTag.struct != null) {
-                if (currentTag.struct[0] != e.target) {
-                    currentTag.struct = $(e.target);
-                }
-            } else if (currentTag.entity != null) {
-                if (currentTag.entity[0] != e.target) {
-                    currentTag.entity = $(e.target);
-                }
-            }
-        }
+        var currentTag = editor.writer.tagger.getCurrentTag(e.target.getAttribute('id'));
         
-        var isTagEntity = false;
+        var canConvert = false;
         if (currentTag.struct != null) {
             var tagName = currentTag.struct.attr('_tag');
             if (tagName) {
-                isTagEntity = editor.writer.utilities.isTagEntity(tagName);
+                canConvert = editor.writer.utilities.isTagEntity(tagName);
             }
         }
         
@@ -174,7 +162,7 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
                 if (item.settings.category !== 'tagEntity' && editor.plugins.cwrc_contextmenu.entityTagsOnly === true) {
                     item.hide();
                 }
-                if (item.settings.category === 'convertEntity' && isTagEntity === false) {
+                if (item.settings.category === 'convertEntity' && canConvert === false) {
                     item.hide();
                 }
                 if (item.settings.category === 'modifyStruct' && currentTag.struct === null) {
