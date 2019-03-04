@@ -495,10 +495,16 @@ function Tagger(writer) {
      */
     function updateEntityInfo(entity, info) {
         var id = entity.getId();
-        
+
         // add attributes to tag
         var tag = $('[name='+id+'][_tag]', w.editor.getBody());
         if (tag.length === 1) {
+            if (info.properties.tag) {
+                tag.attr('_tag', info.properties.tag);
+            }
+            if (info.properties.type) {
+                tag.attr('class', 'entity start end '+info.properties.type);
+            }
             for (var key in info.attributes) {
                 if (w.converter.reservedAttributes[key] !== true) {
                     var val = info.attributes[key];
