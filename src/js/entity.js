@@ -177,6 +177,9 @@ Entity.prototype = {
             this.attributes[key] = attObj[key];
         }
     },
+    removeAttribute: function(name) {
+        delete this.attributes[name];
+    },
     
     getCustomValue: function(key) {
         return this.customValues[key];
@@ -189,6 +192,9 @@ Entity.prototype = {
     },
     setCustomValues: function(propOjb) {
         this.customValues = propOjb;
+    },
+    removeCustomValue: function(name) {
+        delete this.customValues[name];
     },
     
     getNoteContent: function() {
