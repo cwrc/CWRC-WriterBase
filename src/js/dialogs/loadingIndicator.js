@@ -21,6 +21,7 @@ function LoadingIndicator(writer, parentEl) {
         height: 160,
         width: 300,
         position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
+        buttons: {},
         autoOpen: false
     });
     
@@ -76,8 +77,13 @@ function LoadingIndicator(writer, parentEl) {
 
 
     return {
+        setText: function(text) {
+            progressLabel.text(text);
+        },
+        setValue: function(percent) {
+            progressBar.progressbar('value', percent);
+        },
         show: function(config) {
-            $loadingIndicator.dialog('option', 'buttons', {});
             $loadingIndicator.dialog('open');
         },
         hide: function() {
