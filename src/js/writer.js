@@ -833,7 +833,7 @@ function CWRCWriter(config) {
         ui_container: '#'+layoutContainerId,
         
         skin_url: w.cwrcRootUrl+'css/tinymce',
-        
+
         content_css: w.cwrcRootUrl+'css/editor.css',
         
         contextmenu_never_use_native: true,
@@ -911,16 +911,11 @@ function CWRCWriter(config) {
             ed.copiedEntity = null; // the entity element that was copied
             ed.lastKeyPress = null; // the last key the user pressed
             
-            if (w.isReadOnly === true) {
-                ed.on('PreInit', function(e) {
-                    ed.getBody().removeAttribute('contenteditable');
-                });
-            }
-            
             ed.on('init', function(args) {
                 if (w.isReadOnly === true) {
                     ed.plugins.cwrc_contextmenu.disabled = true;
                     w.layoutManager.hideToolbar();
+                    ed.setMode('readonly');
                 }
                 if (w.isAnnotator === true) {
                     ed.plugins.cwrc_contextmenu.disabled = false;
