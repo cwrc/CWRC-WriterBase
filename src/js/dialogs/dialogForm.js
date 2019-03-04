@@ -6,6 +6,7 @@ require('jquery-ui/ui/widgets/dialog');
 require('jquery-ui/ui/widgets/accordion');
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/controlgroup');
+require('jquery-ui/ui/widgets/selectmenu');
 
 var AttributeWidget = require('./attributeWidget.js');
 function DialogForm(config) {
@@ -74,7 +75,7 @@ function DialogForm(config) {
     });
     
     $('[data-transform]', this.$el).each(function(index, el) {
-        var formEl = $(this);
+        var formEl = $(el);
         var transform = formEl.data('transform');
         switch (transform) {
             case 'buttonset':
@@ -88,8 +89,12 @@ function DialogForm(config) {
                     active: false
                 });
                 break;
+            case 'selectmenu':
+                formEl.selectmenu({
+                    appendTo: this.w.layoutManager.getContainer()
+                });
         }
-    });
+    }.bind(this));
     $('[data-type="attributes"]', this.$el).first().each($.proxy(function(index, el) {
         this.attributesWidget = new AttributeWidget({writer: this.w, $parent: this.$el, $el: $(el)});
         this.attWidgetInit = false;
@@ -276,6 +281,9 @@ DialogForm.prototype = {
                                 switch (type) {
                                     case 'select':
                                         formEl.val(value);
+                                        if (formEl.data('transform') === 'selectmenu') {
+                                            formEl.selectmenu('refresh');
+                                        }
                                         formEl.parents('[data-transform="accordion"]').accordion('option', 'active', 0);
                                         break;
                                     case 'radio':
