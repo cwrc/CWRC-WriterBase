@@ -1177,10 +1177,16 @@ function Utilities(writer) {
      * Get the XPath for an element, using the nodeName or cwrc _tag attribute as appropriate.
      * Adapted from the firebug source.
      * @param {Element} element The (cwrc) element to get the XPath for
+     * @param {String} [tagAttribute] The name of the attribute to use as the tag
      * @returns string
      */
-    u.getElementXPath = function(element) {
-        var useTagAttribute = element.getAttribute('_tag') !== null;
+    u.getElementXPath = function(element, tagAttribute) {
+        var tagAtt = undefined;
+        if (tagAttribute !== undefined) {
+            tagAtt = tagAttribute;
+        } else if (element.getAttribute('_tag') !== null) {
+            tagAtt = '_tag'; // cwrc-writer format
+        }
         var paths = [];
         
         // Use nodeName (instead of localName) so namespace prefix is included (if any).
@@ -1193,8 +1199,8 @@ function Utilities(writer) {
                 if (sibling.nodeType == Node.DOCUMENT_TYPE_NODE)
                     continue;
 
-                if (useTagAttribute && sibling.getAttribute !== undefined) {
-                    if (sibling.getAttribute('_tag') == element.getAttribute('_tag')) {
+                if (tagAtt !== undefined && sibling.getAttribute !== undefined) {
+                    if (sibling.getAttribute(tagAtt) == element.getAttribute(tagAtt)) {
                         ++index;
                     }
                 } else {
@@ -1205,8 +1211,8 @@ function Utilities(writer) {
             }
 
             var tagName = null;
-            if (useTagAttribute) {
-                tagName = element.getAttribute('_tag');
+            if (tagAtt !== undefined) {
+                tagName = element.getAttribute(tagAtt);
             } else {
                 tagName = element.nodeName;
             }
