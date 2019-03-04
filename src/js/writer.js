@@ -762,7 +762,8 @@ function CWRCWriter(config) {
     w.utilities.addCSS('css/editor.css'); // needed to style note popups
     
     var editorId = w.getUniqueId('editor_');
-    w.layoutManager = new LayoutManager(w, {
+    w.layoutManager = new LayoutManager(w);
+    w.layoutManager.init({
         name: 'CWRC-Writer 1.0',
         editorId: editorId,
         modules: config.modules,

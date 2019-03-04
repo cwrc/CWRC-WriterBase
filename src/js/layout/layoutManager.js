@@ -29,244 +29,246 @@ function LayoutManager(writer, config) {
     this.w.utilities.addCSS('css/cwrc12/jquery-ui.css');
     this.w.utilities.addCSS('css/layout-scoped.css');
     this.w.utilities.addCSS('css/jquery.contextMenu.css');
-    
-    var defaultModulesLayout = {
-        west: ['structure','entities'],
-        east: ['selection'],
-        south: ['validation']
-    }
-    this.modulesLayout = config.modules || defaultModulesLayout;
-    
-    this.modules = [];
-    
-    this.mode; // 'reader' or 'annotator'
-    
-    this.$container = $('<div id="'+this.w.getUniqueId('cwrc_')+'" class="cwrc cwrcWrapper"></div>').appendTo(config.container);
-    
-    var name = config.name;
-    var editorId = config.editorId;
-    
-    var html = `
-    <div class="cwrc cwrcLoadingMask"><div>Loading ${name}</div></div>
-    <div class="cwrc cwrcHeader ui-layout-north">
-        <div class="headerParent ui-widget">
-            <a class="titleLink" href="https://www.cwrc.ca" target="_blank">${name}</a>
-            <div class="headerButtons"></div>
-        </div>
-    </div>`;
-    
-    html += addPanel(editorId, 'west', this.modulesLayout.west);
-    
-    html += `
-        <div class="cwrc ui-layout-center">
-            <div class="ui-layout-center ui-widget ui-widget-content">
-                <textarea id="${editorId}" name="editor" class="tinymce"></textarea>
-            </div>`;
-    
-    html += addPanel(editorId, 'south', this.modulesLayout.south);
-    
-    html += `
-        </div>`;
-    
-    html += addPanel(editorId, 'east', this.modulesLayout.east);
-    
-    this.$container.html(html);
-    
-    this.$loadingMask = this.$container.find('.cwrcLoadingMask').first();
-    this.$headerButtons = this.$container.find('.headerButtons').first();
-    
-    if (this.w.isReadOnly || this.w.isAnnotator) {
-        var $fullscreenButton = $('<div class="fullscreenLink out">Fullscreen</div>').appendTo(this.$headerButtons);
-        var writer = this.w;
-        $fullscreenButton.click(function() {
-            writer.toggleFullScreen();
-        });
-    }
-  
-    this.resizeEditor = function() {
-        if (this.w.editor) {
-            var pane = $(this.w.editor.getContainer().parentElement);
-            var containerHeight = pane.height();
-            
-            var toolbars = pane[0].querySelectorAll('.mce-toolbar, .mce-statusbar, .mce-menubar');
-            var toolbarsLength = toolbars.length;
-            var barsHeight = 0;
-            for (var i = 0; i < toolbarsLength; i++) {
-                var toolbar = toolbars[i];
-                if (!toolbar.classList.contains('mce-sidebar-toolbar')) {
-                    var barHeight = $(toolbar).height();
-                    barsHeight += barHeight;
-                }
-            }
-            
-            var newHeight = containerHeight - barsHeight - 8;
-            this.w.editor.theme.resizeTo('100%', newHeight);
-        }
-    }
-    
-    var panelMinWidth = 275;
-    
-    var outerLayoutConfig = {
-        defaults: {
-            enableCursorHotkey: false,
-            maskIframesOnResize: true,
-            closable: true,
-            resizable: true,
-            slidable: false,
-            fxName: 'none'
-        },
-        north: {
-            size: 35,
-            spacing_open: 0,
-            minSize: 35,
-            maxSize: 60,
-            closable: false
-        }
-    };
-    
-    if (this.modulesLayout.west !== undefined) {
-        outerLayoutConfig.west = {
-            size: 'auto',
-            minSize: panelMinWidth
-        };
-    }
-    
-    if (this.modulesLayout.east != undefined) {
-        outerLayoutConfig.east = {
-            size: 'auto',
-            minSize: panelMinWidth,
-            initClosed: true
-        };
-    }
-    
-    this.$outerLayout = this.$container.layout(outerLayoutConfig);
-    
-    var innerLayoutConfig = {
-        defaults: {
-            enableCursorHotkey: false,
-            maskIframesOnResize: true,
-            closable: true,
-            resizable: true,
-            slidable: false,
-            fxName: 'none'
-        },
-        center: {
-            onresize_end: function(region, pane, state, options) {
-                this.resizeEditor();
-            }.bind(this)
-        }
-    };
-    
-    if (this.modulesLayout.south !== undefined) {
-        innerLayoutConfig.south = {
-            size: 250,
-            resizable: true,
-            initClosed: true,
-            activate: function(event, ui) {
-                $.layout.callbacks.resizeTabLayout(event, ui);
-            }
-        };
-    }
-    
-    this.$innerLayout = this.$container.find('.ui-layout-center').first().layout(innerLayoutConfig);
-    
-    for (var region in this.modulesLayout) {
-        var modules = this.modulesLayout[region];
-        if (Array.isArray(modules)) {
-            modules.forEach(function(module) {
-                var module = initModule(editorId, this.w, module);
-                this.modules.push(module);
-            }.bind(this));
-            var $region = this.$container.find('.ui-layout-'+region);
-            $region.tabs({
-                activate: function(event, ui) {
-                    $.layout.callbacks.resizeTabLayout(event, ui);
-                },
-                create: function(event, ui) {
-                    $region.parent().find('.ui-corner-all:not(button)').removeClass('ui-corner-all');
-                }
-            });
-        } else {
-            var module = initModule(editorId, this.w, modules);
-            this.modules.push(module);
-        }
-    }
-    
-    var isLoading = false;
-    var doneLayout = false;
-    
-    var onLoad = function() {
-        isLoading = true;
-        this.w.event('loadingDocument').unsubscribe(onLoad);
-    }.bind(this);
-    var onLoadDone = function() {
-        isLoading = false;
-        if (doneLayout) {
-            this.$loadingMask.fadeOut();
-            this.w.event('documentLoaded').unsubscribe(onLoadDone);
-            doResize();
-        }
-    }.bind(this);
-    
-    var doHandleEntityButtons = function(show) {
-        var controls = this.w.editor.theme.panel.rootControl.controlIdLookup;
-        var entityButtons = [];
-        var entityButtonsParent;
-        var sameParent = true;
-        for (var controlId in controls) {
-            var control = controls[controlId];
-            if (control.settings.entityButton === true) {
-                entityButtons.push(control);
-                if (entityButtonsParent === undefined) {
-                    entityButtonsParent = control.parent();
-                } else if (sameParent && entityButtonsParent !== control.parent()) {
-                    sameParent = false;
-                }
-            }
-        }
-        if (sameParent) {
-            if (show) {
-                entityButtonsParent.show();
-            } else {
-                entityButtonsParent.hide();
-            }
-        } else {
-            entityButtons.forEach(function(button) {
-                if (show) {
-                    button.disabled(false);
-                } else {
-                    button.disabled(true);
-                }
-            })
-        }
-    }.bind(this);
-    
-    var doResize = function() {
-        this.$outerLayout.options.onresizeall_end = function() {
-            doneLayout = true;
-            if (isLoading === false) {
-                this.$loadingMask.fadeOut();
-                this.$outerLayout.options.onresizeall_end = null;
-            }
-        }.bind(this);
-        this.$outerLayout.resizeAll(); // now that the editor is loaded, set proper sizing
-        this.$outerLayout.resizeAll(); // need to call a second time because resize bar is misplaced initially
-    }.bind(this);
-    
-    this.w.event('loadingDocument').subscribe(onLoad);
-    this.w.event('documentLoaded').subscribe(onLoadDone);
-    this.w.event('documentLoaded').subscribe(function(success) {
-        if (!success || this.w.schemaManager.isSchemaCustom()) {
-            doHandleEntityButtons(false);
-        } else {
-            doHandleEntityButtons(true);
-        }
-    }.bind(this));
-    this.w.event('writerInitialized').subscribe(doResize);
 }
 
 LayoutManager.prototype = {
     constructor: LayoutManager,
+
+    init: function(config) {
+        var defaultModulesLayout = {
+            west: ['structure','entities'],
+            east: ['selection'],
+            south: ['validation']
+        }
+        this.modulesLayout = config.modules || defaultModulesLayout;
+        
+        this.modules = [];
+        
+        this.mode; // 'reader' or 'annotator'
+        
+        this.$container = $('<div id="'+this.w.getUniqueId('cwrc_')+'" class="cwrc cwrcWrapper"></div>').appendTo(config.container);
+        
+        var name = config.name;
+        var editorId = config.editorId;
+        
+        var html = `
+        <div class="cwrc cwrcLoadingMask"><div>Loading ${name}</div></div>
+        <div class="cwrc cwrcHeader ui-layout-north">
+            <div class="headerParent ui-widget">
+                <a class="titleLink" href="https://www.cwrc.ca" target="_blank">${name}</a>
+                <div class="headerButtons"></div>
+            </div>
+        </div>`;
+        
+        html += addPanel(editorId, 'west', this.modulesLayout.west);
+        
+        html += `
+            <div class="cwrc ui-layout-center">
+                <div class="ui-layout-center ui-widget ui-widget-content">
+                    <textarea id="${editorId}" name="editor" class="tinymce"></textarea>
+                </div>`;
+        
+        html += addPanel(editorId, 'south', this.modulesLayout.south);
+        
+        html += `
+            </div>`;
+        
+        html += addPanel(editorId, 'east', this.modulesLayout.east);
+        
+        this.$container.html(html);
+        
+        this.$loadingMask = this.$container.find('.cwrcLoadingMask').first();
+        this.$headerButtons = this.$container.find('.headerButtons').first();
+        
+        if (this.w.isReadOnly || this.w.isAnnotator) {
+            var $fullscreenButton = $('<div class="fullscreenLink out">Fullscreen</div>').appendTo(this.$headerButtons);
+            var writer = this.w;
+            $fullscreenButton.click(function() {
+                writer.toggleFullScreen();
+            });
+        }
+      
+        this.resizeEditor = function() {
+            if (this.w.editor) {
+                var pane = $(this.w.editor.getContainer().parentElement);
+                var containerHeight = pane.height();
+                
+                var toolbars = pane[0].querySelectorAll('.mce-toolbar, .mce-statusbar, .mce-menubar');
+                var toolbarsLength = toolbars.length;
+                var barsHeight = 0;
+                for (var i = 0; i < toolbarsLength; i++) {
+                    var toolbar = toolbars[i];
+                    if (!toolbar.classList.contains('mce-sidebar-toolbar')) {
+                        var barHeight = $(toolbar).height();
+                        barsHeight += barHeight;
+                    }
+                }
+                
+                var newHeight = containerHeight - barsHeight - 8;
+                this.w.editor.theme.resizeTo('100%', newHeight);
+            }
+        }
+        
+        var panelMinWidth = 320;
+        
+        var outerLayoutConfig = {
+            defaults: {
+                enableCursorHotkey: false,
+                maskIframesOnResize: true,
+                closable: true,
+                resizable: true,
+                slidable: false,
+                fxName: 'none'
+            },
+            north: {
+                size: 35,
+                spacing_open: 0,
+                minSize: 35,
+                maxSize: 60,
+                closable: false
+            }
+        };
+        
+        if (this.modulesLayout.west !== undefined) {
+            outerLayoutConfig.west = {
+                size: 'auto',
+                minSize: panelMinWidth
+            };
+        }
+        
+        if (this.modulesLayout.east != undefined) {
+            outerLayoutConfig.east = {
+                size: 'auto',
+                minSize: panelMinWidth,
+                initClosed: true
+            };
+        }
+        
+        this.$outerLayout = this.$container.layout(outerLayoutConfig);
+        
+        var innerLayoutConfig = {
+            defaults: {
+                enableCursorHotkey: false,
+                maskIframesOnResize: true,
+                closable: true,
+                resizable: true,
+                slidable: false,
+                fxName: 'none'
+            },
+            center: {
+                onresize_end: function(region, pane, state, options) {
+                    this.resizeEditor();
+                }.bind(this)
+            }
+        };
+        
+        if (this.modulesLayout.south !== undefined) {
+            innerLayoutConfig.south = {
+                size: 250,
+                resizable: true,
+                initClosed: true,
+                activate: function(event, ui) {
+                    $.layout.callbacks.resizeTabLayout(event, ui);
+                }
+            };
+        }
+        
+        this.$innerLayout = this.$container.find('.ui-layout-center').first().layout(innerLayoutConfig);
+        
+        for (var region in this.modulesLayout) {
+            var modules = this.modulesLayout[region];
+            if (Array.isArray(modules)) {
+                modules.forEach(function(module) {
+                    var module = initModule(editorId, this.w, module);
+                    this.modules.push(module);
+                }.bind(this));
+                var $region = this.$container.find('.ui-layout-'+region);
+                $region.tabs({
+                    activate: function(event, ui) {
+                        $.layout.callbacks.resizeTabLayout(event, ui);
+                    },
+                    create: function(event, ui) {
+                        $region.parent().find('.ui-corner-all:not(button)').removeClass('ui-corner-all');
+                    }
+                });
+            } else {
+                var module = initModule(editorId, this.w, modules);
+                this.modules.push(module);
+            }
+        }
+        
+        var isLoading = false;
+        var doneLayout = false;
+        
+        var onLoad = function() {
+            isLoading = true;
+            this.w.event('loadingDocument').unsubscribe(onLoad);
+        }.bind(this);
+        var onLoadDone = function() {
+            isLoading = false;
+            if (doneLayout) {
+                this.$loadingMask.fadeOut();
+                this.w.event('documentLoaded').unsubscribe(onLoadDone);
+                doResize();
+            }
+        }.bind(this);
+        
+        var doHandleEntityButtons = function(show) {
+            var controls = this.w.editor.theme.panel.rootControl.controlIdLookup;
+            var entityButtons = [];
+            var entityButtonsParent;
+            var sameParent = true;
+            for (var controlId in controls) {
+                var control = controls[controlId];
+                if (control.settings.entityButton === true) {
+                    entityButtons.push(control);
+                    if (entityButtonsParent === undefined) {
+                        entityButtonsParent = control.parent();
+                    } else if (sameParent && entityButtonsParent !== control.parent()) {
+                        sameParent = false;
+                    }
+                }
+            }
+            if (sameParent) {
+                if (show) {
+                    entityButtonsParent.show();
+                } else {
+                    entityButtonsParent.hide();
+                }
+            } else {
+                entityButtons.forEach(function(button) {
+                    if (show) {
+                        button.disabled(false);
+                    } else {
+                        button.disabled(true);
+                    }
+                })
+            }
+        }.bind(this);
+        
+        var doResize = function() {
+            this.$outerLayout.options.onresizeall_end = function() {
+                doneLayout = true;
+                if (isLoading === false) {
+                    this.$loadingMask.fadeOut();
+                    this.$outerLayout.options.onresizeall_end = null;
+                }
+            }.bind(this);
+            this.$outerLayout.resizeAll(); // now that the editor is loaded, set proper sizing
+            this.$outerLayout.resizeAll(); // need to call a second time because resize bar is misplaced initially
+        }.bind(this);
+        
+        this.w.event('loadingDocument').subscribe(onLoad);
+        this.w.event('documentLoaded').subscribe(onLoadDone);
+        this.w.event('documentLoaded').subscribe(function(success) {
+            if (!success || this.w.schemaManager.isSchemaCustom()) {
+                doHandleEntityButtons(false);
+            } else {
+                doHandleEntityButtons(true);
+            }
+        }.bind(this));
+        this.w.event('writerInitialized').subscribe(doResize);
+    },
     
     showModule: function(moduleId) {
         for (var region in this.modulesLayout) {
