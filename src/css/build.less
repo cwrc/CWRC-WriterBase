@@ -30,11 +30,9 @@ html, body {
 @{parentId} {
     @import (less) url('../../node_modules/jquery-contextmenu/dist/jquery.contextMenu.css');
     @import (less) url('../../node_modules/prism-themes/themes/prism-ghcolors.css');
+    @import (less) url('../../node_modules/jstree/dist/themes/default/style.css');
+    @import (less) url('./jstree-overrides.css');
 }
-
-/* can't wrap jstree in ID because it has it's own ID'd divs that get added to body */
-@import (less) url('../../node_modules/jstree/dist/themes/default/style.css');
-@import (less) url('./jstree-overrides.css');
 
 /* can't wrap these because otherwise they're TOO specific */
 @import (less) url('./tinymce-overrides.css');

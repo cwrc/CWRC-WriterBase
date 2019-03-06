@@ -766,18 +766,21 @@ function StructureTree(config) {
     $tree.on('deselect_node.jstree', _onNodeDeselect);
     
     function handleDnDStart(e, data) {
-        data.helper.addClass('cwrc');
         // TODO fullscreen support
+        data.helper.addClass('cwrc');
         if (w.isFullScreen()) {
             $.vakata.dnd.stop(e);
         }
-        // data.helper.appendTo(w.layoutManager.getContainer());
+        data.helper.appendTo(w.layoutManager.getContainer());
     }
     $(document).on('dnd_start.vakata', handleDnDStart);
     
     function handleDnDMove(e, data) {
         // TODO fullscreen support
-//        var marker = $('#jstree-marker');
+       var marker = $('#jstree-marker');
+       if (marker.parent() !== w.layoutManager.getContainer()) {
+           marker.appendTo(w.layoutManager.getContainer());
+       }
 //        var o = marker.offset();
 //        marker.offset({top: o.top-6, left: o.left-2});
     }
@@ -791,8 +794,8 @@ function StructureTree(config) {
 
     function handleContextShow(e, data) {
         var $el = data.element;
+        $el.appendTo(w.layoutManager.getContainer()).show();
         $el.css('width', $el.width());
-        $el.appendTo(w.layoutManager.getContainer());
         
         var position = w.utilities.getOffsetPosition(data.reference);
         position.left += data.reference.outerWidth()*0.9;
