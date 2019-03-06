@@ -158,6 +158,7 @@ correction: {
     xpathSelector: 'self::tei:choice|self::tei:corr',
     parentTag: ['choice', 'corr'],
     textTag: 'sic',
+    requiresSelection: false,
     mapping: function(entity) {
         var corrText = entity.getCustomValue('corrText');
         

@@ -53,7 +53,8 @@ module.exports = function(writer, parentEl) {
         } else {
             if (sicText === undefined) {
                 // insert the correction text so we can make an entity out of that
-                w.editor.execCommand('mceInsertContent', false, corrText);
+                // TODO
+                w.editor.getDoc().execCommand('insertText', false, corrText);
             }
         }
     });

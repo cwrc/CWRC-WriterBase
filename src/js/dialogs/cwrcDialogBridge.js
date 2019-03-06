@@ -7,7 +7,7 @@ function CwrcDialogBridge(writer, config) {
     var w = writer;
     var cD = writer.initialConfig.entityLookupDialogs;
     
-    w.utilities.addCSS('css/bootstrap/bootstrap-scoped.css');
+    // w.utilities.addCSS('css/bootstrap/bootstrap-scoped.css');
     
     var label = config.label;
     var cwrcType = config.cwrcType;

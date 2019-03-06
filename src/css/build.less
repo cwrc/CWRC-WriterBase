@@ -1,0 +1,43 @@
+/* used to wrap and concat css files */
+
+/* need to specify parentId through build command */
+/*@parentId: ~'#cwrcWriterContainer';*/
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+@{parentId} {
+    @import (less) url('./jquery-ui/jquery-ui.css');
+    @import (less) url('../lib/jquery/jquery.layout_and_plugins.css');
+    @import (less) url('../js/layout/layout.css');
+    @import (less) url('./style.css');
+
+    @import (less) url('../js/dialogs/attributeWidget/attributeWidget.css');
+    @import (less) url('../js/dialogs/dialogForm/dialogForm.css');
+    @import (less) url('../js/dialogs/loadingIndicator/loadingIndicator.css');
+    @import (less) url('../js/dialogs/schemaTags/schemaTags.css');
+
+    @import (less) url('../js/layout/modules/entitiesList/entitiesList.less');
+    @import (less) url('../js/layout/modules/imageViewer/imageViewer.css');
+    @import (less) url('../js/layout/modules/relations/relations.css');
+    @import (less) url('../js/layout/modules/validation/validation.css');
+}
+
+@{parentId} {
+    @import (less) url('../../node_modules/jquery-contextmenu/dist/jquery.contextMenu.css');
+    @import (less) url('../../node_modules/prism-themes/themes/prism-ghcolors.css');
+}
+
+/* can't wrap jstree in ID because it has it's own ID'd divs that get added to body */
+@import (less) url('../../node_modules/jstree/dist/themes/default/style.css');
+@import (less) url('./jstree-overrides.css');
+
+/* can't wrap these because otherwise they're TOO specific */
+@import (less) url('./tinymce-overrides.css');
+
+/* need to build bootstrap components individually because we can't just wrap everything */
+@import (less) url('./bootstrap.less');

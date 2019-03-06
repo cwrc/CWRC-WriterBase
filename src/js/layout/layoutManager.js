@@ -4,12 +4,13 @@ var $ = require('jquery');
 require('layout');
 require('jquery-ui/ui/widgets/tabs');
 
-var StructureTree = require('./modules/structureTree.js');
-var EntitiesList = require('./modules/entitiesList.js')
-var Validation = require('./modules/validation.js');
-var Relations = require('./modules/relations.js');
-var Selection = require('./modules/selection.js');
-var ImageViewer = require('./modules/imageViewer.js');
+var StructureTree = require('./modules/structureTree/structureTree.js');
+var EntitiesList = require('./modules/entitiesList/entitiesList.js')
+var Validation = require('./modules/validation/validation.js');
+var Relations = require('./modules/relations/relations.js');
+var Selection = require('./modules/selection/selection.js');
+var ImageViewer = require('./modules/imageViewer/imageViewer.js');
+// var Nerve = require('./modules/nerve/nerve.js');
 
 /**
  * 
@@ -25,10 +26,6 @@ var ImageViewer = require('./modules/imageViewer.js');
  */
 function LayoutManager(writer, config) {
     this.w = writer;
-    
-    this.w.utilities.addCSS('css/cwrc12/jquery-ui.css');
-    this.w.utilities.addCSS('css/layout-scoped.css');
-    this.w.utilities.addCSS('css/jquery.contextMenu.css');
 }
 
 LayoutManager.prototype = {
@@ -433,6 +430,9 @@ function initModule(idPrefix, writer, module) {
     case 'imageViewer':
         return new ImageViewer({writer: writer, parentId: domId});
         break;
+    // case 'nerve':
+    //     return new Nerve({writer: writer, parentId: domId});
+    //     break;
     }
     
     return null;

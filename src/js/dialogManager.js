@@ -6,15 +6,15 @@ require('jquery-ui/ui/widgets/dialog');
 require('jquery-ui/ui/widgets/tooltip');
 require('jquery-popup');
 
-var DialogForm = require('./dialogs/dialogForm.js');
+var DialogForm = require('dialogForm');
 
 var AddSchema = require('./dialogs/addSchema.js');
-var LoadingIndicator = require('./dialogs/loadingIndicator.js');
+var LoadingIndicator = require('./dialogs/loadingIndicator/loadingIndicator.js');
 var Header = require('./dialogs/header.js');
 var EditSource = require('./dialogs/editSource.js');
 var Message = require('./dialogs/message.js');
 var Triple = require('./dialogs/triple.js');
-var SchemaTags = require('./dialogs/schemaTags.js');
+var SchemaTags = require('./dialogs/schemaTags/schemaTags.js');
 var CopyPaste = require('./dialogs/copyPaste.js');
 var Popup = require('./dialogs/popup.js');
 var CwrcPerson = require('./dialogs/cwrcPerson.js');

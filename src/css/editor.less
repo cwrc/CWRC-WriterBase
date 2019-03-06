@@ -1,0 +1,143 @@
+/* This CSS gets applied to the tinymce editor */
+
+@import (less) "variables.less";
+
+.showEntities .entity, .ui-dialog-content .entity {
+    border-width: 1px;
+    border-bottom-style: dotted;
+}
+
+.showEntities .entityHighlight > .entity {
+    border-width: 2px;
+}
+
+.entityHighlight.person {
+    background-color: fade(@entity-person, 20%);
+}
+
+.entityHighlight.date {
+    background-color: fade(@entity-date, 20%);
+}
+
+.entityHighlight.place {
+    background-color: fade(@entity-place, 20%);
+}
+
+.entityHighlight.event {
+    background-color: fade(@entity-event, 20%);
+}
+
+.entityHighlight.org {
+    background-color: fade(@entity-org, 20%);
+}
+
+.entityHighlight.title {
+    background-color: fade(@entity-title, 20%);
+}
+
+.entityHighlight.correction {
+    background-color: fade(@entity-correction, 20%);
+}
+
+.entityHighlight.link {
+    background-color: fade(@entity-link, 20%);
+}
+
+
+.showEntities .person, .ui-dialog-content .person {
+    border-color: @entity-person;
+}
+
+.showEntities .date, .ui-dialog-content .date {
+    border-color: @entity-date;
+}
+
+.showEntities .place, .ui-dialog-content .place {
+    border-color: @entity-place;
+}
+
+.showEntities .event, .ui-dialog-content .event {
+    border-color: @entity-event;
+}
+
+.showEntities .org, .ui-dialog-content .org {
+    border-color: @entity-org;
+}
+
+.showEntities .title, .ui-dialog-content .title {
+    border-color: @entity-title;
+}
+
+.showEntities .correction, .ui-dialog-content .correction {
+    border-color: @entity-correction;
+}
+
+.showEntities .link, .ui-dialog-content .link {
+    border-color: @entity-link;
+}
+
+.nerve .entity[nerve] {
+    border-width: 0px;
+}
+.nerve .entity.person[nerve] {
+    color: @entity-person;
+}
+.nerve .entity.place[nerve] {
+    color: @entity-place;
+}
+.nerve .entity.org[nerve] {
+    color: @entity-org;
+}
+.nerve .entity.title[nerve] {
+    color: @entity-title;
+}
+
+.noteWrapper::before {
+    cursor: pointer;
+}
+
+.noteWrapper.note::before {
+    content: url(../img/note_inline_large.png);
+}
+
+.noteWrapper.citation::before {
+    content: url(../img/citation_inline_large.png);
+}
+
+.noteWrapper.keyword::before {
+    content: url(../img/keyword_inline_large.png);
+}
+
+.noteWrapper.note.entityHighlight::before {
+    content: url(../img/note_inline_large_highlight.png);
+}
+
+.noteWrapper.citation.entityHighlight::before {
+    content: url(../img/citation_inline_large_highlight.png);
+}
+
+.noteWrapper.keyword.entityHighlight::before {
+    content: url(../img/keyword_inline_large_highlight.png);
+}
+
+.noteWrapper > * {
+    display: inherit;
+}
+
+.noteWrapper.hide > * {
+    display: none !important;
+}
+
+.showEntities .citation.start, .showEntities .note.start, .showEntities .keyword.start {
+    border: none !important;
+}
+
+
+
+span[data-mce-bogus] {
+    height: 0px;
+    width: 0px;
+    line-height: 0px;
+    font-size: 0px;
+    display: none;
+}

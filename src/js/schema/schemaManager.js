@@ -340,7 +340,8 @@ function SchemaManager(writer, config) {
                     processSchema();
                 }
             }, function(resp) {
-                w.dialogManager.show('message', {title: 'Error', msg: 'Error loading schema from: '+schemaUrl, type: 'error'});
+                sm.schemaId = null;
+                w.dialogManager.show('message', {title: 'Error', msg: '<p>Error loading schema from: '+schemaUrl+'.</p><p>Document editing will not work properly!</p>', type: 'error'});
                 if (callback) callback(false);
             });
         } else {

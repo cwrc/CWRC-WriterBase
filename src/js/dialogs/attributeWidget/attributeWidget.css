@@ -1,0 +1,77 @@
+.attributeWidget {
+    display: flex;
+    flex-direction: row;
+}
+
+.attributeWidget label {
+    display: inline;
+}
+
+.attributeWidget input, .attributeWidget select {
+    width: 80%;
+    border: 1px solid #ccc;
+}
+
+.attributeWidget .attributeSelector {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #999;
+}
+
+.attributeWidget .attributeSelector ul {
+    flex: 1;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+}
+
+.attributeWidget .attributeSelector li {
+    list-style-type: none;
+    margin: 0;
+    padding: 3px;
+    background-color: #fff;
+}
+
+.attributeWidget .attributeSelector li:hover {
+    background-color: #ddd;
+    cursor: pointer;
+}
+
+.attributeWidget .attributeSelector li.selected {
+    background-color: #ccc;
+}
+
+.attributeWidget .attsContainer {
+    flex: 2;
+    margin-left: 5px;
+    overflow: auto;
+}
+
+.attributeWidget .atts {
+    float: left;
+    clear: left;
+}
+
+.attributeWidget .attsContainer label {
+    width: 135px;
+}
+
+.attributeWidget .schemaHelp {
+    flex: 1;
+    margin-left: 5px;
+    height: 100%;
+    overflow: auto;
+}
+
+.attributeWidget .schemaHelp h3 {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.attributeSelector h2 {
+    padding: 3px;
+    background-color: #ccc;
+    border-bottom: 1px solid #999;
+}

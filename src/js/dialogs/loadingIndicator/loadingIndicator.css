@@ -1,0 +1,14 @@
+
+.loadingIndicatorDialog .progressBar {
+    position: relative;
+}
+
+.loadingIndicatorDialog .progressLabel {
+    position: absolute;
+    left: 30%;
+    top: 4px;
+}
+
+.loadingIndicatorDialog .ui-progressbar-value {
+    background: #6395F2 !important;
+}

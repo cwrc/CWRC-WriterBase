@@ -1,0 +1,55 @@
+.annotationDialog {
+    display: flex;
+    flex-direction: column;
+}
+
+.annotationDialog .writerParent {
+    flex: 1;
+}
+
+.annotationDialog p {
+    margin: 5px 0px;
+}
+
+.annotationDialog > div {
+    margin-bottom: 15px !important;
+}
+
+.annotationDialog .ui-accordion-content {
+  padding: 5px 10px !important;
+}
+
+.annotationDialog .tagAs {
+    font-size: 1.2em;
+    display: inline-block;
+    width: 98%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.annotationDialog .attributes {
+    position: relative;
+    height: 200px;
+}
+
+/* jquery ui overrides */
+.splitButtons .ui-dialog-buttonpane {
+    padding: 0.3em 1em 0.5em 1em !important;
+}
+
+.splitButtons .ui-dialog-buttonset {
+    float: none !important;
+}
+
+.splitButtons .ui-dialog-buttonset button {
+    float: right;
+}
+
+.splitButtons .ui-dialog-buttonset button.left {
+    float: left;
+}
+
+.ui-icon-help {
+    cursor: pointer;
+}
