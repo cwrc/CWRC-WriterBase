@@ -71,6 +71,7 @@
     "less": "^3.8.1",
     "log4javascript": "^1.4.15",
     "mkdirp": "^0.5.1",
+    "path-exists-cli": "^1.0.0",
     "rimraf": "^2.6.2",
     "semantic-release": "^15.9.12",
     "sinon": "^4.5.0",
@@ -87,31 +88,27 @@
     "travis-deploy-once": "travis-deploy-once",
     "cm": "git-cz",
     "precommit": "npm run test && npm run check-coverage",
-    
+
     "test": "npm run test:electron && npm run generate-coverage",
     "test:electron": "mkdirp coverage && browserify -g deamdify -t [ browserify-istanbul --ignore \"**/schema/cwrcEntry/**\" --ignore \"**/schema/orlando/**\" ] test/test.js | browser-run --static . | node test/extract-coverage.js | faucet ",
-    
     "generate-coverage": "istanbul report --root coverage lcov",
     "check-coverage": "istanbul check-coverage --statements 5 --branches 1 --functions 1 --lines 5",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
-    
+
     "nerve-build": "browserify src/js/layout/modules/nerve.js -o build/nerve.js -g babelify -g deamdify --debug --verbose",
     
     "clean": "rimraf build",
     "build": "npm run build-css && npm run copy-files-to-build",
-
+    
     "build-css": "mkdirp build/css && npm run build-scoped-css && npm run build-editor-css",
     "build-scoped-css": "lessc src/css/build.less build/css/cwrc-writer.css --global-var=\"parentId=#cwrcWriterContainer\"",
     "build-editor-css": "lessc src/css/editor.less build/css/editor.css",
     
     "copy-files-to-build": "npm run copy-tinymce && npm run copy-jqueryui-images && npm run copy-bootstrap-fonts && npm run copy-jstree-images",
-    "copy-tinymce": "copyfiles -u 3 src/css/tinymce/**/* build/css/tinymce",
-    "copy-jqueryui-images": "copyfiles -u 3 src/css/jquery-ui/jquery-ui-images/* build/css/",
-    "copy-bootstrap-fonts": "copyfiles -f node_modules/bootstrap/fonts/* build/fonts/",
-    "copy-jstree-images": "copyfiles -f node_modules/jstree/dist/themes/default/*.png build/css/",
-
-    "dev": "npm run build-css && npm run copy-to-dev",
-    "copy-to-dev": "copyfiles -u 1 build/**/* D:/Git/cwrc/CWRC-DevGitWriter/build"
+    "copy-tinymce": "copyfiles -u 3 \"src/css/tinymce/**/*\" build/css/tinymce",
+    "copy-jqueryui-images": "copyfiles -u 3 \"src/css/jquery-ui/jquery-ui-images/*\" build/css/",
+    "copy-bootstrap-fonts": "path-exists node_modules && copyfiles -f \"node_modules/bootstrap/fonts/*\" build/fonts/ || copyfiles -f \"../bootstrap/fonts/*\" build/fonts/",
+    "copy-jstree-images": "path-exists node_modules && copyfiles -f \"node_modules/jstree/dist/themes/default/*.png\" build/css/ || copyfiles -f \"../jstree/dist/themes/default/*.png\" build/css/"
   },
   "config": {
     "commitizen": {
