@@ -320,6 +320,8 @@ DialogForm.prototype = {
             } else {
                 this.w.tagger.finalizeEntity(this.type, this.currentData);
             }
+
+            this.$el.trigger('save', [this]);
         }
     },
     

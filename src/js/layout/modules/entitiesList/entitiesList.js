@@ -23,7 +23,9 @@ function EntitiesList(config) {
     var id = config.parentId;
     $('#'+id).append(
         '<div class="moduleParent">'+
-            '<ul class="moduleContent entitiesList"></ul>'+
+            '<div class="moduleContent">'+
+                '<ul class="entitiesList"></ul>'+
+            '</div>'+
             '<div class="moduleFooter entitiesOptions">'+
                 '<div class="sortBy"><span>Sort By</span> '+
                     '<label>Sequence <input type="radio" class="sequence" name="sortBy" checked="checked" /></label>'+
@@ -191,8 +193,12 @@ function EntitiesList(config) {
             };
             buildString(entity.getAttributes());
             infoString += '</ul>';
-            return '<li class="'+entity.getType()+'" name="'+entity.getId()+'">'+
-                '<span class="box"/><span class="entityTitle">'+entity.getContent()+'</span><div class="info">'+infoString+'</div>'+
+            return ''+
+            '<li class="'+entity.getType()+'" name="'+entity.getId()+'">'+
+                '<div>'+
+                    '<span class="icon"/><span class="entityTitle">'+entity.getContent()+'</span>'+
+                    '<div class="info">'+infoString+'</div>'+
+                '</div>'+
             '</li>';
         }
         

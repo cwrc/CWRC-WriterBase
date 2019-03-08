@@ -10,7 +10,7 @@ var Validation = require('./modules/validation/validation.js');
 var Relations = require('./modules/relations/relations.js');
 var Selection = require('./modules/selection/selection.js');
 var ImageViewer = require('./modules/imageViewer/imageViewer.js');
-// var Nerve = require('./modules/nerve/nerve.js');
+var Nerve = require('./modules/nerve/nerve.js');
 
 /**
  * 
@@ -430,9 +430,9 @@ function initModule(idPrefix, writer, module) {
     case 'imageViewer':
         return new ImageViewer({writer: writer, parentId: domId});
         break;
-    // case 'nerve':
-    //     return new Nerve({writer: writer, parentId: domId});
-    //     break;
+    case 'nerve':
+        return new Nerve({writer: writer, parentId: domId});
+        break;
     }
     
     return null;

@@ -6,145 +6,33 @@
     padding: 0;
 }
 
-.entitiesList li .box {
+.entitiesList > li {
+    list-style: none;
+    margin: 5px 5px 10px 5px;
+    display: flex;
+}
+
+.entitiesList > li > div {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
+    border: 1px solid #666;
+    flex: 1;
+}
+
+.entitiesList > li > div:hover {
+    cursor: pointer;
+}
+
+.entitiesList > li.selected > div:hover {
+    cursor: default;
+}
+
+.entitiesList li .icon {
     width: 22px;
     height: 22px;
     margin-right: 2px;
     display: inline-block;
     background-position: 3px 3px;
     background-repeat: no-repeat;
-}
-
-.entitiesList .person .box {
-    background-image: url('../img/user.png');
-}
-
-.entitiesList .person {
-    background-color: mix(desaturate(@entity-person, 30%), #fff, 50%);
-}
-
-.entitiesList .person.selected, .entitiesList .person.over {
-    background-color: @entity-person;
-}
-
-.entitiesList .place .box {
-    background-image: url('../img/world.png');
-}
-
-.entitiesList .place {
-    background-color: mix(desaturate(@entity-place, 30%), #fff, 50%);
-}
-
-.entitiesList .place.selected, .entitiesList .place.over {
-    background-color: @entity-place;
-}
-
-.entitiesList .date .box {
-    background-image: url('../img/calendar.png');
-}
-
-.entitiesList .date {
-    background-color: mix(desaturate(@entity-date, 30%), #fff, 50%);
-}
-
-.entitiesList .date.selected, .entitiesList .date.over {
-    background-color: @entity-date;
-}
-
-.entitiesList .event .box {
-    background-image: url('../img/cake.png');
-}
-
-.entitiesList .event {
-    background-color: mix(desaturate(@entity-event, 30%), #fff, 50%);
-}
-
-.entitiesList .event.selected, .entitiesList .event.over {
-    background-color: @entity-event;
-}
-
-.entitiesList .org .box {
-    background-image: url('../img/group.png');
-}
-
-.entitiesList .org {
-    background-color: mix(desaturate(@entity-org, 30%), #fff, 50%);
-}
-
-.entitiesList .org.selected, .entitiesList .org.over {
-    background-color: @entity-org;
-}
-
-.entitiesList .citation .box {
-    background-image: url('../img/vcard.png');
-}
-
-.entitiesList .citation {
-    background-color: mix(desaturate(@entity-citation, 30%), #fff, 50%);
-}
-
-.entitiesList .citation.selected, .entitiesList .citation.over {
-    background-color: @entity-citation;
-}
-
-.entitiesList .note .box {
-    background-image: url('../img/note.png');
-}
-
-.entitiesList .note {
-    background-color: mix(desaturate(@entity-note, 30%), #fff, 50%);
-}
-
-.entitiesList .note.selected, .entitiesList .note.over {
-    background-color: @entity-note;
-}
-
-.entitiesList .title .box {
-    background-image: url('../img/book.png');
-}
-
-.entitiesList .title {
-    background-color: mix(desaturate(@entity-title, 30%), #fff, 50%);
-}
-
-.entitiesList .title.selected, .entitiesList .title.over {
-    background-color: @entity-title;
-}
-
-.entitiesList .correction .box {
-    background-image: url('../img/error.png');
-}
-
-.entitiesList .correction {
-    background-color: mix(desaturate(@entity-correction, 30%), #fff, 50%);
-}
-
-.entitiesList .correction.selected, .entitiesList .correction.over {
-    background-color: @entity-correction;
-}
-
-.entitiesList .keyword .box {
-    background-image: url('../img/page_key.png');
-}
-
-.entitiesList .keyword {
-    background-color: mix(desaturate(@entity-keyword, 30%), #fff, 50%);
-}
-
-.entitiesList .keyword.selected, .entitiesList .keyword.over {
-    background-color: @entity-keyword;
-}
-
-.entitiesList .link .box {
-    background-image: url('../img/link.png');
-}
-
-.entitiesList .link {
-    background-color: mix(desaturate(@entity-link, 30%), #fff, 50%);
-}
-
-.entitiesList .link.selected, .entitiesList .link.over {
-    background-color: @entity-link;
 }
 
 .entitiesList .entityTitle {
@@ -161,7 +49,7 @@
     display: none;
 }
 
-.entitiesList li.expanded .info {
+.entitiesList .expanded .info {
     display: block;
     padding: 0px 3px 3px 3px;
 }
@@ -181,19 +69,137 @@
     height: auto;
     font-size: 1em;
     margin: 5px;
+    word-break: break-all;
 }
 
-.entitiesList > li {
-    list-style: none;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
-    border: 1px solid #666;
-    margin: 5px 5px 10px 5px;
+.entitiesList .person .icon {
+    background-image: url('../img/user.png');
 }
 
-.entitiesList > li:hover {
-    cursor: pointer;
+.entitiesList .person > div {
+    background-color: mix(desaturate(@entity-person, 30%), #fff, 50%);
 }
 
-.entitiesList > li.selected:hover {
-    cursor: default;
+.entitiesList .person.selected > div , .entitiesList .person.over > div  {
+    background-color: @entity-person;
+}
+
+.entitiesList .place .icon {
+    background-image: url('../img/world.png');
+}
+
+.entitiesList .place > div {
+    background-color: mix(desaturate(@entity-place, 30%), #fff, 50%);
+}
+
+.entitiesList .place.selected > div, .entitiesList .place.over > div {
+    background-color: @entity-place;
+}
+
+.entitiesList .date .icon {
+    background-image: url('../img/calendar.png');
+}
+
+.entitiesList .date > div {
+    background-color: mix(desaturate(@entity-date, 30%), #fff, 50%);
+}
+
+.entitiesList .date.selected > div, .entitiesList .date.over > div {
+    background-color: @entity-date;
+}
+
+.entitiesList .event .icon {
+    background-image: url('../img/cake.png');
+}
+
+.entitiesList .event > div {
+    background-color: mix(desaturate(@entity-event, 30%), #fff, 50%);
+}
+
+.entitiesList .event.selected > div, .entitiesList .event.over > div {
+    background-color: @entity-event;
+}
+
+.entitiesList .org .icon {
+    background-image: url('../img/group.png');
+}
+
+.entitiesList .org > div {
+    background-color: mix(desaturate(@entity-org, 30%), #fff, 50%);
+}
+
+.entitiesList .org.selected > div, .entitiesList .org.over > div {
+    background-color: @entity-org;
+}
+
+.entitiesList .citation .icon {
+    background-image: url('../img/vcard.png');
+}
+
+.entitiesList .citation > div {
+    background-color: mix(desaturate(@entity-citation, 30%), #fff, 50%);
+}
+
+.entitiesList .citation.selected > div, .entitiesList .citation.over > div {
+    background-color: @entity-citation;
+}
+
+.entitiesList .note .icon {
+    background-image: url('../img/note.png');
+}
+
+.entitiesList .note > div {
+    background-color: mix(desaturate(@entity-note, 30%), #fff, 50%);
+}
+
+.entitiesList .note.selected > div, .entitiesList .note.over > div {
+    background-color: @entity-note;
+}
+
+.entitiesList .title .icon {
+    background-image: url('../img/book.png');
+}
+
+.entitiesList .title > div {
+    background-color: mix(desaturate(@entity-title, 30%), #fff, 50%);
+}
+
+.entitiesList .title.selected > div, .entitiesList .title.over > div {
+    background-color: @entity-title;
+}
+
+.entitiesList .correction .icon {
+    background-image: url('../img/error.png');
+}
+
+.entitiesList .correction > div {
+    background-color: mix(desaturate(@entity-correction, 30%), #fff, 50%);
+}
+
+.entitiesList .correction.selected > div, .entitiesList .correction.over > div {
+    background-color: @entity-correction;
+}
+
+.entitiesList .keyword .icon {
+    background-image: url('../img/page_key.png');
+}
+
+.entitiesList .keyword > div {
+    background-color: mix(desaturate(@entity-keyword, 30%), #fff, 50%);
+}
+
+.entitiesList .keyword.selected > div, .entitiesList .keyword.over > div {
+    background-color: @entity-keyword;
+}
+
+.entitiesList .link .icon {
+    background-image: url('../img/link.png');
+}
+
+.entitiesList .link > div {
+    background-color: mix(desaturate(@entity-link, 30%), #fff, 50%);
+}
+
+.entitiesList .link.selected > div, .entitiesList .link.over > div {
+    background-color: @entity-link;
 }

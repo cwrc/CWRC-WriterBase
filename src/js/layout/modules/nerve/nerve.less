@@ -1,0 +1,57 @@
+@import (less) "variables.less";
+
+.nervePanel .moduleHeader > div {
+    margin: 5px;
+}
+
+.nervePanel .filters > span {
+    cursor: pointer;
+    text-decoration: underline;
+    white-space: nowrap;
+    display: inline-block;
+    padding: 2px 5px;
+}
+
+.nervePanel .filters > span.active {
+    text-decoration: none;
+}
+
+.nervePanel .filters .person {
+    color: @entity-person;
+}
+
+.nervePanel .filters .place {
+    color: @entity-place;
+}
+
+.nervePanel .filters .org {
+    color: @entity-org;
+}
+
+.nervePanel .filters .title {
+    color: @entity-title;
+}
+
+.nervePanel .entitiesList li > input {
+    margin: 6px 5px 0 0;
+}
+
+.nervePanel .entitiesList .actions, .nervePanel .entitiesList .nav {
+    float: right;
+    position: relative;
+    top: 6px;
+    right: 2px;
+}
+
+.nervePanel .entitiesList .actions {
+    display: none;
+}
+
+.nervePanel .entitiesList .expanded .actions {
+    display: block;
+}
+
+.nervePanel .entitiesList .actions > span, .nervePanel .entitiesList .nav > span {
+    background: none;
+    border: none;
+}
