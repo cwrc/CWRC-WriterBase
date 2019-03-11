@@ -500,7 +500,7 @@ AnnotationsManager.prototype = {
                 
                 var info = this.w.schemaManager.mapper.getReverseMapping(el, entityType);
                 $.extend(propObj, info.customValues);
-                $.extend(cwrcAttributes, info.attributes);
+                $.extend(json.cwrcAttributes, info.attributes);
 
                 newEntity.isNote = this.w.schemaManager.mapper.isEntityTypeNote(entityType);
             }
