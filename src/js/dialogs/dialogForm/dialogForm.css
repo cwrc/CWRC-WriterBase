@@ -33,6 +33,15 @@
     height: 200px;
 }
 
+/* styling to make textboxes match jquery-ui style */
+.annotationDialog input[type=text] {
+    border-radius: 3px;
+    border: 1px solid #c5c5c5;
+    padding: 3px 3px;
+    color: #454545;
+    width: 14em;
+}
+
 /* jquery ui overrides */
 .splitButtons .ui-dialog-buttonpane {
     padding: 0.3em 1em 0.5em 1em !important;

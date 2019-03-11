@@ -17,7 +17,8 @@ function SchemaTags(writer, parentEl) {
     var action = null;
     
     var $schemaDialog = $(''+
-    '<div class="schemaDialog">'+
+    '<div class="annotationDialog">'+
+        '<div />'+
     '</div>').appendTo(parentEl)
     
     var dialogOpenTimestamp = null;
@@ -60,7 +61,7 @@ function SchemaTags(writer, parentEl) {
     var attributesWidget = new AttributeWidget({
         writer: w,
         $parent: $schemaDialog,
-        $el: $schemaDialog,
+        $el: $schemaDialog.children('div'),
         showSchemaHelp: true
     });
     

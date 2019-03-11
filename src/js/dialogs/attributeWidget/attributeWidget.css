@@ -54,8 +54,8 @@
     clear: left;
 }
 
-.attributeWidget .attsContainer label {
-    width: 135px;
+.attributeWidget .attsContainer > div {
+    margin-bottom: 5px;
 }
 
 .attributeWidget .schemaHelp {

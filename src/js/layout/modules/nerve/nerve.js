@@ -64,7 +64,7 @@ function Nerve(config) {
         appendTo: w.layoutManager.getContainer()
     });
     // RUN
-    $parent.find('button.run').button().click(function() {
+    $parent.find('button.run').button().on('click', function() {
         var options = $parent.find('select[name=processOptions]').val();
         nrv.reset();
         var document = w.converter.getDocumentContent(false);
@@ -103,14 +103,14 @@ function Nerve(config) {
         });
     });
     // DONE
-    $parent.find('button.done').button().click(function() {
+    $parent.find('button.done').button().on('click', function() {
         $parent.find('select').selectmenu('option', 'disabled', false);
         $(w.editor.getBody()).removeClass('nerve');
         w.editor.setMode('design');
         nrv.reset();
     });
     // FILTER
-    $parent.find('.filters > span').click(function() {
+    $parent.find('.filters > span').on('click', function() {
         if ($(this).hasClass('active')) {
             // do nothing
         } else {
@@ -122,7 +122,7 @@ function Nerve(config) {
 
     });
     // EXPAND / COLLAPSE
-    $parent.find('button.expand').button().click(function() {
+    $parent.find('button.expand').button().on('click', function() {
         if ($(this).text() === 'Expand All') {
             $(this).text('Collapse All');
             $parent.find('.entitiesList > li').each(function(index, el) {
@@ -136,29 +136,29 @@ function Nerve(config) {
         }
     });
     // ACCEPT ALL
-    $parent.find('button.accept').button().click(function() {
+    $parent.find('button.accept').button().on('click', function() {
         getNerveEntities().forEach(function(ent, index) {
             acceptEntity(ent.getId());
         });
     });
     // REJECT ALL
-    $parent.find('button.reject').button().click(function() {
+    $parent.find('button.reject').button().on('click', function() {
         getNerveEntities().forEach(function(ent, index) {
             rejectEntity(ent.getId());
         });
     });
     // ENTER MERGE MODE
-    $parent.find('button.mergeEntities').button().click(function() {
+    $parent.find('button.mergeEntities').button().on('click', function() {
         $parent.find('.mergeActions').show();
         $(this).hide();
         renderEntitiesList(true);
     });
     // MERGE DIALOG
-    $parent.find('.moduleFooter button.merge').button().click(function() {
+    $parent.find('.moduleFooter button.merge').button().on('click', function() {
         mergeEntities();
     });
     // CANCEL MERGE
-    $parent.find('.moduleFooter button.cancelMerge').button().click(function() {
+    $parent.find('.moduleFooter button.cancelMerge').button().on('click', function() {
         $parent.find('.mergeActions').hide();
         $parent.find('button.mergeEntities').show();
         renderEntitiesList(false);
@@ -284,11 +284,7 @@ function Nerve(config) {
         }
 
         $parent.find('ul.entitiesList').html(entityHtml);
-        $parent.find('ul.entitiesList > li > div').hover(function() {
-            // $(this).addClass('over');
-        }, function() {
-            // $(this).removeClass('over');
-        }).on('click', function(event) {
+        $parent.find('ul.entitiesList > li > div').on('click', function(event) {
             $(this).toggleClass('expanded');
             var id = $(this).parent().attr('data-id');
             w.entitiesManager.highlightEntity(id, null, true);
@@ -373,7 +369,7 @@ function Nerve(config) {
         });
 
         if (isMerge) {
-            $parent.find('ul.entitiesList > li > input').click(function() {
+            $parent.find('ul.entitiesList > li > input').on('click', function() {
                 var checked = getCheckedEntities();
                 if (checked.length === 0) {
                     filterEntityView('all');
@@ -385,11 +381,11 @@ function Nerve(config) {
         }
 
         var total = typeCounts.person + typeCounts.place + typeCounts.org + typeCounts.title;
-        $parent.find('.filters .all').text('All ('+total+')');
-        $parent.find('.filters .person').text('People ('+typeCounts.person+')');
-        $parent.find('.filters .place').text('Places ('+typeCounts.place+')');
-        $parent.find('.filters .org').text('Organizations ('+typeCounts.org+')');
-        $parent.find('.filters .title').text('Titles ('+typeCounts.title+')');
+        $parent.find('.filters .all').text('All');// ('+total+')');
+        $parent.find('.filters .person').text('People');// ('+typeCounts.person+')');
+        $parent.find('.filters .place').text('Places');// ('+typeCounts.place+')');
+        $parent.find('.filters .org').text('Organizations');// ('+typeCounts.org+')');
+        $parent.find('.filters .title').text('Titles');// ('+typeCounts.title+')');
     }
 
     var getEntityView = function(entity, merge) {
@@ -419,7 +415,7 @@ function Nerve(config) {
         '<li class="'+entry.type+' merged" data-type="'+entry.type+'" data-id="'+id+'">'+
             '<div>'+
                 '<div class="header">'+
-                    '<span class="icon" style="margin-right: 0px;"/><span class="icon"/>'+
+                    '<span class="icon" style="margin-right: -4px;"/><span class="icon"/>'+
                     '<span class="entityTitle">'+entry.lemma+'</span>'+
                     '<div class="nav">'+
                         '<span data-action="previous" class="ui-state-default" title="Previous Entity"><span class="ui-icon ui-icon-circle-arrow-w"></span></span>'+
@@ -463,7 +459,7 @@ function Nerve(config) {
         view.removeClass();
         view.addClass(entity.getType());
         if (alreadyExpanded || expand === true) {
-            view.addClass('expanded');
+            view.children('div').addClass('expanded');
         }
         view.find('.entityTitle').text(entity.getContent());
         view.find('.info').html(getEntityViewInfo(entity));
@@ -565,6 +561,10 @@ function Nerve(config) {
     }
 
     var acceptAll = function(entityId) {
+        for (var key in mergedEntities) {
+            acceptMerged(key);
+        }
+
         var matches = [];
         var match = w.entitiesManager.getEntity(entityId);
         getNerveEntities().forEach(function(ent) {
@@ -609,15 +609,15 @@ function Nerve(config) {
     var mergeEntities = function(id) {
         if (mergeDialog === null) {
             mergeDialog = new MergeDialog(w, $parent);
-            mergeDialog.$el.on('merge', function(e, entities, mergeId, lemma, uri) {
-                if (mergeId != null) {
-                    mergedEntities[mergeId].lemma = lemma;
-                    mergedEntities[mergeId].uri = uri;
+            mergeDialog.$el.on('merge', function(e, entities, mergeEntry, lemma, uri) {
+                if (mergeEntry != null) {
+                    mergeEntry.lemma = lemma;
+                    mergeEntry.uri = uri;
                 } else {
                     var ids = entities.map(function(ent) {
                         return ent.getId();
                     });
-                    var mId = w.getUniqueId('merged');
+                    var mId = w.getUniqueId('merged_');
                     mergedEntities[mId] = {
                         entityIds: ids,
                         type: entities[0].getType(),
@@ -636,8 +636,9 @@ function Nerve(config) {
         mergeDialog.show();
         
         var entities = [];
+        var entry;
         if (id !== undefined) {
-            var entry = mergedEntities[id];
+            entry = mergedEntities[id];
             entities = entry.entityIds.map(function(entId) {
                 return w.entitiesManager.getEntity(entId);
             });
@@ -649,7 +650,7 @@ function Nerve(config) {
             });
         }
 
-        mergeDialog.populate(entities, id);
+        mergeDialog.populate(entities, entry);
     }
 
     var unmergeEntities = function(mergeId) {
@@ -660,6 +661,9 @@ function Nerve(config) {
     var acceptMerged = function(mergeId) {
         var entry = mergedEntities[mergeId];
         entry.entityIds.forEach(function(entId) {
+            var entity = w.entitiesManager.getEntity(entId);
+            entity.setCustomValue('lemma', entry.lemma);
+            entity.setCustomValue('uri', entry.uri);
             acceptEntity(entId);
         });
         delete mergedEntities[mergeId];
@@ -722,6 +726,28 @@ function Nerve(config) {
     return nrv;
 };
 
+var doLookup = function(w, query, type, callback) {
+    var cD = w.initialConfig.entityLookupDialogs;
+    // cD.showCreateNewButton(false);
+    // cD.showNoLinkButton(false);
+    // cD.showEditButton(false);
+    if (type === 'org') {
+        type = 'organization';
+    }
+    cD.popSearch[type]({
+        query: query,
+        parentEl: w.dialogManager.getDialogWrapper(),
+        success: function(result) {
+            if ($.isArray(result.name)) {
+                result.name = result.name[0];
+            }
+            callback.call(cD, result);
+        },
+        error: function(errorThrown) {
+        }
+    });
+}
+
 function NerveEditDialog(writer, parentEl) {
     var w = writer;
     var $el = $(''+
@@ -735,12 +761,12 @@ function NerveEditDialog(writer, parentEl) {
             '</select>'+
         '</div>'+
         '<div>'+
-            '<p>Standard name:</p>'+
-            '<input type="text" data-type="textbox" data-mapping="custom.lemma" style="width:300px;" />'+
+            '<label>Standard name:</label>'+
+            '<input type="text" data-type="textbox" data-mapping="custom.lemma" />'+
         '</div>'+
         '<div>'+
-            '<p>URI:</p>'+
-            '<input type="text" data-type="textbox" data-mapping="custom.uri" style="width:250px; margin-right: 5px;" />'+
+            '<label>URI:</label>'+
+            '<input type="text" data-type="textbox" data-mapping="custom.uri" style="margin-right: 5px;" />'+
             '<button title="Entity lookup" data-action="lookup"></button>'+
         '</div>'+
     '</div>').appendTo(parentEl);
@@ -754,34 +780,14 @@ function NerveEditDialog(writer, parentEl) {
         height: 300
     });
 
-    $el.find('button[data-action=lookup]').button({icon: 'ui-icon-search'}).click(function() {
+    $el.find('button[data-action=lookup]').button({icon: 'ui-icon-search'}).on('click', function() {
         var entity = dialog.showConfig.entry;
         var type = $el.find('select').val();
-        doLookup(entity.content, type);
-    });
-
-    var doLookup = function(query, type) {
-        var cD = w.initialConfig.entityLookupDialogs;
-        // cD.showCreateNewButton(false);
-        // cD.showNoLinkButton(false);
-        // cD.showEditButton(false);
-        if (type === 'org') {
-            type = 'organization';
-        }
-        cD.popSearch[type]({
-            query: query,
-            parentEl: w.dialogManager.getDialogWrapper(),
-            success: function(result) {
-                if ($.isArray(result.name)) {
-                    result.name = result.name[0];
-                }
-                $el.find('input[data-mapping="custom.lemma"]').val(result.name);
-                $el.find('input[data-mapping="custom.uri"]').val(result.uri);
-            },
-            error: function(errorThrown) {
-            }
+        doLookup(w, entity.content, type, function(result) {
+            $el.find('input[data-mapping="custom.lemma"]').val(result.name);
+            $el.find('input[data-mapping="custom.uri"]').val(result.uri);
         });
-    }
+    });
 
     dialog.$el.on('beforeSave', function(e, dialog) {
         var type = dialog.currentData.properties.type;
@@ -796,7 +802,8 @@ function MergeDialog(writer, parentEl) {
     var w = writer;
 
     var currEntities = [];
-    var currId = null; // for editing
+    var currEntry = null; // for editing
+    var OTHER_OPTION = '$$$$OTHER$$$$';
 
     var $el = $(''+
     '<div class="annotationDialog">'+
@@ -804,17 +811,25 @@ function MergeDialog(writer, parentEl) {
             '<h3>Selections</h3>'+
             '<ul></ul>'+
         '</div>'+
-        '<div class="lemma">'+
-            '<label>Standard name:</label>'+
-            '<select name="lemma"></select>'+
-        '</div>'+
         '<div>'+
-            '<label>Other name:</label>'+
-            '<input name="otherLemma" type="text"/>'+
-        '</div>'+
-        '<div class="uri">'+
-            '<label>URI:</label>'+
-            '<select name="uri"></select>'+
+            '<div class="lemma">'+
+                '<label>Standard name:</label>'+
+                '<select name="lemma"></select>'+
+            '</div>'+
+            '<div style="margin-top: 5px;">'+
+                '<label>Other name:</label>'+
+                '<input name="otherLemma" type="text" />'+
+            '</div>'+
+        '</div><div>'+
+            '<div class="uri">'+
+                '<label>URI:</label>'+
+                '<select name="uri"></select>'+
+            '</div>'+
+            '<div style="margin-top: 5px;">'+
+                '<label>Other URI:</label>'+
+                '<input name="otherUri" type="text" style="margin-right: 5px;"/>'+
+                '<button title="Entity lookup" data-action="lookup"></button>'+
+            '</div>'+
         '</div>'+
     '</div>').appendTo(parentEl);
     
@@ -832,7 +847,13 @@ function MergeDialog(writer, parentEl) {
             click: function() {
                 var lemma = $el.find('select[name=lemma]').val();
                 var uri = $el.find('select[name=uri]').val();
-                $el.trigger('merge', [currEntities, currId, lemma, uri]);
+                if (lemma === OTHER_OPTION) {
+                    lemma = $el.find('input[name=otherLemma]').val();
+                }
+                if (uri === OTHER_OPTION) {
+                    uri = $el.find('input[name=otherUri]').val();
+                }
+                $el.trigger('merge', [currEntities, currEntry, lemma, uri]);
                 $el.dialog('close');
             }
         },{
@@ -844,6 +865,14 @@ function MergeDialog(writer, parentEl) {
         }]
     });
 
+    $el.find('button[data-action=lookup]').button({icon: 'ui-icon-search'}).on('click', function() {
+        var query = currEntities[0].getContent();
+        var type = currEntities[0].getType();
+        doLookup(w, query, type, function(result) {
+            $el.find('input[name=otherUri]').val(result.uri);
+        });
+    });
+
     var reset = function() {
         $el.find('ul').empty();
         $el.find('select').empty().each(function(index, el) {
@@ -853,11 +882,12 @@ function MergeDialog(writer, parentEl) {
         });
 
         $el.find('input[name=otherLemma]').val('').parent().hide();
+        $el.find('input[name=otherUri]').val('').parent().hide();
     }
 
-    var populate = function(entities, id) {
+    var populate = function(entities, entry) {
         currEntities = entities;
-        currId = id;
+        currEntry = entry;
 
         var selections = '';
         var lemmas = [];
@@ -875,23 +905,34 @@ function MergeDialog(writer, parentEl) {
             }
         });
 
+        var otherLemma = lemmas.length === 0;
         var lemmaString = '';
         lemmas.forEach(function(lemma) {
             lemmaString += '<option value="'+lemma+'">'+lemma+'</option>';
+            if (entry !== undefined && entry.lemma !== lemma) {
+                otherLemma = true;
+            }
         });
-        lemmaString += '<option value="[[[other]]]">Other (specify)</option>';
+        lemmaString += '<option value="'+OTHER_OPTION+'">Other (specify)</option>';
 
+        var otherUri = uris.length === 0;
         var uriString = '';
         uris.forEach(function(uri) {
             uriString += '<option value="'+uri+'">'+uri+'</option>';
+            if (entry !== undefined && entry.uri !== uri) {
+                otherUri = true;
+            }
         })
-        uriString += '<option value="[[[other]]]">Other (lookup)</option>';
+        uriString += '<option value="'+OTHER_OPTION+'">Other (lookup)</option>';
+        if (uris.length === 0) {
+            $el.find('input[name=otherUri]').parent().show();
+        }
         
         $el.find('ul').html(selections);
         
         $el.find('select[name=lemma]').html(lemmaString).selectmenu({
             select: function(e, ui) {
-                if (ui.item.value === '[[[other]]]') {
+                if (ui.item.value === OTHER_OPTION) {
                     $el.find('input[name=otherLemma]').parent().show();
                 } else {
                     $el.find('input[name=otherLemma]').parent().hide();
@@ -901,11 +942,28 @@ function MergeDialog(writer, parentEl) {
         
         $el.find('select[name=uri]').html(uriString).selectmenu({
             select: function(e, ui) {
-                if (ui.item.value === '[[[other]]]') {
+                if (ui.item.value === OTHER_OPTION) {
+                    $el.find('input[name=otherUri]').parent().show();
                 } else {
+                    $el.find('input[name=otherUri]').parent().hide();
                 }
             }
         });
+
+        if (entry !== undefined) {
+            if (otherLemma) {
+                $el.find('select[name=lemma]').val(OTHER_OPTION).selectmenu('refresh');
+                $el.find('input[name=otherLemma]').val(entry.lemma).parent().show();
+            } else {
+                $el.find('select[name=lemma]').val(entry.lemma);
+            }
+            if (otherUri) {
+                $el.find('select[name=uri]').val(OTHER_OPTION).selectmenu('refresh');
+                $el.find('input[name=otherUri]').val(entry.uri).parent().show();
+            } else {
+                $el.find('select[name=uri]').val(entry.uri);
+            }
+        }
     }
 
     return {
