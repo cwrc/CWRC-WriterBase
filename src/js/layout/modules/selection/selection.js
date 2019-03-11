@@ -34,6 +34,10 @@ function Selection(config) {
     
     var $selectionContents = $('#'+id+'_selectionContents');
     
+    w.event('documentLoaded').subscribe(function() {
+        updateView();
+    });
+
     w.event('selectionChanged').subscribe(function() {
         if (!w.editor.selection.isCollapsed()) {
             updateView();
