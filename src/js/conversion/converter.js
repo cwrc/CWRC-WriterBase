@@ -31,6 +31,67 @@ function Converter(writer) {
         getDocumentContent: cwrc2xml.getDocumentContent,
         buildXMLString: cwrc2xml.buildXMLString
     };
+
+    // convenience methods
+    
+    converter.loadDocumentURL = function(docUrl) {
+        w.currentDocId = docUrl;
+        w.event('loadingDocument').publish();
+        $.ajax({
+            url: docUrl,
+            type: 'GET',
+            success: function(doc, status, xhr) {
+                window.location.hash = '';
+                converter.processDocument(doc);
+            },
+            error: function(xhr, status, error) {
+                w.currentDocId = null;
+                w.dialogManager.show('message', {
+                    title: 'Error',
+                    msg: 'An error occurred and ' + docUrl + ' was not loaded.',
+                    type: 'error'
+                });
+                w.event('documentLoaded').publish(false, null);
+            },
+            dataType: 'xml'
+        });
+    };
+
+    converter.loadDocumentXML = function(docXml) {
+        w.event('loadingDocument').publish();
+        if (typeof docXml === 'string') {
+            docXml = w.utilities.stringToXML(docXml);
+        }
+        converter.processDocument(docXml);
+    };
+
+    converter.getDocument = function(asString) {
+        var docString = converter.getDocumentContent(true);
+        if (asString === true) {
+            return docString;
+        } else {
+            var doc = null;
+            try {
+                var parser = new DOMParser();
+                doc = parser.parseFromString(docString, 'application/xml');
+            } catch (e) {
+                w.dialogManager.show('message', {
+                    title: 'Error',
+                    msg: 'There was an error getting the document:' + e,
+                    type: 'error'
+                });
+            }
+            return doc;
+        }
+    };
+
+    converter.setDocument = function(document) {
+        if (typeof document === 'string' && document.indexOf('http') === 0) {
+            converter.loadDocumentURL(document);
+        } else {
+            converter.loadDocumentXML(document);
+        }
+    };
     
     return converter;
 };

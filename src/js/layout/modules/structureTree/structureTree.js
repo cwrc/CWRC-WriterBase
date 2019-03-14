@@ -276,7 +276,7 @@ function StructureTree(config) {
                     w.dialogManager.show('header');
                 } else {
                     ignoreSelect = true; // set to true so tree.highlightNode code isn't run by editor's onNodeChange handler
-                    w.selectElementById(tree.currentlySelectedNodes, selectContents);
+                    w.utilities.selectElementById(tree.currentlySelectedNodes, selectContents);
                 }
             }
         }
@@ -871,7 +871,7 @@ function StructureTree(config) {
                         w.tagger.removeStructureTag(nodeId, true);
                     } else {
                         w.tagger.removeStructureTagContents(nodeId);
-                        w.selectElementById(nodeId, true);
+                        w.utilities.selectElementById(nodeId, true);
                     }
             } else if (evt.ctrlKey == false && evt.metaKey == false && evt.which >= 48 && evt.which <= 90) {
                 // handle alphanumeric characters when whole tree node is selected

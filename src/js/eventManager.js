@@ -53,6 +53,14 @@ function EventManager(writer) {
      * @param {Object} writer The CWRCWriter
      */
     w.event('writerInitialized');
+
+    /**
+     * The editor has been initialized
+     * @event Writer#tinymceInitialized
+     * @param {Object} writer The CWRCWriter
+     */
+    w.event('tinymceInitialized');
+
     /**
      * The StructureTree has been initialized
      * @event Writer#structureTreeInitialized

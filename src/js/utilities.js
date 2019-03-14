@@ -256,6 +256,68 @@ function Utilities(writer) {
         return nodes;
     };
     
+/**
+     * Selects an element in the editor
+     * @param id The id of the element to select
+     * @param selectContentsOnly Whether to select only the contents of the element (defaults to false)
+     */
+    u.selectElementById = function(id, selectContentsOnly) {
+        selectContentsOnly = selectContentsOnly == null ? false : selectContentsOnly;
+
+        w.entitiesManager.removeHighlights();
+
+        if ($.isArray(id)) {
+            // TODO add handling for multiple ids
+            id = id[id.length - 1];
+        }
+
+        var node = $('#' + id, w.editor.getBody());
+        var nodeEl = node[0];
+        if (nodeEl != null) {
+            // show the element if it's inside a note
+            node.parents('.noteWrapper').removeClass('hide');
+
+            w.editor.currentStruct = id;
+            var rng = w.editor.dom.createRng();
+            if (selectContentsOnly) {
+                if (tinymce.isWebKit) {
+                    if (nodeEl.firstChild == null) {
+                        node.append('\uFEFF');
+                    }
+                    rng.selectNodeContents(nodeEl);
+                } else {
+                    rng.selectNodeContents(nodeEl);
+                }
+            } else {
+                $('[data-mce-bogus]', node.parent()).remove();
+                rng.selectNode(nodeEl);
+            }
+
+            w.editor.selection.setRng(rng);
+
+            // scroll node into view
+            var nodeTop = 0;
+            if (node.is(':hidden')) {
+                node.show();
+                nodeTop = node.position().top;
+                node.hide();
+            } else {
+                nodeTop = node.position().top;
+            }
+            var newScrollTop = nodeTop - $(w.editor.getContentAreaContainer()).height() * 0.25;
+            $(w.editor.getDoc()).scrollTop(newScrollTop);
+
+            // using setRng triggers nodeChange event so no need to call it manually
+            //            _fireNodeChange(nodeEl);
+
+            // need focus to happen after timeout, otherwise it doesn't always work (in FF)
+            window.setTimeout(function() {
+                w.editor.focus();
+                w.event('tagSelected').publish(id, selectContentsOnly);
+            }, 0);
+        }
+    };
+
     /**
      * Checks the user selection for overlap issues and entity markers.
      * @param {Boolean} isStructTag Is the tag a structure tag

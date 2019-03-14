@@ -203,7 +203,7 @@ function Validation(config) {
             $(this).addClass('selected');
             
             var id = $(this).data('id');
-            w.selectElementById(id);
+            w.utilities.selectElementById(id);
         });
         
         w.layoutManager.showModule('validation');

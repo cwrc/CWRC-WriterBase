@@ -142,18 +142,8 @@ EntitiesManager.prototype = {
         this.currentEntity = entityId;
     },
     
-    /**
-     * Highlights an entity or removes the highlight from a previously highlighted entity.
-     * @fires Writer#entityUnfocused
-     * @fires Writer#entityFocused
-     * @param {String} id The entity ID.
-     * @param bm TinyMce bookmark
-     * @param {Boolean} doScroll True to scroll to the entity
-     */
-    highlightEntity: function(id, bm, doScroll) {
-        // clear previous highlight
-        var body = this.w.editor.getBody();
-        var prevHighlight = $('.entityHighlight', body);
+    removeHighlights: function() {
+        var prevHighlight = $('.entityHighlight', this.w.editor.getBody());
         if (prevHighlight.length !== 0) {
             prevHighlight.each(function(index, el) {
                 var $p = $(el);
@@ -173,13 +163,26 @@ EntitiesManager.prototype = {
         if (this.currentEntity !== null) {
             this.w.event('entityUnfocused').publish(this.currentEntity);
         }
+    },
+
+    /**
+     * Highlights an entity or removes the highlight from a previously highlighted entity.
+     * @fires Writer#entityUnfocused
+     * @fires Writer#entityFocused
+     * @param {String} [id] The entity ID.
+     * @param [bm] TinyMce bookmark
+     * @param {Boolean} [doScroll] True to scroll to the entity
+     */
+    highlightEntity: function(id, bm, doScroll) {
+        // clear previous highlight
+        this.removeHighlights();
         
         this.currentEntity = null;
         
         if (id) {
             this.currentEntity = id;
             
-            var entityTags = $('[name="'+id+'"]', body);
+            var entityTags = $('[name="'+id+'"]', this.w.editor.getBody());
             if (entityTags.length > 0) {
                 var entity = this.getEntity(id);
                 var type = entity.getType();

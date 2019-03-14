@@ -332,7 +332,7 @@ function Tagger(writer) {
             var ref = $tag.attr('ref'); // matches ref or REF. FIXME hardcoded ref attribute
             var id = $tag.attr('id');
 
-            w.selectElementById(id, !isNote);
+            w.utilities.selectElementById(id, !isNote);
             if (isNote) {
                 // place the selection outside of the note tag
                 w.editor.selection.collapse(false);
@@ -890,7 +890,7 @@ function Tagger(writer) {
         w.editor.undoManager.add();
         
         if (selection == '\uFEFF') {
-            w.selectElementById(id, true);
+            w.utilities.selectElementById(id, true);
         } else if (action == undefined) {
             // place the cursor at the end of the tag's contents
             var rng = w.editor.selection.getRng(true);

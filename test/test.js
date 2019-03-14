@@ -165,7 +165,7 @@ test('writer.selectElementById', (t)=> {
             reset(writer);
         });
                 
-        writer.selectElementById(structTagId);
+        writer.utilities.selectElementById(structTagId);
     })
     
     loadTEIDoc(writer);
@@ -269,7 +269,7 @@ test('writer.tagger.addEntity.Note', (t)=> {
         });
         
         var structTagId = writer.editor.getBody().querySelector('[_tag="title"]').id;
-        writer.selectElementById(structTagId);
+        writer.utilities.selectElementById(structTagId);
     })
     
     loadTEIDoc(writer);
@@ -300,7 +300,7 @@ test('schemaTags addSchemaTag', (t)=> {
         });
         
         var structTagId = writer.editor.getBody().querySelector('[_tag="title"]').id;
-        writer.selectElementById(structTagId);
+        writer.utilities.selectElementById(structTagId);
     })
     
     loadTEIDoc(writer);

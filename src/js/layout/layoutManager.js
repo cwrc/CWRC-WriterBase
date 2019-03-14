@@ -3,6 +3,7 @@
 var $ = require('jquery');
 require('layout');
 require('jquery-ui/ui/widgets/tabs');
+var fscreen = require('fscreen')['default'];
 
 var StructureTree = require('./modules/structureTree/structureTree.js');
 var EntitiesList = require('./modules/entitiesList/entitiesList.js')
@@ -49,7 +50,7 @@ LayoutManager.prototype = {
         var editorId = config.editorId;
         
         var html = `
-        <div class="cwrc cwrcLoadingMask"><div>Loading ${name}</div></div>
+        <div class="cwrc cwrcLoadingMask" style="width: 100%; height: 100%; background-color: #DDD; position: absolute; z-index: 1000;"><div>Loading ${name}</div></div>
         <div class="cwrc cwrcHeader ui-layout-north">
             <div class="headerParent ui-widget">
                 <a class="titleLink" href="https://www.cwrc.ca" target="_blank">${name}</a>
@@ -79,11 +80,33 @@ LayoutManager.prototype = {
         
         if (this.w.isReadOnly || this.w.isAnnotator) {
             var $fullscreenButton = $('<div class="fullscreenLink out">Fullscreen</div>').appendTo(this.$headerButtons);
-            var writer = this.w;
-            $fullscreenButton.click(function() {
-                writer.toggleFullScreen();
-            });
+            $fullscreenButton.on('click', function() {
+                this.toggleFullScreen();
+            }.bind(this));
         }
+
+        fscreen.addEventListener('fullscreenchange', function() {
+            var fscreenButton = this.w.editor.theme.panel.find('button#fullscreen');
+            if (fscreenButton.length == 1) {
+                if (fscreen.fullscreenElement !== null) {
+                    fscreenButton[0].$el.find('i').css('background-image', 'url("' + this.w.cwrcRootUrl + 'img/arrow_in.png")');
+                } else {
+                    fscreenButton[0].$el.find('i').css('background-image', 'url("' + this.w.cwrcRootUrl + 'img/arrow_out.png")');
+                }
+            }
+            if (this.w.isReadOnly || this.w.isAnnotator) {
+                var $fscreenLink = this.getHeaderButtonsParent().find('.fullscreenLink');
+                if ($fscreenLink.length == 1) {
+                    if (fscreen.fullscreenElement !== null) {
+                        $fscreenLink.removeClass('out').addClass('in');
+                        $fscreenLink.text('Exit Fullscreen');
+                    } else {
+                        $fscreenLink.removeClass('in').addClass('out');
+                        $fscreenLink.text('Fullscreen');
+                    }
+                }
+            }
+        }.bind(this));
       
         this.resizeEditor = function() {
             if (this.w.editor) {
@@ -194,22 +217,6 @@ LayoutManager.prototype = {
             }
         }
         
-        var isLoading = false;
-        var doneLayout = false;
-        
-        var onLoad = function() {
-            isLoading = true;
-            this.w.event('loadingDocument').unsubscribe(onLoad);
-        }.bind(this);
-        var onLoadDone = function() {
-            isLoading = false;
-            if (doneLayout) {
-                this.$loadingMask.fadeOut();
-                this.w.event('documentLoaded').unsubscribe(onLoadDone);
-                doResize();
-            }
-        }.bind(this);
-        
         var doHandleEntityButtons = function(show) {
             var controls = this.w.editor.theme.panel.rootControl.controlIdLookup;
             var entityButtons = [];
@@ -243,20 +250,7 @@ LayoutManager.prototype = {
             }
         }.bind(this);
         
-        var doResize = function() {
-            this.$outerLayout.options.onresizeall_end = function() {
-                doneLayout = true;
-                if (isLoading === false) {
-                    this.$loadingMask.fadeOut();
-                    this.$outerLayout.options.onresizeall_end = null;
-                }
-            }.bind(this);
-            this.$outerLayout.resizeAll(); // now that the editor is loaded, set proper sizing
-            this.$outerLayout.resizeAll(); // need to call a second time because resize bar is misplaced initially
-        }.bind(this);
-        
-        this.w.event('loadingDocument').subscribe(onLoad);
-        this.w.event('documentLoaded').subscribe(onLoadDone);
+        // show/hide entity buttons based on the presence of a custom schema
         this.w.event('documentLoaded').subscribe(function(success) {
             if (!success || this.w.schemaManager.isSchemaCustom()) {
                 doHandleEntityButtons(false);
@@ -264,7 +258,6 @@ LayoutManager.prototype = {
                 doHandleEntityButtons(true);
             }
         }.bind(this));
-        this.w.event('writerInitialized').subscribe(doResize);
     },
     
     showModule: function(moduleId) {
@@ -346,6 +339,60 @@ LayoutManager.prototype = {
     hideToolbar: function() {
         $('.mce-toolbar-grp', this.w.editor.getContainer()).first().hide();
     },
+
+    getButtonByName: function(name) {
+        var buttons = this.w.editor.buttons,
+            toolbarObj = this.w.editor.theme.panel.find('toolbar *');
+
+        if (buttons[name] === undefined)
+            return false;
+
+        var settings = buttons[name], result = false, length = 0;
+
+        window.tinymce.each(settings, function(v, k) {
+            length++;
+        });
+
+        window.tinymce.each(toolbarObj, function(v, k) {
+            if (v.type != 'button' || v.settings === undefined)
+                return;
+
+            var i = 0;
+
+            window.tinymce.each(v.settings, function(v, k) {
+                if (settings[k] == v)
+                    i++;
+            });
+
+            if (i != length)
+                return;
+
+            result = v;
+
+            return false;
+        });
+
+        return result;
+    },
+
+    toggleFullScreen: function() {
+        if (fscreen.fullscreenEnabled) {
+            if (fscreen.fullscreenElement !== null) {
+                fscreen.exitFullscreen();
+            } else {
+                var el = this.getContainer()[0];
+                fscreen.requestFullscreen(el);
+            }
+        }
+    },
+    
+    isFullScreen: function() {
+        if (fscreen.fullscreenEnabled && fscreen.fullscreenElement !== null) {
+            return true;
+        } else {
+            return false;
+        }
+    },
     
     resizeAll: function() {
         this.$outerLayout.resizeAll();
@@ -375,6 +422,7 @@ LayoutManager.prototype = {
         this.$container.remove();
     }
 }
+
 
 function addPanel(idPrefix, panelRegion, panelConfig) {
     var html = '';
