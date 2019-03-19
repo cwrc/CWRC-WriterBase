@@ -196,7 +196,9 @@ function EntitiesList(config) {
             return ''+
             '<li class="'+entity.getType()+'" name="'+entity.getId()+'">'+
                 '<div>'+
-                    '<span class="icon"/><span class="entityTitle">'+entity.getContent()+'</span>'+
+                    '<div class="header">'+
+                        '<span class="icon"/><span class="entityTitle">'+entity.getContent()+'</span>'+
+                    '</div>'+
                     '<div class="info">'+infoString+'</div>'+
                 '</div>'+
             '</li>';

@@ -40,7 +40,11 @@ function Nerve(config) {
                     '<button class="done" style="display: none;">Done</button>'+
                 '</div>'+
                 '<div class="filters" style="display: none;">'+
-                    '<span class="all active" /> | <span class="person" /> | <span class="place" /> | <span class="org" /> | <span class="title" />'+
+                    '<span class="all active">All <span class="count"/></span> |'+
+                    '<span class="person">People <span class="count"/></span> |'+
+                    '<span class="place">Places <span class="count"/></span> |'+
+                    '<span class="org">Organizations <span class="count"/></span> |'+
+                    '<span class="title">Titles <span class="count"/></span>'+
                 '</div>'+
                 '<div class="actions" style="display: none;">'+
                     '<button class="expand">Expand All</button>'+
@@ -65,6 +69,81 @@ function Nerve(config) {
     });
     // RUN
     $parent.find('button.run').button().on('click', function() {
+        run();
+    });
+    // DONE
+    $parent.find('button.done').button().on('click', function() {
+        if (getNerveEntities().length > 0) {
+            w.dialogManager.confirm({
+                title: 'Warning',
+                msg: '<p>All the remaining entities in the panel will be rejected, including any edited ones.</p>'+
+                '<p>Do you wish to proceed?</p>',
+                type: 'info',
+                callback: function(doIt) {
+                    if (doIt) {
+                        rejectAll();
+                        handleDone();
+                    }
+                }
+            });
+        } else {
+            handleDone();
+        }
+    });
+    // FILTER
+    $parent.find('.filters > span').on('click', function() {
+        if ($(this).hasClass('active')) {
+            // do nothing
+        } else {
+            $parent.find('.filters > span').removeClass('active');
+            var type = this.classList[0];
+            filterEntityView(type);
+            $(this).addClass('active');
+        }
+
+    });
+    // EXPAND / COLLAPSE
+    $parent.find('button.expand').button().on('click', function() {
+        if ($(this).text() === 'Expand All') {
+            $(this).text('Collapse All');
+            $parent.find('.entitiesList > li').each(function(index, el) {
+                $(el).addClass('expanded');
+            });
+        } else {
+            $(this).text('Expand All');
+            $parent.find('.entitiesList > li').each(function(index, el) {
+                $(el).removeClass('expanded');
+            });
+        }
+    });
+    // ACCEPT ALL
+    $parent.find('button.accept').button().on('click', function() {
+        acceptAll();
+    });
+    // REJECT ALL
+    $parent.find('button.reject').button().on('click', function() {
+        rejectAll();
+    });
+    // ENTER MERGE MODE
+    $parent.find('button.mergeEntities').button({
+        disabled: true
+    }).on('click', function() {
+        $parent.find('.mergeActions').show();
+        $(this).hide();
+        renderEntitiesList(true);
+    });
+    // MERGE DIALOG
+    $parent.find('.moduleFooter button.merge').button().on('click', function() {
+        mergeEntities();
+    });
+    // CANCEL MERGE
+    $parent.find('.moduleFooter button.cancelMerge').button().on('click', function() {
+        $parent.find('.mergeActions').hide();
+        $parent.find('button.mergeEntities').show();
+        renderEntitiesList(false);
+    });
+
+    var run = function() {
         var options = $parent.find('select[name=processOptions]').val();
         nrv.reset();
         var document = w.converter.getDocumentContent(false);
@@ -98,71 +177,18 @@ function Nerve(config) {
             $parent.find('.moduleHeader .actions').show();
 
             $parent.find('select').selectmenu('option', 'disabled', true);
-        }, function() {
-            console.warn('encoding failed', arguments);
-        });
-    });
-    // DONE
-    $parent.find('button.done').button().on('click', function() {
-        $parent.find('select').selectmenu('option', 'disabled', false);
-        $(w.editor.getBody()).removeClass('nerve');
-        w.editor.setMode('design');
-        nrv.reset();
-    });
-    // FILTER
-    $parent.find('.filters > span').on('click', function() {
-        if ($(this).hasClass('active')) {
-            // do nothing
-        } else {
-            $parent.find('.filters > span').removeClass('active');
-            var type = this.classList[0];
-            filterEntityView(type);
-            $(this).addClass('active');
-        }
-
-    });
-    // EXPAND / COLLAPSE
-    $parent.find('button.expand').button().on('click', function() {
-        if ($(this).text() === 'Expand All') {
-            $(this).text('Collapse All');
-            $parent.find('.entitiesList > li').each(function(index, el) {
-                $(el).addClass('expanded');
+            $parent.find('button.mergeEntities').button('enable');
+        }, function(msg) {
+            console.warn('encoding failed', msg);
+            var li = w.dialogManager.getDialog('loadingindicator');
+            li.hide();
+            w.dialogManager.show('message', {
+                title: 'Error',
+                msg: 'The NERVE server returned an error: '+msg.exception,
+                type: 'error'
             });
-        } else {
-            $(this).text('Expand All');
-            $parent.find('.entitiesList > li').each(function(index, el) {
-                $(el).removeClass('expanded');
-            });
-        }
-    });
-    // ACCEPT ALL
-    $parent.find('button.accept').button().on('click', function() {
-        getNerveEntities().forEach(function(ent, index) {
-            acceptEntity(ent.getId());
         });
-    });
-    // REJECT ALL
-    $parent.find('button.reject').button().on('click', function() {
-        getNerveEntities().forEach(function(ent, index) {
-            rejectEntity(ent.getId());
-        });
-    });
-    // ENTER MERGE MODE
-    $parent.find('button.mergeEntities').button().on('click', function() {
-        $parent.find('.mergeActions').show();
-        $(this).hide();
-        renderEntitiesList(true);
-    });
-    // MERGE DIALOG
-    $parent.find('.moduleFooter button.merge').button().on('click', function() {
-        mergeEntities();
-    });
-    // CANCEL MERGE
-    $parent.find('.moduleFooter button.cancelMerge').button().on('click', function() {
-        $parent.find('.mergeActions').hide();
-        $parent.find('button.mergeEntities').show();
-        renderEntitiesList(false);
-    });
+    }
 
     var processEncodedDocument = function(documentString) {
         var entities = [];
@@ -260,18 +286,9 @@ function Nerve(config) {
     var renderEntitiesList = function(isMerge) {
         $parent.find('.moduleContent ul').empty();
 
-        var typeCounts = {
-            person: 0,
-            place: 0,
-            org: 0,
-            title: 0
-        }
-
         var entityHtml = '';
 
         getNerveEntities().forEach(function(ent, index) {
-            typeCounts[ent.type]++;
-
             if (isEntityMerged(ent.getId()) === false) {
                 entityHtml += getEntityView(ent, isMerge);
             }
@@ -285,7 +302,7 @@ function Nerve(config) {
 
         $parent.find('ul.entitiesList').html(entityHtml);
         $parent.find('ul.entitiesList > li > div').on('click', function(event) {
-            $(this).toggleClass('expanded');
+            $(this).parent().toggleClass('expanded');
             var id = $(this).parent().attr('data-id');
             w.entitiesManager.highlightEntity(id, null, true);
         }).find('.actions > span').hover(function() {
@@ -307,8 +324,8 @@ function Nerve(config) {
                         acceptEntity(id);
                     }
                     break;
-                case 'acceptall':
-                    acceptAll(id);
+                case 'acceptmatching':
+                    acceptMatching(id);
                     break;
                 case 'reject':
                     if (merged) {
@@ -380,12 +397,7 @@ function Nerve(config) {
             });
         }
 
-        var total = typeCounts.person + typeCounts.place + typeCounts.org + typeCounts.title;
-        $parent.find('.filters .all').text('All');// ('+total+')');
-        $parent.find('.filters .person').text('People');// ('+typeCounts.person+')');
-        $parent.find('.filters .place').text('Places');// ('+typeCounts.place+')');
-        $parent.find('.filters .org').text('Organizations');// ('+typeCounts.org+')');
-        $parent.find('.filters .title').text('Titles');// ('+typeCounts.title+')');
+        updateFilterCounts();
     }
 
     var getEntityView = function(entity, merge) {
@@ -399,7 +411,7 @@ function Nerve(config) {
                     '<div class="actions">'+
                         '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"></span></span>'+
                         '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"></span></span>'+
-                        '<span data-action="acceptall" class="ui-state-default" title="Accept All"><span class="ui-icon ui-icon-circle-check"></span></span>'+
+                        '<span data-action="acceptmatching" class="ui-state-default" title="Accept All Matching"><span class="ui-icon ui-icon-circle-check"></span></span>'+
                         '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"></span></span>'+
                     '</div>'+
                 '</div>'+
@@ -417,11 +429,11 @@ function Nerve(config) {
                 '<div class="header">'+
                     '<span class="icon" style="margin-right: -4px;"/><span class="icon"/>'+
                     '<span class="entityTitle">'+entry.lemma+'</span>'+
-                    '<div class="nav">'+
-                        '<span data-action="previous" class="ui-state-default" title="Previous Entity"><span class="ui-icon ui-icon-circle-arrow-w"></span></span>'+
-                        '<span data-action="next" class="ui-state-default" title="Next Entity"><span class="ui-icon ui-icon-circle-arrow-e"></span></span>'+
-                    '</div>'+
                     '<div class="actions">'+
+                        '<div class="nav">'+
+                            '<span data-action="previous" class="ui-state-default" title="Previous Entity"><span class="ui-icon ui-icon-circle-arrow-w"></span></span>'+
+                            '<span data-action="next" class="ui-state-default" title="Next Entity"><span class="ui-icon ui-icon-circle-arrow-e"></span></span>'+
+                        '</div>'+
                         '<span data-action="unmerge" class="ui-state-default" title="Unmerge"><span class="ui-icon ui-icon-scissors"></span></span>'+
                         '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"></span></span>'+
                         '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"></span></span>'+
@@ -459,7 +471,7 @@ function Nerve(config) {
         view.removeClass();
         view.addClass(entity.getType());
         if (alreadyExpanded || expand === true) {
-            view.children('div').addClass('expanded');
+            view.addClass('expanded');
         }
         view.find('.entityTitle').text(entity.getContent());
         view.find('.info').html(getEntityViewInfo(entity));
@@ -475,12 +487,32 @@ function Nerve(config) {
         });
     }
 
+    var updateFilterCounts = function() {
+        var typeCounts = {
+            person: 0,
+            place: 0,
+            org: 0,
+            title: 0
+        }
+        getNerveEntities().forEach(function(ent, index) {
+            typeCounts[ent.getType()]++;
+        });
+
+        var total = typeCounts.person + typeCounts.place + typeCounts.org + typeCounts.title;
+        $parent.find('.filters .all .count').text('('+total+')');
+        $parent.find('.filters .person .count').text('('+typeCounts.person+')');
+        $parent.find('.filters .place .count').text('('+typeCounts.place+')');
+        $parent.find('.filters .org .count').text('('+typeCounts.org+')');
+        $parent.find('.filters .title .count').text('('+typeCounts.title+')');
+    }
+
     var getEntryForEntityId = function(entityId) {
         return w.entitiesManager.getEntity(entityId);
     }
 
-    var removeEntityFromView = function(entityId) {
-        $parent.find('ul.entitiesList li[data-id='+entityId+']').remove();
+    var removeEntityFromView = function(id) {
+        $parent.find('ul.entitiesList li[data-id='+id+']').remove();
+        updateFilterCounts();
     }
 
     var selectRangeForEntity = function(entry) {
@@ -560,11 +592,7 @@ function Nerve(config) {
         removeEntityFromView(entityId);
     }
 
-    var acceptAll = function(entityId) {
-        for (var key in mergedEntities) {
-            acceptMerged(key);
-        }
-
+    var acceptMatching = function(entityId) {
         var matches = [];
         var match = w.entitiesManager.getEntity(entityId);
         getNerveEntities().forEach(function(ent) {
@@ -579,9 +607,29 @@ function Nerve(config) {
         });
     }
 
+    var acceptAll = function() {
+        for (var key in mergedEntities) {
+            acceptMerged(key);
+        }
+
+        getNerveEntities().forEach(function(ent, index) {
+            acceptEntity(ent.getId());
+        });
+    }
+
     var rejectEntity = function(entityId) {
         w.tagger.removeEntity(entityId);
         removeEntityFromView(entityId);
+    }
+
+    var rejectAll = function() {
+        for (var key in mergedEntities) {
+            rejectMerged(key);
+        }
+
+        getNerveEntities().forEach(function(ent, index) {
+            rejectEntity(ent.getId());
+        });
     }
 
     var editEntity = function(entityId) {
@@ -633,7 +681,6 @@ function Nerve(config) {
             mergeDialog.$el.on('cancel', function() {
             });
         }
-        mergeDialog.show();
         
         var entities = [];
         var entry;
@@ -650,7 +697,16 @@ function Nerve(config) {
             });
         }
 
-        mergeDialog.populate(entities, entry);
+        if (entities.length > 1) {
+            mergeDialog.show();
+            mergeDialog.populate(entities, entry);
+        } else {
+            w.dialogManager.show('message', {
+                title: 'Warning',
+                msg: 'You must select at least 2 entities to merge.',
+                type: 'info'
+            });
+        }
     }
 
     var unmergeEntities = function(mergeId) {
@@ -667,7 +723,7 @@ function Nerve(config) {
             acceptEntity(entId);
         });
         delete mergedEntities[mergeId];
-        renderEntitiesList(false);
+        removeEntityFromView(mergeId);
     }
 
     var rejectMerged = function(mergeId) {
@@ -676,11 +732,19 @@ function Nerve(config) {
             rejectEntity(entId);
         });
         delete mergedEntities[mergeId];
-        renderEntitiesList(false);
+        removeEntityFromView(mergeId);
     }
 
     var getCheckedEntities = function() {
         return $parent.find('ul.entitiesList > li > input:checked').parent('li');
+    }
+
+    var handleDone = function() {
+        $parent.find('select').selectmenu('option', 'disabled', false);
+        $parent.find('button.mergeEntities').button('disable');
+        $(w.editor.getBody()).removeClass('nerve');
+        w.editor.setMode('design');
+        nrv.reset();
     }
 
 
@@ -689,7 +753,7 @@ function Nerve(config) {
         switch(msgType) {
             case 'serverStart':
                 li.setText(msgContent);
-                li.setValue(5);
+                li.setValue(false);
                 li.show();
                 break;
             case 'serverUpdateMessage':
