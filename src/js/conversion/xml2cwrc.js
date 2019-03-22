@@ -348,7 +348,11 @@ function XML2CWRC(writer) {
      */
     xml2cwrc.findEntities = function(contextEl, typesToFind) {
         var entityTagNames = [];
-        typesToFind = typesToFind === undefined ? ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'] : typesToFind;
+
+        var allTypes = ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'];
+        var nonNoteTypes = ['person', 'place', 'date', 'org', 'citation', 'title', 'link'];
+
+        typesToFind = typesToFind === undefined ? nonNoteTypes : typesToFind;
         
         var entityMappings = w.schemaManager.mapper.getMappings().entities;
         for (var type in entityMappings) {
