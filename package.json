@@ -35,6 +35,7 @@
   "dependencies": {
     "css-parse": "^2.0.0",
     "css-stringify": "^2.0.0",
+    "cwrc-nerve-wrapper": "0.0.2",
     "fscreen": "1.0.2",
     "jquery": "3.2.1",
     "jquery-contextmenu": "^2.8.0",
@@ -88,22 +89,17 @@
     "travis-deploy-once": "travis-deploy-once",
     "cm": "git-cz",
     "precommit": "npm run test && npm run check-coverage",
-
     "test": "npm run test:electron && npm run generate-coverage",
     "test:electron": "mkdirp coverage && browserify -g deamdify -t [ browserify-istanbul --ignore \"**/schema/cwrcEntry/**\" --ignore \"**/schema/orlando/**\" ] test/test.js | browser-run --static . | node test/extract-coverage.js | faucet ",
     "generate-coverage": "istanbul report --root coverage lcov",
     "check-coverage": "istanbul check-coverage --statements 5 --branches 1 --functions 1 --lines 5",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
-
     "nerve-build": "browserify src/js/layout/modules/nerve.js -o build/nerve.js -g babelify -g deamdify --debug --verbose",
-    
     "clean": "rimraf build",
     "build": "npm run build-css && npm run copy-files-to-build",
-    
     "build-css": "mkdirp build/css && npm run build-scoped-css && npm run build-editor-css",
     "build-scoped-css": "lessc src/css/build.less build/css/cwrc-writer.css --global-var=\"parentId=#cwrcWriterContainer\"",
     "build-editor-css": "lessc src/css/editor.less build/css/editor.css",
-    
     "copy-files-to-build": "npm run copy-tinymce && npm run copy-jqueryui-images && npm run copy-bootstrap-fonts && npm run copy-jstree-images",
     "copy-tinymce": "copyfiles -u 3 \"src/css/tinymce/**/*\" build/css/tinymce",
     "copy-jqueryui-images": "copyfiles -u 3 \"src/css/jquery-ui/jquery-ui-images/*\" build/css/",

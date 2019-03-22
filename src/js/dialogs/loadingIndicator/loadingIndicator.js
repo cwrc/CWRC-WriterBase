@@ -80,6 +80,10 @@ function LoadingIndicator(writer, parentEl) {
         setText: function(text) {
             progressLabel.text(text);
         },
+        /**
+         * Set the progress value.
+         * @param {Number|Boolean} percent If false, the progress is indeterminate
+         */
         setValue: function(percent) {
             progressBar.progressbar('value', percent);
         },
