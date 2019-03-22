@@ -65,11 +65,17 @@ function Message(writer, parentEl) {
             $message.dialog('option', 'buttons', {
                 'Yes': function() {
                     $message.dialog('close');
-                    callback(true);
+                    // make sure dialog closes before callback
+                    setTimeout(function() {
+                        callback(true);
+                    }, 0);
                 },
                 'No': function() {
                     $message.dialog('close');
-                    callback(false);
+                    // make sure dialog closes before callback
+                    setTimeout(function() {
+                        callback(false);
+                    }, 0);
                 }
             });
             $message.dialog('open');

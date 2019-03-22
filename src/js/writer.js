@@ -247,7 +247,7 @@ function CWRCWriter(config) {
 
         try {
             // clear the editor first (large docs can cause the browser to freeze)
-            w.utilities.getRootTag().remove();
+            $(w.editor.getBody()).empty();
         } catch (e) {
         }
 
@@ -780,15 +780,6 @@ function CWRCWriter(config) {
                 if ($(node).attr('_tag') == 'lb') node = node.parentNode;
                 var tagName = w.utilities.getTagForEditor('lb');
                 $(node).find('br').replaceWith('<' + tagName + ' _tag="lb"></' + tagName + '>');
-            }
-        }
-
-        // delete keys check
-        // need to do this here instead of in onchangehandler because that one doesn't update often enough
-        if (evt.which == 8 || evt.which == 46) {
-            var doUpdate = w.tagger.findNewAndDeletedTags();
-            if (doUpdate) {
-                w.event('contentChanged').publish(w.editor);
             }
         }
 

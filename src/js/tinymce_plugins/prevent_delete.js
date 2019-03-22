@@ -56,6 +56,12 @@ tinymce.PluginManager.add('preventdelete', function(ed) {
                                 } else {
                                     ed.getDoc().execCommand('insertText', false, evt.key)
                                 }
+
+                                var doUpdate = ed.writer.tagger.findNewAndDeletedTags();
+                                if (doUpdate) {
+                                    ed.writer.event('contentChanged').publish(ed.writer.editor);
+                                }
+
                                 ed.undoManager.add();
                             }
                         }

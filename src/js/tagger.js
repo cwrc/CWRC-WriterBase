@@ -83,11 +83,13 @@ function Tagger(writer) {
     /**
      * Looks for tags that have been added or deleted and updates the entity and struct lists.
      * Returns true if a new tag is found.
+     * // TODO this is hugely expensive on large documents
      * @returns {Boolean}
      */
     tagger.findNewAndDeletedTags = function() {
         var updateRequired = false;
         
+        console.time('newStructs');
         // new structs
         var newStructs = w.editor.dom.select('[_tag]:not([id])');
         if (newStructs.length > 0) updateRequired = true;
@@ -103,7 +105,9 @@ function Tagger(writer) {
                 };
             } 
         });
+        console.timeEnd('newStructs');
 
+        console.time('newEntities');
         // new entities (from undo/redo)
         $('[_entity][class~=start]', w.editor.getBody()).each(function(index, el) {
             var entityId = $(el).attr('name');
@@ -116,7 +120,9 @@ function Tagger(writer) {
                 // TODO
             }
         });
+        console.timeEnd('newEntities');
         
+        console.time('deletedEntities');
         // deleted entities
         w.entitiesManager.eachEntity(function(id, entity) {
             var nodes = w.editor.dom.select('[name="'+id+'"]');
@@ -126,7 +132,9 @@ function Tagger(writer) {
                 w.entitiesManager.removeEntity(id);
             }
         });
+        console.timeEnd('deletedEntities');
         
+        console.time('duplicateStructs');
         // deleted and duplicate structs
         for (var id in w.structs) {
             var nodes = w.editor.dom.select('[id="'+id+'"]');
@@ -149,6 +157,8 @@ function Tagger(writer) {
                 });
             }
         }
+        console.timeEnd('duplicateStructs');
+
         return updateRequired;
     };
     

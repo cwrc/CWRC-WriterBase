@@ -247,7 +247,7 @@ function CWRC2XML(writer) {
                 } else {
                     var openingTag = '<'+tag;
                     for (var key in structEntry) {
-                        if (key.indexOf('_') != 0) {
+                        if (key.indexOf('_') != 0) { // TODO this assumes that there will never be valid attribute names that begin with _
                             var attName = key;
                             var attValue = structEntry[key];
                             if (attName == 'id') {

@@ -16,13 +16,16 @@ function LoadingIndicator(writer, parentEl) {
     $loadingIndicator.dialog({
         title: 'CWRC-Writer',
         modal: true,
-        resizable: true,
-        closeOnEscape: true,
+        resizable: false,
+        closeOnEscape: false,
         height: 160,
         width: 300,
-        position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
+        position: { my: 'center', at: 'center', of: w.layoutManager.getContainer() },
         buttons: {},
-        autoOpen: false
+        autoOpen: false,
+        open: function(event, ui) {
+            $('.ui-dialog-titlebar-close', ui.dialog).hide();
+        }
     });
     
     var progressBar = $loadingIndicator.find('.progressBar');
@@ -35,6 +38,11 @@ function LoadingIndicator(writer, parentEl) {
         w.dialogManager.show('loadingindicator');
         progressLabel.text('Loading Document');
         progressBar.progressbar('value', 5);
+    });
+    w.event('loadingSchema').subscribe(function() {
+        w.dialogManager.show('loadingindicator');
+        progressLabel.text('Loading Schema');
+        progressBar.progressbar('value', 10);
     });
     w.event('processingDocument').subscribe(function(percentComplete) {
         var val = percentComplete === undefined ? 50 : percentComplete;
