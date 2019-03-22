@@ -206,13 +206,13 @@ function EntitiesList(config) {
         
         $entities.find('ul.entitiesList').html(entitiesString);
         $entities.find('ul.entitiesList > li').hover(function() {
-            if (!$(this).hasClass('selected')) {
-                $(this).addClass('over');
-            }
+            // if (!$(this).hasClass('selected')) {
+            //     $(this).addClass('over');
+            // }
         }, function() {
-            if (!$(this).hasClass('selected')) {
-                $(this).removeClass('over');
-            }
+            // if (!$(this).hasClass('selected')) {
+            //     $(this).removeClass('over');
+            // }
         }).mousedown(function(event) {
             $(this).removeClass('over');
             w.entitiesManager.highlightEntity(this.getAttribute('name'), null, true);

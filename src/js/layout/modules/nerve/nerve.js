@@ -146,7 +146,8 @@ function Nerve(config) {
     var run = function() {
         var options = $parent.find('select[name=processOptions]').val();
         nrv.reset();
-        var document = w.converter.getDocumentContent(false);
+        // var document = w.converter.getDocumentContent(false);
+        var document = getBasicXmlDocument();
         var optionsArray = ['tag', 'link'];
         if (options === 'tag') {
             optionsArray = ['tag'];
@@ -188,6 +189,47 @@ function Nerve(config) {
                 type: 'error'
             });
         });
+    }
+
+    // Converts to xml using just the _tag attribute and ignores everything else.
+    // We don't want to do a full/normal conversion because of differences between entities in the editor and in the outputted xml.
+    var getBasicXmlDocument = function() {
+        var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
+
+        function _nodeToStringArray(currNode) {
+            var array = [];
+            var tag = currNode.attr('_tag');
+            if (tag !== undefined) {
+                array.push('<'+tag+'>');
+                array.push('</'+tag+'>');
+            } else {
+                array = ['',''];
+            }
+            return array;
+        }
+
+        function doBuild(currentNode) {
+            var tags = _nodeToStringArray(currentNode);
+            xmlString += tags[0];
+            currentNode.contents().each(function(index, el) {
+                if (el.nodeType == Node.ELEMENT_NODE) {
+                    doBuild($(el));
+                } else if (el.nodeType == Node.TEXT_NODE) {
+                    xmlString += el.data;
+                }
+            });
+            xmlString += tags[1];
+        }
+
+        w.entitiesManager.highlightEntity();
+        var root = w.schemaManager.getRoot();
+        var $body = $(w.editor.getBody());
+        var $rootEl = $body.children('[_tag='+root+']');
+        doBuild($rootEl);
+        
+        xmlString = xmlString.replace(/\uFEFF/g, '');
+
+        return xmlString;
     }
 
     var processEncodedDocument = function(documentString) {
@@ -248,7 +290,7 @@ function Nerve(config) {
             });
         }
 
-        var doc = w.utilities.stringToXML('<wrap>'+documentString+'</wrap>');
+        var doc = w.utilities.stringToXML('<wrap>'+documentString+'</wrap>'); // need to wrap because response has no root node
         var docChildren = doc.documentElement.childNodes;
         var rootNode = undefined;
         for (var i = 0; i < docChildren.length; i++) {
@@ -409,10 +451,11 @@ function Nerve(config) {
                     '<span class="icon"/>'+
                     '<span class="entityTitle">'+entity.getContent()+'</span>'+
                     '<div class="actions">'+
+                        (merge === true ? '' :
                         '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"></span></span>'+
                         '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"></span></span>'+
                         '<span data-action="acceptmatching" class="ui-state-default" title="Accept All Matching"><span class="ui-icon ui-icon-circle-check"></span></span>'+
-                        '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"></span></span>'+
+                        '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"></span></span>')+
                     '</div>'+
                 '</div>'+
                 '<div class="info">'+getEntityViewInfo(entity)+'</div>'+
@@ -557,6 +600,13 @@ function Nerve(config) {
     var addEntity = function(entry) {
         var range = selectRangeForEntity(entry);
         if (range !== null) {
+            var parentEl = range.commonAncestorContainer.parentElement;
+            if (parentEl.getAttribute('_entity') === 'true') {
+                console.log('nerve: entity already exists for',entry);
+                range.collapse();
+                return false;
+            }
+
             var entityConfig = {
                 type: entry.type,
                 content: entry.text,
@@ -770,7 +820,7 @@ function Nerve(config) {
 
     var nerveWrapper = new NERVEWrapper();
     var url = "ws://dh.sharcnet.ca:8080/NERVESERVER/NerveSocket";
-    url = "ws://localhost:8888/nerveserver/NerveSocket"; // TODO
+    // url = "ws://localhost:8888/nerveserver/NerveSocket"; // TODO
     nerveWrapper.init(url, messageRelay);
 
     var nrv = {
