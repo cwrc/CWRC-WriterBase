@@ -42,17 +42,16 @@ function CWRC2XML(writer) {
         }
         
         // make sure the root has the right namespaces for validation purposes
-        var struct = w.structs[$rootEl.attr('id')];
-        // add them to the structs entry and they'll get added to the markup later
-        struct['xmlns:cw'] = 'http://cwrc.ca/ns/cw#';
+        var namespaceAttrs = {
+            'xmlns:cw': 'http://cwrc.ca/ns/cw#'
+        };
         if (root === 'TEI') {
-            struct['xmlns'] = 'http://www.tei-c.org/ns/1.0';
+            namespaceAttrs['xmlns'] = 'http://www.tei-c.org/ns/1.0';
         }
         if (includeRDF) {
-            struct['xmlns:rdf'] = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
-        } else {
-            delete struct['xmlns:rdf'];
+            namespaceAttrs['xmlns:rdf'] = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
         }
+        w.tagger.addAttributesToTag($rootEl[0], namespaceAttrs);
 
         var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
         xmlString += '<?xml-model href="'+w.schemaManager.getCurrentSchema().url+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
@@ -226,47 +225,41 @@ function CWRC2XML(writer) {
 
         function _nodeToStringArray(currNode) {
             var array = [];
-            var id = currNode.attr('id');
+            
             var tag = currNode.attr('_tag');
-    
-            var structEntry = w.structs[id];
-            var entityEntry = w.entitiesManager.getEntity(id);
-            if (entityEntry && tag) {
-                array = w.schemaManager.mapper.getMapping(entityEntry);
-                if (identifyEntities) {
-                    // add temp id so we can target it later in setEntityRanges
-                    if (array[0] !== '') {
-                        array[0] = array[0].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
-                    } else {
-                        array[1] = array[1].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
-                    }
-                }
-            } else if (tag) {
-                if (tag === '#comment') {
-                    array = ['<!-- ', ' -->'];
-                } else {
-                    var openingTag = '<'+tag;
-                    for (var key in structEntry) {
-                        if (key.indexOf('_') != 0) { // TODO this assumes that there will never be valid attribute names that begin with _
-                            var attName = key;
-                            var attValue = structEntry[key];
-                            if (attName == 'id') {
-                                // leave out IDs
-        //                        attName = w.schemaManager.getIdName();
-                            } else {
-        //                        var validVal = w.utilities.convertTextForExport(attValue);
-                                openingTag += ' '+attName+'="'+attValue+'"';
-                            }
+            if (tag === undefined) {
+                array = ['', ''];
+            } else {
+                var id = currNode.attr('id');
+                var isEntity = currNode.attr('_entity') === 'true';
+                if (isEntity) {
+                    var entityEntry = w.entitiesManager.getEntity(id);
+                    array = w.schemaManager.mapper.getMapping(entityEntry);
+                    if (identifyEntities) {
+                        // add temp id so we can target it later in setEntityRanges
+                        if (array[0] !== '') {
+                            array[0] = array[0].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
+                        } else {
+                            array[1] = array[1].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
                         }
                     }
-                    openingTag += '>';
-                    
-                    array.push(openingTag);
-                    array.push('</'+tag+'>');
+                } else {
+                    if (tag === '#comment') {
+                        array = ['<!-- ', ' -->'];
+                    } else {
+                        var openingTag = '<'+tag;
+                        var attributes = w.tagger.getAttributesForTag(currNode[0]);
+                        for (var attName in attributes) {
+                            var attValue = attributes[attName];
+                            // attValue = w.utilities.convertTextForExport(attValue); TODO is this necessary?
+                            openingTag += ' '+attName+'="'+attValue+'"';
+                        }
+                        openingTag += '>';
+                        
+                        array.push(openingTag);
+                        array.push('</'+tag+'>');
+                    }
                 }
-            } else {
-                // not a valid tag so return empty strings
-                array = ['', ''];
             }
     
             return array;

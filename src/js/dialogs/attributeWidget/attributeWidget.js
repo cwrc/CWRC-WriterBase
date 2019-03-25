@@ -83,7 +83,7 @@ AttributeWidget.prototype = {
             return 0;
         });
 
-        var disallowedAttributes = ['offsetId'];
+        var disallowedAttributes = this.w.converter.reservedAttributes;
         
         // build atts
         var attsString = '';
@@ -95,7 +95,7 @@ AttributeWidget.prototype = {
             currAttString = '';
             isRequired = att.required;
             
-            if (disallowedAttributes.indexOf(att.name.toLowerCase()) === -1) {
+            if (disallowedAttributes[att.name] !== true) {
                 var displayName = att.name;
                 if (att.fullName !== '') {
                     displayName += ' ('+att.fullName+')';

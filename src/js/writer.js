@@ -45,13 +45,7 @@ function CWRCWriter(config) {
 
     w.editor = null; // reference to the tinyMCE instance we're creating, set in setup
 
-    w.structs = {}; // structs store
-
     w.triples = []; // triples store
-    // store deleted tags in case of undo
-    // TODO add garbage collection for this
-    w.deletedEntities = {};
-    w.deletedStructs = {};
 
     w.cwrcRootUrl = config.cwrcRootUrl; // the url which points to the root of the cwrcwriter location
     w.validationUrl = config.validationUrl || 'https://validator.services.cwrc.ca/validator/validate.html';// url for the xml validation
@@ -433,7 +427,6 @@ function CWRCWriter(config) {
             ed.writer = w;
 
             // custom properties added to the editor
-            ed.currentStruct = null; // the id of the currently selected structural tag
             ed.currentBookmark = null; // for storing a bookmark used when adding a tag
             ed.currentNode = null; // the node that the cursor is currently in
             ed.contextMenuPos = null; // the position of the context menu (used to position related dialog box)
@@ -578,11 +571,7 @@ function CWRCWriter(config) {
             addButtonToEditor('removeTag', {
                 title: 'Remove Tag', image: w.cwrcRootUrl + 'img/tag_blue_delete.png',
                 onclick: function() {
-                    if (w.entitiesManager.getCurrentEntity() != null) {
-                        w.tagger.removeEntity(w.entitiesManager.getCurrentEntity(), false);
-                    } else if (w.editor.currentStruct != null) {
-                        w.tagger.removeStructureTag(w.editor.currentStruct, false);
-                    }
+                    w.tagger.removeTag();
                 }
             });
             addButtonToEditor('newbutton', {
@@ -920,7 +909,6 @@ function CWRCWriter(config) {
             var parentNode = $(w.editor.selection.getNode());
             if (parentNode.attr('_tag')) {
                 id = parentNode.attr('id');
-                w.editor.currentStruct = id;
             }
             return;
         }

@@ -94,19 +94,12 @@ function Tagger(writer) {
         var newStructs = w.editor.dom.select('[_tag]:not([id])');
         if (newStructs.length > 0) updateRequired = true;
         newStructs.forEach(function(struct, index) {
-            var node = $(struct);
-            var tag = node.attr('_tag');
-            if (w.schemaManager.schema.elements.indexOf(tag) != -1) { // TODO is this check necessary?
-                var id = w.getUniqueId('struct_');
-                node.attr('id', id);
-                w.structs[id] = {
-                    id: id,
-                    _tag: tag
-                };
-            } 
+            var id = w.getUniqueId('struct_');
+            $(struct).attr('id', id);
         });
         console.timeEnd('newStructs');
 
+        /*
         console.time('newEntities');
         // new entities (from undo/redo)
         $('[_entity][class~=start]', w.editor.getBody()).each(function(index, el) {
@@ -133,7 +126,9 @@ function Tagger(writer) {
             }
         });
         console.timeEnd('deletedEntities');
+        */
         
+        /*
         console.time('duplicateStructs');
         // deleted and duplicate structs
         for (var id in w.structs) {
@@ -158,6 +153,7 @@ function Tagger(writer) {
             }
         }
         console.timeEnd('duplicateStructs');
+        */
 
         return updateRequired;
     };
@@ -203,40 +199,102 @@ function Tagger(writer) {
             }
         }
     };
-    
-    tagger.getCurrentTag = function(id) {
-        var tag = {entity: null, struct: null};
-        if (id != null) {
-            if (w.entitiesManager.getEntity(id) !== undefined) {
-                tag.entity = w.entitiesManager.getEntity(id);
-                w.entitiesManager.setCurrentEntity(id);
-            } else if (w.structs[id]) {
-                tag.struct = $('#'+id, w.editor.getBody());
-                w.editor.currentStruct = id;
-            }
+
+    /**
+     * Gets the attributes stored in the _attributes holder.
+     * @param {Element} tag
+     * @returns {Object}
+     */
+    tagger.getAttributesForTag = function(tag) {
+        var attributes = tag.getAttribute('_attributes');
+        if (attributes !== null) {
+            var jsonAttrsString = attributes.replace(/&quot;/g, '"');
+            var json = JSON.parse(jsonAttrsString);
+            return json;
         } else {
-            if (w.entitiesManager.getCurrentEntity() != null) {
-                tag.entity = w.entitiesManager.getEntity(w.entitiesManager.getCurrentEntity());
-            } else if (w.editor.currentStruct != null) {
-                tag.struct = $('#'+w.editor.currentStruct, w.editor.getBody());
+            return {};
+        }
+    }
+
+    /**
+     * Adds (non-reserved) attributes to the tag. All attributes get added to the _attributes holder.
+     * Overwrites previously set attributes.
+     * Assumes the attributes object does not contain CWRC-Writer related attributes, e.g. _tag.
+     * @param {Element} tag The tag
+     * @param {Object} attributes A name/value map of attributes
+     */
+    tagger.setAttributesForTag = function(tag, attributes) {
+        // remove previous attributes
+        var attrsToRemove = [];
+        for (var i = 0; i < tag.attributes.length; i++) {
+            var attr = tag.attributes[i];
+            if (w.converter.reservedAttributes[attr.name] !== true) {
+                attrsToRemove.push(attr.name);
             }
         }
-        return tag;
+        attrsToRemove.forEach(function(name) {
+            tag.removeAttribute(name);
+        });
+
+        for (var attName in attributes) {
+            if (w.converter.reservedAttributes[attName] === true) {
+                continue;
+            }
+            tag.setAttribute(attName, attributes[attName]);
+        }
+
+        var jsonAttrsString = JSON.stringify(attributes).replace(/"/g, '&quot;');
+        tag.setAttribute('_attributes', jsonAttrsString);
+    }
+
+    /**
+     * Similar to setAttributesForTag but doesn't overwrite previously set attributes.
+     * @param {Element} tag The tag
+     * @param {Object} attributes A name/value map of attributes
+     */
+    tagger.addAttributesToTag = function(tag, attributes) {
+        var currAttrs = tagger.getAttributesForTag(tag);
+
+        for (var attName in attributes) {
+            if (w.converter.reservedAttributes[attName] === true) {
+                continue;
+            }
+            var attValue = attributes[attName];
+            tag.setAttribute(attName, attValue);
+            currAttrs[attName] = attValue;
+        }
+
+        var jsonAttrsString = JSON.stringify(currAttrs).replace(/"/g, '&quot;');
+        tag.setAttribute('_attributes', jsonAttrsString);
+    }
+
+    /**
+     * Get a tag by id, or get the currently selected tag.
+     * @param {String} [id] The id (optional)
+     * @returns {jQuery}
+     */
+    tagger.getCurrentTag = function(id) {
+        if (id != null) {
+            var tag = $('#'+id, w.editor.getBody());
+            if (tag.length === 0) {
+                // look for overlapping entity
+                tag = $('[name="'+id+'"]', w.editor.getBody());
+            }
+            return tag;
+        } else {
+            return $(w.editor.selection.getNode());
+        }
     };
     
     // a general edit function for entities and structure tags
     tagger.editTag = function(id) {
         var tag = tagger.getCurrentTag(id);
-        if (tag.entity) {
+        if (tag.attr('_entity')) {
             w.editor.currentBookmark = w.editor.selection.getBookmark(1);
-            var type = tag.entity.getType();
-            w.dialogManager.show(type, {type: type, entry: tag.entity});
-        } else if (tag.struct) {
-            if ($(tag.struct, w.editor.getBody()).attr('_tag')) {
-                w.dialogManager.getDialog('schemaTags').editSchemaTag(tag.struct);
-            } else {
-                alert('Tag not recognized!');
-            }
+            var type = tag.attr('_type');
+            w.dialogManager.show(type, {type: type, entry: tag});
+        } else {
+            w.dialogManager.getDialog('schemaTags').editSchemaTag(tag);
         }
     };
     
@@ -262,15 +320,15 @@ function Tagger(writer) {
     // a general change/replace function
     tagger.changeTag = function(params) {
         var tag = tagger.getCurrentTag(params.id);
-        if (tag.entity) {
+        if (tag.attr('_entity')) {
             w.dialogManager.confirm({
                 title: 'Remove Entity?',
                 msg: 'Changing this tag will remove the associated annotation. Do you want to proceed?',
                 callback: function(yes) {
                     if (yes) {
-                        var node = $('#'+tag.entity.id+',[name="'+tag.entity.id+'"]', w.editor.getBody()).first();
-                        node.wrapInner('<span id="tempSelection"/>');
-                        tagger.removeEntity(tag.entity.id);
+                        tag = tag.first();
+                        tag.wrapInner('<span id="tempSelection"/>');
+                        tagger.removeEntity(params.id);
                         var selectionContents = $('#tempSelection', w.editor.getBody());
                         var parentTag = selectionContents.parent();
                         w.editor.selection.select(selectionContents[0].firstChild);
@@ -280,10 +338,8 @@ function Tagger(writer) {
                     }
                 }
             });
-        } else if (tag.struct) {
-            if ($(tag.struct, w.editor.getBody()).attr('_tag')) {
-                w.dialogManager.getDialog('schemaTags').changeSchemaTag({tag: tag.struct, key: params.key});
-            }
+        } else {
+            w.dialogManager.getDialog('schemaTags').changeSchemaTag({tag: tag, key: params.key});
         } 
     };
     
@@ -364,21 +420,14 @@ function Tagger(writer) {
     
     /**
      * A general removal function for entities and structure tags
-     * @param {String} id The id of the tag to remove
+     * @param {String} [id] The id of the tag to remove
      */
     tagger.removeTag = function(id) {
-        if (id != null) {
-            if (w.entitiesManager.getEntity(id) !== undefined) {
-                tagger.removeEntity(id);
-            } else if (w.structs[id]) {
-                tagger.removeStructureTag(id);
-            }
+        var $tag = tagger.getCurrentTag(id);
+        if ($tag.attr('_entity')) {
+            tagger.removeEntity(id);
         } else {
-            if (w.entitiesManager.getCurrentEntity() != null) {
-                tagger.removeEntity(w.entitiesManager.getCurrentEntity());
-            } else if (w.editor.currentStruct != null) {
-                tagger.removeStructureTag(w.editor.currentStruct);
-            }
+            tagger.removeStructureTag(id);
         }
     };
     
@@ -387,16 +436,16 @@ function Tagger(writer) {
      */
     tagger.copyTag = function(id) {
         var tag = tagger.getCurrentTag(id);
-        if (tag.entity) {
+        if (tag.attr('_entity')) {
             var clone;
-            if (tag.entity.isNote()) {
-                clone = $('#'+tag.entity.getId(), w.editor.getBody()).parent('.noteWrapper').clone(true);
+            if (tag.attr('_note')) {
+                clone = tag.parent('.noteWrapper').clone(true);
             } else {
-                clone = $('#'+tag.entity.getId(), w.editor.getBody()).clone();
+                clone = tag.clone();
             }
             w.editor.copiedEntity = clone[0];
-        } else if (tag.struct) {
-            var clone = $(tag.struct, w.editor.getBody()).clone();
+        } else {
+            var clone = tag.clone();
             w.editor.copiedElement.element = clone[0];
             w.editor.copiedElement.selectionType = 0; // tag & contents copied
         }
@@ -803,23 +852,15 @@ function Tagger(writer) {
     /**
      * Adds a structure tag to the document, based on the params.
      * @fires Writer#tagAdded
-     * @param params An object with the following properties:
-     * @param params.bookmark A tinymce bookmark object, with an optional custom tagId property
-     * @param params.attributes Various properties related to the tag
-     * @param params.action Where to insert the tag, relative to the bookmark (before, after, around, inside); can also be null
+     * @param {String} tagName The tag name
+     * @param {Object} attributes The tag attributes
+     * @param {Object} bookmark A tinymce bookmark object, with an optional custom tagId property
+     * @param {String} action Where to insert the tag, relative to the bookmark (before, after, around, inside); can also be null
      */
-    tagger.addStructureTag = function(params) {
-        var bookmark = params.bookmark;
-        var attributes = params.attributes;
-        var action = params.action;
-        
+    tagger.addStructureTag = function(tagName, attributes, bookmark, action) {        
         sanitizeObject(attributes);
         
         var id = w.getUniqueId('struct_');
-        attributes.id = id;
-        attributes._textallowed = w.utilities.canTagContainText(attributes._tag);
-        w.structs[id] = attributes;
-        w.editor.currentStruct = id;
         
         var $node;
         if (bookmark.tagId) {
@@ -845,15 +886,22 @@ function Tagger(writer) {
             $noteWrapper = $node.parent('.noteWrapper');
         }
         
-        var tagName = w.utilities.getTagForEditor(attributes._tag);
-        var open_tag = '<'+tagName;
+        var editorTagName = w.utilities.getTagForEditor(attributes._tag);
+        var open_tag = '<'+editorTagName+' id="'+id+'" _tag="'+tagName+'"'
+
+        var jsonAttrs = {};
         for (var key in attributes) {
-            if (key === 'id' || key.match(/^_/) != null || w.converter.reservedAttributes[key] !== true) {
+            if (w.converter.reservedAttributes[key] !== true) {
                 open_tag += ' '+key+'="'+attributes[key]+'"';
             }
+            jsonAttrs[key] = attributes[key];
+
         }
-        open_tag += '>';
-        var close_tag = '</'+tagName+'>';
+        var jsonAttrsString = JSON.stringify(jsonAttrs);
+        jsonAttrsString = jsonAttrsString.replace(/"/g, '&quot;');
+        open_tag += ' _attributes="'+jsonAttrsString+'">';
+
+        var close_tag = '</'+editorTagName+'>';
         
         var selection = '\uFEFF';
         var content = open_tag + selection + close_tag;
@@ -915,26 +963,26 @@ function Tagger(writer) {
      * @fires Writer#tagEdited
      * @param tag {jQuery} A jQuery representation of the tag
      * @param attributes {Object} An object of attribute names and values
+     * @param [tagName] {String} A new tag name for this tag (optional)
      */
-    tagger.editStructureTag = function(tag, attributes) {
+    tagger.editStructureTag = function(tag, attributes, tagName) {
         // TODO add undo support
         
         sanitizeObject(attributes);
         
         var id = tag.attr('id');
-        attributes.id = id;
         
-        if (tag.attr('_tag') != attributes._tag) {
+        if (tagName !== undefined) {
             // change the tag
-            var tagName;
+            var editorTagName;
             if (tag.parent().is('span')) {
                 // force inline if parent is inline
-                tagName = 'span';
+                editorTagName = 'span';
             } else {
-                tagName = w.utilities.getTagForEditor(attributes._tag);
+                editorTagName = w.utilities.getTagForEditor(tagName);
             }
             
-            tag.contents().unwrap().wrapAll('<'+tagName+' id="'+id+'" />');
+            tag.contents().unwrap().wrapAll('<'+editorTagName+' id="'+id+'" _tag="'+tagName+'"/>');
             
             tag = $('#'+id, w.editor.getBody());
             for (var key in attributes) {
@@ -955,41 +1003,43 @@ function Tagger(writer) {
                 }
             }
         }
+
+        tagger.setAttributesForTag(tag[0], attributes);
         
-        w.structs[id] = attributes;
         w.event('tagEdited').publish(tag[0]);
     };
     
     /**
      * Remove a structure tag
      * @fires Writer#tagRemoved
-     * @param {String} id Then tag id
+     * @param {String} [id] The tag id
      * @param {Boolean} [removeContents] True to remove tag contents as well
      */
     tagger.removeStructureTag = function(id, removeContents) {
-        id = id || w.editor.currentStruct;
-        
         if (removeContents == undefined) {
             if (w.tree && w.tree.currentlySelectedNodes.length > 0 && w.tree.selectionType != null) {
                 removeContents = true;
+            } else {
+                removeContents = false;
             }
         }
 
-        var node = $('#'+id, w.editor.getBody());
+        var tag = tagger.getCurrentTag(id);
+
         var entry = w.entitiesManager.getEntity(id);
         if (removeContents) {
             if (entry && entry.isNote()) {
-                node.parent('.noteWrapper').remove();
+                tag.parent('.noteWrapper').remove();
             } else {
-                node.remove();
+                tag.remove();
             }
         } else {
-            var parent = node.parent();
-            var contents = node.contents();
+            var parent = tag.parent();
+            var contents = tag.contents();
             if (contents.length > 0) {
                 contents.unwrap();
             } else {
-                node.remove();
+                tag.remove();
             }
             if (entry && entry.isNote()) {
                 contents = parent.contents();
@@ -1005,21 +1055,17 @@ function Tagger(writer) {
         w.editor.undoManager.add();
         
         w.event('tagRemoved').publish(id);
-        
-        w.editor.currentStruct = null;
     };
     
     /**
      * Remove a structure tag's contents
      * @fires Writer#tagContentsRemoved
-     * @param {String} id The tag id
+     * @param {String} [id] The tag id
      */
     // TODO refactor this with removeStructureTag
     tagger.removeStructureTagContents = function(id) {
-        id = id || w.editor.currentStruct;
-        
-        var node = $('#'+id, w.editor.getBody());
-        node.contents().remove();
+        var tag = tagger.getCurrentTag(id);
+        tag.contents().remove();
         
         w.editor.undoManager.add();
         

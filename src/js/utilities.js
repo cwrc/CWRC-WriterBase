@@ -277,7 +277,6 @@ function Utilities(writer) {
             // show the element if it's inside a note
             node.parents('.noteWrapper').removeClass('hide');
 
-            w.editor.currentStruct = id;
             var rng = w.editor.dom.createRng();
             if (selectContentsOnly) {
                 if (tinymce.isWebKit) {
