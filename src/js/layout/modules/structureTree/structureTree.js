@@ -461,7 +461,7 @@ function StructureTree(config) {
         $tree.jstree('open_node', dropNode, null, false);
         
         if (isCopy) {
-            w.tagger.findDuplicateTags();
+            w.tagger.processPastedContent(dragNodeEditor[0]);
         }
         w.event('contentChanged').publish(w.editor);
     }

@@ -41,7 +41,7 @@ EntitiesManager.prototype = {
             entity = config;
         } else {
             if (config.id === undefined) {
-                config.id = this.w.getUniqueId('ent_');
+                config.id = this.w.getUniqueId('dom_');
             }
             
             if (config.tag === undefined) {
@@ -104,7 +104,7 @@ EntitiesManager.prototype = {
      */
     cloneEntity: function(id) {
         var clone = this.entities[id].clone();
-        clone.id = this.w.getUniqueId('ent_');
+        clone.id = this.w.getUniqueId('dom_');
         // TODO get new URIs
         return clone;
     },

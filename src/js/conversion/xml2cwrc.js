@@ -383,7 +383,7 @@ function XML2CWRC(writer) {
         if (entityType !== null) {
             var config = xml2cwrc.getEntityConfigFromElement(el, entityType);
             
-            config.id = w.getUniqueId('ent_');
+            config.id = w.getUniqueId('dom_');
             config.range = {
                 startXPath: w.utilities.getElementXPath(el)
             }
@@ -488,7 +488,7 @@ function XML2CWRC(writer) {
                 console.warn('xml2cwrc.buildEditorString: node already had an ID!', node.getAttribute('id'));
                 node.removeAttribute('id');
             }
-            var id = w.getUniqueId('struct_');
+            var id = w.getUniqueId('dom_');
             openingTagString += ' id="'+id+'"';
             
             var canContainText = w.utilities.canTagContainText(nodeName);

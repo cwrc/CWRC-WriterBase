@@ -89,16 +89,6 @@ function Tagger(writer) {
     tagger.findNewAndDeletedTags = function() {
         var updateRequired = false;
         
-        console.time('newStructs');
-        // new structs
-        var newStructs = w.editor.dom.select('[_tag]:not([id])');
-        if (newStructs.length > 0) updateRequired = true;
-        newStructs.forEach(function(struct, index) {
-            var id = w.getUniqueId('struct_');
-            $(struct).attr('id', id);
-        });
-        console.timeEnd('newStructs');
-
         /*
         console.time('newEntities');
         // new entities (from undo/redo)
@@ -127,77 +117,8 @@ function Tagger(writer) {
         });
         console.timeEnd('deletedEntities');
         */
-        
-        /*
-        console.time('duplicateStructs');
-        // deleted and duplicate structs
-        for (var id in w.structs) {
-            var nodes = w.editor.dom.select('[id="'+id+'"]');
-            if (nodes.length === 0) {
-                updateRequired = true;
-                w.deletedStructs[id] = w.structs[id];
-                delete w.structs[id];
-            } else if (nodes.length > 1) {
-                nodes.forEach(function(el, index) {
-                    if (index > 0) {
-                        var newStruct = $(el);
-                        var newId = w.getUniqueId('struct_');
-                        newStruct.attr('id', newId);
-                        w.structs[newId] = {};
-                        for (var key in w.structs[id]) {
-                            w.structs[newId][key] = w.structs[id][key];
-                        }
-                        w.structs[newId].id = newId;
-                    }
-                });
-            }
-        }
-        console.timeEnd('duplicateStructs');
-        */
 
         return updateRequired;
-    };
-    
-    /**
-     * Looks for duplicate tags (from copy paste operations) and creates new entity/struct entries.
-     */
-    tagger.findDuplicateTags = function() {
-        w.entitiesManager.eachEntity(function(id, entity) {
-            var match = $('[name="'+id+'"]', w.editor.getBody());
-            if (match.length > 1) {
-                match.each(function(index, el) {
-                    if (index > 0) {
-                        var newEntity = w.entitiesManager.cloneEntity(id);
-                        var newId = newEntity.getId();
-                        w.entitiesManager.setEntity(newId, newEntity);
-                        
-                        var newTagStart = $(el);
-                        var newTags = tagger.getCorrespondingEntityTags(newTagStart);
-                        
-                        newTagStart.attr('name', newId);
-                        if (newTagStart.attr('id') !== undefined) {
-                            newTagStart.attr('id', newId);
-                        }
-                        newTags.each(function(index, tag) {
-                            $(tag).attr('name', newId);
-                        });
-                    }
-                });
-            }
-        });
-        for (var id in w.structs) {
-            var match = $('*[id='+id+']', w.editor.getBody());
-            if (match.length == 2) {
-                var newStruct = match.last();
-                var newId = w.getUniqueId('struct_');
-                newStruct.attr('id', newId);
-                w.structs[newId] = {};
-                for (var key in w.structs[id]) {
-                    w.structs[newId][key] = w.structs[id][key];
-                }
-                w.structs[newId].id = newId;
-            }
-        }
     };
 
     /**
@@ -471,13 +392,79 @@ function Tagger(writer) {
             sel.collapse();
             var rng = sel.getRng(true);
             rng.insertNode(element);
-            
-            tagger.findDuplicateTags();
+
+            tagger.processPastedContent(element);
             
             w.editor.isNotDirty = false;
             w.event('contentChanged').publish(); // don't use contentPasted since we don't want to trigger copyPaste dialog
         }
     }
+
+    /**
+     * Looks for duplicate tags (from copy paste operations) and creates new entity/struct entries.
+     */
+    tagger.processPastedContent = function(domContent) {
+        var processNewNodes = function(currNode) {
+            if (currNode.nodeType === Node.ELEMENT_NODE) {
+                if (currNode.hasAttribute('_tag')) {
+                    var oldId = currNode.getAttribute('id');
+
+                    var newId = w.getUniqueId('dom_');
+                    currNode.setAttribute('id', newId);
+
+                    if (currNode.hasAttribute('_entity')) {
+                        currNode.setAttribute('name', newId);
+
+                        var oldEntity = w.entitiesManager.getEntity(oldId);
+                        if (oldEntity !== undefined) {
+                            var newEntity = oldEntity.clone();
+                            newEntity.setId(newId);
+                            w.entitiesManager.setEntity(newId, newEntity);
+                        } else {
+                            console.warn('processPastedContent: copied entity tag had no Entity to clone for',oldId);
+                            w.entitiesManager.addEntity({
+                                id: newId,
+                                tag: currNode.getAttribute('_tag'),
+                                type: currNode.getAttribute('_type')
+                            });
+                        }
+                    }
+                }
+            }
+            for (var i = 0; i < currNode.childNodes.length; i++) {
+                processNewNodes(currNode.childNodes[i]);
+            }
+        }
+
+        processNewNodes(domContent);
+
+        // TODO overlapping entities handling
+        /*
+        w.entitiesManager.eachEntity(function(id, entity) {
+            var match = $('[name="'+id+'"]', w.editor.getBody());
+            if (match.length > 1) {
+                match.each(function(index, el) {
+                    if (index > 0) {
+                        var newEntity = w.entitiesManager.cloneEntity(id);
+                        var newId = newEntity.getId();
+                        w.entitiesManager.setEntity(newId, newEntity);
+                        
+                        var newTagStart = $(el);
+                        var newTags = tagger.getCorrespondingEntityTags(newTagStart);
+                        
+                        newTagStart.attr('name', newId);
+                        if (newTagStart.attr('id') !== undefined) {
+                            newTagStart.attr('id', newId);
+                        }
+                        newTags.each(function(index, tag) {
+                            $(tag).attr('name', newId);
+                        });
+                    }
+                });
+            }
+        });
+        */
+    };
     
     /**
      * Displays the appropriate dialog for adding an entity
@@ -638,7 +625,7 @@ function Tagger(writer) {
      */
     tagger.finalizeEntity = function(type, info) {
         if (info != null) {
-            var id = w.getUniqueId('ent_');
+            var id = w.getUniqueId('dom_');
             
             sanitizeObject(info.attributes);
             sanitizeObject(info.customValues);
@@ -860,7 +847,7 @@ function Tagger(writer) {
     tagger.addStructureTag = function(tagName, attributes, bookmark, action) {        
         sanitizeObject(attributes);
         
-        var id = w.getUniqueId('struct_');
+        var id = w.getUniqueId('dom_');
         
         var $node;
         if (bookmark.tagId) {
@@ -1074,7 +1061,6 @@ function Tagger(writer) {
     
     w.event('tagRemoved').subscribe(tagger.findNewAndDeletedTags);
     w.event('tagContentsRemoved').subscribe(tagger.findNewAndDeletedTags);
-    w.event('contentPasted').subscribe(tagger.findDuplicateTags);
     
     return tagger;
 };

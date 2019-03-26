@@ -135,6 +135,9 @@ Entity.prototype = {
     getId: function() {
         return this.id;
     },
+    setId: function(id) {
+        this.id = id;
+    },
     getType: function() {
         return this.type;
     },
