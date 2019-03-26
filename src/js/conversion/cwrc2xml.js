@@ -58,24 +58,30 @@ function CWRC2XML(writer) {
         var currentCSS = w.schemaManager.getCSS() || w.schemaManager.getCurrentSchema().cssUrl;
         xmlString += '<?xml-stylesheet type="text/css" href="'+currentCSS+'"?>\n';
 
+        console.time('buildXMLString');
         xmlString += cwrc2xml.buildXMLString($rootEl, includeRDF);
+        console.timeEnd('buildXMLString');
 
         // RDF
 
         if (includeRDF) {
             var xmlDoc = w.utilities.stringToXML(xmlString);
 
+            console.time('setEntityRanges');
             setEntityRanges(xmlDoc);
+            console.timeEnd('setEntityRanges');
 
             var entities = [];
             w.entitiesManager.eachEntity(function(id, ent) {
                 entities.push(ent);
             });
 
+            console.time('cleanUp');
             // clean up temp ids used by setEntityRanges
             $('[cwrcTempId]', xmlDoc).each(function(index, el) {
                 $(el).removeAttr('cwrcTempId');
             });
+            console.timeEnd('cleanUp');
 
             var rdfString = '';
             var rdfmode;
@@ -84,7 +90,9 @@ function CWRC2XML(writer) {
             } else {
                 rdfmode = 'json';
             }
+            console.time('getAnnotations');
             rdfString = '\n'+w.annotationsManager.getAnnotations(entities, rdfmode);
+            console.timeEnd('getAnnotations');
 
             // parse the selector and find the relevant node
             var $docEl = $(xmlDoc.documentElement);

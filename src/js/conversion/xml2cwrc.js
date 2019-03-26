@@ -686,6 +686,13 @@ function XML2CWRC(writer) {
                             range.setStart(startNode, startOffset);
                             range.setEnd(endNode, endOffset);
                             w.tagger.addEntityTag(entry, range);
+
+                            if (entry.getContent() === undefined) {
+                                w.entitiesManager.highlightEntity(); // remove highlight
+                                w.entitiesManager.highlightEntity(entry.getId());
+                                content = $('.entityHighlight', body).text();
+                                w.entitiesManager.highlightEntity();
+                            }
                         } else {
                             // then tag already exists
                             $(startNode).attr({
@@ -696,35 +703,13 @@ function XML2CWRC(writer) {
                                 'id': entry.getId()
                             });
 
-                            if (entry.isNote()) {
+                            if (entry.getContent() === undefined) {
                                 entry.setContent($(startNode).text());
+                            }
+
+                            if (entry.isNote()) {
                                 entry.setNoteContent($(startNode).html());
                                 w.tagger.addNoteWrapper(startNode, type);
-                            }
-                        }
-                        if (entry.getContent() === undefined) {
-                            // get and set the text content
-                            // TODO remove schema specific properties
-                            var content = '';
-                            if (type === 'correction') {
-                                content = entry.getCustomValues().corrText;
-                            } else {
-                                w.entitiesManager.highlightEntity(); // remove highlight
-                                w.entitiesManager.highlightEntity(entry.getId());
-                                content = $('.entityHighlight', body).text();
-                                w.entitiesManager.highlightEntity();
-                            }
-                            entry.setContent(content);
-
-                            // finish with triples
-                            for (var i = 0; i < w.triples.length; i++) {
-                                var trip = w.triples[i];
-                                if (trip.subject.uri === entry.getUris().annotationId) {
-                                    trip.subject.text = entry.getTitle();
-                                }
-                                if (trip.object.uri === entry.getUris().annotationId) {
-                                    trip.object.text = entry.getTitle();
-                                }
                             }
                         }
                     } catch (e) {

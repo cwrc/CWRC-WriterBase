@@ -103,7 +103,7 @@ function CWRCWriter(config) {
     }
 
     // what format to produce annotations in(XML or JSON)
-    w.annotationMode = w.XML;
+    w.annotationMode = w.JSON;
 
     // can entities overlap?
     w.allowOverlap = false;
