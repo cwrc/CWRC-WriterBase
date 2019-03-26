@@ -819,8 +819,8 @@ function Nerve(config) {
     }
 
     var nerveWrapper = new NERVEWrapper();
-    // var url = "ws://dh.sharcnet.ca:8080/NERVESERVER/NerveSocket";
-    var url = "ws://localhost:8888/NERVESERVER/NerveSocket";
+    var url = "wss://dh.sharcnet.ca:443/NERVESERVER/NerveSocket";
+    // var url = "ws://localhost:8888/NERVESERVER/NerveSocket";
     nerveWrapper.init(url, messageRelay);
 
     var nrv = {
