@@ -768,7 +768,7 @@ function StructureTree(config) {
     function handleDnDStart(e, data) {
         // TODO fullscreen support
         data.helper.addClass('cwrc');
-        if (w.isFullScreen()) {
+        if (w.layoutManager.isFullScreen()) {
             $.vakata.dnd.stop(e);
         }
         data.helper.appendTo(w.layoutManager.getContainer());
