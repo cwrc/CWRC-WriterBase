@@ -800,6 +800,26 @@ function Tagger(writer) {
             });
     };
 
+    tagger.addNoteWrappersForEntities = function() {
+        w.entitiesManager.eachEntity(function(id, entity) {
+            if (entity.isNote()) {
+                var note = $('#'+id, w.editor.getBody());
+                tagger.addNoteWrapper(note, entity.getType());
+            }
+        });
+    }
+
+    // remove all the noteWrapper elements.
+    // needed when running evaluateXPath on cwrc docs and used in conjunction with addNoteWrappersForEntities.
+    tagger.removeNoteWrappersForEntities = function() {
+        w.entitiesManager.eachEntity(function(id, entity) {
+            if (entity.isNote()) {
+                var note = $('#'+id, w.editor.getBody());
+                note.unwrap('.noteWrapper');
+            }
+        });
+    }
+
     /**
      * Adds a structure tag to the document, based on the params.
      * @fires Writer#tagAdded

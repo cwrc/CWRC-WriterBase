@@ -695,6 +695,8 @@ function XML2CWRC(writer) {
             return insertEntities();
         })
         .then(function() {
+            w.tagger.addNoteWrappersForEntities();
+
             if (w.utilities.doEntitiesOverlap()) {
                 w.allowOverlap = true;
             } else {
@@ -770,7 +772,6 @@ function XML2CWRC(writer) {
                             if (entry.isNote()) {
                                 entry.setContent($(startNode).text());
                                 entry.setNoteContent($(startNode).html());
-                                w.tagger.addNoteWrapper(startNode, type);
                             }
                         }
                         if (entry.getContent() === undefined) {

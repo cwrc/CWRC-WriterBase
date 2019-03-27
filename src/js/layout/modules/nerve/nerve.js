@@ -182,6 +182,8 @@ function Nerve(config) {
         nerveWrapper.run(document, optionsArray).then(function(resp) {
             var entities = processEncodedDocument(resp.result);
 
+            w.tagger.removeNoteWrappersForEntities();
+            
             var index = entities.length-1;
             while (index >= 0) {
                 var entry = entities[index];
@@ -191,6 +193,8 @@ function Nerve(config) {
                 }
                 index--;
             }
+
+            w.tagger.addNoteWrappersForEntities();
 
             renderEntitiesList(false);
 
@@ -654,7 +658,7 @@ function Nerve(config) {
         var range = selectRangeForEntity(entry);
         if (range !== null) {
             var parentEl = range.commonAncestorContainer.parentElement;
-            if (parentEl.getAttribute('_entity') === 'true') {
+            if (parentEl.getAttribute('_entity') === 'true' && range.textOffset === 0) {
                 console.log('nerve: entity already exists for',entry);
                 range.collapse();
                 return false;
