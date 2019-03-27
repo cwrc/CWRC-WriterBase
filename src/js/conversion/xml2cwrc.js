@@ -34,14 +34,16 @@ function XML2CWRC(writer) {
      * Processes a document and loads it into the editor.
      * @fires Writer#processingDocument
      * @fires Writer#documentLoaded
-     * @param doc An XML DOM
-     * @param [schemaIdOverride] The (optional) schemaId to use (overrides document schema)
+     * @param {Document} doc An XML DOM
+     * @param {Boolean} [convertEntities] Whether to convert entities, defaults to true
      */
-    xml2cwrc.processDocument = function(doc, schemaIdOverride) {
+    xml2cwrc.processDocument = function(doc, convertEntities) {
+        convertEntities = convertEntities === undefined ? true : convertEntities;
+
         // clear current doc
         $(w.editor.getBody()).empty();
 
-        var schemaId = schemaIdOverride;
+        var schemaId = undefined;
         var schemaUrl;
         var cssUrl;
         var loadSchemaCss = true; // whether to load schema css
@@ -104,7 +106,7 @@ function XML2CWRC(writer) {
                             });
                             w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
                                 if (success) {
-                                    doProcessing(doc);
+                                    doProcessing(doc, convertEntities);
                                 } else {
                                     doBasicProcessing(doc);
                                 }
@@ -127,13 +129,13 @@ function XML2CWRC(writer) {
                 }
                 w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
                     if (success) {
-                        doProcessing(doc);
+                        doProcessing(doc, convertEntities);
                     } else {
                         doBasicProcessing(doc);
                     }
                 });
             } else {
-                doProcessing(doc);
+                doProcessing(doc, convertEntities);
             }
         }
     };
@@ -167,7 +169,7 @@ function XML2CWRC(writer) {
         w.event('documentLoaded').publish(false, w.editor.getBody());
     }
 
-    function doProcessing(doc) {
+    function doProcessing(doc, convertEntities) {
         w.event('processingDocument').publish();
 
         // reset the stores
@@ -180,29 +182,34 @@ function XML2CWRC(writer) {
         xml2cwrc.isLegacyDocument = isLegacyDocument(doc);
 
         var hadRDF = processRDF(doc);
-        var typesToFind = undefined;
-        if (hadRDF) {
-            typesToFind = ['link', 'note'];
-        }
 
-        var potentialEntities = xml2cwrc.findEntities(doc, typesToFind);
+        if (convertEntities) {
+            var typesToFind = undefined;
+            if (hadRDF) {
+                typesToFind = ['link', 'note'];
+            }
 
-        if (potentialEntities.length > 0) {
-            w.dialogManager.confirm({
-                title: 'Entity Conversion',
-                msg: '<p>CWRC-Writer has found '+potentialEntities.length+' tags that are potential entities.</p>'+
-                '<p>Would you like to convert the tags to entities during the loading process?</p>',
-                type: 'info',
-                callback: function(doIt) {
-                    if (doIt) {
-                        autoConvertEntityTags(potentialEntities).then(function() {
+            var potentialEntities = xml2cwrc.findEntities(doc, typesToFind);
+
+            if (potentialEntities.length > 0) {
+                w.dialogManager.confirm({
+                    title: 'Entity Conversion',
+                    msg: '<p>CWRC-Writer has found '+potentialEntities.length+' tags that are potential entities.</p>'+
+                    '<p>Would you like to convert the tags to entities during the loading process?</p>',
+                    type: 'info',
+                    callback: function(doIt) {
+                        if (doIt) {
+                            autoConvertEntityTags(potentialEntities).then(function() {
+                                finishProcessing(doc);
+                            });
+                        } else {
                             finishProcessing(doc);
-                        });
-                    } else {
-                        finishProcessing(doc);
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                finishProcessing(doc);
+            }
         } else {
             finishProcessing(doc);
         }
@@ -873,10 +880,6 @@ function XML2CWRC(writer) {
             }
         }
     }
-
-    // Needs to be public, to be able to process documents after the schema changes.
-    // TODO is this still required???
-    xml2cwrc.doProcessing = doProcessing;
 
     return xml2cwrc;
 }

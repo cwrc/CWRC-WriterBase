@@ -464,7 +464,7 @@ function loadTEIDoc(writer) {
         </body>
     </text>
 </TEI>`;
-    writer.loadDocumentXML(teiDoc);
+    writer.loadDocumentXML(teiDoc, false);
 }
 
 

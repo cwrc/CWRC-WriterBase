@@ -26,15 +26,13 @@ function Converter(writer) {
         buildEditorString: xml2cwrc.buildEditorString,
         reservedAttributes: xml2cwrc.reservedAttributes,
 
-        doProcessing: xml2cwrc.doProcessing, // TODO is this still required?
-
         getDocumentContent: cwrc2xml.getDocumentContent,
         buildXMLString: cwrc2xml.buildXMLString
     };
 
     // convenience methods
     
-    converter.loadDocumentURL = function(docUrl) {
+    converter.loadDocumentURL = function(docUrl, convertEntities) {
         w.currentDocId = docUrl;
         w.event('loadingDocument').publish();
         $.ajax({
@@ -42,7 +40,7 @@ function Converter(writer) {
             type: 'GET',
             success: function(doc, status, xhr) {
                 window.location.hash = '';
-                converter.processDocument(doc);
+                converter.processDocument(doc, convertEntities);
             },
             error: function(xhr, status, error) {
                 w.currentDocId = null;
@@ -57,12 +55,12 @@ function Converter(writer) {
         });
     };
 
-    converter.loadDocumentXML = function(docXml) {
+    converter.loadDocumentXML = function(docXml, convertEntities) {
         w.event('loadingDocument').publish();
         if (typeof docXml === 'string') {
             docXml = w.utilities.stringToXML(docXml);
         }
-        converter.processDocument(docXml);
+        converter.processDocument(docXml, convertEntities);
     };
 
     converter.getDocument = function(asString) {
@@ -85,11 +83,11 @@ function Converter(writer) {
         }
     };
 
-    converter.setDocument = function(document) {
+    converter.setDocument = function(document, convertEntities) {
         if (typeof document === 'string' && document.indexOf('http') === 0) {
-            converter.loadDocumentURL(document);
+            converter.loadDocumentURL(document, convertEntities);
         } else {
-            converter.loadDocumentXML(document);
+            converter.loadDocumentXML(document, convertEntities);
         }
     };
     
