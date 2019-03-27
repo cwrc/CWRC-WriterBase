@@ -170,6 +170,7 @@ Entity.prototype = {
         return this.attributes;
     },
     setAttribute: function(name, value) {
+        // TODO should this update the view as well?
         this.attributes[name] = value;
     },
     setAttributes: function(attObj) {

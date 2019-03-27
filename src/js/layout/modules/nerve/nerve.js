@@ -9,6 +9,31 @@ var DialogForm = require('dialogForm');
 
 var NERVEWrapper = require('cwrc-nerve-wrapper');
 
+// nerve values to schema mappings
+// should this be moved to schema mappings files?
+var nerveAttributeMappings = {
+    tei: {
+        lemma: {
+            person: 'key',
+            org: 'key',
+            place: 'key',
+            title: 'key'
+        },
+        link: {
+            person: 'ref',
+            org: 'ref',
+            place: 'ref',
+            title: 'ref'
+        },
+        responsibility: {
+            person: 'resp',
+            org: 'resp',
+            place: 'resp',
+            title: 'resp'
+        }
+    }
+}
+
 /**
  * @class Nerve
  * @param {Object} config
@@ -229,6 +254,8 @@ function Nerve(config) {
         
         xmlString = xmlString.replace(/\uFEFF/g, '');
 
+        console.log(xmlString);
+
         return xmlString;
     }
 
@@ -277,7 +304,7 @@ function Nerve(config) {
                         textOffset: offset,
                         textLength: node.textContent.length,
                         lemma: node.getAttribute('data-lemma'),
-                        uri: node.getAttribute('data-link'),
+                        link: node.getAttribute('data-link'),
                         type: type
                     }
                     entities.push(entity);
@@ -485,7 +512,7 @@ function Nerve(config) {
                 '</div>'+
                 '<div class="info">'+
                     '<ul>'+
-                        '<li><strong>URI</strong>: <a href="'+entry.uri+'" target="_blank" rel="noopener">'+entry.uri+'</a></li>'+
+                        '<li><strong>URI</strong>: <a href="'+entry.link+'" target="_blank" rel="noopener">'+entry.link+'</a></li>'+
                     '</ul>'+
                 '</div>'+
             '</div>'+
@@ -499,9 +526,9 @@ function Nerve(config) {
         if (lemma !== undefined) {
             html += '<li><strong>Standard</strong>: '+lemma+'</li>';
         }
-        var uri = entity.getCustomValue('uri')
-        if (uri !== undefined) {
-            html += '<li><strong>URI</strong>: <a href="'+uri+'" target="_blank" rel="noopener">'+uri+'</a></li>';
+        var link = entity.getCustomValue('link')
+        if (link !== undefined) {
+            html += '<li><strong>URI</strong>: <a href="'+link+'" target="_blank" rel="noopener">'+link+'</a></li>';
         }
         html += '</ul>';
         return html;
@@ -561,6 +588,7 @@ function Nerve(config) {
     var selectRangeForEntity = function(entry) {
         var parent = w.utilities.evaluateXPath(w.editor.getDoc(), entry.xpath);
         if (parent === null) {
+            console.warn('nerve: could not get parent for "',entry.lemma,'" at:',entry.xpath);
             return null;
         }
 
@@ -597,6 +625,31 @@ function Nerve(config) {
         }
     }
 
+    var getAttributeForNerveValue = function(valueName, entityType) {
+        var schemaId = w.schemaManager.schemaId;
+        var mappings = nerveAttributeMappings[schemaId];
+        if (mappings === undefined) {
+            console.warn('nerve: no attribute mappings for',schemaId);
+            return undefined;
+        } else {
+            return mappings[valueName][entityType];
+        }
+    }
+
+    var mapCustomValuesToAttributes = function(entity) {
+        var type = entity.getType();
+        var lemma = entity.getCustomValue('lemma');
+        var link = entity.getCustomValue('link');
+        var lemmaAttributeName = getAttributeForNerveValue('lemma', type);
+        if (lemma && lemmaAttributeName) {
+            entity.setAttribute(lemmaAttributeName, lemma);
+        }
+        var linkAttributeName = getAttributeForNerveValue('link', type);
+        if (link && linkAttributeName) {
+            entity.setAttribute(linkAttributeName, link);
+        }
+    }
+
     var addEntity = function(entry) {
         var range = selectRangeForEntity(entry);
         if (range !== null) {
@@ -611,7 +664,7 @@ function Nerve(config) {
                 type: entry.type,
                 content: entry.text,
                 attributes: {
-                    nerve: 'nerve'
+                    _nerve: 'true'
                 },
                 customValues: {
                     nerve: 'true'
@@ -620,14 +673,17 @@ function Nerve(config) {
             if (entry.lemma !== '') {
                 entityConfig.customValues.lemma = entry.lemma;
             }
-            if (entry.uri !== '') {
-                entityConfig.customValues.uri = entry.uri;
+            if (entry.link !== '') {
+                entityConfig.customValues.link = entry.link;
             }
             var entity = w.entitiesManager.addEntity(entityConfig);
+            mapCustomValuesToAttributes(entity);
 
             entry.id = entity.id;
 
             w.tagger.addEntityTag(entity, range);
+            $('#'+entity.id, w.editor.getBody()).attr('_nerve', 'true');
+
             range.collapse();
             return true;
         }
@@ -636,9 +692,12 @@ function Nerve(config) {
 
     var acceptEntity = function(entityId) {
         var entity = w.entitiesManager.getEntity(entityId);
+        mapCustomValuesToAttributes(entity);
         entity.removeCustomValue('nerve');
-        entity.removeAttribute('nerve');
-        $('#'+entityId, w.editor.getBody()).removeAttr('nerve');
+        entity.removeCustomValue('lemma');
+        entity.removeCustomValue('link');
+        entity.removeAttribute('_nerve');
+        $('#'+entityId, w.editor.getBody()).removeAttr('_nerve');
         removeEntityFromView(entityId);
     }
 
@@ -648,7 +707,7 @@ function Nerve(config) {
         getNerveEntities().forEach(function(ent) {
             if (ent.getContent() === match.getContent() &&
                 ent.getCustomValue('lemma') === match.getCustomValue('lemma') &&
-                ent.getCustomValue('uri') == match.getCustomValue('uri')) {
+                ent.getCustomValue('link') == match.getCustomValue('link')) {
                     matches.push(ent.getId());
                 }
         });
@@ -688,6 +747,7 @@ function Nerve(config) {
             editDialog.$el.dialog('option', 'modal', false); // TODO modal dialog interferes with typing in lookups input
             editDialog.$el.on('save', function(e, dialog) {
                 var entity = w.entitiesManager.getEntity(dialog.currentId);
+                mapCustomValuesToAttributes(entity);
                 updateEntityView(entity, true);
             });
         }
@@ -707,10 +767,10 @@ function Nerve(config) {
     var mergeEntities = function(id) {
         if (mergeDialog === null) {
             mergeDialog = new MergeDialog(w, $parent);
-            mergeDialog.$el.on('merge', function(e, entities, mergeEntry, lemma, uri) {
+            mergeDialog.$el.on('merge', function(e, entities, mergeEntry, lemma, link) {
                 if (mergeEntry != null) {
                     mergeEntry.lemma = lemma;
-                    mergeEntry.uri = uri;
+                    mergeEntry.link = link;
                 } else {
                     var ids = entities.map(function(ent) {
                         return ent.getId();
@@ -720,7 +780,7 @@ function Nerve(config) {
                         entityIds: ids,
                         type: entities[0].getType(),
                         lemma: lemma,
-                        uri: uri
+                        link: link
                     };
             
                     $parent.find('.mergeActions').hide();
@@ -769,7 +829,7 @@ function Nerve(config) {
         entry.entityIds.forEach(function(entId) {
             var entity = w.entitiesManager.getEntity(entId);
             entity.setCustomValue('lemma', entry.lemma);
-            entity.setCustomValue('uri', entry.uri);
+            entity.setCustomValue('link', entry.link);
             acceptEntity(entId);
         });
         delete mergedEntities[mergeId];
@@ -795,6 +855,8 @@ function Nerve(config) {
         $(w.editor.getBody()).removeClass('nerve');
         w.editor.setMode('design');
         nrv.reset();
+
+        w.event('contentChanged').publish();
     }
 
 
@@ -880,7 +942,7 @@ function NerveEditDialog(writer, parentEl) {
         '</div>'+
         '<div>'+
             '<label>URI:</label>'+
-            '<input type="text" data-type="textbox" data-mapping="custom.uri" style="margin-right: 5px;" />'+
+            '<input type="text" data-type="textbox" data-mapping="custom.link" style="margin-right: 5px;" />'+
             '<button title="Entity lookup" data-action="lookup"></button>'+
         '</div>'+
     '</div>').appendTo(parentEl);
@@ -899,7 +961,7 @@ function NerveEditDialog(writer, parentEl) {
         var type = $el.find('select').val();
         doLookup(w, entity.content, type, function(result) {
             $el.find('input[data-mapping="custom.lemma"]').val(result.name);
-            $el.find('input[data-mapping="custom.uri"]').val(result.uri);
+            $el.find('input[data-mapping="custom.link"]').val(result.uri);
         });
     });
 
@@ -935,13 +997,13 @@ function MergeDialog(writer, parentEl) {
                 '<input name="otherLemma" type="text" />'+
             '</div>'+
         '</div><div>'+
-            '<div class="uri">'+
+            '<div class="link">'+
                 '<label>URI:</label>'+
-                '<select name="uri"></select>'+
+                '<select name="link"></select>'+
             '</div>'+
             '<div style="margin-top: 5px;">'+
                 '<label>Other URI:</label>'+
-                '<input name="otherUri" type="text" style="margin-right: 5px;"/>'+
+                '<input name="otherLink" type="text" style="margin-right: 5px;"/>'+
                 '<button title="Entity lookup" data-action="lookup"></button>'+
             '</div>'+
         '</div>'+
@@ -960,14 +1022,14 @@ function MergeDialog(writer, parentEl) {
             text: 'Merge',
             click: function() {
                 var lemma = $el.find('select[name=lemma]').val();
-                var uri = $el.find('select[name=uri]').val();
+                var link = $el.find('select[name=link]').val();
                 if (lemma === OTHER_OPTION) {
                     lemma = $el.find('input[name=otherLemma]').val();
                 }
-                if (uri === OTHER_OPTION) {
-                    uri = $el.find('input[name=otherUri]').val();
+                if (link === OTHER_OPTION) {
+                    link = $el.find('input[name=otherLink]').val();
                 }
-                $el.trigger('merge', [currEntities, currEntry, lemma, uri]);
+                $el.trigger('merge', [currEntities, currEntry, lemma, link]);
                 $el.dialog('close');
             }
         },{
@@ -983,7 +1045,7 @@ function MergeDialog(writer, parentEl) {
         var query = currEntities[0].getContent();
         var type = currEntities[0].getType();
         doLookup(w, query, type, function(result) {
-            $el.find('input[name=otherUri]').val(result.uri);
+            $el.find('input[name=otherLink]').val(result.uri);
         });
     });
 
@@ -996,7 +1058,7 @@ function MergeDialog(writer, parentEl) {
         });
 
         $el.find('input[name=otherLemma]').val('').parent().hide();
-        $el.find('input[name=otherUri]').val('').parent().hide();
+        $el.find('input[name=otherLink]').val('').parent().hide();
     }
 
     var populate = function(entities, entry) {
@@ -1005,7 +1067,7 @@ function MergeDialog(writer, parentEl) {
 
         var selections = '';
         var lemmas = [];
-        var uris = [];
+        var links = [];
 
         entities.forEach(function(ent, index) {
             selections += '<li>'+ent.getContent()+'</li>';
@@ -1013,9 +1075,9 @@ function MergeDialog(writer, parentEl) {
             if (lemma !== undefined && lemmas.indexOf(lemma) === -1) {
                 lemmas.push(lemma);
             }
-            var uri = ent.getCustomValue('uri');
-            if (uri !== undefined && uris.indexOf('uri') === -1) {
-                uris.push(uri);
+            var link = ent.getCustomValue('link');
+            if (link !== undefined && links.indexOf('link') === -1) {
+                links.push(link);
             }
         });
 
@@ -1029,17 +1091,17 @@ function MergeDialog(writer, parentEl) {
         });
         lemmaString += '<option value="'+OTHER_OPTION+'">Other (specify)</option>';
 
-        var otherUri = uris.length === 0;
-        var uriString = '';
-        uris.forEach(function(uri) {
-            uriString += '<option value="'+uri+'">'+uri+'</option>';
-            if (entry !== undefined && entry.uri !== uri) {
-                otherUri = true;
+        var otherLink = links.length === 0;
+        var linkString = '';
+        links.forEach(function(link) {
+            linkString += '<option value="'+link+'">'+link+'</option>';
+            if (entry !== undefined && entry.link !== link) {
+                otherLink = true;
             }
         })
-        uriString += '<option value="'+OTHER_OPTION+'">Other (lookup)</option>';
-        if (uris.length === 0) {
-            $el.find('input[name=otherUri]').parent().show();
+        linkString += '<option value="'+OTHER_OPTION+'">Other (lookup)</option>';
+        if (links.length === 0) {
+            $el.find('input[name=otherLink]').parent().show();
         }
         
         $el.find('ul').html(selections);
@@ -1054,12 +1116,12 @@ function MergeDialog(writer, parentEl) {
             }
         });
         
-        $el.find('select[name=uri]').html(uriString).selectmenu({
+        $el.find('select[name=link]').html(linkString).selectmenu({
             select: function(e, ui) {
                 if (ui.item.value === OTHER_OPTION) {
-                    $el.find('input[name=otherUri]').parent().show();
+                    $el.find('input[name=otherLink]').parent().show();
                 } else {
-                    $el.find('input[name=otherUri]').parent().hide();
+                    $el.find('input[name=otherLink]').parent().hide();
                 }
             }
         });
@@ -1071,11 +1133,11 @@ function MergeDialog(writer, parentEl) {
             } else {
                 $el.find('select[name=lemma]').val(entry.lemma);
             }
-            if (otherUri) {
-                $el.find('select[name=uri]').val(OTHER_OPTION).selectmenu('refresh');
-                $el.find('input[name=otherUri]').val(entry.uri).parent().show();
+            if (otherLink) {
+                $el.find('select[name=link]').val(OTHER_OPTION).selectmenu('refresh');
+                $el.find('input[name=otherLink]').val(entry.link).parent().show();
             } else {
-                $el.find('select[name=uri]').val(entry.uri);
+                $el.find('select[name=link]').val(entry.link);
             }
         }
     }
