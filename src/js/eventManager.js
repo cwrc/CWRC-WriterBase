@@ -120,7 +120,11 @@ function EventManager(writer) {
      */
     w.event('savingDocument');
 
-    
+    /**
+     * A schema is being fetched from a source
+     * @event Writer#loadingSchema
+     */
+    w.event('loadingSchema');
     /**
      * A schema was loaded into the editor
      * @event Writer#schemaLoaded

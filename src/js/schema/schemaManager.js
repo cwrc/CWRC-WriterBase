@@ -203,6 +203,7 @@ function SchemaManager(writer, config) {
 
     /**
      * Load a new schema.
+     * @fires Writer#loadingSchema
      * @fires Writer#schemaLoaded
      * @param {String} schemaId The ID of the schema to load (from the config)
      * @param {Boolean} startText Whether to include the default starting text
@@ -212,6 +213,8 @@ function SchemaManager(writer, config) {
     sm.loadSchema = function(schemaId, startText, loadCss, callback) {
         var schemaEntry = sm.schemas[schemaId];
         if (schemaEntry !== undefined) {
+            w.event('loadingSchema').publish();
+
             sm.schemaId = schemaId;
             var schemaUrl = schemaEntry.url;
             if (schemaEntry.altUrl !== undefined) {
