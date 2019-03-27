@@ -145,16 +145,20 @@ TinymceWrapper.init = function(config) {
                 if (settings.showTags) body.addClass('showTags');
 
                 // highlight tracking
-                body.on('keydown', _onKeyDownHandler).on('keyup', _onKeyUpHandler);
+                body.on('keydown', onKeyDownHandler).on('keyup', onKeyUpHandler);
                 // attach mouseUp to doc because body doesn't always extend to full height of editor panel
-                $(ed.iframeElement.contentDocument).on('mouseup', _onMouseUpHandler);
+                $(ed.iframeElement.contentDocument).on('mouseup', onMouseUpHandler);
 
                 w.event('tinymceInitialized').publish(w);
             });
-            ed.on('Change', _onChangeHandler);
-            ed.on('Undo Redo', _onChangeHandler);
-            ed.on('NodeChange', _onNodeChangeHandler);
-            ed.on('copy', _onCopyHandler);
+            ed.on('Change', onChangeHandler);
+            ed.on('Undo', onUndoHandler);
+            ed.on('Redo', onRedoHandler);
+            ed.on('BeforeAddUndo', function(e) {
+                console.log('before add undo')
+            });
+            ed.on('NodeChange', onNodeChangeHandler);
+            ed.on('copy', onCopyHandler);
 
             function addButtonToEditor(buttonId, settings) {
                 // adjust the location of the tooltip
@@ -324,13 +328,37 @@ TinymceWrapper.init = function(config) {
     });
 
     $(document.body).mousedown(function(e) {
-        _hideContextMenus(e);
+        hideContextMenus(e);
+    });
+
+    // writer listeners
+
+    w.event('contentChanged').subscribe(function() {
+        console.log('contentChanged');
+    });
+
+    w.event('documentLoaded').subscribe(function() {
+        w.editor.undoManager.clear();
+        w.editor.isNotDirty = true;
+    });
+    w.event('documentSaved').subscribe(function() {
+        w.editor.isNotDirty = true;
+    });
+
+    w.event('entityAdded').subscribe(function() {
+        w.editor.isNotDirty = false;
+    });
+    w.event('entityRemoved').subscribe(function() {
+        w.editor.isNotDirty = false;
+    });
+    w.event('entityEdited').subscribe(function() {
+        w.editor.isNotDirty = false;
     });
 
 
     // tinymce handlers
 
-    function _fireNodeChange(nodeEl) {
+    function fireNodeChange(nodeEl) {
         // fire the onNodeChange event
         var parents = [];
         w.editor.dom.getParent(nodeEl, function(n) {
@@ -342,13 +370,21 @@ TinymceWrapper.init = function(config) {
         w.editor.fire('NodeChange', { element: nodeEl, parents: parents });
     };
 
-    function _onMouseUpHandler(evt) {
-        _hideContextMenus(evt);
-        _doHighlightCheck(w.editor, evt);
+    function onMouseUpHandler(evt) {
+        hideContextMenus(evt);
+        doHighlightCheck(w.editor, evt);
         w.event('selectionChanged').publish();
     };
 
-    function _onKeyDownHandler(evt) {
+    function onUndoHandler(event) {
+        console.log('undoHandler', event);
+    };
+
+    function onRedoHandler(event) {
+        console.log('redoHandler', event);
+    };
+
+    function onKeyDownHandler(evt) {
         w.editor.lastKeyPress = evt.which; // store the last key press
         if (w.isReadOnly) {
             if ((tinymce.isMac ? evt.metaKey : evt.ctrlKey) && evt.which == 70) {
@@ -358,22 +394,14 @@ TinymceWrapper.init = function(config) {
             evt.preventDefault();
             return;
         }
-        // TODO move to keyup
-        // redo/undo listener
-        if ((tinymce.isMac ? evt.metaKey : evt.ctrlKey) && (evt.which == 89 || evt.which == 90)) {
-            var doUpdate = w.tagger.findNewAndDeletedTags();
-            if (doUpdate) {
-                w.event('contentChanged').publish(w.editor);
-            }
-        }
 
         w.event('writerKeydown').publish(evt);
     };
 
-    function _onKeyUpHandler(evt) {
+    function onKeyUpHandler(evt) {
         // nav keys and backspace check
         if (evt.which >= 33 || evt.which <= 40 || evt.which == 8) {
-            _doHighlightCheck(w.editor, evt);
+            doHighlightCheck(w.editor, evt);
         }
 
         // update current entity
@@ -414,7 +442,7 @@ TinymceWrapper.init = function(config) {
                         w.editor.selection.setRng(rng);
 
                         window.setTimeout(function() {
-                            _fireNodeChange(newCurrentNode);
+                            fireNodeChange(newCurrentNode);
                         }, 0);
                     }
                 }
@@ -468,18 +496,12 @@ TinymceWrapper.init = function(config) {
         w.event('writerKeyup').publish(evt);
     };
 
-    function _onChangeHandler(event) {
-        if (w.editor.isDirty()) {
-            $('br', w.editor.getBody()).remove();
-
-            var doUpdate = w.tagger.findNewAndDeletedTags();
-            if (doUpdate) {
-                w.event('contentChanged').publish(w.editor);
-            }
-        }
+    function onChangeHandler(event) {
+        $('br', w.editor.getBody()).remove(); // remove br tags that get added by shift+enter
+        // w.event('contentChanged').publish();
     };
 
-    function _onNodeChangeHandler(e) {
+    function onNodeChangeHandler(e) {
         var el = e.element;
         if (el.nodeType != 1) {
             w.editor.currentNode = w.utilities.getRootTag()[0];
@@ -528,7 +550,7 @@ TinymceWrapper.init = function(config) {
 
                 // use setTimeout to add to the end of the onNodeChange stack
                 window.setTimeout(function() {
-                    _fireNodeChange(el);
+                    fireNodeChange(el);
                 }, 0);
             } else {
                 w.editor.currentNode = el;
@@ -540,7 +562,7 @@ TinymceWrapper.init = function(config) {
         w.event('nodeChanged').publish(w.editor.currentNode);
     };
 
-    function _onCopyHandler(event) {
+    function onCopyHandler(event) {
         if (w.editor.copiedElement.element != null) {
             $(w.editor.copiedElement.element).remove();
             w.editor.copiedElement.element = null;
@@ -549,7 +571,7 @@ TinymceWrapper.init = function(config) {
         w.event('contentCopied').publish();
     };
 
-    function _hideContextMenus(evt) {
+    function hideContextMenus(evt) {
         var target = $(evt.target);
         // hide structure tree menu
         // TODO move to structure tree
@@ -559,7 +581,7 @@ TinymceWrapper.init = function(config) {
 
     };
 
-    function _doHighlightCheck(evt) {
+    function doHighlightCheck(evt) {
         var range = w.editor.selection.getRng(true);
 
         // check if inside boundary tag

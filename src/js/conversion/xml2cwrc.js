@@ -157,8 +157,6 @@ function XML2CWRC(writer) {
 
         w.entitiesManager.reset();
         w.triples = [];
-        w.deletedEntities = {};
-        w.deletedStructs = {};
         
         $(doc).find('rdf\\:RDF, RDF').remove();
         var root = doc.documentElement;
@@ -174,8 +172,6 @@ function XML2CWRC(writer) {
         // reset the stores
         w.entitiesManager.reset();
         w.triples = [];
-        w.deletedEntities = {};
-        w.deletedStructs = {};
 
         xml2cwrc.isLegacyDocument = isLegacyDocument(doc);
 
@@ -208,7 +204,6 @@ function XML2CWRC(writer) {
         }
         
         function finishProcessing(doc) {
-            console.log('finishProcessing');
             buildDocumentAndInsertEntities(doc).then(function() {
                 w.event('documentLoaded').publish(true, w.editor.getBody());
                 showMessage(doc);

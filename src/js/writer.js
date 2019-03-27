@@ -290,16 +290,11 @@ function CWRCWriter(config) {
     w.eventManager = new EventManager(w);
 
     w.event('documentLoaded').subscribe(function(success) {
-        w.editor.undoManager.clear();
-        w.editor.isNotDirty = true;
         if (success) {
             w.isDocLoaded = true;
         } else {
             w.isDocLoaded = false;
         }
-    });
-    w.event('documentSaved').subscribe(function() {
-        w.editor.isNotDirty = true;
     });
 
     w.event('tinymceInitialized').subscribe(function() {
@@ -313,7 +308,7 @@ function CWRCWriter(config) {
             w.layoutManager.$outerLayout.resizeAll();
             if (w.layoutManager.$outerLayout.options.onresizeall_end !== null) {
                  // onresizeall_end doesn't get called if $outerLayout height is zero, so keep on trying
-                console.warn('trying resize');
+                console.warn('retrying resize');
                 setTimeout(doResize, 100);
             }
         }

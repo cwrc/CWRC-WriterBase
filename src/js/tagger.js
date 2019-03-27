@@ -15,21 +15,6 @@ function Tagger(writer) {
      */
     var tagger = {};
     
-    // prevents the user from moving the caret inside a marker
-    var _doMarkerClick = function(e) {
-        var marker = w.editor.dom.get(e.target);
-        var range = w.editor.selection.getRng(true);
-        if (w.editor.dom.hasClass(marker, 'start')) {
-            range.setStartAfter(marker);
-            range.setEndAfter(marker);
-        } else {
-            range.setStartBefore(marker);
-            range.setEndBefore(marker);
-        }
-        w.editor.selection.setRng(range);
-        w.entitiesManager.highlightEntity(marker.getAttribute('name'), w.editor.selection.getBookmark());
-    };
-    
     /**
      * Get the entity boundary tag (and potential inbetween tags) that corresponds to the passed tag.
      * @param {element} tag
@@ -78,47 +63,6 @@ function Tagger(writer) {
         }
         
         return $(nodes);
-    };
-    
-    /**
-     * Looks for tags that have been added or deleted and updates the entity and struct lists.
-     * Returns true if a new tag is found.
-     * // TODO this is hugely expensive on large documents
-     * @returns {Boolean}
-     */
-    tagger.findNewAndDeletedTags = function() {
-        var updateRequired = false;
-        
-        /*
-        console.time('newEntities');
-        // new entities (from undo/redo)
-        $('[_entity][class~=start]', w.editor.getBody()).each(function(index, el) {
-            var entityId = $(el).attr('name');
-            var deleted = w.deletedEntities[entityId];
-            if (deleted != null) {
-                updateRequired = true;
-                w.entitiesManager.setEntity(entityId, deleted);
-                delete w.deletedEntities[entityId];
-            } else {
-                // TODO
-            }
-        });
-        console.timeEnd('newEntities');
-        
-        console.time('deletedEntities');
-        // deleted entities
-        w.entitiesManager.eachEntity(function(id, entity) {
-            var nodes = w.editor.dom.select('[name="'+id+'"]');
-            if (nodes.length === 0) {
-                updateRequired = true;
-                w.deletedEntities[id] = w.entitiesManager.getEntity(id);
-                w.entitiesManager.removeEntity(id);
-            }
-        });
-        console.timeEnd('deletedEntities');
-        */
-
-        return updateRequired;
     };
 
     /**
@@ -395,13 +339,12 @@ function Tagger(writer) {
 
             tagger.processPastedContent(element);
             
-            w.editor.isNotDirty = false;
             w.event('contentChanged').publish(); // don't use contentPasted since we don't want to trigger copyPaste dialog
         }
     }
 
     /**
-     * Looks for duplicate tags (from copy paste operations) and creates new entity/struct entries.
+     * Handling for duplicated tags in pasted content.
      */
     tagger.processPastedContent = function(domContent) {
         var processNewNodes = function(currNode) {
@@ -696,7 +639,6 @@ function Tagger(writer) {
      */
     tagger.editEntity = function(id, info) {
         updateEntityInfo(w.entitiesManager.getEntity(id), info);
-        w.editor.isNotDirty = false;
         w.event('entityEdited').publish(id);
     };
     
@@ -1016,16 +958,22 @@ function Tagger(writer) {
         var entry = w.entitiesManager.getEntity(id);
         if (removeContents) {
             if (entry && entry.isNote()) {
+                tagger.processRemovedContent(tag.parent('.noteWrapper')[0]);
                 tag.parent('.noteWrapper').remove();
             } else {
+                tagger.processRemovedContent(tag[0]);
                 tag.remove();
             }
         } else {
             var parent = tag.parent();
             var contents = tag.contents();
             if (contents.length > 0) {
+                contents.each(function(i, el) {
+                    tagger.processRemovedContent(el);
+                });
                 contents.unwrap();
             } else {
+                tagger.processRemovedContent(tag[0]);
                 tag.remove();
             }
             if (entry && entry.isNote()) {
@@ -1052,15 +1000,38 @@ function Tagger(writer) {
     // TODO refactor this with removeStructureTag
     tagger.removeStructureTagContents = function(id) {
         var tag = tagger.getCurrentTag(id);
-        tag.contents().remove();
+        tag.contents().each(function(i, el) {
+            tagger.processRemovedContent(el);
+        }).remove();
         
         w.editor.undoManager.add();
         
         w.event('tagContentsRemoved').publish(id);
     };
-    
-    w.event('tagRemoved').subscribe(tagger.findNewAndDeletedTags);
-    w.event('tagContentsRemoved').subscribe(tagger.findNewAndDeletedTags);
+
+    /**
+     * Look for removed entities
+     */
+    tagger.processRemovedContent = function(domContent) {
+        var processRemovedNodes = function(currNode) {
+            if (currNode.nodeType === Node.ELEMENT_NODE) {
+                if (currNode.hasAttribute('_tag') && currNode.hasAttribute('_entity')) {
+                    var id = currNode.getAttribute('name');
+                    console.log('entity will be removed', id);
+                    w.entitiesManager.removeEntity(id);
+                }
+            }
+            for (var i = 0; i < currNode.childNodes.length; i++) {
+                processRemovedNodes(currNode.childNodes[i]);
+            }
+        }
+
+        if (domContent.commonAncestorContainer !== undefined) {
+            // range
+        } else {
+            processRemovedNodes(domContent);
+        }
+    }
     
     return tagger;
 };

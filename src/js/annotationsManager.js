@@ -738,7 +738,6 @@ AnnotationsManager.prototype = {
         isLegacyDocument = isLegacyDocument === undefined ? false : isLegacyDocument;
 
         this.w.entitiesManager.reset();
-        this.w.deletedEntities = {};
         
         var rdfs = $(rdfEl);
         

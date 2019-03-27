@@ -463,7 +463,7 @@ function StructureTree(config) {
         if (isCopy) {
             w.tagger.processPastedContent(dragNodeEditor[0]);
         }
-        w.event('contentChanged').publish(w.editor);
+        w.event('contentChanged').publish();
     }
     
     function _removeCustomClasses() {
