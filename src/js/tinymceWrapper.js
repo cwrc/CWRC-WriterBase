@@ -155,7 +155,7 @@ TinymceWrapper.init = function(config) {
             ed.on('Undo', onUndoHandler);
             ed.on('Redo', onRedoHandler);
             ed.on('BeforeAddUndo', function(e) {
-                console.log('before add undo')
+                // console.log('before add undo')
             });
             ed.on('NodeChange', onNodeChangeHandler);
             ed.on('copy', onCopyHandler);
@@ -378,10 +378,12 @@ TinymceWrapper.init = function(config) {
 
     function onUndoHandler(event) {
         console.log('undoHandler', event);
+        w.event('contentChanged').publish();
     };
 
     function onRedoHandler(event) {
         console.log('redoHandler', event);
+        w.event('contentChanged').publish();
     };
 
     function onKeyDownHandler(evt) {
