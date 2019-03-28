@@ -142,13 +142,12 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
         // enable/disable items based on current editor state
         
         var currentTag = editor.writer.tagger.getCurrentTag(e.target.getAttribute('id'));
+        var isEntity = currentTag.attr('_entity');
+        var tagName = currentTag.attr('_tag');
         
         var canConvert = false;
-        if (currentTag.struct != null) {
-            var tagName = currentTag.struct.attr('_tag');
-            if (tagName) {
-                canConvert = editor.writer.utilities.isTagEntity(tagName);
-            }
+        if (!isEntity && tagName) {
+            canConvert = editor.writer.utilities.isTagEntity(tagName);
         }
         
         var isSchemaCustom = editor.writer.schemaManager.isSchemaCustom();
@@ -165,16 +164,16 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
                 if (item.settings.category === 'convertEntity' && canConvert === false) {
                     item.hide();
                 }
-                if (item.settings.category === 'modifyStruct' && currentTag.struct === null) {
+                if (item.settings.category === 'modifyStruct' && isEntity) {
                     item.hide();
                 }
-                if (item.settings.category === 'modifyTag' && currentTag.entity === null && currentTag.struct === null) {
+                if (item.settings.category === 'modifyTag' && tagName === undefined) {
                     item.hide();
                 }
-                if (item.settings.category === 'editTag' && currentTag.struct === null) {
+                if (item.settings.category === 'editTag' && isEntity) {
                     item.hide();
                 }
-                if (item.settings.category === 'editEntity' && currentTag.entity === null) {
+                if (item.settings.category === 'editEntity' && !isEntity) {
                     item.hide();
                 }
                 if (item.settings.category === 'pasteTag' && editor.copiedElement.element === null) {
@@ -183,10 +182,10 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
                 if (item.settings.category === 'pasteEntity' && editor.copiedEntity === null) {
                     item.hide();
                 }
-                if (item.settings.category === 'copyTag' && currentTag.struct === null) {
+                if (item.settings.category === 'copyTag' && isEntity) {
                     item.hide();
                 }
-                if (item.settings.category === 'copyEntity' && currentTag.entity === null) {
+                if (item.settings.category === 'copyEntity' && !isEntity) {
                     item.hide();
                 }
             }
@@ -315,8 +314,7 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
         image: editor.writer.cwrcRootUrl+'img/tag_blue_edit.png',
         category: 'convertEntity',
         onclick : function() {
-            var currentTag = editor.writer.tagger.getCurrentTag();
-            editor.writer.tagger.convertTagToEntity(currentTag.struct);
+            editor.writer.tagger.convertTagToEntity(editor.writer.tagger.getCurrentTag());
         }
     },{
         text: 'Edit Tag',
@@ -388,7 +386,7 @@ tinymce.PluginManager.add('cwrc_contextmenu', function(editor) {
         image: editor.writer.cwrcRootUrl+'img/tag_blue_delete.png',
         category: 'modifyTag',
         onclick : function() {
-            editor.writer.tagger.removeStructureTag(null, t);
+            editor.writer.tagger.removeStructureTag(null, true);
         }
     }];
 });

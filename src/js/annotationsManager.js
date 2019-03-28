@@ -508,7 +508,7 @@ AnnotationsManager.prototype = {
             // FIXME cwrcAttributes
             $.extend(propObj, typeInfo);
 
-            newEntity.id = this.w.getUniqueId('ent_');
+            newEntity.id = this.w.getUniqueId('dom_');
             newEntity.type = entityType;
             newEntity.attributes = json.cwrcAttributes;
             newEntity.customValues = propObj;
@@ -663,7 +663,7 @@ AnnotationsManager.prototype = {
                 // FIXME cwrcAttributes
                 $.extend(propObj, typeInfo);
 
-                newEntity.id = this.w.getUniqueId('ent_');
+                newEntity.id = this.w.getUniqueId('dom_');
                 newEntity.type = entityType;
                 newEntity.attributes = cwrcAttributes;
                 newEntity.customValues = propObj;
@@ -738,7 +738,6 @@ AnnotationsManager.prototype = {
         isLegacyDocument = isLegacyDocument === undefined ? false : isLegacyDocument;
 
         this.w.entitiesManager.reset();
-        this.w.deletedEntities = {};
         
         var rdfs = $(rdfEl);
         

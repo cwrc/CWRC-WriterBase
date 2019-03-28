@@ -67,16 +67,16 @@ function SchemaTags(writer, parentEl) {
     
     
     var buildForm = function(tagName, tagPath) {
-        var structsEntry = {};
+        var attributes = {};
         if (mode === EDIT) {
-            structsEntry = w.structs[$(tag).attr('id')];
+            attributes = w.tagger.getAttributesForTag(tag[0]);
             attributesWidget.mode = AttributeWidget.EDIT;
         } else {
             attributesWidget.mode = AttributeWidget.ADD;
         }
         
         var atts = w.utilities.getChildrenForTag({tag: tagName, path: tagPath, type: 'attribute', returnType: 'array'});
-        attributesWidget.buildWidget(atts, structsEntry, tagName);
+        attributesWidget.buildWidget(atts, attributes, tagName);
     };
     
     var formResult = function() {
@@ -85,8 +85,6 @@ function SchemaTags(writer, parentEl) {
         if (attributes === undefined) {
             attributes = {}; // let form submit even if invalid (for now)
         }
-        
-        attributes._tag = currentTagName;
         
         $schemaDialog.dialog('close');
         // check if beforeClose cancelled or not
@@ -102,11 +100,11 @@ function SchemaTags(writer, parentEl) {
                     if (w.editor.currentBookmark.tagId == null) {
                         w.editor.currentBookmark.tagId = tagId;
                     }
-                    w.tagger.addStructureTag({bookmark: w.editor.currentBookmark, attributes: attributes, action: action});
+                    w.tagger.addStructureTag(currentTagName, attributes, w.editor.currentBookmark, action);
                     tagId = null;
                     break;
                 case EDIT:
-                    w.tagger.editStructureTag(tag, attributes);
+                    w.tagger.editStructureTag(tag, attributes, currentTagName);
                     tag = null;
             }
         }
@@ -204,6 +202,10 @@ function SchemaTags(writer, parentEl) {
         
         editSchemaTag: function($tag) {
             var tagName = $tag.attr('_tag');
+            if (tagName === undefined) {
+                console.warn('schemaTags: no tag name for',$tag);
+                return;
+            }
             if (tagName == w.schemaManager.getHeader()) {
                 w.dialogManager.show('header');
                 return;

@@ -94,7 +94,9 @@ test('writer constructor', (t)=>{
     writer.event('writerInitialized').subscribe(handler);
 })
 
+// TODO rework tests
 
+/*
 test('writer.loadDocumentXML', (t)=> {
     t.plan(1);
     
@@ -402,6 +404,7 @@ test('imageViewer', (t)=> {
     
     loadTEIDoc(writer);
 });
+*/
 
 function loadTEIDoc(writer) {
     var teiDoc = `<?xml version="1.0" encoding="UTF-8"?>

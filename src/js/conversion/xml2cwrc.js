@@ -23,9 +23,11 @@ function XML2CWRC(writer) {
         '_textallowed': true,
         '_note': true,
         '_nerve': true,
+        '_attributes': true,
         'id': true,
         'name': true,
-        'class': true
+        'class': true,
+        'style': true
     };
 
     // tracks whether we're processing a legacy document
@@ -157,10 +159,7 @@ function XML2CWRC(writer) {
         w.event('processingDocument').publish();
 
         w.entitiesManager.reset();
-        w.structs = {};
         w.triples = [];
-        w.deletedEntities = {};
-        w.deletedStructs = {};
         
         $(doc).find('rdf\\:RDF, RDF').remove();
         var root = doc.documentElement;
@@ -175,10 +174,7 @@ function XML2CWRC(writer) {
 
         // reset the stores
         w.entitiesManager.reset();
-        w.structs = {};
         w.triples = [];
-        w.deletedEntities = {};
-        w.deletedStructs = {};
 
         xml2cwrc.isLegacyDocument = isLegacyDocument(doc);
 
@@ -216,7 +212,6 @@ function XML2CWRC(writer) {
         }
         
         function finishProcessing(doc) {
-            console.log('finishProcessing');
             buildDocumentAndInsertEntities(doc).then(function() {
                 w.event('documentLoaded').publish(true, w.editor.getBody());
                 showMessage(doc);
@@ -356,7 +351,11 @@ function XML2CWRC(writer) {
      */
     xml2cwrc.findEntities = function(contextEl, typesToFind) {
         var entityTagNames = [];
-        typesToFind = typesToFind === undefined ? ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'] : typesToFind;
+
+        var allTypes = ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'];
+        var nonNoteTypes = ['person', 'place', 'date', 'org', 'citation', 'title', 'link'];
+
+        typesToFind = typesToFind === undefined ? nonNoteTypes : typesToFind;
         
         var entityMappings = w.schemaManager.mapper.getMappings().entities;
         for (var type in entityMappings) {
@@ -387,7 +386,7 @@ function XML2CWRC(writer) {
         if (entityType !== null) {
             var config = xml2cwrc.getEntityConfigFromElement(el, entityType);
             
-            config.id = w.getUniqueId('ent_');
+            config.id = w.getUniqueId('dom_');
             config.range = {
                 startXPath: w.utilities.getElementXPath(el)
             }
@@ -425,109 +424,27 @@ function XML2CWRC(writer) {
     }
 
     /**
-     * Takes a document node and returns a string representation of its
-     * contents, compatible with the editor. Additionally creates w.structs
-     * entries.
-     *
+     * Takes a document node and returns a string representation of its contents, compatible with the editor.
+     * For an async version see buildEditorStringDeferred.
      * @param {Element} node An (X)HTML element
      * @param {Boolean} [includeComments] True to include comments in the output
      * @returns {String}
      */
     xml2cwrc.buildEditorString = function(node, includeComments) {
-        var dfd = new $.Deferred();
-
-        var li = w.dialogManager.getDialog('loadingindicator');
-        li.setText('Building Document');
-
-        includeComments === undefined ? false : includeComments;
-
         var editorString = '';
 
-        function doBuild(currentNode, forceInline) {
-            var tag = currentNode.nodeName;
-            var $node = $(currentNode);
-
-            // TODO ensure that block level elements aren't inside inline level elements, the inline parent will be removed by the browser
-            // temp fix: force inline level for children if parent is inline
-
-            var tagName;
-            if (forceInline) {
-                tagName = 'span';
-            } else {
-                tagName = w.utilities.getTagForEditor(tag);
+        function doBuild(node) {
+            var tagStrings = getTagStringsForNode(node);
+            editorString += tagStrings[0];
+            for (var i = 0; i < node.childNodes.length; i++) {
+                doBuild(node.childNodes[i]);
             }
-
-            editorString += '<'+tagName+' _tag="'+tag+'"';
-
-            // create structs entries while we build the string
-
-            if ($node.attr('id') !== undefined) {
-                console.warn('xml2cwrc.buildEditorString: node already had an ID!', id);
-                $node.removeAttr('id');
-            }
-            var id = w.getUniqueId('struct_');
-            editorString += ' id="'+id+'"';
-
-            var idNum = parseInt(id.split('_')[1], 10);
-            if (idNum >= tinymce.DOM.counter) tinymce.DOM.counter = idNum+1;
-
-            var canContainText = w.utilities.canTagContainText(tag);
-            // TODO find non-intensive way to check if tags can possess attributes
-            editorString += ' _textallowed="'+canContainText+'"';
-
-            w.structs[id] = {
-                id: id,
-                _tag: tag,
-                _textallowed: canContainText
-            };
-
-            $(currentNode.attributes).each(function(index, att) {
-                var attName = att.name;
-
-                // don't include legacy attributes
-                if (xml2cwrc.isLegacyDocument && attName === 'annotationId' || attName === 'offsetId') {
-                    return true;
-                }
-
-                var attValue = w.utilities.convertTextForExport(att.value);
-
-                if (xml2cwrc.reservedAttributes[attName] !== true) {
-                    editorString += ' '+attName+'="'+attValue+'"';
-                }
-
-                w.structs[id][attName] = attValue;
-            });
-
-            if ($node.is(':empty')) {
-                editorString += '>\uFEFF</'+tagName+'>'; // need \uFEFF otherwise a <br> gets inserted
-            } else {
-                editorString += '>';
-                
-                if (currentNode.nodeType === Node.COMMENT_NODE) {
-                    var stringContents = currentNode.data.replace(/</g, '&lt;').replace(/>/g, '&gt;'); // prevent tags from accidentally being created
-                    editorString += stringContents;
-                } else {
-                    var isInline = forceInline || !w.utilities.isTagBlockLevel(tag);
-                    $node.contents().each(function(index, el) {
-                        if (el.nodeType === Node.ELEMENT_NODE || (includeComments && el.nodeType === Node.COMMENT_NODE)) {
-                            doBuild(el, isInline);
-                        } else if (el.nodeType === Node.TEXT_NODE) {
-                            var stringContents = el.data.replace(/</g, '&lt;').replace(/>/g, '&gt;'); // prevent tags from accidentally being created
-                            editorString += stringContents;
-                        }
-                    });
-                }
-
-                editorString += '</'+tagName+'>';
-            }
+            editorString += tagStrings[1];
         }
 
-        setTimeout(function() {
-            doBuild(node, false);
-            dfd.resolve(editorString);
-        }, 0);
-        
-        return dfd.promise();
+        doBuild(node);
+
+        return editorString;
     };
 
     /**
@@ -551,6 +468,72 @@ function XML2CWRC(writer) {
         return nodeArray;
     }
 
+    /**
+     * Get the opening and closing tag strings for the specified node.
+     * @param {Element} node 
+     * @returns {Array} The array of opening and closing tag strings
+     */
+    function getTagStringsForNode(node) {
+        var openingTagString = '';
+        var closingTagString = '';
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            var nodeName = node.nodeName;
+            var htmlTag = w.utilities.getTagForEditor(nodeName);
+
+            openingTagString += '<'+htmlTag+' _tag="'+nodeName+'"';
+            closingTagString = '</'+htmlTag+'>';
+            
+            if (node.childNodes.length === 0) {
+                closingTagString = '\uFEFF'+closingTagString;
+            }
+
+            if (node.hasAttribute('id')) {
+                console.warn('xml2cwrc.buildEditorString: node already had an ID!', node.getAttribute('id'));
+                node.removeAttribute('id');
+            }
+            var id = w.getUniqueId('dom_');
+            openingTagString += ' id="'+id+'"';
+            
+            var canContainText = w.utilities.canTagContainText(nodeName);
+            openingTagString += ' _textallowed="'+canContainText+'"';
+
+            if (node.hasAttributes()) {
+                var jsonAttrs = {};
+                var attrs = node.attributes;
+                for (var i = 0; i < attrs.length; i++) {
+                    var attName = attrs[i].name;
+                    var attValue = attrs[i].value;
+
+                    jsonAttrs[attName] = attValue;
+
+                    if (xml2cwrc.isLegacyDocument && attName === 'annotationId' || attName === 'offsetId') {
+                        continue;
+                    }
+                    if (xml2cwrc.reservedAttributes[attName] === true) {
+                        continue;
+                    }
+
+                    openingTagString += ' '+attName+'="'+attValue+'"';
+                }
+
+                var jsonAttrsString = JSON.stringify(jsonAttrs);
+                jsonAttrsString = jsonAttrsString.replace(/"/g, '&quot;');
+                openingTagString += ' _attributes="'+jsonAttrsString+'"';
+            }
+
+            openingTagString += '>';
+        } else if (node.nodeType === Node.TEXT_NODE) {
+            var content = node.data.replace(/</g, '&lt;').replace(/>/g, '&gt;'); // prevent tags from accidentally being created
+            openingTagString = content;
+        } else if (node.nodeType === Node.COMMENT_NODE) {
+            // TODO handle comments
+        } else {
+            console.warn('xml2cwrc.buildEditorString: unsupported node type:', node.nodeType);
+        }
+
+        return [openingTagString, closingTagString];
+    }
+
     function buildEditorStringDeferred(parentNode) {
         var dfd = new $.Deferred();
 
@@ -558,68 +541,17 @@ function XML2CWRC(writer) {
         li.setText('Building Document');
         
         var editorString = '';
-        var closingStack = [];
+        var closingStack = []; // keeps track of closing tags so we can add them to the editorString when we move up a level in the tree
         var nodeArray = getNodeArray(parentNode);
 
         var processNode = function(nodeData, prevDepth) {
             var node = nodeData.node;
             var depth = nodeData.depth;
 
-            var openingTagString = '';
-            var closingTag = {string: '', depth: depth};
+            var tagStrings = getTagStringsForNode(node);
 
-            if (node.nodeType === Node.ELEMENT_NODE) {
-                var nodeName = node.nodeName;
-                var htmlTag = w.utilities.getTagForEditor(nodeName);
-
-                openingTagString += '<'+htmlTag+' _tag="'+nodeName+'"';
-                closingTag.string = '</'+htmlTag+'>';
-                
-                if (node.childNodes.length === 0) {
-                    closingTag.string = '\uFEFF'+closingTag.string;
-                }
-
-                if (node.hasAttribute('id')) {
-                    console.warn('xml2cwrc.buildEditorString: node already had an ID!', node.getAttribute('id'));
-                    node.removeAttribute('id');
-                }
-                var id = w.getUniqueId('struct_');
-                openingTagString += ' id="'+id+'"';
-                
-                var canContainText = w.utilities.canTagContainText(nodeName);
-                openingTagString += ' _textallowed="'+canContainText+'"';
-
-                w.structs[id] = {
-                    id: id,
-                    _tag: nodeName,
-                    _textallowed: canContainText
-                };
-
-                if (node.hasAttributes()) {
-                    var attrs = node.attributes;
-                    for (var i = 0; i < attrs.length; i++) {
-                        var attName = attrs[i].name;
-                        var attValue = attrs[i].value;
-
-                        if (xml2cwrc.isLegacyDocument && attName === 'annotationId' || attName === 'offsetId') {
-                            continue;
-                        }
-                        if (xml2cwrc.reservedAttributes[attName] === true) {
-                            continue;
-                        }
-
-                        openingTagString += ' '+attName+'="'+attValue+'"';
-                        w.structs[id][attName] = attValue;
-                    }
-                }
-
-                openingTagString += '>';
-            } else if (node.nodeType === Node.TEXT_NODE) {
-                var content = node.data.replace(/</g, '&lt;').replace(/>/g, '&gt;'); // prevent tags from accidentally being created
-                openingTagString = content;
-            } else {
-                console.warn('xml2cwrc.buildEditorString: unsupported node type:', node.nodeType);
-            }
+            var openingTagString = tagStrings[0];
+            var closingTag = {string: tagStrings[1], depth: depth};
             
             // we're no longer moving down/into the tree, so close open tags
             if (depth <= prevDepth) {
@@ -759,6 +691,13 @@ function XML2CWRC(writer) {
                             range.setStart(startNode, startOffset);
                             range.setEnd(endNode, endOffset);
                             w.tagger.addEntityTag(entry, range);
+
+                            if (entry.getContent() === undefined) {
+                                w.entitiesManager.highlightEntity(); // remove highlight
+                                w.entitiesManager.highlightEntity(entry.getId());
+                                content = $('.entityHighlight', body).text();
+                                w.entitiesManager.highlightEntity();
+                            }
                         } else {
                             // then tag already exists
                             $(startNode).attr({
@@ -769,34 +708,12 @@ function XML2CWRC(writer) {
                                 'id': entry.getId()
                             });
 
-                            if (entry.isNote()) {
+                            if (entry.getContent() === undefined) {
                                 entry.setContent($(startNode).text());
-                                entry.setNoteContent($(startNode).html());
                             }
-                        }
-                        if (entry.getContent() === undefined) {
-                            // get and set the text content
-                            // TODO remove schema specific properties
-                            var content = '';
-                            if (type === 'correction') {
-                                content = entry.getCustomValues().corrText;
-                            } else {
-                                w.entitiesManager.highlightEntity(); // remove highlight
-                                w.entitiesManager.highlightEntity(entry.getId());
-                                content = $('.entityHighlight', body).text();
-                                w.entitiesManager.highlightEntity();
-                            }
-                            entry.setContent(content);
 
-                            // finish with triples
-                            for (var i = 0; i < w.triples.length; i++) {
-                                var trip = w.triples[i];
-                                if (trip.subject.uri === entry.getUris().annotationId) {
-                                    trip.subject.text = entry.getTitle();
-                                }
-                                if (trip.object.uri === entry.getUris().annotationId) {
-                                    trip.object.text = entry.getTitle();
-                                }
+                            if (entry.isNote()) {
+                                entry.setNoteContent($(startNode).html());
                             }
                         }
                     } catch (e) {

@@ -254,7 +254,6 @@ function StructureTree(config) {
         }
         
         if (id) {
-            var isEntity = w.entitiesManager.getEntity(id) !== undefined;
             var aChildren = $node.children('a');
             
             if (tree.currentlySelectedNodes.indexOf(id) !== -1 && !external) {
@@ -272,7 +271,9 @@ function StructureTree(config) {
             }
 
             if (!external) {
-                if (!isEntity && w.structs[id]._tag == w.schemaManager.getHeader()) {
+                var $editorNode = $('#'+id, w.editor.getBody());
+                var isEntity = $editorNode.attr('_entity') === 'true';
+                if (!isEntity && $editorNode.attr('_tag') === w.schemaManager.getHeader()) {
                     w.dialogManager.show('header');
                 } else {
                     ignoreSelect = true; // set to true so tree.highlightNode code isn't run by editor's onNodeChange handler
@@ -290,62 +291,46 @@ function StructureTree(config) {
     function _processNode(node, level) {
         var nodeData = null;
         
+        var tag = node.attr('_tag');
+        if (tag == null) {
+            return null;
+        }
+
         // entity tag
-        if (w.isReadOnly === false && node.attr('_entity') && (node.attr('_tag') || node.attr('_note'))) {
+        if (w.isReadOnly === false && node.attr('_entity')) {
             var id = node.attr('name');
-            var type = node.attr('_type');
-            var tag = node.attr('_tag');
-            if (tag == null) {
-                tag = w.schemaManager.mapper.getParentTag(type);
-            }
             
             nodeData = {
                 text: tag,
                 li_attr: {name: id}, // 'class': type}
-                state: {opened: level < 3}
+                state: {opened: level < 3},
+                level: level
             };
         // structure tag
-        } else if (node.attr('_tag')) {
-            var tag = node.attr('_tag');
+        } else {
             if (w.isReadOnly === false || (w.isReadOnly && (tag === w.schemaManager.getRoot() || tree.tagFilter.indexOf(tag.toLowerCase()) !== -1))) {
                 var id = node.attr('id');
-                var info = w.structs[id];
-                
-                if (info == undefined) {
-                    // redo/undo re-added a struct check
-                    info = w.deletedStructs[id];
-                    if (info != undefined) {
-                        w.structs[id] = info;
-                        delete w.deletedStructs[id];
+
+                if (w.isReadOnly) {
+                    if (tag !== w.schemaManager.getRoot()) {
+                        tag = w.utilities.getTitleFromContent(node.text());
                     }
                 }
-                
-                if (info) {
-                    var text = info._tag;
-                    if (w.isReadOnly) {
-                        if (tag === w.schemaManager.getRoot()) {
-                            text = w.schemaManager.getRoot();// || w.currentDocId;
-                        } else {
-                            text = w.utilities.getTitleFromContent(node.text());
-                        }
-                    }
-                    nodeData = {
-                        text: text,
-                        li_attr: {name: id},
-                        state: {opened: level < 3}
-                    };
-                }
+                nodeData = {
+                    text: tag,
+                    li_attr: {name: id},
+                    state: {opened: level < 3},
+                    level: level
+                };
             }
         }
-        if (nodeData !== null) {
-            nodeData.level = level;
+        
+        if (w.schemaManager.schemaId === 'cwrcEntry') {
             // FIXME we really shouldn't have this hardcoded here
             // manually set the level for CWRC schema to have proper sorting in readOnly mode
-            if (w.schemaManager.schemaId === 'cwrcEntry') {
-                var subtype = node.attr('subtype');
-                if (subtype !== undefined) {
-                    nodeData.level = parseInt(subtype);
-                }
+            var subtype = node.attr('subtype');
+            if (subtype !== undefined) {
+                nodeData.level = parseInt(subtype);
             }
         }
         
@@ -476,9 +461,9 @@ function StructureTree(config) {
         $tree.jstree('open_node', dropNode, null, false);
         
         if (isCopy) {
-            w.tagger.findDuplicateTags();
+            w.tagger.processPastedContent(dragNodeEditor[0]);
         }
-        w.event('contentChanged').publish(w.editor);
+        w.event('contentChanged').publish();
     }
     
     function _removeCustomClasses() {
@@ -585,11 +570,14 @@ function StructureTree(config) {
                 if (w.isReadOnly) return {};
                 if (node.li_attr.id === 'cwrc_tree_root') return {};
                 
-                var parentNode = $tree.jstree('get_node', node.parents[0]);
-                
                 var menuConfig = {};
                 
                 var tagId = node.li_attr.name;
+                var tag = $('#'+tagId, w.editor.getBody())[0];
+                if (tag === undefined) {
+                    console.warn('structureTree: no element for',node.text+'#'+tagId);
+                    return {};
+                }
                 
                 if (tree.currentlySelectedNodes.length > 1) {
                     menuConfig.mergeTags = {
@@ -615,12 +603,10 @@ function StructureTree(config) {
                     };
                 }
                 
-                // check for entity entry
-                var isTagEntity = w.entitiesManager.getEntity(tagId) !== undefined;
-                
                 var editTagText = 'Edit Tag';
                 var copyTagText = 'Copy Tag & Contents';
-                if (isTagEntity) {
+
+                if (tag.hasAttribute('_entity')) {
                     w.entitiesManager.highlightEntity(tagId); // highlight the entity, otherwise editing will not function
                     editTagText = 'Edit Entity';
                     copyTagText = 'Copy Entity';
@@ -630,16 +616,14 @@ function StructureTree(config) {
                         icon: w.cwrcRootUrl+'img/tag_blue_edit.png',
                         action: function(obj) {
                             var id = obj.reference.parent('li').attr('name');
-                            var tag = $('#'+id, w.editor.getBody());
-                            w.tagger.convertTagToEntity(tag);
+                            w.tagger.convertTagToEntity($('#'+id, w.editor.getBody()));
                         },
                         separator_after: true
                     };
                 }
                 
-                // general tag actions;
-                var tag = $('#'+tagId, w.editor.getBody())[0];
-                if (tag === undefined) return {};                
+                // general tag actions
+
                 var tagName = tag.getAttribute('_tag');
                 if (tagName == w.schemaManager.getRoot() || tagName == w.schemaManager.getHeader()) return {};
                 
@@ -649,13 +633,12 @@ function StructureTree(config) {
                 // TODO ensure that when there are multiple tags selected, they can share the same parent tag
                 var parentKeys = w.utilities.getParentsForTag({tag: tagName, path: path, returnType: 'array'});
                 
-                var siblingKeys = {};
-                var parentInfo = w.structs[parentNode.li_attr.name];
-                if (parentInfo) {
-                    tag = $('#'+parentInfo.id, w.editor.getBody())[0];
-                    path = w.utilities.getElementXPath(tag);
-                    siblingKeys = w.utilities.getChildrenForTag({tag: parentInfo._tag, path: path, type: 'element', returnType: 'array'});
-                }
+                var parentNode = $tree.jstree('get_node', node.parents[0]);
+                var parentId = parentNode.li_attr.name;
+                var parentTag = $('#'+parentId, w.editor.getBody())[0];
+                var parentTagName = parentTag.getAttribute('_tag');
+                var parentPath = w.utilities.getElementXPath(parentTag);
+                var siblingKeys = w.utilities.getChildrenForTag({tag: parentTagName, path: parentPath, type: 'element', returnType: 'array'});
                 
                 // find common keys between parent and sibling
                 for (var i = parentKeys.length-1; i >= 0; i--) {
@@ -835,9 +818,6 @@ function StructureTree(config) {
         tree.clear();
     });
     w.event('documentLoaded').subscribe(function() {
-        tree.update();
-    });
-    w.event('schemaLoaded').subscribe(function() {
         tree.update();
     });
     w.event('nodeChanged').subscribe(function(currentNode) {
