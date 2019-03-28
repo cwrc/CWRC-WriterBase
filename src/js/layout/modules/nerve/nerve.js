@@ -393,8 +393,10 @@ function Nerve(config) {
                 case 'accept':
                     if (merged) {
                         acceptMerged(id);
+                        w.entitiesList.update();
                     } else {
                         acceptEntity(id);
+                        w.entitiesList.update();
                     }
                     break;
                 case 'acceptmatching':
@@ -718,6 +720,8 @@ function Nerve(config) {
         matches.forEach(function(entId) {
             acceptEntity(entId);
         });
+
+        w.entitiesList.update();
     }
 
     var acceptAll = function() {
@@ -728,6 +732,8 @@ function Nerve(config) {
         getNerveEntities().forEach(function(ent, index) {
             acceptEntity(ent.getId());
         });
+
+        w.entitiesList.update();
     }
 
     var rejectEntity = function(entityId) {

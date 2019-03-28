@@ -117,11 +117,11 @@ function EntitiesList(config) {
         pm.remove(entityId);
     });
     w.event('entityFocused').subscribe(function(entityId) {
-        $entities.find('ul.entitiesList > li[name="'+entityId+'"]').addClass('selected').addClass('expanded').find('div[class="info"]').show();
+        $entities.find('ul.entitiesList > li[name="'+entityId+'"]').addClass('selected expanded').find('div[class="info"]').show();
     });
     w.event('entityUnfocused').subscribe(function(entityId) {
         $entities.find('ul.entitiesList > li').each(function(index, el) {
-            $(this).removeClass('selected').removeClass('expanded').css('background-color', '').find('div[class="info"]').hide();
+            $(this).removeClass('selected expanded').css('background-color', '').find('div[class="info"]').hide();
         });
     });
     w.event('entityPasted').subscribe(function(entityId) {
@@ -143,7 +143,7 @@ function EntitiesList(config) {
         }
         
         var entitiesString = '';
-        var entityTags = $('[_entity][class~=start]', w.editor.getBody());
+        var entityTags = $('[_entity][class~=start]:not([_nerve])', w.editor.getBody());
         if (sort == 'category') {
             var categories = {};
             entityTags.each(function(index, el) {
@@ -219,7 +219,7 @@ function EntitiesList(config) {
         });
         
         if (w.entitiesManager.getCurrentEntity()) {
-            $entities.find('ul.entitiesList  > li[name="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('selected').find('div[class="info"]').show();
+            $entities.find('ul.entitiesList  > li[name="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('selected expanded').find('div[class="info"]').show();
         }
     };
 
