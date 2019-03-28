@@ -835,7 +835,7 @@ function Tagger(writer) {
             $noteWrapper = $node.parent('.noteWrapper');
         }
         
-        var editorTagName = w.utilities.getTagForEditor(attributes._tag);
+        var editorTagName = w.utilities.getTagForEditor(tagName);
         var open_tag = '<'+editorTagName+' id="'+id+'" _tag="'+tagName+'"'
 
         var jsonAttrs = {};
