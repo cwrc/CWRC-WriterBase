@@ -298,11 +298,12 @@ function CWRCWriter(config) {
             w.layoutManager.$loadingMask.fadeOut(350);
             w.layoutManager.$outerLayout.options.onresizeall_end = null;
         };
-        w.layoutManager.$outerLayout.resizeAll(); // now that the editor is loaded, set proper sizing
-        w.layoutManager.$outerLayout.resizeAll(); // need to call a second time because resize bar is misplaced initially
-        
-        w.isInitialized = true;
-        w.event('writerInitialized').publish(w);
+
+        setTimeout(function() {
+            w.layoutManager.resizeAll();
+            w.isInitialized = true;
+            w.event('writerInitialized').publish(w);
+        }, 250);
     });
 
     w.utilities = new Utilities(w);
