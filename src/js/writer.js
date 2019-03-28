@@ -295,15 +295,17 @@ function CWRCWriter(config) {
     w.event('tinymceInitialized').subscribe(function() {
         // fade out loading mask and do final resizing after tinymce has loaded
         w.layoutManager.$outerLayout.options.onresizeall_end = function() {
-            w.layoutManager.$loadingMask.fadeOut(350);
             w.layoutManager.$outerLayout.options.onresizeall_end = null;
+            w.layoutManager.$loadingMask.fadeOut(350);
         };
 
         setTimeout(function() {
             w.layoutManager.resizeAll();
-            w.isInitialized = true;
-            w.event('writerInitialized').publish(w);
-        }, 250);
+            setTimeout(function() {
+                w.isInitialized = true;
+                w.event('writerInitialized').publish(w);
+            }, 350);
+        }, 1000);
     });
 
     w.utilities = new Utilities(w);
