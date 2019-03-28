@@ -49,8 +49,10 @@ LayoutManager.prototype = {
         var name = config.name;
         var editorId = config.editorId;
         
+        var loadingMaskHtml = `<div class="cwrc cwrcLoadingMask" style="width: 100%; height: 100%; background-color: #DDD; position: absolute; z-index: 1000;"><div>Loading ${name}</div></div>`;
+        this.$container.html(loadingMaskHtml);
+
         var html = `
-        <div class="cwrc cwrcLoadingMask" style="width: 100%; height: 100%; background-color: #DDD; position: absolute; z-index: 1000;"><div>Loading ${name}</div></div>
         <div class="cwrc cwrcHeader ui-layout-north">
             <div class="headerParent ui-widget">
                 <a class="titleLink" href="https://www.cwrc.ca" target="_blank">${name}</a>
@@ -73,7 +75,7 @@ LayoutManager.prototype = {
         
         html += addPanel(editorId, 'east', this.modulesLayout.east);
         
-        this.$container.html(html);
+        this.$container.append(html);
         
         this.$loadingMask = this.$container.find('.cwrcLoadingMask').first();
         this.$headerButtons = this.$container.find('.headerButtons').first();

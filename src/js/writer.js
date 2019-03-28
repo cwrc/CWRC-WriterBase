@@ -146,7 +146,7 @@ function CWRCWriter(config) {
     /**
      * Load a document into the editor
      * @fires Writer#loadingDocument
-     * @param {Document} docXml The XML content of the document
+     * @param {Document|String} docXml An XML document or a string representation of such.
      * @param {Boolean} [convertEntities] Whether to convert entities, defaults to true
      */
     w.loadDocumentXML = function(docXml, convertEntities) {
@@ -311,23 +311,17 @@ function CWRCWriter(config) {
     w.event('tinymceInitialized').subscribe(function() {
         // fade out loading mask and do final resizing after tinymce has loaded
         w.layoutManager.$outerLayout.options.onresizeall_end = function() {
-            w.layoutManager.$loadingMask.fadeOut(350);
             w.layoutManager.$outerLayout.options.onresizeall_end = null;
+            w.layoutManager.$loadingMask.fadeOut(350);
         };
-        
-        var doResize = function() {
-            w.layoutManager.$outerLayout.resizeAll();
-            if (w.layoutManager.$outerLayout.options.onresizeall_end !== null) {
-                 // onresizeall_end doesn't get called if $outerLayout height is zero, so keep on trying
-                console.warn('retrying resize');
-                setTimeout(doResize, 100);
-            }
-        }
 
-        doResize();
-        
-        w.isInitialized = true;
-        w.event('writerInitialized').publish(w);
+        setTimeout(function() {
+            w.layoutManager.resizeAll();
+            setTimeout(function() {
+                w.isInitialized = true;
+                w.event('writerInitialized').publish(w);
+            }, 350);
+        }, 1000);
     });
 
     w.utilities = new Utilities(w);
