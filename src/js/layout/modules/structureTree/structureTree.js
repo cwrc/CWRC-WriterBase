@@ -610,7 +610,7 @@ function StructureTree(config) {
                     w.entitiesManager.highlightEntity(tagId); // highlight the entity, otherwise editing will not function
                     editTagText = 'Edit Entity';
                     copyTagText = 'Copy Entity';
-                } else if (w.isEmbedded === false && w.utilities.isTagEntity(node.text)) {
+                } else if (w.utilities.isTagEntity(node.text)) {
                     menuConfig.convertEntity = {
                         label: 'Convert to Entity',
                         icon: w.cwrcRootUrl+'img/tag_blue_edit.png',

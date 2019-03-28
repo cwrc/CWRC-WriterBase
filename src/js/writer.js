@@ -17,12 +17,27 @@ var TinymceWrapper = require('./tinymceWrapper.js');
 /**
  * @class CWRCWriter
  * @param {Object} config
+ * @param {String} config.container
+ * @param {Object} config.storageDialogs
+ * @param {Object} config.entityLookupDialogs
+ * @param {Object} config.schemas
+ * @param {Object} config.modules
+ * @param {String} [config.cwrcRootUrl]
+ * @param {String} [config.validationUrl]
+ * @param {Boolean} [config.readonly]
+ * @param {Boolean} [config.annotator]
+ * @param {String} [config.mode]
+ * @param {Boolean} [config.allowOverlap]
+ * @param {String} [config.buttons1]
+ * @param {String} [config.buttons2]
+ * @param {String} [config.buttons3]
+ 
  */
 function CWRCWriter(config) {
     config = config || {};
 
     /**
-     * @lends Writer.prototype
+     * @lends CWRCWriter.prototype
      */
     var w = {};
 
@@ -70,12 +85,6 @@ function CWRCWriter(config) {
     w.isAnnotator = false;
     if (config.annotator !== undefined && typeof config.annotator === 'boolean') {
         w.isAnnotator = config.annotator;
-    }
-
-    // true if this writer is embedded in a parent writer, i.e. for note entities
-    w.isEmbedded = false;
-    if (config.embedded !== undefined && typeof config.embedded === 'boolean') {
-        w.isEmbedded = config.embedded;
     }
 
     // possible editor modes
@@ -344,7 +353,6 @@ function CWRCWriter(config) {
     });
 
     var layoutContainerId = w.layoutManager.getContainer().attr('id');
-    tinymce.Env.container = w.layoutManager.getContainer()[0]; // need to explicitly set container for embedded cwrc writers
 
     TinymceWrapper.init({
         writer: w,

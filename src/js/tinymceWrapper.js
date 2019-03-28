@@ -20,9 +20,9 @@ function TinymceWrapper() {
  * @param {Writer} config.writer
  * @param {String} config.editorId
  * @param {String} config.layoutContainerId
- * @param {String} config.buttons1
- * @param {String} config.buttons2
- * @param {String} config.buttons3
+ * @param {String} [config.buttons1]
+ * @param {String} [config.buttons2]
+ * @param {String} [config.buttons3]
  */
 TinymceWrapper.init = function(config) {
     var w = config.writer;

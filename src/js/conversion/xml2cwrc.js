@@ -780,23 +780,22 @@ function XML2CWRC(writer) {
                     msg: 'The wrong schema is specified.<br/>Schema root: '+w.schemaManager.getRoot()+'<br/>Document root: '+rootEl.nodeName+'<br/><br/>Go to <b>Settings</b> to change the schema association.',
                     type: 'error'
                 });
-            } else if (w.isEmbedded !== true) {
-                var msg;
-                if (w.mode === w.XML) {
-                    msg = '<b>XML only</b><br/>Only XML tags and no RDF/Semantic Web annotations will be created.';
-                } else {
-                    if (w.allowOverlap) {
-                        msg = '<b>XML and RDF (overlap)</b><br/>XML tags and RDF/Semantic Web annotations equivalent to the XML tags will be created, to the extent that the hierarchy of the XML schema allows. Annotations that overlap will be created in RDF only, with no equivalent XML tags.';
-                    } else {
-                        msg = '<b>XML and RDF (no overlap)</b><br/>XML tags and RDF/Semantic Web annotations equivalent to the XML tags will be created, consistent with the hierarchy of the XML schema, so annotations will not be allowed to overlap.';
-                    }
-                }
-                w.dialogManager.show('message', {
-                    title: 'CWRC-Writer Mode',
-                    msg: msg,
-                    type: 'info'
-                });
             }
+            var msg;
+            if (w.mode === w.XML) {
+                msg = '<b>XML only</b><br/>Only XML tags and no RDF/Semantic Web annotations will be created.';
+            } else {
+                if (w.allowOverlap) {
+                    msg = '<b>XML and RDF (overlap)</b><br/>XML tags and RDF/Semantic Web annotations equivalent to the XML tags will be created, to the extent that the hierarchy of the XML schema allows. Annotations that overlap will be created in RDF only, with no equivalent XML tags.';
+                } else {
+                    msg = '<b>XML and RDF (no overlap)</b><br/>XML tags and RDF/Semantic Web annotations equivalent to the XML tags will be created, consistent with the hierarchy of the XML schema, so annotations will not be allowed to overlap.';
+                }
+            }
+            w.dialogManager.show('message', {
+                title: 'CWRC-Writer Mode',
+                msg: msg,
+                type: 'info'
+            });
         }
     }
 

@@ -208,7 +208,7 @@ function DialogManager(writer) {
         schemaTags: SchemaTags
     };
     
-    if (w.isReadOnly !== true && w.isAnnotator !== true && w.isEmbedded !== true) {
+    if (w.isReadOnly !== true && w.isAnnotator !== true) {
         defaultDialogs.header = Header;
         defaultDialogs.editSource = EditSource;
     }
