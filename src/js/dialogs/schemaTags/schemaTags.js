@@ -163,9 +163,6 @@ function SchemaTags(writer, parentEl) {
                 }
             }
             tagId = w.editor.currentBookmark.tagId;
-            if (tagId == null) {
-                console.warn('schemaTags: no tagId found');
-            }
             w.editor.selection.moveToBookmark(w.editor.currentBookmark);
             
             var valid = w.utilities.isSelectionValid(true, action);

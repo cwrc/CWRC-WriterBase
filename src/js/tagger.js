@@ -14,55 +14,23 @@ function Tagger(writer) {
      * @lends Tagger.prototype
      */
     var tagger = {};
-    
+
     /**
-     * Get the entity boundary tag (and potential inbetween tags) that corresponds to the passed tag.
-     * @param {element} tag
+     * Get a tag by id, or get the currently selected tag.
+     * @param {String} [id] The id (optional)
      * @returns {jQuery}
      */
-    tagger.getCorrespondingEntityTags = function(tag) {
-        tag = $(tag);
-        if (tag.hasClass('start') && tag.hasClass('end')) {
+    tagger.getCurrentTag = function(id) {
+        if (id != null) {
+            var tag = $('#'+id, w.editor.getBody());
+            if (tag.length === 0) {
+                // look for overlapping entity
+                tag = $('[name="'+id+'"]', w.editor.getBody());
+            }
             return tag;
-        }
-        var boundaryType;
-        if (tag.hasClass('start')) {
-            boundaryType = 'end';
         } else {
-            boundaryType = 'start';
+            return $(w.editor.selection.getNode());
         }
-        
-        var currentNode = tag[0];
-        var nodeId = currentNode.getAttribute('name');
-        var walker = currentNode.ownerDocument.createTreeWalker(currentNode.ownerDocument, NodeFilter.SHOW_ELEMENT, {
-            acceptNode: function(node) {
-                if (node.getAttribute('name') === nodeId) {
-                    return NodeFilter.FILTER_ACCEPT;
-                } else {
-                    return NodeFilter.FILTER_SKIP;
-                }
-            }
-        }, false);
-        walker.currentNode = currentNode;
-        
-        var nodes = [];
-        while(walker.currentNode.getAttribute('name') === nodeId) {
-            var result;
-            if (boundaryType === 'start') {
-                result = walker.previousNode();
-            } else {
-                result = walker.nextNode();
-            }
-            if (result === null) {
-                break;
-            }
-            nodes.push(walker.currentNode);
-            if ($(walker.currentNode).hasClass(boundaryType)) {
-                break;
-            }
-        }
-        
-        return $(nodes);
     };
 
     /**
@@ -132,24 +100,6 @@ function Tagger(writer) {
         var jsonAttrsString = JSON.stringify(currAttrs).replace(/"/g, '&quot;');
         tag.setAttribute('_attributes', jsonAttrsString);
     }
-
-    /**
-     * Get a tag by id, or get the currently selected tag.
-     * @param {String} [id] The id (optional)
-     * @returns {jQuery}
-     */
-    tagger.getCurrentTag = function(id) {
-        if (id != null) {
-            var tag = $('#'+id, w.editor.getBody());
-            if (tag.length === 0) {
-                // look for overlapping entity
-                tag = $('[name="'+id+'"]', w.editor.getBody());
-            }
-            return tag;
-        } else {
-            return $(w.editor.selection.getNode());
-        }
-    };
     
     // a general edit function for entities and structure tags
     tagger.editTag = function(id) {
@@ -765,6 +715,56 @@ function Tagger(writer) {
         }
         
         w.editor.undoManager.add();
+    };
+
+    /**
+     * Get the entity boundary tag (and potential inbetween tags) that corresponds to the passed tag.
+     * @param {element} tag
+     * @returns {jQuery}
+     */
+    tagger.getCorrespondingEntityTags = function(tag) {
+        tag = $(tag);
+        if (tag.hasClass('start') && tag.hasClass('end')) {
+            return tag;
+        }
+        var boundaryType;
+        if (tag.hasClass('start')) {
+            boundaryType = 'end';
+        } else {
+            boundaryType = 'start';
+        }
+        
+        var currentNode = tag[0];
+        var nodeId = currentNode.getAttribute('name');
+        var walker = currentNode.ownerDocument.createTreeWalker(currentNode.ownerDocument, NodeFilter.SHOW_ELEMENT, {
+            acceptNode: function(node) {
+                if (node.getAttribute('name') === nodeId) {
+                    return NodeFilter.FILTER_ACCEPT;
+                } else {
+                    return NodeFilter.FILTER_SKIP;
+                }
+            }
+        }, false);
+        walker.currentNode = currentNode;
+        
+        var nodes = [];
+        while(walker.currentNode.getAttribute('name') === nodeId) {
+            var result;
+            if (boundaryType === 'start') {
+                result = walker.previousNode();
+            } else {
+                result = walker.nextNode();
+            }
+            if (result === null) {
+                break;
+            }
+            nodes.push(walker.currentNode);
+            if ($(walker.currentNode).hasClass(boundaryType)) {
+                break;
+            }
+        }
+        
+        return $(nodes);
     };
     
     tagger.addNoteWrapper = function(tag, type) {

@@ -46,102 +46,117 @@ function XML2CWRC(writer) {
         // clear current doc
         $(w.editor.getBody()).empty();
 
-        var schemaId = undefined;
-        var schemaUrl;
-        var cssUrl;
-        var loadSchemaCss = true; // whether to load schema css
+        // setTimeout to make sure doc clears first
+        setTimeout(function() {
+            var info = getSchemaInfo(doc);
+            var schemaId = info.schemaId;
+            var schemaUrl = info.schemaUrl;
+            var cssUrl = info.cssUrl;
+            var loadSchemaCss = cssUrl === undefined; // load schema css if none was found in the document
 
-        if (schemaId === undefined) {
-            // grab the schema (and css) from xml-model
-            for (var i = 0; i < doc.childNodes.length; i++) {
-                var node = doc.childNodes[i];
-                if (node.nodeName === 'xml-model') {
-                    var xmlModelData = node.data;
-                    schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
-                     // remove the protocol in order to disregard http/https for improved chances of matching below
-                    var schemaUrlNoProtocol = schemaUrl.split(/^.*?\/\//)[1];
-                    // search the known schemas, if the url matches it must be the same one
-                    $.each(w.schemaManager.schemas, function(id, schema) {
-                        if (schema.url.indexOf(schemaUrlNoProtocol) !== -1) {
-                            schemaId = id;
-                            return false;
-                        }
-                        if (schema.aliases !== undefined) {
-                            $.each(schema.aliases, function(index, alias) {
-                                if (alias.indexOf(schemaUrlNoProtocol) !== -1) {
-                                    schemaId = id;
-                                    return false;
-                                }
-                            });
-                            if (schemaId !== undefined) {
-                                return false;
-                            }
-                        }
-                    });
-                } else if (node.nodeName === 'xml-stylesheet') {
-                    var xmlStylesheetData = node.data;
-                    cssUrl = xmlStylesheetData.match(/href="([^"]*)"/)[1];
-                }
+            if (schemaUrl === undefined && schemaId === undefined) {
+                schemaId = w.schemaManager.getSchemaIdFromRoot(doc.firstElementChild.nodeName);
             }
-        }
 
-        if (schemaUrl === undefined && schemaId === undefined) {
-            schemaId = w.schemaManager.getSchemaIdFromRoot(doc.firstElementChild.nodeName);
-        }
-
-        if (schemaId === undefined) {
-            w.dialogManager.confirm({
-                title: 'Warning',
-                msg: '<p>The document you are loading is not fully supported by CWRC-Writer. You may not be able to use the ribbon to tag named entities.</p>'+
-                '<p>Load document anyways?</p>',
-                type: 'error',
-                callback: function(doIt) {
-                    if (doIt) {
-                        if (cssUrl !== undefined) {
-                            loadSchemaCss = false;
-                            w.schemaManager.loadSchemaCSS(cssUrl);
+            if (schemaId === undefined) {
+                w.dialogManager.confirm({
+                    title: 'Warning',
+                    msg: '<p>The document you are loading is not fully supported by CWRC-Writer. You may not be able to use the ribbon to tag named entities.</p>'+
+                    '<p>Load document anyways?</p>',
+                    type: 'error',
+                    callback: function(doIt) {
+                        if (doIt) {
+                            if (cssUrl !== undefined) {
+                                w.schemaManager.loadSchemaCSS(cssUrl);
+                            }
+                            if (schemaUrl !== undefined) {
+                                var customSchemaId = w.schemaManager.addSchema({
+                                    name: 'Custom Schema',
+                                    url: schemaUrl,
+                                    cssUrl: cssUrl
+                                });
+                                w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
+                                    if (success) {
+                                        doProcessing(doc, convertEntities);
+                                    } else {
+                                        doBasicProcessing(doc);
+                                    }
+                                });
+                            } else {
+                                doBasicProcessing(doc);
+                            }
+                        } else {
+                            w.event('documentLoaded').publish(false, null);
+                            w.showLoadDialog();
                         }
-                        if (schemaUrl !== undefined) {
-                            var customSchemaId = w.schemaManager.addSchema({
-                                name: 'Custom Schema',
-                                url: schemaUrl,
-                                cssUrl: cssUrl
-                            });
-                            w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
-                                if (success) {
-                                    doProcessing(doc, convertEntities);
-                                } else {
-                                    doBasicProcessing(doc);
-                                }
-                            });
+                    }
+                });
+                
+            } else {
+                if (schemaId !== w.schemaManager.schemaId) {
+                    if (cssUrl !== undefined) {
+                        w.schemaManager.loadSchemaCSS(cssUrl);
+                    }
+                    w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
+                        if (success) {
+                            doProcessing(doc, convertEntities);
                         } else {
                             doBasicProcessing(doc);
                         }
-                    } else {
-                        w.event('documentLoaded').publish(false, null);
-                        w.showLoadDialog();
+                    });
+                } else {
+                    doProcessing(doc, convertEntities);
+                }
+            }
+        }, 0);
+    };
+
+    /**
+     * Get the schema and css from the xml-model
+     * @param {Document} doc 
+     * @returns {Object} info
+     */
+    function getSchemaInfo(doc) {
+        var schemaId;
+        var schemaUrl;
+        var cssUrl;
+        for (var i = 0; i < doc.childNodes.length; i++) {
+            var node = doc.childNodes[i];
+            if (node.nodeName === 'xml-model') {
+                var xmlModelData = node.data;
+                schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
+                 // remove the protocol in order to disregard http/https for improved chances of matching below
+                var schemaUrlNoProtocol = schemaUrl.split(/^.*?\/\//)[1];
+                // search the known schemas, if the url matches it must be the same one
+                $.each(w.schemaManager.schemas, function(id, schema) {
+                    if (schema.url.indexOf(schemaUrlNoProtocol) !== -1) {
+                        schemaId = id;
+                        return false;
                     }
-                }
-            });
-            
-        } else {
-            if (schemaId !== w.schemaManager.schemaId) {
-                if (cssUrl !== undefined) {
-                    loadSchemaCss = false;
-                    w.schemaManager.loadSchemaCSS(cssUrl);
-                }
-                w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
-                    if (success) {
-                        doProcessing(doc, convertEntities);
-                    } else {
-                        doBasicProcessing(doc);
+                    if (schema.aliases !== undefined) {
+                        $.each(schema.aliases, function(index, alias) {
+                            if (alias.indexOf(schemaUrlNoProtocol) !== -1) {
+                                schemaId = id;
+                                return false;
+                            }
+                        });
+                        if (schemaId !== undefined) {
+                            return false;
+                        }
                     }
                 });
-            } else {
-                doProcessing(doc, convertEntities);
+            } else if (node.nodeName === 'xml-stylesheet') {
+                var xmlStylesheetData = node.data;
+                cssUrl = xmlStylesheetData.match(/href="([^"]*)"/)[1];
             }
         }
-    };
+
+        return {
+            schemaId: schemaId,
+            schemaUrl: schemaUrl,
+            cssUrl: cssUrl
+        }
+    }
 
     /**
      * Check to see if the document uses the older "custom" TEI format.
