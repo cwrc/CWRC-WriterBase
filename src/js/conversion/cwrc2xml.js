@@ -65,16 +65,13 @@ function CWRC2XML(writer) {
         // RDF
 
         if (includeRDF) {
+            console.time('stringToXML');
             var xmlDoc = w.utilities.stringToXML(xmlString);
+            console.timeEnd('stringToXML');
 
             console.time('setEntityRanges');
             setEntityRanges(xmlDoc);
             console.timeEnd('setEntityRanges');
-
-            var entities = [];
-            w.entitiesManager.eachEntity(function(id, ent) {
-                entities.push(ent);
-            });
 
             console.time('cleanUp');
             // clean up temp ids used by setEntityRanges
@@ -90,6 +87,12 @@ function CWRC2XML(writer) {
             } else {
                 rdfmode = 'json';
             }
+
+            var entities = [];
+            w.entitiesManager.eachEntity(function(id, ent) {
+                entities.push(ent);
+            });
+
             console.time('getAnnotations');
             rdfString = '\n'+w.annotationsManager.getAnnotations(entities, rdfmode);
             console.timeEnd('getAnnotations');
@@ -158,7 +161,9 @@ function CWRC2XML(writer) {
                 console.warn('cwrc2xml: couldn\'t find rdfParent for',selector);
             }
             
+            console.time('xmlToString');
             xmlString = w.utilities.xmlToString(xmlDoc);
+            console.timeEnd('xmlToString');
         }
 
         xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting

@@ -24,17 +24,24 @@ function EditSource(writer, parentEl) {
             'Ok': function() {
                 var newDocString = $('textarea', $edit).val();
                 $edit.dialog('close');
-                w.loadDocumentXML(newDocString);
+                setTimeout(function() {
+                    w.loadDocumentXML(newDocString, false);
+                }, 0);
             },
             'Cancel': function() {
                 $edit.dialog('close');
             }
         },
         open: function(e) {
+            console.time('set focus');
             var $text = $(this).find('textarea');
             $text.focus();
             $text[0].setSelectionRange(0, 0);
             $text.scrollTop(0);
+            console.timeEnd('set focus');
+        },
+        close: function(e) {
+            $('textarea', $edit).val('');
         }
     });
     
@@ -45,8 +52,12 @@ function EditSource(writer, parentEl) {
             callback: function(yes) {
                 if (yes) {
                     var docText = w.converter.getDocumentContent(true);
-                    $('textarea', $edit).val(docText);
+                    console.time('dialog open');
                     $edit.dialog('open');
+                    console.timeEnd('dialog open');
+                    console.time('set doc text');
+                    $('textarea', $edit).val(docText);
+                    console.timeEnd('set doc text');
                 }
             }
         });
