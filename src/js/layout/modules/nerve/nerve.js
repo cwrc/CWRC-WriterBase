@@ -476,6 +476,7 @@ function Nerve(config) {
     }
 
     var getEntityView = function(entity, merge) {
+        var hasMatching = getMatchesForEntity(entity.getId()).length > 0;
         var html = ''+
         '<li class="'+entity.getType()+'" data-type="'+entity.getType()+'" data-id="'+entity.getId()+'">'+
             (merge === true ? '<input type="checkbox" />' : '')+
@@ -487,7 +488,7 @@ function Nerve(config) {
                         (merge === true ? '' :
                         '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"></span></span>'+
                         '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"></span></span>'+
-                        '<span data-action="acceptmatching" class="ui-state-default" title="Accept All Matching"><span class="ui-icon ui-icon-circle-check"></span></span>'+
+                        (hasMatching === true ? '<span data-action="acceptmatching" class="ui-state-default" title="Accept All Matching"><span class="ui-icon ui-icon-circle-check"></span></span>' : '')+
                         '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"></span></span>')+
                     '</div>'+
                 '</div>'+
@@ -708,20 +709,29 @@ function Nerve(config) {
     }
 
     var acceptMatching = function(entityId) {
-        var matches = [];
-        var match = w.entitiesManager.getEntity(entityId);
-        getNerveEntities().forEach(function(ent) {
-            if (ent.getContent() === match.getContent() &&
-                ent.getCustomValue('lemma') === match.getCustomValue('lemma') &&
-                ent.getCustomValue('link') == match.getCustomValue('link')) {
-                    matches.push(ent.getId());
-                }
-        });
+        // get matches before accepting initial entity because that will remove it from the nerve entities
+        var matches = getMatchesForEntity(entityId);
+        
+        acceptEntity(entityId);
         matches.forEach(function(entId) {
             acceptEntity(entId);
         });
 
         w.entitiesList.update();
+    }
+
+    var getMatchesForEntity = function(entityId) {
+        var matches = [];
+        var match = w.entitiesManager.getEntity(entityId);
+        getNerveEntities().forEach(function(ent) {
+            if (ent.getId() !== match.getId() &&
+                ent.getContent() === match.getContent() &&
+                ent.getCustomValue('lemma') === match.getCustomValue('lemma') &&
+                ent.getCustomValue('link') == match.getCustomValue('link')) {
+                    matches.push(ent.getId());
+                }
+        });
+        return matches;
     }
 
     var acceptAll = function() {
