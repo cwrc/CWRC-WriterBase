@@ -285,8 +285,7 @@ test('schemaTags addSchemaTag', (t)=> {
         $okButton.click();
         
         writer.event('tagSelected').subscribe(function(tagId) {
-            var d = writer.dialogManager.getDialog('schemaTags');
-            d.addSchemaTag({key: 'unclear'});
+            writer.tagger.addTag('unclear', 'add');
             setTimeout(function() {
                 writer.event('tagAdded').subscribe(function(tagEl) {
                     t.pass('schema tag added');

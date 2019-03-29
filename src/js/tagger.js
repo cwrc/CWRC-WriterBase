@@ -15,6 +15,19 @@ function Tagger(writer) {
      */
     var tagger = {};
 
+    // tag insertion types (actions)
+    tagger.ADD = 'add';
+    tagger.BEFORE = 'before';
+    tagger.AFTER = 'after';
+    tagger.AROUND = 'around';
+    tagger.INSIDE = 'inside';
+
+    // isSelectionValid results
+    tagger.NO_SELECTION = 'no_selection';
+    tagger.NO_COMMON_PARENT = 'no_common_parent';
+    tagger.OVERLAP = 'overlap';
+    tagger.VALID = 'valid';
+
     /**
      * Get a tag by id, or get the currently selected tag.
      * @param {String} [id] The id (optional)
@@ -101,7 +114,10 @@ function Tagger(writer) {
         tag.setAttribute('_attributes', jsonAttrsString);
     }
     
-    // a general edit function for entities and structure tags
+    /**
+     * A general edit function for entities and structure tags.
+     * @param {String} id The tag id
+     */
     tagger.editTag = function(id) {
         var tag = tagger.getCurrentTag(id);
         if (tag.attr('_entity')) {
@@ -114,27 +130,12 @@ function Tagger(writer) {
     };
     
     /**
-     * Changes the _tag attribute to a new one.
-     * @param {jQuery} $tag A jQuery representation of the tag.
-     * @param {String} newTagName The name of the new tag.
+     * A general change/replace function
+     * @param {String} tagName The new tag name
+     * @param {String} [id] The tag id. If undefined, will get the currently selected tag.
      */
-    tagger.changeTagValue = function($tag, newTagName) {
-        var oldAtts = $tag[0].attributes;
-        var newAtts = {};
-        for (var i = 0; i < oldAtts.length; i++) {
-            var att = oldAtts[i];
-            var val = att.value;
-            if (att.name === '_tag') {
-                val = newTagName;
-            }
-            newAtts[att.name] = val;
-        }
-        tagger.editStructureTag($tag, newAtts);
-    };
-    
-    // a general change/replace function
-    tagger.changeTag = function(params) {
-        var tag = tagger.getCurrentTag(params.id);
+    tagger.changeTag = function(tagName, id) {
+        var tag = tagger.getCurrentTag(id);
         if (tag.attr('_entity')) {
             w.dialogManager.confirm({
                 title: 'Remove Entity?',
@@ -143,18 +144,18 @@ function Tagger(writer) {
                     if (yes) {
                         tag = tag.first();
                         tag.wrapInner('<span id="tempSelection"/>');
-                        tagger.removeEntity(params.id);
+                        tagger.removeEntity(id);
                         var selectionContents = $('#tempSelection', w.editor.getBody());
                         var parentTag = selectionContents.parent();
                         w.editor.selection.select(selectionContents[0].firstChild);
                         w.editor.currentBookmark = w.editor.selection.getBookmark();
                         selectionContents.contents().unwrap();
-                        w.dialogManager.getDialog('schemaTags').addSchemaTag({key: params.key, parentTag: parentTag});
+                        w.dialogManager.getDialog('schemaTags').addSchemaTag({key: tagName, parentTag: parentTag});
                     }
                 }
             });
         } else {
-            w.dialogManager.getDialog('schemaTags').changeSchemaTag({tag: tag, key: params.key});
+            w.dialogManager.getDialog('schemaTags').changeSchemaTag(tag, tagName);
         } 
     };
     
@@ -368,11 +369,11 @@ function Tagger(writer) {
         var requiresSelection = w.schemaManager.mapper.doesEntityRequireSelection(type);
         var result;
         if (!requiresSelection && w.editor.selection.isCollapsed()) {
-            result = w.VALID;
+            result = tagger.VALID;
         } else {
-            result = w.utilities.isSelectionValid(false);
+            result = tagger.isSelectionValid(false, true);
         }
-        if (result === w.NO_SELECTION) {
+        if (result === tagger.NO_SELECTION) {
             w.dialogManager.show('message', {
                 title: 'Error',
                 msg: 'Please select some text before adding an entity.',
@@ -380,7 +381,7 @@ function Tagger(writer) {
             });
         } else {
             w.editor.currentBookmark = w.editor.selection.getBookmark(1);
-            if (result === w.VALID) {
+            if (result === tagger.VALID) {
                 var childName;
                 if (tag !== undefined) {
                     childName = tag;
@@ -403,7 +404,7 @@ function Tagger(writer) {
                         type: 'error'
                     });
                 }
-            } else if (result === w.OVERLAP) {
+            } else if (result === tagger.OVERLAP) {
                 if (w.allowOverlap === true) {
                     w.dialogManager.show(type, {type: type});
                 } else {
@@ -799,6 +800,55 @@ function Tagger(writer) {
     }
 
     /**
+     * Displays the appropriate dialog for adding a tag.
+     * @param {String} tagName
+     * @param {String} action
+     * @param {jQuery} parentTag
+     */
+    tagger.addTag = function(tagName, action, parentTag) {
+        if (tagName === w.schemaManager.getHeader()) {
+            w.dialogManager.show('header');
+            return;
+        } else {
+            var type = w.schemaManager.mapper.getEntityTypeForTag(tagName);
+            if (type != null) {
+                w.tagger.addEntity(type, tagName);
+                return;
+            }
+        }
+        var tagId = w.editor.currentBookmark.tagId;
+        w.editor.selection.moveToBookmark(w.editor.currentBookmark);
+        
+        var cleanRange = action === tagger.ADD;
+        var valid = tagger.isSelectionValid(true, cleanRange);
+        if (valid !== tagger.VALID) {
+            w.dialogManager.show('message', {
+                title: 'Error',
+                msg: 'Please ensure that the beginning and end of your selection have a common parent.<br/>For example, your selection cannot begin in one paragraph and end in another, or begin in bolded text and end outside of that text.',
+                type: 'error'
+            });
+            return;
+        }
+        
+        // reset bookmark after possible modification by isSelectionValid
+        w.editor.currentBookmark = w.editor.selection.getBookmark(1);
+        if (tagId != null) {
+            w.editor.currentBookmark.tagId = tagId;
+        }
+        
+        if (parentTag === undefined || parentTag.length === 0) {
+            var selectionParent = w.editor.currentBookmark.rng.commonAncestorContainer;
+            if (selectionParent.nodeType === Node.TEXT_NODE) {
+                parentTag = $(selectionParent).parent();
+            } else {
+                parentTag = $(selectionParent);
+            }
+        }
+
+        w.dialogManager.getDialog('schemaTags').addSchemaTag(tagName, parentTag, action);
+    }
+
+    /**
      * Adds a structure tag to the document, based on the params.
      * @fires Writer#tagAdded
      * @param {String} tagName The tag name
@@ -808,7 +858,7 @@ function Tagger(writer) {
      */
     tagger.addStructureTag = function(tagName, attributes, bookmark, action) {        
         sanitizeObject(attributes);
-        
+
         var id = w.getUniqueId('dom_');
         
         var $node;
@@ -854,41 +904,48 @@ function Tagger(writer) {
         
         var selection = '\uFEFF';
         var content = open_tag + selection + close_tag;
-        if (action == 'before') {
-            if ($noteWrapper !== null) {
-                $noteWrapper.before(content);
-            } else {
-                $node.before(content);
-            }
-        } else if (action == 'after') {
-            if ($noteWrapper !== null) {
-                $noteWrapper.after(content);
-            } else {
-                $node.after(content);
-            }
-        } else if (action == 'around') {
-            if ($node.length > 1) {
-                $node.wrapAll(content);
-            } else {
-                if ($noteWrapper !== null) {
-                    $noteWrapper.wrap(content);
-                } else {
-                    $node.wrap(content);
-                }
-            }
-        } else if (action == 'inside') {
-            $node.wrapInner(content);
-        } else {
-            // default action = add
-            w.editor.selection.moveToBookmark(bookmark);
-            selection = w.editor.selection.getContent();
-            if (selection == '') selection = '\uFEFF';
-            content = open_tag + selection + close_tag;
 
-            var range = w.editor.selection.getRng(true);
-            var tempNode = $('<span data-mce-bogus="1">', w.editor.getDoc());
-            range.surroundContents(tempNode[0]);
-            tempNode.replaceWith(content);
+        switch(action) {
+            case tagger.BEFORE:
+                if ($noteWrapper !== null) {
+                    $noteWrapper.before(content);
+                } else {
+                    $node.before(content);
+                }
+                break;
+            case tagger.AFTER:
+                if ($noteWrapper !== null) {
+                    $noteWrapper.after(content);
+                } else {
+                    $node.after(content);
+                }
+                break;
+            case tagger.AROUND:
+                if ($node.length > 1) {
+                    $node.wrapAll(content);
+                } else {
+                    if ($noteWrapper !== null) {
+                        $noteWrapper.wrap(content);
+                    } else {
+                        $node.wrap(content);
+                    }
+                }
+                break;
+            case tagger.INSIDE:
+                $node.wrapInner(content);
+                break;
+            default:
+                // default action = add
+                w.editor.selection.moveToBookmark(bookmark);
+                selection = w.editor.selection.getContent();
+                if (selection == '') selection = '\uFEFF';
+                content = open_tag + selection + close_tag;
+
+                var range = w.editor.selection.getRng(true);
+                var tempNode = $('<span data-mce-bogus="1">', w.editor.getDoc());
+                range.surroundContents(tempNode[0]);
+                tempNode.replaceWith(content);
+
         }
         
         var newTag = $('#'+id, w.editor.getBody());
@@ -915,8 +972,6 @@ function Tagger(writer) {
      * @param [tagName] {String} A new tag name for this tag (optional)
      */
     tagger.editStructureTag = function(tag, attributes, tagName) {
-        // TODO add undo support
-        
         sanitizeObject(attributes);
         
         var id = tag.attr('id');
@@ -1052,6 +1107,163 @@ function Tagger(writer) {
             processRemovedNodes(domContent);
         }
     }
+
+    /**
+     * Checks the user selection for overlap issues and entity markers.
+     * @param {Boolean} isStructTag Is the tag a structure tag
+     * @param {Boolean} cleanRange True to remove extra whitespace and fix text range that spans multiple parents
+     * @returns {Integer}
+     */
+    tagger.isSelectionValid = function(isStructTag, cleanRange) {
+        var sel = w.editor.selection;
+        
+        // disallow empty entities
+        if (!isStructTag && sel.isCollapsed()) return tagger.NO_SELECTION;
+        
+        var range = sel.getRng(true);
+        // next line commented out as it messes up the selection in IE
+//        range.commonAncestorContainer.normalize(); // normalize/collapse separate text nodes
+        
+        // fix for select all and root node select
+        if (range.commonAncestorContainer.nodeName.toLowerCase() === 'body') {
+            var root = w.editor.dom.select('body > *')[0];
+            range.setStartBefore(root.firstChild);
+            range.setEndAfter(root.lastChild);
+        }
+        
+        function findTextNode(node, direction) {
+            function doFind(currNode, dir, reps) {
+                if (reps > 20) return null; // prevent infinite recursion
+                else {
+                    var newNode;
+                    if (dir == 'back') {
+                        newNode = currNode.lastChild || currNode.previousSibling || currNode.parentNode.previousSibling;
+                    } else {
+                        newNode = currNode.firstChild || currNode.nextSibling || currNode.parentNode.nextSibling;
+                    }
+                    if (newNode == null) return null;
+                    if (newNode.nodeType == Node.TEXT_NODE) return newNode;
+                    return doFind(newNode, dir, reps++);
+                }
+            }
+            return doFind(node, direction, 0);
+        }
+        
+        // TODO rework this
+        // fix for when start and/or end containers are element nodes
+        if (range.startContainer.nodeType === Node.ELEMENT_NODE) {
+            var end = range.endContainer;
+            if (end.nodeType != Node.TEXT_NODE || range.endOffset === 0) {
+                end = findTextNode(range.endContainer, 'back');
+                if (end == null) return tagger.NO_COMMON_PARENT;
+                range.setEnd(end, end.length);
+            }
+            var start = findTextNode(range.startContainer, 'forward'); 
+            if (start == null) return tagger.NO_COMMON_PARENT;
+            range.setStart(start, 0);
+        }
+        if (range.endContainer.nodeType === Node.ELEMENT_NODE) {
+            // don't need to check nodeType here since we've already ensured startContainer is text
+            range.setEnd(range.startContainer, range.startContainer.length);
+        }
+        
+        /**
+         * Removes whitespace surrounding the range.
+         * Also fixes cases where the range spans adjacent text nodes with different parents.
+         */
+        function fixRange(range) {
+            var content = range.toString();
+            var match = content.match(/^\s+/);
+            var leadingSpaces = 0, trailingSpaces = 0;
+            if (match != null) {
+                leadingSpaces = match[0].length;
+            }
+            match = content.match(/\s+$/);
+            if (match != null) {
+                trailingSpaces = match[0].length;
+            }
+            
+            function shiftRangeForward(range, count, reps) {
+                if (count > 0 && reps < 20) {
+                    if (range.startOffset < range.startContainer.length) {
+                        range.setStart(range.startContainer, range.startOffset+1);
+                        count--;
+                    }
+                    if (range.startOffset == range.startContainer.length) {
+                        var nextTextNode = findTextNode(range.startContainer, 'forward');
+                        if (nextTextNode != null) {
+                            range.setStart(nextTextNode, 0);
+                        }
+                    }
+                    shiftRangeForward(range, count, reps++);
+                }
+            }
+            
+            function shiftRangeBackward(range, count, reps) {
+                if (count > 0 && reps < 20) {
+                    if (range.endOffset > 0) {
+                        range.setEnd(range.endContainer, range.endOffset-1);
+                        count--;
+                    }
+                    if (range.endOffset == 0) {
+                        var prevTextNode = findTextNode(range.endContainer, 'back');
+                        if (prevTextNode != null) {
+                            range.setEnd(prevTextNode, prevTextNode.length);
+                        }
+                    }
+                    shiftRangeBackward(range, count, reps++);
+                }
+            }
+            
+            shiftRangeForward(range, leadingSpaces, 0);
+            shiftRangeBackward(range, trailingSpaces, 0);
+            
+            sel.setRng(range);
+        }
+        
+        if (cleanRange) {
+            fixRange(range);
+        }
+        
+        // TODO add handling for when inside overlapping entity tags
+        if (range.startContainer.parentNode != range.endContainer.parentNode) {
+            if (range.endOffset === 0 && range.endContainer.previousSibling === range.startContainer.parentNode) {
+                // fix for when the user double-clicks a word that's already been tagged
+                range.setEnd(range.startContainer, range.startContainer.length);
+            } else {
+                if (isStructTag) {
+                    return tagger.NO_COMMON_PARENT;
+                } else {
+                    return tagger.OVERLAP;
+                }
+            }
+        }
+        
+        // extra check to make sure we're not overlapping with an entity
+        if (isStructTag || w.allowOverlap === false) {
+            var c;
+            var currentNode = range.startContainer;
+            var ents = {};
+            while (currentNode != range.endContainer) {
+                currentNode = currentNode.nextSibling;
+                c = $(currentNode);
+                if (c.attr('_entity') != null && c.attr('_tag') != null) {
+                    if (ents[c.attr('name')]) {
+                        delete ents[c.attr('name')];
+                    } else {
+                        ents[c.attr('name')] = true;
+                    }
+                }
+            }
+            var count = 0;
+            for (var id in ents) {
+                count++;
+            }
+            if (count != 0) return tagger.OVERLAP;
+        }
+        
+        return tagger.VALID;
+    };
     
     return tagger;
 };

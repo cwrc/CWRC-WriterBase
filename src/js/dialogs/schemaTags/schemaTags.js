@@ -12,9 +12,9 @@ function SchemaTags(writer, parentEl) {
     var mode = null;
     
     var tagId = null;
-    var tag = null;
+    var currentTag = null;
     var currentTagName = null;
-    var action = null;
+    var currentAction = null;
     
     var $schemaDialog = $(''+
     '<div class="annotationDialog">'+
@@ -69,7 +69,7 @@ function SchemaTags(writer, parentEl) {
     var buildForm = function(tagName, tagPath) {
         var attributes = {};
         if (mode === EDIT) {
-            attributes = w.tagger.getAttributesForTag(tag[0]);
+            attributes = w.tagger.getAttributesForTag(currentTag[0]);
             attributesWidget.mode = AttributeWidget.EDIT;
         } else {
             attributesWidget.mode = AttributeWidget.ADD;
@@ -100,12 +100,12 @@ function SchemaTags(writer, parentEl) {
                     if (w.editor.currentBookmark.tagId == null) {
                         w.editor.currentBookmark.tagId = tagId;
                     }
-                    w.tagger.addStructureTag(currentTagName, attributes, w.editor.currentBookmark, action);
+                    w.tagger.addStructureTag(currentTagName, attributes, w.editor.currentBookmark, currentAction);
                     tagId = null;
                     break;
                 case EDIT:
-                    w.tagger.editStructureTag(tag, attributes, currentTagName);
-                    tag = null;
+                    w.tagger.editStructureTag(currentTag, attributes, currentTagName);
+                    currentTag = null;
             }
         }
     };
@@ -147,56 +147,26 @@ function SchemaTags(writer, parentEl) {
             $schemaDialog.dialog('destroy');
         },
         
-        addSchemaTag: function(params) {
-            var key = params.key;
-            var parentTag = params.parentTag;
-            action = params.action;
-            
-            if (key === w.schemaManager.getHeader()) {
-                w.dialogManager.show('header');
-                return;
-            } else {
-                var type = w.schemaManager.mapper.getEntityTypeForTag(key);
-                if (type != null) {
-                    w.tagger.addEntity(type, key);
-                    return;
-                }
-            }
-            tagId = w.editor.currentBookmark.tagId;
-            w.editor.selection.moveToBookmark(w.editor.currentBookmark);
-            
-            var valid = w.utilities.isSelectionValid(true, action);
-            if (valid !== w.VALID) {
-                w.dialogManager.show('message', {
-                    title: 'Error',
-                    msg: 'Please ensure that the beginning and end of your selection have a common parent.<br/>For example, your selection cannot begin in one paragraph and end in another, or begin in bolded text and end outside of that text.',
-                    type: 'error'
-                });
-                return;
-            }
-            
-            // reset bookmark after possible modification by isSelectionValid
-            w.editor.currentBookmark = w.editor.selection.getBookmark(1);
-            if (tagId != null) {
-                w.editor.currentBookmark.tagId = tagId;
-            }
-            
-            if (parentTag === undefined || parentTag.length === 0) {
-                var selectionParent = w.editor.currentBookmark.rng.commonAncestorContainer;
-                if (selectionParent.nodeType === Node.TEXT_NODE) {
-                    parentTag = $(selectionParent).parent();
-                } else {
-                    parentTag = $(selectionParent);
-                }
-            }
-            
-            var path = w.editor.writer.utilities.getElementXPath(parentTag[0]);
-            path += '/'+key;
-            
+        /**
+         * Add a tag
+         * @param {String} tagName 
+         * @param {jQuery} parentTag 
+         * @param {String} action 
+         */
+        addSchemaTag: function(tagName, parentTag, action) {
             mode = ADD;
-            this.show({tagName: key, tagPath: path});
+            currentAction = action;
+
+            var path = w.editor.writer.utilities.getElementXPath(parentTag[0]);
+            path += '/'+tagName;
+            
+            this.show({tagName: tagName, tagPath: path});
         },
         
+        /**
+         * Edit a tag
+         * @param {jQuery} $tag 
+         */
         editSchemaTag: function($tag) {
             var tagName = $tag.attr('_tag');
             if (tagName === undefined) {
@@ -207,31 +177,30 @@ function SchemaTags(writer, parentEl) {
                 w.dialogManager.show('header');
                 return;
             }
+
+            mode = EDIT;
+            currentTagName = tagName;
+            currentTag = $tag;
             
             var path = w.utilities.getElementXPath($tag[0]);
             
-            currentTagName = tagName;
-            tag = $tag;
-            mode = EDIT;
             this.show({tagName: tagName, tagPath: path});
         },
         
-        changeSchemaTag: function(params) {
-            currentTagName = params.key;
-            tag = params.tag;
-            
-            if (tag === undefined || tag.length === 0) {
-                var selectionParent = w.editor.currentBookmark.rng.commonAncestorContainer;
-                if (selectionParent.nodeType === Node.TEXT_NODE) {
-                    tag = $(selectionParent).parent();
-                } else {
-                    tag = $(selectionParent);
-                }
-            }
-            
-            var path = w.utilities.getElementXPath(tag[0]);
+        /**
+         * Change the tag name for a tag
+         * @param {jQuery} $tag 
+         * @param {String} tagName 
+         */
+        changeSchemaTag: function($tag, tagName) {
             mode = EDIT;
-            this.show({tagName: params.key, tagPath: path});
+            currentTagName = tagName;
+            currentTag = $tag;
+
+            var path = w.utilities.getElementXPath($tag.parent()[0]);
+            path += '/'+tagName;
+            
+            this.show({tagName: tagName, tagPath: path});
         }
     };
 };

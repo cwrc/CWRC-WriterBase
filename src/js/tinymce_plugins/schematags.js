@@ -160,13 +160,12 @@ tinymce.PluginManager.add('schematags', function(editor) {
                 initialFilterState: null,
                 image: imageUrl+'tag_blue.png',
                 onclick: function(e) {
-                    var tag = this.settings.key;
+                    var tagName = this.settings.key;
                     var action = this.settings.action;
-                    var d = editor.writer.dialogManager.getDialog('schemaTags');
                     if (action == "add") {
-                        d.addSchemaTag({key: tag});
+                        editor.writer.tagger.addTag(tagName, action);
                     } else {
-                        d.changeSchemaTag({key: tag});
+                        editor.writer.tagger.changeTag(tagName);
                     }
                 }
             });

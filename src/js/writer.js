@@ -117,12 +117,6 @@ function CWRCWriter(config) {
         if (console) console.warn('Mode set to XML and overlap allowed. Disabling overlap since XML doesn\'t allow it.');
     }
 
-    // possible results when trying to add entity
-    w.NO_SELECTION = 0;
-    w.NO_COMMON_PARENT = 1;
-    w.OVERLAP = 2;
-    w.VALID = 3;
-
     /**
      * Gets a unique ID for use within CWRC-Writer.
      * @param {String} prefix The prefix to attach to the ID.

@@ -482,11 +482,10 @@ function StructureTree(config) {
     function _getSubmenu(tags, tagId) {
         var inserts = {};
         var inserted = false;
-        var tag, label, key;
         for (var i = 0; i < tags.length; i++) {
-            tag = tags[i];
-            key = tag.name;
-            label = tag.name;
+            var tag = tags[i];
+            var key = tag.name;
+            var label = tag.name;
             if (tag.fullName !== '') {
                 label += ' ('+tag.fullName+')';
             }
@@ -497,9 +496,10 @@ function StructureTree(config) {
                 action: function(obj) {
                     // FIXME hack to get actionType
                     var parentText = obj.element.find('.submenu.vakata-context-hover').find('a:first').text();
+                    var tagName = obj.item.key;
                     if (parentText.indexOf('Change') !== -1) {
                         var id = obj.reference.parent('li').attr('name');
-                        w.tagger.changeTag({key: obj.item.key, id: id});
+                        w.tagger.changeTag(tagName, id);
                     } else {
                         var actionType = parentText.match(/\w+$/)[0].toLowerCase();
                         w.editor.currentBookmark = w.editor.selection.getBookmark(1);
@@ -509,7 +509,8 @@ function StructureTree(config) {
                             w.editor.currentBookmark.tagId = tagId;
                         }
                         var parentTag = $('#'+tagId, w.editor.getBody());
-                        w.dialogManager.getDialog('schemaTags').addSchemaTag({key: obj.item.key, action: actionType, parentTag: parentTag});
+                        w.tagger.addTag(tagName, actionType, parentTag);
+
                     }
                 }
             };
