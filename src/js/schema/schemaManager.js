@@ -92,7 +92,7 @@ function SchemaManager(writer, config) {
 
     sm._root = null;
     /**
-     * Get the root element for the current schema.
+     * Get the root tag name for the current schema.
      * @returns {String}
      */
     sm.getRoot = function() {
@@ -101,7 +101,7 @@ function SchemaManager(writer, config) {
     
     sm._header = null;
     /**
-     * Get the header element for the current schema.
+     * Get the header tag name for the current schema.
      * @returns {String}
      */
     sm.getHeader = function() {

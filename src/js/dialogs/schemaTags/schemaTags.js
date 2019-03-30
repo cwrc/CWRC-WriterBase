@@ -7,14 +7,7 @@ var AttributeWidget = require('../attributeWidget/attributeWidget.js');
 function SchemaTags(writer, parentEl) {
     var w = writer;
     
-    var ADD = 0;
-    var EDIT = 1;
-    var mode = null;
-    
-    var tagId = null;
-    var currentTag = null;
-    var currentTagName = null;
-    var currentAction = null;
+    var currentCallback = null;
     
     var $schemaDialog = $(''+
     '<div class="annotationDialog">'+
@@ -58,6 +51,7 @@ function SchemaTags(writer, parentEl) {
             }
         }]
     });
+    
     var attributesWidget = new AttributeWidget({
         writer: w,
         $parent: $schemaDialog,
@@ -65,11 +59,23 @@ function SchemaTags(writer, parentEl) {
         showSchemaHelp: true
     });
     
+    var doShow = function(tagName, tagPath, tag) {
+        w.editor.getBody().blur(); // lose keyboard focus in editor
+        
+        buildForm(tagName, tagPath, tag);
+        
+        $schemaDialog.dialog('option', 'title', tagName);
+        $schemaDialog.dialog('open');
+        
+        // TODO contradicting focuses
+        $('button[role=ok]', $schemaDialog.parent()).focus();
+        //$('input, select', $schemaDialog).first().focus();
+    };
     
-    var buildForm = function(tagName, tagPath) {
+    var buildForm = function(tagName, tagPath, tag) {
         var attributes = {};
-        if (mode === EDIT) {
-            attributes = w.tagger.getAttributesForTag(currentTag[0]);
+        if (tag !== undefined) {
+            attributes = w.tagger.getAttributesForTag(tag);
             attributesWidget.mode = AttributeWidget.EDIT;
         } else {
             attributesWidget.mode = AttributeWidget.ADD;
@@ -94,19 +100,9 @@ function SchemaTags(writer, parentEl) {
             } catch (e) {
                 if (console) console.log('error destroying tooltip');
             }
-            
-            switch (mode) {
-                case ADD:
-                    if (w.editor.currentBookmark.tagId == null) {
-                        w.editor.currentBookmark.tagId = tagId;
-                    }
-                    w.tagger.addStructureTag(currentTagName, attributes, w.editor.currentBookmark, currentAction);
-                    tagId = null;
-                    break;
-                case EDIT:
-                    w.tagger.editStructureTag(currentTag, attributes, currentTagName);
-                    currentTag = null;
-            }
+
+            currentCallback.call(w, attributes);
+            currentCallback = null;
         }
     };
     
@@ -121,26 +117,15 @@ function SchemaTags(writer, parentEl) {
             } catch (e) {
                 if (console) console.log('error destroying tooltip');
             }
+
+            currentCallback.call(w, null);
+            currentCallback = null;
         }
     };
     
     return {
-        show: function(config) {
-            var tagName = config.tagName;
-            var tagPath = config.tagPath;
-            
-            w.editor.getBody().blur(); // lose keyboard focus in editor
-            
-            currentTagName = tagName;
-            
-            buildForm(tagName, tagPath);
-            
-            $schemaDialog.dialog('option', 'title', tagName);
-            $schemaDialog.dialog('open');
-            
-            // TODO contradicting focuses
-            $('button[role=ok]', $schemaDialog.parent()).focus();
-            //$('input, select', $schemaDialog).first().focus();
+        show: function() {
+            // don't call this directly, use the add or edit methods below
         },
         destroy: function() {
             attributesWidget.destroy();
@@ -149,58 +134,32 @@ function SchemaTags(writer, parentEl) {
         
         /**
          * Add a tag
+         * @param {jQuery} parentTag
          * @param {String} tagName 
-         * @param {jQuery} parentTag 
-         * @param {String} action 
+         * @param {Function} callback
          */
-        addSchemaTag: function(tagName, parentTag, action) {
-            mode = ADD;
-            currentAction = action;
+        addSchemaTag: function(parentTag, tagName, callback) {
+            currentCallback = callback;
 
-            var path = w.editor.writer.utilities.getElementXPath(parentTag[0]);
-            path += '/'+tagName;
+            var tagPath = w.editor.writer.utilities.getElementXPath(parentTag[0]);
+            tagPath += '/'+tagName;
             
-            this.show({tagName: tagName, tagPath: path});
+            doShow(tagName, tagPath);
         },
         
         /**
          * Edit a tag
          * @param {jQuery} $tag 
+         * @param {String} tagName
+         * @param {Function} callback
          */
-        editSchemaTag: function($tag) {
-            var tagName = $tag.attr('_tag');
-            if (tagName === undefined) {
-                console.warn('schemaTags: no tag name for',$tag);
-                return;
-            }
-            if (tagName == w.schemaManager.getHeader()) {
-                w.dialogManager.show('header');
-                return;
-            }
+        editSchemaTag: function($tag, tagName, callback) {
+            currentCallback = callback;
 
-            mode = EDIT;
-            currentTagName = tagName;
-            currentTag = $tag;
+            var tagPath = w.utilities.getElementXPath($tag.parent()[0]);
+            tagPath += '/'+tagName;
             
-            var path = w.utilities.getElementXPath($tag[0]);
-            
-            this.show({tagName: tagName, tagPath: path});
-        },
-        
-        /**
-         * Change the tag name for a tag
-         * @param {jQuery} $tag 
-         * @param {String} tagName 
-         */
-        changeSchemaTag: function($tag, tagName) {
-            mode = EDIT;
-            currentTagName = tagName;
-            currentTag = $tag;
-
-            var path = w.utilities.getElementXPath($tag.parent()[0]);
-            path += '/'+tagName;
-            
-            this.show({tagName: tagName, tagPath: path});
+            doShow(tagName, tagPath, $tag[0]);
         }
     };
 };
