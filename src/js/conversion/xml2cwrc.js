@@ -519,11 +519,12 @@ function XML2CWRC(writer) {
                     var attName = attrs[i].name;
                     var attValue = attrs[i].value;
 
-                    jsonAttrs[attName] = attValue;
-
                     if (xml2cwrc.isLegacyDocument && attName === 'annotationId' || attName === 'offsetId') {
                         continue;
                     }
+
+                    jsonAttrs[attName] = attValue;
+
                     if (xml2cwrc.reservedAttributes[attName] === true) {
                         continue;
                     }
