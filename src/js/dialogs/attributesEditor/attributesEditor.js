@@ -4,7 +4,7 @@ var $ = require('jquery');
 
 var AttributeWidget = require('../attributeWidget/attributeWidget.js');
     
-function SchemaTags(writer, parentEl) {
+function AttributesEditor(writer, parentEl) {
     var w = writer;
     
     var currentCallback = null;
@@ -59,10 +59,17 @@ function SchemaTags(writer, parentEl) {
         showSchemaHelp: true
     });
     
-    var doShow = function(tagName, tagPath, tag) {
+    var doShow = function(tagName, tagPath, attributes) {
         w.editor.getBody().blur(); // lose keyboard focus in editor
         
-        buildForm(tagName, tagPath, tag);
+        if ($.isEmptyObject(attributes)) {
+            attributesWidget.mode = AttributeWidget.ADD;
+        } else {
+            attributesWidget.mode = AttributeWidget.EDIT;
+        }
+        
+        var atts = w.utilities.getChildrenForTag({tag: tagName, path: tagPath, type: 'attribute', returnType: 'array'});
+        attributesWidget.buildWidget(atts, attributes, tagName);
         
         $schemaDialog.dialog('option', 'title', tagName);
         $schemaDialog.dialog('open');
@@ -70,19 +77,6 @@ function SchemaTags(writer, parentEl) {
         // TODO contradicting focuses
         $('button[role=ok]', $schemaDialog.parent()).focus();
         //$('input, select', $schemaDialog).first().focus();
-    };
-    
-    var buildForm = function(tagName, tagPath, tag) {
-        var attributes = {};
-        if (tag !== undefined) {
-            attributes = w.tagger.getAttributesForTag(tag);
-            attributesWidget.mode = AttributeWidget.EDIT;
-        } else {
-            attributesWidget.mode = AttributeWidget.ADD;
-        }
-        
-        var atts = w.utilities.getChildrenForTag({tag: tagName, path: tagPath, type: 'attribute', returnType: 'array'});
-        attributesWidget.buildWidget(atts, attributes, tagName);
     };
     
     var formResult = function() {
@@ -124,44 +118,22 @@ function SchemaTags(writer, parentEl) {
     };
     
     return {
-        show: function() {
-            // don't call this directly, use the add or edit methods below
+        /**
+         * Show the attributes editor
+         * @param {String} tagName The tag name
+         * @param {String} tagPath The xpath for the tag
+         * @param {Object} attributes Attributes previously added to tag (for use when editing)
+         * @param {Function} callback Callback function. Called with attributes object, or null if cancelled.
+         */
+        show: function(tagName, tagPath, attributes, callback) {
+            currentCallback = callback;
+            doShow(tagName, tagPath, attributes);
         },
         destroy: function() {
             attributesWidget.destroy();
             $schemaDialog.dialog('destroy');
-        },
-        
-        /**
-         * Add a tag
-         * @param {jQuery} parentTag
-         * @param {String} tagName 
-         * @param {Function} callback
-         */
-        addSchemaTag: function(parentTag, tagName, callback) {
-            currentCallback = callback;
-
-            var tagPath = w.editor.writer.utilities.getElementXPath(parentTag[0]);
-            tagPath += '/'+tagName;
-            
-            doShow(tagName, tagPath);
-        },
-        
-        /**
-         * Edit a tag
-         * @param {jQuery} $tag 
-         * @param {String} tagName
-         * @param {Function} callback
-         */
-        editSchemaTag: function($tag, tagName, callback) {
-            currentCallback = callback;
-
-            var tagPath = w.utilities.getElementXPath($tag.parent()[0]);
-            tagPath += '/'+tagName;
-            
-            doShow(tagName, tagPath, $tag[0]);
         }
     };
 };
 
-module.exports = SchemaTags;
+module.exports = AttributesEditor;

@@ -129,9 +129,11 @@ function Tagger(writer) {
             if (tagName === w.schemaManager.getHeader()) {
                 w.dialogManager.show('header');
             } else {
-                w.dialogManager.getDialog('schemaTags').editSchemaTag(tag, tagName, function(attributes) {
-                    if (attributes !== null) {
-                        w.tagger.editStructureTag(tag, attributes, tagName);
+                var tagPath = w.utilities.getElementXPath(tag[0]);
+                var attributes = tagger.getAttributesForTag(tag[0]);
+                w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, attributes, function(newAttributes) {
+                    if (newAttributes !== null) {
+                        w.tagger.editStructureTag(tag, newAttributes, tagName);
                     }
                 });
             }
@@ -159,7 +161,10 @@ function Tagger(writer) {
                         w.editor.selection.select(selectionContents[0].firstChild);
                         w.editor.currentBookmark = w.editor.selection.getBookmark();
                         selectionContents.contents().unwrap();
-                        w.dialogManager.getDialog('schemaTags').addSchemaTag(parentTag, tagName, function(attributes) {
+                        var tagPath = w.utilities.getElementXPath(parentTag[0]);
+                        tagPath += '/'+tagName;
+                        // TODO keep old attributes?
+                        w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, {}, function(attributes) {
                             if (attributes !== null) {
                                 tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, tagger.ADD);
                             }
@@ -168,9 +173,12 @@ function Tagger(writer) {
                 }
             });
         } else {
-            w.dialogManager.getDialog('schemaTags').editSchemaTag(tag, tagName, function(attributes) {
-                if (attributes !== null) {
-                    w.tagger.editStructureTag(tag, attributes, tagName);
+            var tagPath = w.utilities.getElementXPath(tag.parent()[0]);
+            tagPath += '/'+tagName;
+            var attributes = tagger.getAttributesForTag(tag[0]);
+            w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, attributes, function(newAttributes) {
+                if (newAttributes !== null) {
+                    w.tagger.editStructureTag(tag, newAttributes, tagName);
                 }
             });
         } 
@@ -898,7 +906,9 @@ function Tagger(writer) {
             }
         }
 
-        w.dialogManager.getDialog('schemaTags').addSchemaTag(parentTag, tagName, function(attributes) {
+        var tagPath = w.utilities.getElementXPath(parentTag[0]);
+        tagPath += '/'+tagName;
+        w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, {}, function(attributes) {
             if (attributes !== null) {
                 tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, action);
             }
