@@ -49,6 +49,7 @@ function XML2CWRC(writer) {
         // setTimeout to make sure doc clears first
         setTimeout(function() {
             var info = getSchemaInfo(doc);
+
             var schemaId = info.schemaId;
             var schemaUrl = info.schemaUrl;
             var cssUrl = info.cssUrl;
@@ -193,11 +194,11 @@ function XML2CWRC(writer) {
 
         xml2cwrc.isLegacyDocument = isLegacyDocument(doc);
 
-        var hadRDF = processRDF(doc);
+        var hasRDF = processRDF(doc);
 
         if (convertEntities) {
             var typesToFind = undefined;
-            if (hadRDF) {
+            if (hasRDF) {
                 typesToFind = ['link', 'note'];
             }
 
@@ -242,7 +243,47 @@ function XML2CWRC(writer) {
     function processRDF(doc) {
         var $rdfs = $(doc).find('rdf\\:RDF, RDF');
         if ($rdfs.length) {
-            w.annotationsManager.setAnnotations($rdfs, xml2cwrc.isLegacyDocument);
+
+            $rdfs.children().each(function(index, el) {
+                var entityConfig = w.annotationsManager.getEntityConfigFromAnnotation(el);
+                if (entityConfig != null) {
+
+                    var isOverlapping = entityConfig.range.endXPath !== undefined;
+                    if (!isOverlapping) {
+
+                        // find the associated element and do additional processing
+                        var entityEl = w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
+
+                        if (entityEl === null) {
+                            console.warn('xml2cwrc: no matching entity element for',entityConfig);
+                            return;
+                        }
+
+                        entityConfig.tag = entityEl.nodeName;
+                        
+                        var id = w.getUniqueId('dom_');
+                        entityConfig.id = id;
+                        
+                        // TODO need to get elements that are targeted by reverse mapping
+                        var info = w.schemaManager.mapper.getReverseMapping(entityEl, entityConfig.type);
+                        console.log('reverseMapping', info);
+                        $.extend(entityConfig.customValues, info.customValues);
+                        $.extend(entityConfig.attributes, info.attributes);
+                    }
+
+                    // replace annotationId with xpath
+                    if (xml2cwrc.isLegacyDocument) {
+                        var entityEl = w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
+                        entityConfig.range.startXPath = w.utilities.getElementXPath(entityEl);
+                        if (isOverlapping) {
+                            var entityElEnd = w.utilities.evaluateXPath(doc, entityConfig.range.endXPath);
+                            entityConfig.range.endXPath = w.utilities.getElementXPath(entityElEnd);
+                        }
+                    }
+
+                    w.entitiesManager.addEntity(entityConfig);
+                }
+            });
 
             $rdfs.remove();
 
@@ -310,39 +351,6 @@ function XML2CWRC(writer) {
         parentFunc();
 
         return dfd.promise();
-    }
-
-    /**
-     * Removes extraneous entity mapping elements.
-     * @param {Document} doc 
-     */
-    function cleanupEntities(doc) {
-        var li = w.dialogManager.getDialog('loadingindicator');
-        li.setText('Processing Entities');
-
-        var entObj = w.entitiesManager.getEntities();
-        var entities = Object.keys(entObj).map(function(key) {
-            return entObj[key]
-        });
-
-        return processArray(entities, function(entity) {
-            var range = entity.getRange();
-            if (range.endXPath === undefined) {
-                var node = w.utilities.evaluateXPath(doc, range.startXPath);
-                if (node !== null) {
-                    var $node = $(node);
-                    if (entity.isNote()) { // this prevents tei keyword from being processed appropriately (seg/term)
-                    } else {
-                        // TODO review this textTag stuff
-                        var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
-                        if (textTag !== '') {
-                            $node.find(textTag).contents().unwrap();
-                        }
-                        $node.find(':not(:text)').remove();
-                    }
-                }
-            }
-        }, 250);
     }
 
     /**
@@ -424,10 +432,12 @@ function XML2CWRC(writer) {
         var isNote = w.schemaManager.mapper.isEntityTypeNote(entityType);
 
         var info = w.schemaManager.mapper.getReverseMapping(el, entityType);
+        console.log('reverseMapping', info);
 
         var config = {
             type: entityType,
             isNote: isNote,
+            tag: el.nodeName,
             attributes: info.attributes,
             customValues: info.customValues,
             noteContent: info.noteContent,
@@ -633,10 +643,7 @@ function XML2CWRC(writer) {
     function buildDocumentAndInsertEntities(doc) {
         var dfd = new $.Deferred();
 
-        cleanupEntities(doc)
-        .then(function() {
-            return buildEditorStringDeferred(doc.documentElement);
-        })
+        buildEditorStringDeferred(doc.documentElement)
         .then(function(editorString) {
             w.editor.setContent(editorString, {format: 'raw'}); // format is raw to prevent html parser and serializer from messing up whitespace
 
@@ -692,48 +699,44 @@ function XML2CWRC(writer) {
                     result = getTextNodeFromParentAndOffset(parent, range.endOffset);
                     endNode = result.textNode;
                     endOffset = result.offset;
+
+                    try {
+                        var selRange = w.editor.selection.getRng(true);
+                        selRange.setStart(startNode, startOffset);
+                        selRange.setEnd(endNode, endOffset);
+                        w.tagger.addEntityTag(entry, selRange);
+
+                        if (entry.getContent() === undefined) {
+                            w.entitiesManager.highlightEntity(); // remove highlight
+                            w.entitiesManager.highlightEntity(entry.getId());
+                            content = $('.entityHighlight', body).text();
+                            w.entitiesManager.highlightEntity();
+                        }
+                    } catch (e) {
+                        console.warn('xml2cwrc: error adding overlapping entity',e);
+                    }
                 // markup
                 } else if (range.startXPath) {
                     var entityNode = w.utilities.evaluateXPath(doc, range.startXPath);
-                    startNode = entityNode;
-                    endNode = entityNode;
-                }
+                    if (entityNode !== null) {
+                        var type = entry.getType();
 
-                if (startNode != null && endNode != null) {
-                    var type = entry.getType();
-                    try {
-                        if (startNode != endNode) {
-                            var range = w.editor.selection.getRng(true);
-                            range.setStart(startNode, startOffset);
-                            range.setEnd(endNode, endOffset);
-                            w.tagger.addEntityTag(entry, range);
+                        // then tag already exists
+                        $(entityNode).attr({
+                            '_entity': true,
+                            '_type': type,
+                            'class': 'entity start end '+type,
+                            'name': entry.getId(),
+                            'id': entry.getId()
+                        });
 
-                            if (entry.getContent() === undefined) {
-                                w.entitiesManager.highlightEntity(); // remove highlight
-                                w.entitiesManager.highlightEntity(entry.getId());
-                                content = $('.entityHighlight', body).text();
-                                w.entitiesManager.highlightEntity();
-                            }
-                        } else {
-                            // then tag already exists
-                            $(startNode).attr({
-                                '_entity': true,
-                                '_type': type,
-                                'class': 'entity start end '+type,
-                                'name': entry.getId(),
-                                'id': entry.getId()
-                            });
-
-                            if (entry.getContent() === undefined) {
-                                entry.setContent($(startNode).text());
-                            }
-
-                            if (entry.isNote()) {
-                                entry.setNoteContent($(startNode).html());
-                            }
+                        if (entry.getContent() === undefined) {
+                            entry.setContent($(entityNode).text());
                         }
-                    } catch (e) {
-                        console.warn(e);
+
+                        if (entry.isNote()) {
+                            entry.setNoteContent($(entityNode).html());
+                        }
                     }
                 }
             };

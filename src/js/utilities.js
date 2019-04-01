@@ -1003,9 +1003,12 @@ function Utilities(writer) {
      * Adapted from the firebug source.
      * @param {Element} element The (cwrc) element to get the XPath for
      * @param {String} [tagAttribute] The name of the attribute to use as the tag
-     * @returns string
+     * @returns {String|null}
      */
     u.getElementXPath = function(element, tagAttribute) {
+        if (element == null) {
+            return null;
+        }
         var tagAtt = undefined;
         if (tagAttribute !== undefined) {
             tagAtt = tagAttribute;
@@ -1056,7 +1059,7 @@ function Utilities(writer) {
      * Adds support for default namespace.
      * @param {Document} doc
      * @param {String} xpath
-     * @returns {Node} The result, or null
+     * @returns {Node|null} The result or null
      */
     u.evaluateXPath = function(doc, xpath) {
         var isCWRC = $('[_tag]', doc).length > 0;

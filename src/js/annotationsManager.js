@@ -254,31 +254,6 @@ AnnotationsManager.prototype = {
     },
     
     /**
-     * Returns the entity type, using a annotation string.
-     * @param {String} annotation The annotation string, e.g. 'foaf:Person'
-     * @returns {String}
-     */
-    getEntityTypeForAnnotation: function(annotation) {
-        if (annotation.indexOf('http://') !== -1) {
-            // convert uri to prefixed form
-            for (var prefix in AnnotationsManager.prefixMap) {
-                var uri = AnnotationsManager.prefixMap[prefix];
-                if (annotation.indexOf(uri) === 0) {
-                    annotation = annotation.replace(uri, prefix+':');
-                    break;
-                }
-            }
-        }
-        for (var entityType in AnnotationsManager.types) {
-            if (AnnotationsManager.types[entityType] === annotation) {
-                return entityType;
-            }
-        }
-        
-        return null;
-    },
-    
-    /**
      * Get the annotation object for the entity.
      * @param {Entity} entity The Entity instance.
      * @param {String} format The annotation format ('xml' or 'json').
@@ -397,15 +372,14 @@ AnnotationsManager.prototype = {
      * @param {Element} rdfEl An RDF element containing annotation info
      * @returns {Object|null} Entity config object
      */
-    getEntityFromAnnotation: function(rdfEl) {
+    getEntityConfigFromAnnotation: function(rdfEl) {
         var entityConfig = null;
-        var rdf = $(rdfEl);
         // json-ld
-        if (rdf.attr('rdf:datatype') == 'http://www.w3.org/TR/json-ld/') {
-            entityConfig = this.getEntityFromJsonAnnotation(rdf[0]);
+        if (rdfEl.getAttribute('rdf:datatype') === 'http://www.w3.org/TR/json-ld/') {
+            entityConfig = this._getEntityConfigFromJsonAnnotation(rdfEl);
         // rdf/xml
-        } else if (rdf.attr('rdf:about')) {
-            entityConfig = this.getEntityFromXmlAnnotation(rdf[0]);
+        } else if (rdfEl.getAttribute('rdf:about') !== null) {
+            entityConfig = this._getEntityConfigFromXmlAnnotation(rdfEl);
         }
         return entityConfig;
     },
@@ -415,15 +389,15 @@ AnnotationsManager.prototype = {
      * @param {Element} rdfEl An RDF element containing JSON text
      * @returns {Object|null} Entity config object
      */
-    getEntityFromJsonAnnotation: function(rdfEl) {
-        var newEntity = null;
+    _getEntityConfigFromJsonAnnotation: function(rdfEl) {
+        var entityConfig = null;
         
         var rdf = $(rdfEl);
         var json = JSON.parse(rdf.text());
         if (json != null) {
-            newEntity = {};
+            entityConfig = {};
             
-            var rdfs = rdf.parent('rdf\\:RDF, RDF');            
+            var rdfs = rdf.parent('rdf\\:RDF, RDF');
             var doc = rdfs.parents().last()[0].parentNode;
             
             // determine entity type
@@ -436,7 +410,7 @@ AnnotationsManager.prototype = {
             }
             for (var i = 0; i < bodyTypes.length; i++) {
                 var typeUri = bodyTypes[i];
-                entityType = this.w.annotationsManager.getEntityTypeForAnnotation(typeUri);
+                entityType = this.w.annotationsManager._getEntityTypeForAnnotation(typeUri);
                 if (entityType != null) {
                     break;
                 }
@@ -486,37 +460,25 @@ AnnotationsManager.prototype = {
             if (selector['@type'] == 'oa:TextPositionSelector') {
                 var xpointerStart = selector['oa:start'];
                 var xpointerEnd = selector['oa:end'];
-                rangeObj = this._getRangeObject(doc, xpointerStart, xpointerEnd);
+                rangeObj = this._getRangeObject(xpointerStart, xpointerEnd);
             } else if (selector['@type'] == 'oa:FragmentSelector') {
-                // process the element for attributes, etc.
                 var xpointer = selector['rdf:value'];
-                rangeObj = this._getRangeObject(doc, xpointer);
-
-                var el = this.w.utilities.evaluateXPath(doc, rangeObj.startXPath);
-                if (el == null) {
-                    return null;
-                }
-                newEntity.tag = el.nodeName;
-                
-                var info = this.w.schemaManager.mapper.getReverseMapping(el, entityType);
-                $.extend(propObj, info.customValues);
-                $.extend(json.cwrcAttributes, info.attributes);
-
-                newEntity.isNote = this.w.schemaManager.mapper.isEntityTypeNote(entityType);
+                rangeObj = this._getRangeObject(xpointer);
             }
             
             // FIXME cwrcAttributes
             $.extend(propObj, typeInfo);
 
-            newEntity.id = this.w.getUniqueId('dom_');
-            newEntity.type = entityType;
-            newEntity.attributes = json.cwrcAttributes;
-            newEntity.customValues = propObj;
-            newEntity.cwrcLookupInfo = json.cwrcInfo;
-            newEntity.range = rangeObj;
+            entityConfig.type = entityType;
+            entityConfig.isNote = this.w.schemaManager.mapper.isEntityTypeNote(entityConfig.type);
+            entityConfig.attributes = json.cwrcAttributes;
+            entityConfig.customValues = propObj;
+            entityConfig.cwrcLookupInfo = json.cwrcInfo;
+            entityConfig.range = rangeObj;
+            entityConfig.uris = {}; // TODO
         }
         
-        return newEntity;
+        return entityConfig;
     },
     
     /**
@@ -524,8 +486,8 @@ AnnotationsManager.prototype = {
      * @param {Element} xml An RDF element containing XML elements
      * @returns {Object|null} Entity config object
      */
-    getEntityFromXmlAnnotation: function(xml) {
-        var newEntity = null;
+    _getEntityConfigFromXmlAnnotation: function(xml) {
+        var entityConfig = null;
         
         var rdf = $(xml);
         var aboutUri = rdf.attr('rdf:about');
@@ -548,8 +510,8 @@ AnnotationsManager.prototype = {
             if (typeUri == null) {
                 console.warn('can\'t determine type for', xml);
             } else {
-                var entityType = this.w.annotationsManager.getEntityTypeForAnnotation(typeUri);
-                newEntity = {};
+                var entityType = this.w.annotationsManager._getEntityTypeForAnnotation(typeUri);
+                entityConfig = {};
     
                 // get type specific info
                 var typeInfo = {};
@@ -621,6 +583,7 @@ AnnotationsManager.prototype = {
                 }
     
                 // selector and annotation uris
+                // TODO no json-ld equivalent yet
                 var docUri = target.find('oa\\:hasSource, hasSource').attr('rdf:resource');
                 var selectorUri = target.find('oa\\:hasSelector, hasSelector').attr('rdf:resource');
                 var selector = rdfs.find('[rdf\\:about="'+selectorUri+'"]');
@@ -637,55 +600,66 @@ AnnotationsManager.prototype = {
                 // range
                 var rangeObj = {};
                 // matching element
-                if (selectorType.indexOf('FragmentSelector') !== -1) {
-                    // process the element for attributes, etc.
+                if (selectorType.indexOf('FragmentSelector') !== -1) {                    
                     var xpointer = selector.find('rdf\\:value, value').text();
-                    rangeObj = this._getRangeObject(doc, xpointer);
-
-                    var el = this.w.utilities.evaluateXPath(doc, rangeObj.startXPath);
-                    if (el == null) {
-                        return null;
-                    }
-                    newEntity.tag = el.nodeName;
-                    
-                    var info = this.w.schemaManager.mapper.getReverseMapping(el, entityType);
-                    $.extend(propObj, info.customValues);
-                    $.extend(cwrcAttributes, info.attributes);
-    
-                    newEntity.isNote = this.w.schemaManager.mapper.isEntityTypeNote(entityType);
+                    rangeObj = this._getRangeObject(xpointer);
                 // offset
                 } else {
                     var xpointerStart = selector.find('oa\\:start, start').text();
                     var xpointerEnd = selector.find('oa\\:end, end').text();
-                    rangeObj = this._getRangeObject(doc, xpointerStart, xpointerEnd);
+                    rangeObj = this._getRangeObject(xpointerStart, xpointerEnd);
                 }
     
                 // FIXME cwrcAttributes
                 $.extend(propObj, typeInfo);
 
-                newEntity.id = this.w.getUniqueId('dom_');
-                newEntity.type = entityType;
-                newEntity.attributes = cwrcAttributes;
-                newEntity.customValues = propObj;
-                newEntity.cwrcLookupInfo = cwrcLookupObj;
-                newEntity.range = rangeObj;
-                newEntity.uris = annotationObj;
+                entityConfig.type = entityType;
+                entityConfig.isNote = this.w.schemaManager.mapper.isEntityTypeNote(entityConfig.type);
+                entityConfig.attributes = cwrcAttributes;
+                entityConfig.customValues = propObj;
+                entityConfig.cwrcLookupInfo = cwrcLookupObj;
+                entityConfig.range = rangeObj;
+                entityConfig.uris = annotationObj;
             }
         }
         
-        return newEntity;
+        return entityConfig;
+    },
+
+    /**
+     * Returns the entity type, using a annotation string.
+     * @param {String} annotation The annotation string, e.g. 'foaf:Person'
+     * @returns {String}
+     */
+    _getEntityTypeForAnnotation: function(annotation) {
+        if (annotation.indexOf('http://') !== -1) {
+            // convert uri to prefixed form
+            for (var prefix in AnnotationsManager.prefixMap) {
+                var uri = AnnotationsManager.prefixMap[prefix];
+                if (annotation.indexOf(uri) === 0) {
+                    annotation = annotation.replace(uri, prefix+':');
+                    break;
+                }
+            }
+        }
+        for (var entityType in AnnotationsManager.types) {
+            if (AnnotationsManager.types[entityType] === annotation) {
+                return entityType;
+            }
+        }
+        
+        return null;
     },
 
     /**
      * Gets the range object for xpointer(s).
-     * @param {Document} doc
      * @param {String} xpointerStart 
      * @param {String} [xpointerEnd]
      * @return {Object}
      */
-    _getRangeObject: function(doc, xpointerStart, xpointerEnd) {
+    _getRangeObject: function(xpointerStart, xpointerEnd) {
 
-        function parseXPointer(xpointer, doc) {
+        function parseXPointer(xpointer) {
             var xpath;
             var offset = null;
             if (xpointer.indexOf('string-range') === -1) {
@@ -710,9 +684,9 @@ AnnotationsManager.prototype = {
 
         var rangeObj = {};
         
-        var xpathStart = parseXPointer(xpointerStart, doc);
+        var xpathStart = parseXPointer(xpointerStart);
         if (xpointerEnd !== undefined) {
-            var xpathEnd = parseXPointer(xpointerEnd, doc);
+            var xpathEnd = parseXPointer(xpointerEnd);
             rangeObj = {
                 startXPath: xpathStart.xpath,
                 startOffset: xpathStart.offset,
@@ -729,11 +703,13 @@ AnnotationsManager.prototype = {
     },
     
     /**
+     * TODO remove this
      * Parses the RDF and adds entities to the EntitiesManager.
      * Also processes any relations/triples.
      * @param {Element} rdfEl RDF parent element
      * @param {Boolean} [isLegacyDocument] True if this is a legacy document (i.e. it uses annotationId)
      */
+    /*
     setAnnotations: function(rdfEl, isLegacyDocument) {
         isLegacyDocument = isLegacyDocument === undefined ? false : isLegacyDocument;
 
@@ -749,7 +725,7 @@ AnnotationsManager.prototype = {
 
         rdfs.children().each(function(index, el) {
             var rdf = $(el);
-            var entityConfig = this.getEntityFromAnnotation(rdf);
+            var entityConfig = this.getEntityConfigFromAnnotation(rdf);
             if (entityConfig != null) {
                 if (isLegacyDocument) {
                     // replace annotationId with xpath
@@ -815,6 +791,7 @@ AnnotationsManager.prototype = {
             }
         }
     }
+    */
 };
 
 module.exports = AnnotationsManager;

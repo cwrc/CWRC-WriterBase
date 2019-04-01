@@ -92,6 +92,8 @@ Mapper.getDefaultReverseMapping = function(xml, customMappings) {
                     value = result;
             }
         }
+        // TODO return match as well for use by xml2cwrc
+        // return {value: value, match: result};
         return value;
     }
     
