@@ -122,8 +122,12 @@ function Tagger(writer) {
         var tag = tagger.getCurrentTag(id);
         if (tag.attr('_entity')) {
             w.editor.currentBookmark = w.editor.selection.getBookmark(1);
-            var type = tag.attr('_type');
-            w.dialogManager.show(type, {type: type, entry: tag});
+            var entry = w.entitiesManager.getEntity(tag.attr('id'));
+            if (entry) {
+                w.dialogManager.show(entry.getType(), {entry: entry});
+            } else {
+                console.warn('tagger.editTag: no entry for entity',tag);
+            }
         } else {
             var tagName = tag.attr('_tag');
             if (tagName === w.schemaManager.getHeader()) {
@@ -271,7 +275,7 @@ function Tagger(writer) {
 
             var type = w.schemaManager.mapper.getEntityTypeForTag(xmlEl);
             var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
-            var info = w.schemaManager.mapper.getReverseMapping(xmlEl, type);
+            var info = w.schemaManager.mapper.getReverseMapping(xmlEl, type); // TODO
 
             if (isNote) {
                 if (info.properties === undefined) {
@@ -453,71 +457,6 @@ function Tagger(writer) {
     };
     
     /**
-     * Updates the tag and infos for an entity.
-     * @param {Entity} entity
-     * @param {Object} info The info object
-     * @param {Object} info.attributes Key/value pairs of attributes
-     * @param {Object} info.properties Key/value pairs of Entity properties
-     * @param {Object} info.cwrcInfo CWRC lookup info
-     * @param {Object} info.customValues Any additional custom values
-     */
-    var updateEntityInfo = function(entity, info) {
-        var id = entity.getId();
-
-        // add attributes to tag
-        var tag = $('[name='+id+'][_tag]', w.editor.getBody());
-        if (tag.length === 1) {
-            if (info.properties.tag) {
-                tag.attr('_tag', info.properties.tag);
-            }
-            if (info.properties.type) {
-                tag.attr('class', 'entity start end '+info.properties.type);
-            }
-            for (var key in info.attributes) {
-                if (w.converter.reservedAttributes[key] !== true) {
-                    var val = info.attributes[key];
-                    tag.attr(key, w.utilities.escapeHTMLString(val));
-                }
-            }
-        }
-        
-        // the following is mostly here to support TEI keyword entities
-        if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
-            if (entity.isNote()) {
-                var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
-                tag.find('[_tag='+textTag+']').text(info.properties.content);
-            }
-        }
-
-        sanitizeObject(info.attributes);
-        sanitizeObject(info.customValues);
-        
-        // set attributes
-        entity.setAttributes(info.attributes);
-        delete info.attributes;
-        
-        // set properties
-        if (info.properties !== undefined) {
-            for (var key in info.properties) {
-                if (entity.hasOwnProperty(key)) {
-                    entity[key] = info.properties[key];
-                }
-            }
-        }
-        
-        // set lookup info
-        if (info.cwrcInfo !== undefined) {
-            entity.setLookupInfo(info.cwrcInfo);
-            delete info.cwrcInfo;
-        }
-        
-        // set custom values
-        for (var key in info.customValues) {
-            entity.setCustomValue(key, info.customValues[key]);
-        }
-    }
-    
-    /**
      * Converts string values of this object into valid XML strings
      * @param {Object} obj The object of strings/arrays/objects
      */
@@ -615,9 +554,75 @@ function Tagger(writer) {
      * @fires Writer#entityEdited
      * @param {String} id The entity id
      * @param {Object} info The entity info
+     * @param {Object} info.attributes Key/value pairs of attributes
+     * @param {Object} info.properties Key/value pairs of Entity properties
+     * @param {Object} info.cwrcInfo CWRC lookup info
+     * @param {Object} info.customValues Any additional custom values
      */
     tagger.editEntity = function(id, info) {
-        updateEntityInfo(w.entitiesManager.getEntity(id), info);
+        // TODO review if this is necessary
+        sanitizeObject(info.attributes);
+        sanitizeObject(info.customValues);
+
+        var entity = w.entitiesManager.getEntity(id);
+
+        // set attributes
+        entity.setAttributes(info.attributes);
+        
+        // set properties
+        if (info.properties !== undefined) {
+            for (var key in info.properties) {
+                if (entity.hasOwnProperty(key)) {
+                    entity[key] = info.properties[key];
+                }
+            }
+        }
+        
+        // set lookup info
+        if (info.cwrcInfo !== undefined) {
+            entity.setLookupInfo(info.cwrcInfo);
+        }
+        
+        // set custom values
+        for (var key in info.customValues) {
+            entity.setCustomValue(key, info.customValues[key]);
+        }
+
+        // reset tag attributes
+        // TODO overlapping entities support
+
+        var $tag = $('[name='+id+']', w.editor.getBody());
+        var tagEl = $tag[0];
+
+        // remove previous attributes
+        var currAttributes = tagEl.attributes;
+        for (var i = currAttributes.length-1; i >=0; i--) {
+            var attr = currAttributes[i];
+            if (w.converter.reservedAttributes[attr.name] !== true) {
+                tagEl.removeAttribute(attr.name);
+            }
+        }
+
+        $tag.attr('_tag', entity.getTag());
+        $tag.attr('_type', entity.getType());
+        $tag.attr('class', 'entity start end '+entity.getType());
+
+        // set new attribute values
+        for (var key in info.attributes) {
+            if (w.converter.reservedAttributes[key] !== true) {
+                var val = info.attributes[key];
+                $tag.attr(key, w.utilities.escapeHTMLString(val));
+            }
+        }
+        
+        // the following is mostly here to support TEI keyword entities
+        if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
+            if (entity.isNote()) {
+                var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
+                $tag.find('[_tag='+textTag+']').text(info.properties.content);
+            }
+        }
+
         w.event('entityEdited').publish(id);
     };
     
