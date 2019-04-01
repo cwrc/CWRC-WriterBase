@@ -564,6 +564,12 @@ function Nerve(config) {
         });
     }
 
+    var getCurrentFilter = function() {
+        var filter = $parent.find('.filters > span.active');
+        var type = filter[0].classList[0];
+        return type;
+    }
+
     var updateFilterCounts = function() {
         var typeCounts = {
             person: 0,
@@ -768,7 +774,10 @@ function Nerve(config) {
             editDialog.$el.on('save', function(e, dialog) {
                 var entity = w.entitiesManager.getEntity(dialog.currentId);
                 mapCustomValuesToAttributes(entity);
+                
                 updateEntityView(entity, true);
+                updateFilterCounts();
+                filterEntityView(getCurrentFilter());
             });
         }
         editDialog.show({entry: getEntryForEntityId(entityId)});
