@@ -50,7 +50,32 @@ EntitiesManager.prototype = {
             
             entity = new Entity(config);
         }
-        
+
+        // TODO temp uris
+        if (Object.keys(entity.getUris()).length === 0) {
+            $.when(
+                this.w.utilities.getUriForEntity(entity),
+                this.w.utilities.getUriForAnnotation(),
+                this.w.utilities.getUriForDocument(),
+                this.w.utilities.getUriForTarget(),
+                this.w.utilities.getUriForSelector(),
+                this.w.utilities.getUriForUser()
+            ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
+                var lookupInfo = entity.getLookupInfo();
+                if (lookupInfo !== undefined && lookupInfo.id) {
+                    // use the id already provided
+                    entityUri = lookupInfo.id;
+                }
+                entity.setUris({
+                    entityId: entityUri,
+                    annotationId: annoUri,
+                    docId: docUri,
+                    targetId: targetUri,
+                    selectorId: selectorUri,
+                    userId: userUri
+                });
+            });
+        }
         
         this.entities[entity.id] = entity;
         

@@ -621,30 +621,7 @@ function Tagger(writer) {
             var entity = new Entity(config);
             
             tagger.addEntityTag(entity, range);
-            var entry = w.entitiesManager.addEntity(entity);
-
-            $.when(
-                w.utilities.getUriForEntity(entry),
-                w.utilities.getUriForAnnotation(),
-                w.utilities.getUriForDocument(),
-                w.utilities.getUriForTarget(),
-                w.utilities.getUriForSelector(),
-                w.utilities.getUriForUser()
-            ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
-                var lookupInfo = entry.getLookupInfo();
-                if (lookupInfo !== undefined && lookupInfo.id) {
-                    // use the id already provided
-                    entityUri = lookupInfo.id;
-                }
-                entry.setUris({
-                    entityId: entityUri,
-                    annotationId: annoUri,
-                    docId: docUri,
-                    targetId: targetUri,
-                    selectorId: selectorUri,
-                    userId: userUri
-                });
-            });
+            w.entitiesManager.addEntity(entity);
             
             return id;
         }

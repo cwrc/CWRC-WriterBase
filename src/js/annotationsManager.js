@@ -325,28 +325,6 @@ AnnotationsManager.prototype = {
 
         var me = this;
         entities.forEach(function(entity) {
-            // TODO temp fix for entities that don't have URIs
-            if (entity.getUris().annotationId == null) {
-                // generate the URIs
-                // TODO FIXME getAnnotation runs before these URIs get set
-                $.when(
-                    me.w.utilities.getUriForEntity(entity),
-                    me.w.utilities.getUriForAnnotation(),
-                    me.w.utilities.getUriForDocument(),
-                    me.w.utilities.getUriForTarget(),
-                    me.w.utilities.getUriForSelector(),
-                    me.w.utilities.getUriForUser()
-                ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
-                    entity.setUris({
-                        entityId: entityUri,
-                        annotationId: annoUri,
-                        docId: docUri,
-                        targetId: targetUri,
-                        selectorId: selectorUri,
-                        userId: userUri
-                    });
-                });
-            }
             var annotation = me.getAnnotation(entity, format);
 
             if (format === 'xml') {
