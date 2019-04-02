@@ -29,21 +29,55 @@ function cancelKey(evt) {
     return false
 }
 
+function isElementInline(el) {
+    if (el.nodeType === Node.TEXT_NODE) {
+        return true;
+    } else {
+        return el.nodeName.toLowerCase() === 'span';
+    }
+}
+
 tinymce.PluginManager.add('preventdelete', function(ed) {
     ed.on('keydown', function(evt) {
         if (keyWillDelete(evt)) {
             var range = ed.selection.getRng()
-            if (range.collapsed) {
-                // start of element and backspace
-                if (range.startOffset === 0 && evt.keyCode === 8) {
-                    return cancelKey(evt)
+            if (range.collapsed && range.commonAncestorContainer.nodeType === Node.TEXT_NODE) {
+                // backspace
+                if (evt.keyCode === 8) {
+                    // start of element
+                    if (range.startOffset === 0) {
+                        return cancelKey(evt)
+                    }
+                    if (range.startOffset === 1 && range.commonAncestorContainer.textContent.length === 1 && isElementInline(range.commonAncestorContainer.parentElement)) {
+                        // inline elements whose text contents are deleted get removed by tinymce's InlineFormatDelete
+                        // so prevent the last character from being deleted
+                        return cancelKey(evt)
+                    }
                 }
-                // end of element and delete
-                if (evt.keyCode === 46 && range.commonAncestorContainer.nodeType === Node.TEXT_NODE && range.endOffset === range.commonAncestorContainer.length) {
-                    return cancelKey(evt)
+                // delete
+                if (evt.keyCode === 46) {
+                    // end of element
+                    if (range.commonAncestorContainer.nodeType === Node.TEXT_NODE && range.endOffset === range.commonAncestorContainer.length) {
+                        return cancelKey(evt)
+                    }
                 }
+
             } else {
                 if (range.startContainer !== range.endContainer) {
+                    var start = range.startContainer;
+                    var end = range.endContainer;
+                    // get the non-inline ancestors
+                    while(start.nodeType !== Node.ELEMENT_NODE || isElementInline(start)) {
+                        start = start.parentElement;
+                    }
+                    while(end.nodeType !== Node.ELEMENT_NODE || isElementInline(end)) {
+                        end = end.parentElement;
+                    }
+                    // if they're the same ancestor then no tags will get deleted
+                    if (start === end) {
+                        return true;
+                    }
+
                     ed.writer.dialogManager.confirm({
                         title: 'Warning',
                         msg: '<p>The text you are trying to delete contains XML tags, do you want to proceed?</p>',
@@ -56,6 +90,9 @@ tinymce.PluginManager.add('preventdelete', function(ed) {
                                 } else {
                                     ed.getDoc().execCommand('insertText', false, evt.key)
                                 }
+
+                                // normalize remaining text
+                                range.commonAncestorContainer.normalize();
 
                                 var doUpdate = ed.writer.tagger.findNewAndDeletedTags();
                                 if (doUpdate) {
