@@ -866,8 +866,7 @@ function Utilities(writer) {
         }
         
         if (useLocalStorage) {
-            var tag = config.tag;
-            var localData = localStorage['cwrc.'+tag+'.parents'];
+            var localData = localStorage['cwrc.'+config.tag+'.parents'];
             if (localData) {
                 parents = JSON.parse(localData);
             }
@@ -906,6 +905,16 @@ function Utilities(writer) {
                     } else if (parent.$key === 'element') {
                         parents.push({name: parent['@name'], level: 0});
                     }
+                }
+
+                parents.sort(function(a, b) {
+                    if (a.name > b.name) return 1;
+                    if (a.name < b.name) return -1;
+                    return 0;
+                });
+
+                if (useLocalStorage) {
+                    localStorage['cwrc.'+config.tag+'.parents'] = JSON.stringify(parents);
                 }
             }
         }
