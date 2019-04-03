@@ -12,6 +12,7 @@ var Converter = require('./conversion/converter.js');
 var AnnotationsManager = require('./annotationsManager.js');
 var SettingsDialog = require('./dialogs/settings.js');
 var LayoutManager = require('./layout/layoutManager.js');
+var TagContextMenu = require('./tagContextMenu.js');
 var TinymceWrapper = require('./tinymceWrapper.js');
 
 /**
@@ -339,6 +340,8 @@ function CWRCWriter(config) {
         showEntities: true,
         showTags: false
     });
+
+    w.tagMenu = new TagContextMenu(w);
 
     var layoutContainerId = w.layoutManager.getContainer().attr('id');
 

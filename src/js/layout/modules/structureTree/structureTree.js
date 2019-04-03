@@ -537,7 +537,7 @@ function StructureTree(config) {
     var plugins = ['wholerow','conditionalselect'];
     if (w.isReadOnly !== true) {
         plugins.push('dnd');
-        plugins.push('contextmenu');
+        // plugins.push('contextmenu');
     }
     
     $tree.jstree({
@@ -745,6 +745,21 @@ function StructureTree(config) {
             }
         }
     });
+
+    $tree.on('contextmenu', function(event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        var li = $(event.target).parents('li.jstree-node').first();
+        if (li.length === 1) {
+            var tagId = li.attr('name');
+            tree.highlightNode($('#'+tagId, w.editor.getBody())[0]);
+            // use setTimeout to make sure that highlight happens first
+            setTimeout(function() {
+                w.tagMenu.show(event, tagId, false);
+            },0);
+        }
+    })
     
     $tree.on('select_node.jstree', _onNodeSelect);
     $tree.on('deselect_node.jstree', _onNodeDeselect);

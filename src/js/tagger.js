@@ -149,6 +149,7 @@ function Tagger(writer) {
      * @param {String} tagName The new tag name
      * @param {String} [id] The tag id. If undefined, will get the currently selected tag.
      */
+    // TODO broken for entities
     tagger.changeTag = function(tagName, id) {
         var tag = tagger.getCurrentTag(id);
         if (tag.attr('_entity')) {
