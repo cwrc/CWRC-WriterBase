@@ -106,6 +106,11 @@ $.contextMenu.types.cwrcTag = function(item, parentMenu, root) {
 function getItems() {
     var items = {};
 
+    if (this.w.isAnnotator) {
+        addEntities.call(this, items);
+        return items;
+    }
+
     var tag = $('#'+this.tagId, this.w.editor.getBody())[0];
 
     var needsChildTags = this.isMultiple === false;
@@ -126,6 +131,13 @@ function getItems() {
     }
 
     if (this.isMultiple) {
+        items.add_tag_around = {
+            name: 'Insert Tag Around',
+            icon: 'tag_add',
+            tagAction: 'around',
+            items: function() { return parentTags; }()
+        }
+        items.sep0 = '---';
         items.merge_tags = {
             name: 'Merge Tags',
             icon: 'tag_merge',
@@ -133,12 +145,6 @@ function getItems() {
                 var tags = $('#'+this.tagId.join(',#'), this.w.editor.getBody());
                 this.w.tagger.mergeTags(tags);
             }.bind(this)
-        }
-        items.add_tag_around = {
-            name: 'Insert Tag Around',
-            icon: 'tag_add',
-            tagAction: 'around',
-            items: function() { return parentTags; }()
         }
         return items;
     }
@@ -150,83 +156,7 @@ function getItems() {
             tagAction: 'add',
             items: function() { return childTags; }()
         }
-        items.add_entity = {
-            name: 'Insert Entity',
-            icon: 'tag_add',
-            className: 'entities',
-            items: {
-                add_person: {
-                    name: 'Tag Person',
-                    icon: 'person',
-                    callback: function() {
-                        this.w.tagger.addEntityDialog('person');
-                    }.bind(this)
-                },
-                add_place: {
-                    name: 'Tag Place',
-                    icon: 'place',
-                    callback: function() {
-                        this.w.tagger.addEntityDialog('place');
-                    }.bind(this)
-                },
-                add_date: {
-                    name: 'Tag Date',
-                    icon: 'date',
-                    callback: function() {
-                        this.w.tagger.addEntityDialog('date');
-                    }.bind(this)
-                },
-                add_org: {
-                    name: 'Tag Organization',
-                    icon: 'org',
-                    callback: function() {
-                        this.w.tagger.addEntityDialog('org');
-                    }.bind(this)
-                },
-                add_citation: {
-                    name: 'Tag Citation',
-                    icon: 'citation',
-                    callback: function() {
-                        this.w.tagger.addEntityDialog('citation');
-                    }.bind(this)
-                },
-                add_note: {
-                    name: 'Tag Note',
-                    icon: 'note',
-                    callback: function() {
-                        this.w.tagger.addEntityDialog('note');
-                    }.bind(this)
-                },
-                add_title: {
-                    name: 'Tag Text/Title',
-                    icon: 'title',
-                    callback: function() {
-                        this.w.tagger.addEntityDialog('title');
-                    }.bind(this)
-                },
-                add_correction: {
-                    name: 'Tag Correction',
-                    icon: 'correction',
-                    callback: function() {
-                        this.w.tagger.addEntityDialog('correction');
-                    }.bind(this)
-                },
-                add_keyword: {
-                    name: 'Tag Keyword',
-                    icon: 'keyword',
-                    callback: function() {
-                        this.w.tagger.addEntityDialog('keyword');
-                    }.bind(this)
-                },
-                add_link: {
-                    name: 'Tag Link',
-                    icon: 'link',
-                    callback: function() {
-                        this.w.tagger.addEntityDialog('link');
-                    }.bind(this)
-                }
-            }
-        }
+        addEntities.call(this, items);
         items.sep0 = '---';
     }
 
@@ -350,6 +280,86 @@ function getItems() {
     }
 
     return items;
+}
+
+function addEntities(items) {
+    items.add_entity = {
+        name: 'Insert Entity',
+        icon: 'tag_add',
+        className: 'entities',
+        items: {
+            add_person: {
+                name: 'Tag Person',
+                icon: 'person',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('person');
+                }.bind(this)
+            },
+            add_place: {
+                name: 'Tag Place',
+                icon: 'place',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('place');
+                }.bind(this)
+            },
+            add_date: {
+                name: 'Tag Date',
+                icon: 'date',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('date');
+                }.bind(this)
+            },
+            add_org: {
+                name: 'Tag Organization',
+                icon: 'org',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('org');
+                }.bind(this)
+            },
+            add_citation: {
+                name: 'Tag Citation',
+                icon: 'citation',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('citation');
+                }.bind(this)
+            },
+            add_note: {
+                name: 'Tag Note',
+                icon: 'note',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('note');
+                }.bind(this)
+            },
+            add_title: {
+                name: 'Tag Text/Title',
+                icon: 'title',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('title');
+                }.bind(this)
+            },
+            add_correction: {
+                name: 'Tag Correction',
+                icon: 'correction',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('correction');
+                }.bind(this)
+            },
+            add_keyword: {
+                name: 'Tag Keyword',
+                icon: 'keyword',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('keyword');
+                }.bind(this)
+            },
+            add_link: {
+                name: 'Tag Link',
+                icon: 'link',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('link');
+                }.bind(this)
+            }
+        }
+    }
 }
 
 function getChildrenForTag(tag) {
