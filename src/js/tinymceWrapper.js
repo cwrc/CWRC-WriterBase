@@ -5,7 +5,6 @@ window.tinymce = require('tinymce');
 
 require('tinymce/themes/modern/theme.js');
 require('tinymce/plugins/paste/index.js');
-require('./tinymce_plugins/cwrc_contextmenu.js');
 require('./tinymce_plugins/cwrc_path.js');
 require('./tinymce_plugins/schematags.js');
 require('./tinymce_plugins/treepaste.js');
@@ -79,7 +78,7 @@ TinymceWrapper.init = function(config) {
 
         valid_elements: '*[*]', // allow everything
 
-        plugins: 'schematags,cwrc_contextmenu,cwrcpath,preventdelete,paste',
+        plugins: 'schematags,cwrcpath,preventdelete,paste',
         toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,|,fullscreen' : config.buttons1,
         toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
         toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
@@ -104,20 +103,14 @@ TinymceWrapper.init = function(config) {
             // custom properties added to the editor
             ed.currentBookmark = null; // for storing a bookmark used when adding a tag
             ed.currentNode = null; // the node that the cursor is currently in
-            ed.contextMenuPos = null; // the position of the context menu (used to position related dialog box)
             ed.copiedElement = { selectionType: null, element: null }; // the element that was copied (when first selected through the structure tree)
             ed.copiedEntity = null; // the entity element that was copied
             ed.lastKeyPress = null; // the last key the user pressed
 
             ed.on('init', function(args) {
                 if (w.isReadOnly === true) {
-                    ed.plugins.cwrc_contextmenu.disabled = true;
                     w.layoutManager.hideToolbar();
                     ed.setMode('readonly');
-                }
-                if (w.isAnnotator === true) {
-                    ed.plugins.cwrc_contextmenu.disabled = false;
-                    ed.plugins.cwrc_contextmenu.entityTagsOnly = true;
                 }
 
                 // modify isBlock method to check _tag attributes
@@ -159,6 +152,31 @@ TinymceWrapper.init = function(config) {
             });
             ed.on('NodeChange', onNodeChangeHandler);
             ed.on('copy', onCopyHandler);
+
+            ed.on('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+        
+                if (w.isReadOnly) {
+                    return;
+                }
+        
+                var position = w.utilities.getOffsetPosition(ed.getContentAreaContainer());
+                position.left += e.pageX;
+                position.top += e.pageY;
+        
+                var $editorBody = $(ed.getDoc().documentElement);
+                var editorScrollTop = $editorBody.scrollTop();
+                var editorScrollLeft = $editorBody.scrollLeft();
+        
+                position.left = position.left - editorScrollLeft;
+                position.top = position.top - editorScrollTop;
+        
+                e.pageX = position.left;
+                e.pageY = position.top;
+
+                w.tagMenu.show(e, undefined, true);
+            });
 
             function addButtonToEditor(buttonId, settings) {
                 // adjust the location of the tooltip
@@ -327,10 +345,6 @@ TinymceWrapper.init = function(config) {
         }
     });
 
-    $(document.body).mousedown(function(e) {
-        hideContextMenus(e);
-    });
-
     // writer listeners
 
     w.event('contentChanged').subscribe(function() {
@@ -371,7 +385,6 @@ TinymceWrapper.init = function(config) {
     };
 
     function onMouseUpHandler(evt) {
-        hideContextMenus(evt);
         doHighlightCheck(w.editor, evt);
         w.event('selectionChanged').publish();
     };
@@ -571,16 +584,6 @@ TinymceWrapper.init = function(config) {
         }
 
         w.event('contentCopied').publish();
-    };
-
-    function hideContextMenus(evt) {
-        var target = $(evt.target);
-        // hide structure tree menu
-        // TODO move to structure tree
-        if ($.vakata && $.vakata.context && target.parents('.vakata-context').length === 0) {
-            $.vakata.context.hide();
-        }
-
     };
 
     function doHighlightCheck(evt) {
