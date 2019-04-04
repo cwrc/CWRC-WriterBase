@@ -234,7 +234,7 @@ test('writer.tagger.editStructureTag', (t)=> {
     loadTEIDoc(writer);
 });
 
-test('writer.tagger.addEntity.Note', (t)=> {
+test('writer.tagger.addEntityDialog.Note', (t)=> {
     t.plan(1);
     
     let configForTestingConstructor = getConfigForTestingConstructor();
@@ -253,7 +253,7 @@ test('writer.tagger.addEntity.Note', (t)=> {
         writer.event('tagSelected').subscribe(function(tagId) {
 //            writer.editor.currentBookmark = writer.editor.selection.getBookmark(1);
 //            writer.dialogManager.show('note', {type: 'note'});
-            writer.tagger.addEntity('note');
+            writer.tagger.addEntityDialog('note');
             setTimeout(function() {
                 var $saveButton = window.$('.ui-dialog-buttonset .ui-button:visible:eq(1)');
                 $saveButton.click();
@@ -275,7 +275,7 @@ test('writer.tagger.addEntity.Note', (t)=> {
     loadTEIDoc(writer);
 });
 
-test('schemaTags addSchemaTag', (t)=> {
+test('writer.tagger.addTagDialog', (t)=> {
     t.plan(1);
     
     let configForTestingConstructor = getConfigForTestingConstructor();
@@ -286,7 +286,7 @@ test('schemaTags addSchemaTag', (t)=> {
         $okButton.click();
         
         writer.event('tagSelected').subscribe(function(tagId) {
-            writer.tagger.addTag('unclear', 'add');
+            writer.tagger.addTagDialog('unclear', 'add');
             setTimeout(function() {
                 writer.event('tagAdded').subscribe(function(tagEl) {
                     t.pass('schema tag added');

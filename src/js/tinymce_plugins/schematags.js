@@ -163,9 +163,9 @@ tinymce.PluginManager.add('schematags', function(editor) {
                     var tagName = this.settings.key;
                     var action = this.settings.action;
                     if (action == "add") {
-                        editor.writer.tagger.addTag(tagName, action);
+                        editor.writer.tagger.addTagDialog(tagName, action);
                     } else {
-                        editor.writer.tagger.changeTag(tagName);
+                        editor.writer.tagger.changeTagDialog(tagName);
                     }
                 }
             });

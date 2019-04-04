@@ -118,7 +118,7 @@ function Tagger(writer) {
      * A general edit function for entities and structure tags.
      * @param {String} id The tag id
      */
-    tagger.editTag = function(id) {
+    tagger.editTagDialog = function(id) {
         var tag = tagger.getCurrentTag(id);
         if (tag.attr('_entity')) {
             w.editor.currentBookmark = w.editor.selection.getBookmark(1);
@@ -150,7 +150,7 @@ function Tagger(writer) {
      * @param {String} [id] The tag id. If undefined, will get the currently selected tag.
      */
     // TODO broken for entities
-    tagger.changeTag = function(tagName, id) {
+    tagger.changeTagDialog = function(tagName, id) {
         var tag = tagger.getCurrentTag(id);
         if (tag.attr('_entity')) {
             w.dialogManager.confirm({
@@ -398,7 +398,7 @@ function Tagger(writer) {
      * @param {String} type The entity type
      * @param {String} [tag] The element name
      */
-    tagger.addEntity = function(type, tag) {
+    tagger.addEntityDialog = function(type, tag) {
         var requiresSelection = w.schemaManager.mapper.doesEntityRequireSelection(type);
         var result;
         if (!requiresSelection && w.editor.selection.isCollapsed()) {
@@ -868,18 +868,18 @@ function Tagger(writer) {
 
     /**
      * Displays the appropriate dialog for adding a tag.
-     * @param {String} tagName
-     * @param {String} action
-     * @param {jQuery} [parentTag] Will use selection if not provided
+     * @param {String} tagName The tag name.
+     * @param {String} action The tag insertion type to perform.
+     * @param {String} [parentTagId] The id of the parent tag on which to perform the action. Will use editor selection if not provided.
      */
-    tagger.addTag = function(tagName, action, parentTag) {
+    tagger.addTagDialog = function(tagName, action, parentTagId) {
         if (tagName === w.schemaManager.getHeader()) {
             w.dialogManager.show('header');
             return;
         } else {
             var type = w.schemaManager.mapper.getEntityTypeForTag(tagName);
             if (type != null) {
-                w.tagger.addEntity(type, tagName);
+                w.tagger.addEntityDialog(type, tagName);
                 return;
             }
         }

@@ -65,7 +65,7 @@ function EntitiesList(config) {
                     name: 'Edit Entity',
                     icon: 'tag_edit',
                     callback: function(key, opt) {
-                        w.tagger.editTag(opt.$trigger.attr('name'));
+                        w.tagger.editTagDialog(opt.$trigger.attr('name'));
                     }
                 },
                 remove: {

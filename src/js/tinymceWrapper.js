@@ -178,73 +178,73 @@ TinymceWrapper.init = function(config) {
             addButtonToEditor('addperson', {
                 title: 'Tag Person', image: w.cwrcRootUrl + 'img/user.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('person');
+                    w.tagger.addEntityDialog('person');
                 }
             });
             addButtonToEditor('addplace', {
                 title: 'Tag Place', image: w.cwrcRootUrl + 'img/world.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('place');
+                    w.tagger.addEntityDialog('place');
                 }
             });
             addButtonToEditor('adddate', {
                 title: 'Tag Date', image: w.cwrcRootUrl + 'img/calendar.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('date');
+                    w.tagger.addEntityDialog('date');
                 }
             });
             addButtonToEditor('addevent', {
                 title: 'Tag Event', image: w.cwrcRootUrl + 'img/cake.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('event');
+                    w.tagger.addEntityDialog('event');
                 }
             });
             addButtonToEditor('addorg', {
                 title: 'Tag Organization', image: w.cwrcRootUrl + 'img/group.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('org');
+                    w.tagger.addEntityDialog('org');
                 }
             });
             addButtonToEditor('addcitation', {
                 title: 'Tag Citation', image: w.cwrcRootUrl + 'img/vcard.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('citation');
+                    w.tagger.addEntityDialog('citation');
                 }
             });
             addButtonToEditor('addnote', {
                 title: 'Tag Note', image: w.cwrcRootUrl + 'img/note.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('note');
+                    w.tagger.addEntityDialog('note');
                 }
             });
             addButtonToEditor('addcorrection', {
                 title: 'Tag Correction', image: w.cwrcRootUrl + 'img/error.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('correction');
+                    w.tagger.addEntityDialog('correction');
                 }
             });
             addButtonToEditor('addkeyword', {
                 title: 'Tag Keyword', image: w.cwrcRootUrl + 'img/key.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('keyword');
+                    w.tagger.addEntityDialog('keyword');
                 }
             });
             addButtonToEditor('addlink', {
                 title: 'Tag Link', image: w.cwrcRootUrl + 'img/link.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('link');
+                    w.tagger.addEntityDialog('link');
                 }
             });
             addButtonToEditor('addtitle', {
                 title: 'Tag Text/Title', image: w.cwrcRootUrl + 'img/book.png', entityButton: true,
                 onclick: function() {
-                    w.tagger.addEntity('title');
+                    w.tagger.addEntityDialog('title');
                 }
             });
             addButtonToEditor('editTag', {
                 title: 'Edit Tag', image: w.cwrcRootUrl + 'img/tag_blue_edit.png',
                 onclick: function() {
-                    w.tagger.editTag();
+                    w.tagger.editTagDialog();
                 }
             });
             addButtonToEditor('removeTag', {

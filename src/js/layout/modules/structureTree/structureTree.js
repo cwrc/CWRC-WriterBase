@@ -499,7 +499,7 @@ function StructureTree(config) {
                     var tagName = obj.item.key;
                     if (parentText.indexOf('Change') !== -1) {
                         var id = obj.reference.parent('li').attr('name');
-                        w.tagger.changeTag(tagName, id);
+                        w.tagger.changeTagDialog(tagName, id);
                     } else {
                         var actionType = parentText.match(/\w+$/)[0].toLowerCase();
                         w.editor.currentBookmark = w.editor.selection.getBookmark(1);
@@ -509,7 +509,7 @@ function StructureTree(config) {
                             w.editor.currentBookmark.tagId = tagId;
                         }
                         var parentTag = $('#'+tagId, w.editor.getBody());
-                        w.tagger.addTag(tagName, actionType, parentTag);
+                        w.tagger.addTagDialog(tagName, actionType, parentTag);
 
                     }
                 }
@@ -701,7 +701,7 @@ function StructureTree(config) {
                         icon: w.cwrcRootUrl+'img/tag_blue_edit.png',
                         action: function(obj) {
                             var id = obj.reference.parent('li').attr('name');
-                            w.tagger.editTag(id);
+                            w.tagger.editTagDialog(id);
                         }
                     },
                     'copy': {
