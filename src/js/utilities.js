@@ -680,7 +680,7 @@ function Utilities(writer) {
      * Gets a list from the schema of valid children for a particular tag
      * @param config The config object
      * @param config.tag The element name to get children of
-     * @param [config.path] The path to the tag (optional)
+     * @param [config.path] The path to the tag (optional). If provided, only returns results for the tag matching the path.
      * @param config.type The type of children to get: "element" or "attribute"
      * @param config.returnType Either: "array", "object", "names" (which is an array of just the element names)
      */

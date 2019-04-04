@@ -5,6 +5,7 @@
 }
 
 .cwrc .context-menu-list {
+    box-sizing: border-box;
     width: 260px;
     max-height: 400px;
     overflow-x: hidden;

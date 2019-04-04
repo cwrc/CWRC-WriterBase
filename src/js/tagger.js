@@ -266,7 +266,28 @@ function Tagger(writer) {
                 
             }
         }
+    }
+
+    /**
+     * Merge the contents of multiple tags into the first tag.
+     * @param {Array} tags An array of tags (Element or jQuery) to merge
+     */
+    tagger.mergeTags = function(tags) {
+        var newHtml = '';
+        var nodesToRemove = [];
+        for (var i = 0; i < tags.length; i++) {
+            var $tag = $(tags[i]);
+            newHtml += $tag.html();
+            if (i > 0) {
+                nodesToRemove.push('#'+$tag.attr('id'));
+            }
+        }
         
+        $(tags[0]).html(newHtml);
+        $(nodesToRemove.join(','), w.editor.getBody()).remove();
+        
+        w.editor.undoManager.add();
+        w.event('contentChanged').publish();
     }
     
     tagger.convertTagToEntity = function($tag) {
@@ -903,17 +924,25 @@ function Tagger(writer) {
             w.editor.currentBookmark = w.editor.selection.getBookmark(1);
         }
         
-        if (parentTag === undefined || parentTag.length === 0) {
-            var selectionParent = w.editor.currentBookmark.rng.commonAncestorContainer;
-            if (selectionParent.nodeType === Node.TEXT_NODE) {
-                parentTag = $(selectionParent).parent();
+        var tagPath;
+        if (Array.isArray(parentTagId)) {
+            tagPath = undefined;
+        } else if (action === tagger.ADD || action === tagger.INSIDE) { // TODO determine tagPath for other actions
+            var parentTag;
+            if (parentTagId === undefined) {
+                var selectionParent = w.editor.currentBookmark.rng.commonAncestorContainer;
+                if (selectionParent.nodeType === Node.TEXT_NODE) {
+                    parentTag = $(selectionParent).parent();
+                } else {
+                    parentTag = $(selectionParent);
+                }
             } else {
-                parentTag = $(selectionParent);
+                parentTag = $('#'+parentTagId, w.editor.getBody());
             }
+            tagPath = w.utilities.getElementXPath(parentTag[0]);
+            tagPath += '/'+tagName;
         }
 
-        var tagPath = w.utilities.getElementXPath(parentTag[0]);
-        tagPath += '/'+tagName;
         w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, {}, function(attributes) {
             if (attributes !== null) {
                 tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, action);

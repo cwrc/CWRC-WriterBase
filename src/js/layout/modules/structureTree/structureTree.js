@@ -749,11 +749,18 @@ function StructureTree(config) {
     $tree.on('contextmenu', function(event) {
         event.preventDefault();
         event.stopImmediatePropagation();
-
+        
         var li = $(event.target).parents('li.jstree-node').first();
         if (li.length === 1) {
+            var selectedIds = tree.currentlySelectedNodes; // store selected nodes before highlighting
+
             var tagId = li.attr('name');
             tree.highlightNode($('#'+tagId, w.editor.getBody())[0]);
+            
+            if (selectedIds.indexOf(tagId) !== -1 && selectedIds.length > 1) {
+                tagId = selectedIds;
+            }
+
             // use setTimeout to make sure that highlight happens first
             setTimeout(function() {
                 w.tagMenu.show(event, tagId, false);
