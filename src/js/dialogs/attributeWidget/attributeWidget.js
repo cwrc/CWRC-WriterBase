@@ -68,7 +68,7 @@ AttributeWidget.prototype = {
         this.isDirty = false;
         
         if (this.showSchemaHelp && tag !== undefined) {
-            var helpText = this.w.utilities.getDocumentationForTag(tag);
+            var helpText = this.w.schemaManager.getDocumentationForTag(tag);
             if (helpText != '') {
                 $('.schemaHelp', this.$el).html('<h3>'+tag+' Documentation</h3><p>'+helpText+'</p>');
             }

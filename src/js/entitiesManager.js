@@ -215,6 +215,85 @@ EntitiesManager.prototype = {
             }
         }
     },
+
+    /**
+     * Check to see if any of the entities overlap.
+     * @returns {Boolean}
+     */
+    doEntitiesOverlap: function() {
+        // remove highlights
+        this.highlightEntity();
+        
+        var overlap = false;
+        this.eachEntity(function(id, entity) {
+            var markers = this.w.editor.dom.select('[name="'+id+'"]');
+            if (markers.length > 1) {
+                var start = markers[0];
+                var end = markers[markers.length-1];
+                if (start.parentNode !== end.parentNode) {
+                    overlap = true;
+                    return false; // stop looping through entities
+                }
+            }
+        }.bind(this));
+
+        return overlap;
+    },
+
+    /**
+     * Removes entities that overlap other entities.
+     */
+    removeOverlappingEntities: function() {
+        this.highlightEntity();
+        
+        this.eachEntity(function(id, entity) {
+            var markers = this.w.editor.dom.select('[name="'+id+'"]');
+            if (markers.length > 1) {
+                var start = markers[0];
+                var end = markers[markers.length-1];
+                if (start.parentNode !== end.parentNode) {
+                    this.w.tagger.removeEntity(id);
+                }
+            }
+        }.bind(this));
+    },
+
+    /**
+     * Converts boundary entities (i.e. entities that overlapped) to tag entities, if possible.
+     * TODO review
+     */
+    convertBoundaryEntitiesToTags: function() {
+        this.eachEntity(function(id, entity) {
+            var markers = this.w.editor.dom.select('[name="'+id+'"]');
+            if (markers.length > 1) {
+                var canConvert = true;
+                var parent = markers[0].parentNode;
+                for (var i = 0; i < markers.length; i++) {
+                    if (markers[i].parentNode !== parent) {
+                        canConvert = false;
+                        break;
+                    }
+                }
+                if (canConvert) {
+                    var $tag = $(this.w.editor.dom.create('span', {}, ''));
+                    var atts = markers[0].attributes;
+                    for (var i = 0; i < atts.length; i++) {
+                        var att = atts[i];
+                        $tag.attr(att.name, att.value);
+                    }
+                    
+                    $tag.addClass('end');
+                    $tag.attr('id', $tag.attr('name'));
+                    $tag.attr('_tag', entity.getTag());
+                    // TODO add entity.getAttributes() as well?
+                    
+                    $(markers).wrapAll($tag);
+                    $(markers).contents().unwrap();
+                    // TODO normalize child text?
+                }
+            }
+        }.bind(this));
+    },
     
     /**
      * Removes all the entities.

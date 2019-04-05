@@ -503,7 +503,7 @@ function XML2CWRC(writer) {
         var closingTagString = '';
         if (node.nodeType === Node.ELEMENT_NODE) {
             var nodeName = node.nodeName;
-            var htmlTag = w.utilities.getTagForEditor(nodeName);
+            var htmlTag = w.schemaManager.getTagForEditor(nodeName);
 
             openingTagString += '<'+htmlTag+' _tag="'+nodeName+'"';
             closingTagString = '</'+htmlTag+'>';
@@ -519,7 +519,7 @@ function XML2CWRC(writer) {
             var id = w.getUniqueId('dom_');
             openingTagString += ' id="'+id+'"';
             
-            var canContainText = w.utilities.canTagContainText(nodeName);
+            var canContainText = w.schemaManager.canTagContainText(nodeName);
             openingTagString += ' _textallowed="'+canContainText+'"';
 
             if (node.hasAttributes()) {
@@ -652,7 +652,7 @@ function XML2CWRC(writer) {
         .then(function() {
             w.tagger.addNoteWrappersForEntities();
 
-            if (w.utilities.doEntitiesOverlap()) {
+            if (w.entitiesManager.doEntitiesOverlap()) {
                 w.allowOverlap = true;
             } else {
                 w.allowOverlap = false;

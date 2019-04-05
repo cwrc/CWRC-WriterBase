@@ -442,7 +442,7 @@ function Tagger(writer) {
                 } else {
                     childName = w.schemaManager.mapper.getParentTag(type);
                 }
-                var validParents = w.utilities.getParentsForTag({tag: childName, returnType: 'names'});
+                var validParents = w.schemaManager.getParentsForTag({tag: childName, returnType: 'names'});
                 var parentTag = w.editor.currentBookmark.rng.commonAncestorContainer;
                 while (parentTag.nodeType !== Node.ELEMENT_NODE) {
                     parentTag = parentTag.parentNode;
@@ -989,7 +989,7 @@ function Tagger(writer) {
             $noteWrapper = $node.parent('.noteWrapper');
         }
         
-        var editorTagName = w.utilities.getTagForEditor(tagName);
+        var editorTagName = w.schemaManager.getTagForEditor(tagName);
         var open_tag = '<'+editorTagName+' id="'+id+'" _tag="'+tagName+'"'
 
         var jsonAttrs = {};
@@ -1087,7 +1087,7 @@ function Tagger(writer) {
                 // force inline if parent is inline
                 editorTagName = 'span';
             } else {
-                editorTagName = w.utilities.getTagForEditor(tagName);
+                editorTagName = w.schemaManager.getTagForEditor(tagName);
             }
             
             tag.contents().unwrap().wrapAll('<'+editorTagName+' id="'+id+'" _tag="'+tagName+'"/>');

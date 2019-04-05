@@ -68,7 +68,7 @@ function AttributesEditor(writer, parentEl) {
             attributesWidget.mode = AttributeWidget.EDIT;
         }
         
-        var atts = w.utilities.getChildrenForTag({tag: tagName, path: tagPath, type: 'attribute', returnType: 'array'});
+        var atts = w.schemaManager.getChildrenForTag({tag: tagName, path: tagPath, type: 'attribute', returnType: 'array'});
         attributesWidget.buildWidget(atts, attributes, tagName);
         
         $schemaDialog.dialog('option', 'title', tagName);

@@ -162,7 +162,7 @@ function initAttributeWidget(dialogInstance, config) {
     } else {
         tag = dialogInstance.w.schemaManager.mapper.getParentTag(dialogInstance.type);
     }
-    var atts = dialogInstance.w.utilities.getChildrenForTag({tag: tag, type: 'attribute', returnType: 'array'});
+    var atts = dialogInstance.w.schemaManager.getChildrenForTag({tag: tag, type: 'attribute', returnType: 'array'});
     dialogInstance.attributesWidget.buildWidget(atts);
     dialogInstance.attWidgetInit = true;
 };

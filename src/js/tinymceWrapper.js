@@ -46,7 +46,7 @@ TinymceWrapper.init = function(config) {
         doctype: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
         element_format: 'xhtml',
 
-        forced_root_block: w.utilities.getBlockTag(),
+        forced_root_block: w.schemaManager.getBlockTag(),
         keep_styles: false, // false, otherwise tinymce interprets our spans as style elements
 
         paste_postprocess: function(plugin, ev) {
@@ -490,7 +490,7 @@ TinymceWrapper.init = function(config) {
             if (evt.shiftKey && evt.which == 13) {
                 var node = w.editor.currentNode;
                 if ($(node).attr('_tag') == 'lb') node = node.parentNode;
-                var tagName = w.utilities.getTagForEditor('lb');
+                var tagName = w.schemaManager.getTagForEditor('lb');
                 $(node).find('br').replaceWith('<' + tagName + ' _tag="lb"></' + tagName + '>');
             }
         }

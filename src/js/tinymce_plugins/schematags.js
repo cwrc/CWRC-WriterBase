@@ -148,7 +148,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
         for (var i = 0; i < schemaElements.length; i++) {
             var tag = schemaElements[i];
             var text = tag;
-            var fullName = editor.writer.utilities.getFullNameForTag(tag);
+            var fullName = editor.writer.schemaManager.getFullNameForTag(tag);
             if (fullName !== '') {
                 text += ' ('+fullName+')';
             }
@@ -217,7 +217,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
         
         var validKeys = [];
         if (filterKey != editor.writer.schemaManager.getHeader()) {
-            validKeys = editor.writer.utilities.getChildrenForTag({tag: filterKey, returnType: 'names'});
+            validKeys = editor.writer.schemaManager.getChildrenForTag({tag: filterKey, returnType: 'names'});
         }
         var count = 0, disCount = 0;
         menu.items().each(function(item) {
