@@ -114,6 +114,71 @@ function Tagger(writer) {
         tag.setAttribute('_attributes', jsonAttrsString);
     }
     
+/**
+     * Displays the appropriate dialog for adding a tag.
+     * @param {String} tagName The tag name.
+     * @param {String} action The tag insertion type to perform.
+     * @param {String} [parentTagId] The id of the parent tag on which to perform the action. Will use editor selection if not provided.
+     */
+    tagger.addTagDialog = function(tagName, action, parentTagId) {
+        if (tagName === w.schemaManager.getHeader()) {
+            w.dialogManager.show('header');
+            return;
+        } else {
+            var type = w.schemaManager.mapper.getEntityTypeForTag(tagName);
+            if (type != null) {
+                w.tagger.addEntityDialog(type, tagName);
+                return;
+            }
+        }
+
+        var tagId = w.editor.currentBookmark.tagId; // set by structureTree
+        if (tagId == null) {
+            w.editor.selection.moveToBookmark(w.editor.currentBookmark);
+            
+            var cleanRange = action === tagger.ADD;
+            var valid = isSelectionValid(true, cleanRange);
+            if (valid !== tagger.VALID) {
+                w.dialogManager.show('message', {
+                    title: 'Error',
+                    msg: 'Please ensure that the beginning and end of your selection have a common parent.<br/>For example, your selection cannot begin in one paragraph and end in another, or begin in bolded text and end outside of that text.',
+                    type: 'error'
+                });
+                return;
+            }
+
+            // reset bookmark after possible modification by isSelectionValid
+            w.editor.currentBookmark = w.editor.selection.getBookmark(1);
+        }
+        
+        var tagPath;
+        if (Array.isArray(parentTagId)) {
+            tagPath = undefined;
+        } else if (action === tagger.ADD || action === tagger.INSIDE) { // TODO determine tagPath for other actions
+            var parentTag;
+            if (parentTagId === undefined) {
+                var selectionParent = w.editor.currentBookmark.rng.commonAncestorContainer;
+                if (selectionParent.nodeType === Node.TEXT_NODE) {
+                    parentTag = $(selectionParent).parent();
+                } else {
+                    parentTag = $(selectionParent);
+                }
+            } else {
+                parentTag = $('#'+parentTagId, w.editor.getBody());
+            }
+            tagPath = w.utilities.getElementXPath(parentTag[0]);
+            tagPath += '/'+tagName;
+        }
+
+        w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, {}, function(attributes) {
+            if (attributes !== null) {
+                tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, action);
+            }
+
+            delete w.editor.currentBookmark.tagId;
+        });
+    }
+
     /**
      * A general edit function for entities and structure tags.
      * @param {String} id The tag id
@@ -137,7 +202,7 @@ function Tagger(writer) {
                 var attributes = tagger.getAttributesForTag(tag[0]);
                 w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, attributes, function(newAttributes) {
                     if (newAttributes !== null) {
-                        w.tagger.editStructureTag(tag, newAttributes, tagName);
+                        tagger.editStructureTag(tag, newAttributes, tagName);
                     }
                 });
             }
@@ -183,10 +248,74 @@ function Tagger(writer) {
             var attributes = tagger.getAttributesForTag(tag[0]);
             w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, attributes, function(newAttributes) {
                 if (newAttributes !== null) {
-                    w.tagger.editStructureTag(tag, newAttributes, tagName);
+                    tagger.editStructureTag(tag, newAttributes, tagName);
                 }
             });
         } 
+    };
+
+    /**
+     * Displays the appropriate dialog for adding an entity
+     * @param {String} type The entity type
+     * @param {String} [tag] The element name
+     */
+    tagger.addEntityDialog = function(type, tag) {
+        var requiresSelection = w.schemaManager.mapper.doesEntityRequireSelection(type);
+        var result;
+        if (!requiresSelection && w.editor.selection.isCollapsed()) {
+            result = tagger.VALID;
+        } else {
+            result = isSelectionValid(false, true);
+        }
+        if (result === tagger.NO_SELECTION) {
+            w.dialogManager.show('message', {
+                title: 'Error',
+                msg: 'Please select some text before adding an entity.',
+                type: 'error'
+            });
+        } else {
+            w.editor.currentBookmark = w.editor.selection.getBookmark(1);
+            if (result === tagger.VALID) {
+                var childName;
+                if (tag !== undefined) {
+                    childName = tag;
+                } else {
+                    childName = w.schemaManager.mapper.getParentTag(type);
+                }
+                var validParents = w.schemaManager.getParentsForTag({tag: childName, returnType: 'names'});
+                var parentTag = w.editor.currentBookmark.rng.commonAncestorContainer;
+                while (parentTag.nodeType !== Node.ELEMENT_NODE) {
+                    parentTag = parentTag.parentNode;
+                }
+                var parentName = parentTag.getAttribute('_tag');
+                var isValid = validParents.indexOf(parentName) !== -1;
+                if (isValid) {
+                    w.dialogManager.show(type, {type: type});
+                } else {
+                    w.dialogManager.show('message', {
+                        title: 'Invalid XML',
+                        msg: 'The element <b>'+childName+'</b> is not a valid child of <b>'+parentName+'</b>.<br/><br/>Valid parents for '+childName+' are:<br/><ul><li>'+validParents.join('</li><li>')+'</ul>',
+                        type: 'error'
+                    });
+                }
+            } else if (result === tagger.OVERLAP) {
+                if (w.allowOverlap === true) {
+                    w.dialogManager.show(type, {type: type});
+                } else {
+                    w.dialogManager.confirm({
+                        title: 'Warning',
+                        msg: 'You are attempting to create overlapping entities or to create an entity across sibling XML tags, which is not allowed in this editor mode.<br/><br/>If you wish to continue, the editor mode will be switched to <b>XML and RDF (Overlapping Entities)</b> and only RDF will be created for the entity you intend to add.<br/><br/>Do you wish to continue?',
+                        callback: function(confirmed) {
+                            if (confirmed) {
+                                w.allowOverlap = true;
+                                w.mode = w.XMLRDF;
+                                w.dialogManager.show(type, {type: type});
+                            }
+                        }
+                    });
+                }
+            }
+        }
     };
 
     /**
@@ -412,70 +541,6 @@ function Tagger(writer) {
             }
         });
         */
-    };
-    
-    /**
-     * Displays the appropriate dialog for adding an entity
-     * @param {String} type The entity type
-     * @param {String} [tag] The element name
-     */
-    tagger.addEntityDialog = function(type, tag) {
-        var requiresSelection = w.schemaManager.mapper.doesEntityRequireSelection(type);
-        var result;
-        if (!requiresSelection && w.editor.selection.isCollapsed()) {
-            result = tagger.VALID;
-        } else {
-            result = isSelectionValid(false, true);
-        }
-        if (result === tagger.NO_SELECTION) {
-            w.dialogManager.show('message', {
-                title: 'Error',
-                msg: 'Please select some text before adding an entity.',
-                type: 'error'
-            });
-        } else {
-            w.editor.currentBookmark = w.editor.selection.getBookmark(1);
-            if (result === tagger.VALID) {
-                var childName;
-                if (tag !== undefined) {
-                    childName = tag;
-                } else {
-                    childName = w.schemaManager.mapper.getParentTag(type);
-                }
-                var validParents = w.schemaManager.getParentsForTag({tag: childName, returnType: 'names'});
-                var parentTag = w.editor.currentBookmark.rng.commonAncestorContainer;
-                while (parentTag.nodeType !== Node.ELEMENT_NODE) {
-                    parentTag = parentTag.parentNode;
-                }
-                var parentName = parentTag.getAttribute('_tag');
-                var isValid = validParents.indexOf(parentName) !== -1;
-                if (isValid) {
-                    w.dialogManager.show(type, {type: type});
-                } else {
-                    w.dialogManager.show('message', {
-                        title: 'Invalid XML',
-                        msg: 'The element <b>'+childName+'</b> is not a valid child of <b>'+parentName+'</b>.<br/><br/>Valid parents for '+childName+' are:<br/><ul><li>'+validParents.join('</li><li>')+'</ul>',
-                        type: 'error'
-                    });
-                }
-            } else if (result === tagger.OVERLAP) {
-                if (w.allowOverlap === true) {
-                    w.dialogManager.show(type, {type: type});
-                } else {
-                    w.dialogManager.confirm({
-                        title: 'Warning',
-                        msg: 'You are attempting to create overlapping entities or to create an entity across sibling XML tags, which is not allowed in this editor mode.<br/><br/>If you wish to continue, the editor mode will be switched to <b>XML and RDF (Overlapping Entities)</b> and only RDF will be created for the entity you intend to add.<br/><br/>Do you wish to continue?',
-                        callback: function(confirmed) {
-                            if (confirmed) {
-                                w.allowOverlap = true;
-                                w.mode = w.XMLRDF;
-                                w.dialogManager.show(type, {type: type});
-                            }
-                        }
-                    });
-                }
-            }
-        }
     };
     
     /**
@@ -888,71 +953,6 @@ function Tagger(writer) {
     }
 
     /**
-     * Displays the appropriate dialog for adding a tag.
-     * @param {String} tagName The tag name.
-     * @param {String} action The tag insertion type to perform.
-     * @param {String} [parentTagId] The id of the parent tag on which to perform the action. Will use editor selection if not provided.
-     */
-    tagger.addTagDialog = function(tagName, action, parentTagId) {
-        if (tagName === w.schemaManager.getHeader()) {
-            w.dialogManager.show('header');
-            return;
-        } else {
-            var type = w.schemaManager.mapper.getEntityTypeForTag(tagName);
-            if (type != null) {
-                w.tagger.addEntityDialog(type, tagName);
-                return;
-            }
-        }
-
-        var tagId = w.editor.currentBookmark.tagId; // set by structureTree
-        if (tagId == null) {
-            w.editor.selection.moveToBookmark(w.editor.currentBookmark);
-            
-            var cleanRange = action === tagger.ADD;
-            var valid = isSelectionValid(true, cleanRange);
-            if (valid !== tagger.VALID) {
-                w.dialogManager.show('message', {
-                    title: 'Error',
-                    msg: 'Please ensure that the beginning and end of your selection have a common parent.<br/>For example, your selection cannot begin in one paragraph and end in another, or begin in bolded text and end outside of that text.',
-                    type: 'error'
-                });
-                return;
-            }
-
-            // reset bookmark after possible modification by isSelectionValid
-            w.editor.currentBookmark = w.editor.selection.getBookmark(1);
-        }
-        
-        var tagPath;
-        if (Array.isArray(parentTagId)) {
-            tagPath = undefined;
-        } else if (action === tagger.ADD || action === tagger.INSIDE) { // TODO determine tagPath for other actions
-            var parentTag;
-            if (parentTagId === undefined) {
-                var selectionParent = w.editor.currentBookmark.rng.commonAncestorContainer;
-                if (selectionParent.nodeType === Node.TEXT_NODE) {
-                    parentTag = $(selectionParent).parent();
-                } else {
-                    parentTag = $(selectionParent);
-                }
-            } else {
-                parentTag = $('#'+parentTagId, w.editor.getBody());
-            }
-            tagPath = w.utilities.getElementXPath(parentTag[0]);
-            tagPath += '/'+tagName;
-        }
-
-        w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, {}, function(attributes) {
-            if (attributes !== null) {
-                tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, action);
-            }
-
-            delete w.editor.currentBookmark.tagId;
-        });
-    }
-
-    /**
      * Adds a structure tag to the document, based on the params.
      * @fires Writer#tagAdded
      * @param {String} tagName The tag name
@@ -1133,8 +1133,9 @@ function Tagger(writer) {
         }
 
         var tag = tagger.getCurrentTag(id);
-
         var entry = w.entitiesManager.getEntity(id);
+        id = tag.attr('id');
+
         if (removeContents) {
             if (entry && entry.isNote()) {
                 tagger.processRemovedContent(tag.parent('.noteWrapper')[0]);

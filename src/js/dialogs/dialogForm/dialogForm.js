@@ -49,6 +49,7 @@ function DialogForm(config) {
         autoOpen: false,
         buttons: [{
             text: 'Cancel',
+            role: 'cancel',
             click: $.proxy(function() {
                 this.$el.trigger('beforeCancel');
                 
@@ -67,7 +68,8 @@ function DialogForm(config) {
                 this.$el.dialog('close');
             }, this)
         },{
-            text: 'Save',
+            text: 'Ok',
+            role: 'ok',
             click: $.proxy(function() {
                 this.save();
             }, this)

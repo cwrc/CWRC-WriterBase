@@ -116,6 +116,10 @@ function Selection(config) {
         w.layoutManager.showModule('selection');
         updateView(true);
     };
+
+    selection.destroy = function() {
+        // TODO
+    }
     
     // add to writer
     w.selection = selection; // needed by view markup button

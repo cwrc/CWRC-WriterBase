@@ -90,6 +90,7 @@
     "cm": "git-cz",
     "precommit": "npm run test && npm run check-coverage",
     "test": "npm run test:electron && npm run generate-coverage",
+    "test:watch": "watchify test/test.js --debug -o test/build/test.js -g deamdify -t [ browserify-istanbul --ignore \"**/schema/cwrcEntry/**\" --ignore \"**/schema/orlando/**\" ]",
     "test:electron": "mkdirp coverage && browserify -g deamdify -t [ browserify-istanbul --ignore \"**/schema/cwrcEntry/**\" --ignore \"**/schema/orlando/**\" ] test/test.js | browser-run --static . | node test/extract-coverage.js | faucet ",
     "generate-coverage": "istanbul report --root coverage lcov",
     "check-coverage": "istanbul check-coverage --statements 5 --branches 1 --functions 1 --lines 5",

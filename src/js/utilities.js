@@ -202,6 +202,8 @@ function Utilities(writer) {
 
             w.editor.selection.setRng(rng);
 
+            w.editor.currentBookmark = w.editor.selection.getBookmark(1);
+
             // scroll node into view
             var nodeTop = 0;
             if (node.is(':hidden')) {

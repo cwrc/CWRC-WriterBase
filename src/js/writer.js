@@ -219,9 +219,10 @@ function CWRCWriter(config) {
     /**
      * Set the current document for the editor
      * @param {Document|String} document Can be one of: URL, XML document, XML string
+     * @param {Boolean} [convertEntities] Whether to convert entities, defaults to true
      */
-    w.setDocument = function(document) {
-        w.converter.setDocument(document);
+    w.setDocument = function(document, convertEntities) {
+        w.converter.setDocument(document, convertEntities);
     };
 
     /**
