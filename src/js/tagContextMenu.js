@@ -62,7 +62,9 @@ TagContextMenu.prototype = {
         event.preventDefault();
         event.stopImmediatePropagation();
         
-        console.log('show', tagId);
+        if (this.w.isReadOnly || this.w.isEditorReadOnly()) {
+            return;
+        }
 
         if (tagId !== undefined && Array.isArray(tagId)) {
             this.isMultiple = true;

@@ -233,6 +233,14 @@ function CWRCWriter(config) {
     };
 
     /**
+     * Is the editor read only?
+     * @returns {Boolean}
+     */
+    w.isEditorReadOnly = function() {
+        return w.editor.getBody().getAttribute('contenteditable') === 'false';
+    }
+
+    /**
      * Destroy the CWRC-Writer
      */
     w.destroy = function() {

@@ -41,8 +41,6 @@ TinymceWrapper.init = function(config) {
 
         content_css: w.cwrcRootUrl + 'css/editor.css',
 
-        contextmenu_never_use_native: true,
-
         doctype: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
         element_format: 'xhtml',
 
@@ -497,15 +495,13 @@ TinymceWrapper.init = function(config) {
 
         // enter key
         if (evt.which == 13) {
+            /* TODO review this
             // find the element inserted by tinymce
             var idCounter = tinymce.DOM.counter - 1;
-            var newTag = $('#struct_' + idCounter, w.editor.getBody());
+            var newTag = $('#dom_' + idCounter, w.editor.getBody());
             if (newTag.text() == '') {
                 newTag.text('\uFEFF'); // insert zero-width non-breaking space so empty tag takes up space
-            }
-            //            if (!w.utilities.isTagBlockLevel(newTag.attr('_tag'))) {
-            //                w.utilities.selectElementById(newTag.attr('id'), true);
-            //            }
+            }*/
         }
 
         w.event('writerKeyup').publish(evt);
