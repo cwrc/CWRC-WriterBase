@@ -52,31 +52,16 @@ test('writer constructor', (t) => {
     }
     
     writer.event('writerInitialized').subscribe(handler);
-})
+});
 
-// test('writer getUniqueId', (t)=> {
-//     t.plan(1)
-    
-//     let writer = new CWRCWriter(getConfigForTestingConstructor())
-    
-//     var handler = function(writer) {
-//         let count = tinymce.DOM.counter;
-//         writer.getUniqueId();
-//         let nextCount = tinymce.DOM.counter;
-//         t.true(nextCount === count+1, 'counter incremented');
-//         reset(writer);
-//     }
-    
-//     writer.event('writerInitialized').subscribe(handler);
-// })
-
-test('writer.setDocument', (t)=> {
+test('writer.setDocument writer.getDocument', (t)=> {
     t.plan(1);
     
     let writer = new CWRCWriter(getConfigForTestingConstructor())
     
     writer.event('documentLoaded').subscribe(function(success, body) {
-        t.true(body.textContent.indexOf('Sample letter content') !== -1, 'document set');
+        var doc = writer.getDocument();
+        t.true(doc.firstElementChild.textContent.indexOf('Sample letter content') !== -1, 'document set & got');
         reset(writer);
     })
     
@@ -100,20 +85,6 @@ test('writer.setDocument convertEntities', (t)=> {
     })
     
     writer.setDocument(teiDoc, true);
-});
-
-test('writer.getDocument', (t) => {
-    t.plan(1);
-    
-    let writer = new CWRCWriter(getConfigForTestingConstructor())
-    
-    writer.event('documentLoaded').subscribe(() => {
-        var doc = writer.getDocument();
-        t.true(doc.firstElementChild.textContent.indexOf('Sample letter content') !== -1, 'document got');
-        reset(writer);
-    });
-    
-    writer.loadDocumentXML(teiDoc, false);
 });
 
 test('writer.validate', (t)=> {
@@ -259,6 +230,45 @@ test('tagger.editTagDialog tagger.editStructureTag', (t) => {
     writer.loadDocumentXML(teiDoc, false);
 });
 
+test('tagger.editEntity', (t) => {
+    t.plan(1);
+    
+    let writer = new CWRCWriter(getConfigForTestingConstructor())
+    
+    let attributeName;
+    const attributeValue = 'test';
+
+    writer.event('processingDocument').subscribe(() => {
+        setTimeout(() => {
+            dialogClickYes();
+        }, 50);
+    })
+
+    writer.event('documentLoaded').subscribe(() => {
+        dialogClickOk();
+        let entityEl = window.$('[_entity]', writer.editor.getBody()).first();
+        let entry = writer.entitiesManager.getEntity(entityEl.attr('id'));
+        writer.dialogManager.show('schema/'+entry.getType(), {entry: entry})
+        
+        setTimeout(() => {
+            let li = window.$('.attributeSelector:visible li:eq(0)');
+            attributeName = li.attr('data-name');
+            li.click();
+            let input = window.$('.attsContainer:visible input[name="'+attributeName+'"]');
+            input.val(attributeValue);
+            dialogClickOk();
+        }, 250);
+    });
+
+    writer.event('entityEdited').subscribe(function(entityId) {
+        let entry = writer.entitiesManager.getEntity(entityId);
+        t.true(entry.getAttribute(attributeName) === attributeValue, 'entity edited');
+        reset(writer);
+    });
+    
+    writer.loadDocumentXML(teiDoc, true);
+});
+
 test('tagger.changeTagDialog', (t) => {
     t.plan(1);
     
@@ -336,6 +346,69 @@ test('tagger.copyTag tagger.pasteTag', (t) => {
     writer.loadDocumentXML(teiDoc, false);
 });
 
+test('tagger.splitTag tagger.mergeTags', (t) => {
+    t.plan(2);
+    
+    let writer = new CWRCWriter(getConfigForTestingConstructor())
+
+    let pTagCount;
+    let textNode;
+
+    let splitHandler = function() {
+        t.true(window.$('[_tag="body"] [_tag="p"]', writer.editor.getBody()).length === pTagCount+1, 'tag split');
+
+        let tag1 = textNode.parentElement;
+        let tag2 = tag1.nextElementSibling;
+
+        writer.event('contentChanged').unsubscribe(splitHandler);
+        writer.event('contentChanged').subscribe(mergeHandler);
+
+        writer.tagger.mergeTags([tag1, tag2]);
+    }
+
+    let mergeHandler = function() {
+        t.true(window.$('[_tag="body"] [_tag="p"]', writer.editor.getBody()).length === pTagCount, 'tags merged');
+        reset(writer);
+    }
+
+    writer.event('documentLoaded').subscribe(() => {
+        dialogClickOk();
+
+        pTagCount = window.$('[_tag="body"] [_tag="p"]', writer.editor.getBody()).length;
+        textNode = window.$('[_tag="body"] [_tag="p"]', writer.editor.getBody())[0].firstChild;
+
+        writer.event('contentChanged').subscribe(splitHandler);
+        
+        let range = writer.editor.selection.getRng(1);
+        range.setStart(textNode, 3);
+        range.setEnd(textNode, 3);
+        writer.editor.selection.setRng(range);
+        writer.tagger.splitTag();
+    });
+    
+    writer.loadDocumentXML(teiDoc, false);
+});
+
+test('tagger.convertTagToEntity', (t) => {
+    t.plan(1);
+    
+    let writer = new CWRCWriter(getConfigForTestingConstructor())
+
+    writer.event('documentLoaded').subscribe(() => {
+        dialogClickOk();
+        
+        writer.event('entityAdded').subscribe((entityId) => {
+            let tag = window.$('#'+entityId, writer.editor.getBody());
+            t.true(tag.attr('_type') === 'person', 'tag converted');
+            reset(writer);
+        });
+
+        let persTag = window.$('[_tag="persName"]', writer.editor.getBody()).first();
+        writer.tagger.convertTagToEntity(persTag);
+    });
+    
+    writer.loadDocumentXML(teiDoc, false);
+});
 
 let dialogClickOk = () => {
     let ok = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="ok"]');
