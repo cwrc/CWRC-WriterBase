@@ -361,7 +361,7 @@ function Tagger(writer) {
     }
     
     /**
-     * Split a tag in two based on the current selection.
+     * Split a tag in two based on the current text selection.
      */
     tagger.splitTag = function() {
         var range = w.editor.selection.getRng(true);
@@ -371,7 +371,6 @@ function Tagger(writer) {
             var parent = textNode.parentNode;
             
             if (parent.getAttribute('_entity') != 'true') {
-                
                 var wrapString = '<'+parent.nodeName.toLowerCase();
                 for (var i = 0; i < parent.attributes.length; i++) {
                     var attr = parent.attributes[i];
@@ -390,10 +389,18 @@ function Tagger(writer) {
                         lastChild = $(child).wrap(wrapString);
                     }
                 }
-                $(parent).contents().unwrap();
+                $(parent).contents().each(function(index, el) {
+                    el.setAttribute('id', w.getUniqueId('dom_'));
+                }).unwrap();
                 w.editor.selection.setCursorLocation(lastChild[0]); // TODO doesn't work with spans on Chrome (at least)
-                
+
+                w.editor.undoManager.add();
+                w.event('contentChanged').publish();
+            } else {
+                console.warn('tagger.splitTag: cannot split an entity!');
             }
+        } else {
+            console.warn('tagger.splitTag: no text selection!');
         }
     }
 
@@ -419,12 +426,21 @@ function Tagger(writer) {
         w.event('contentChanged').publish();
     }
     
+    /**
+     * Convert a tag to an entity.
+     * @param {jQuery} $tag The jQuery selection of the tag
+     */
     tagger.convertTagToEntity = function($tag) {
         if ($tag != null) {
             var xmlString = w.converter.buildXMLString($tag);
             var xmlEl = w.utilities.stringToXML(xmlString).firstChild;
 
             var type = w.schemaManager.mapper.getEntityTypeForTag(xmlEl);
+            if (type === null) {
+                console.warn('tagger.convertTagToEntity: tag '+xmlEl.nodeName+' cannot be converted to entity!');
+                return;
+            }
+
             var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
             var info = w.schemaManager.mapper.getReverseMapping(xmlEl, type); // TODO
 
@@ -436,7 +452,8 @@ function Tagger(writer) {
                 info.properties.noteContent = $tag.html();
             }
 
-            var ref = $tag.attr('ref'); // matches ref or REF. FIXME hardcoded ref attribute
+            // TODO FIXME hardcoded ref attribute, consolidate with nerve mappings
+            var ref = $tag.attr('ref');
             var id = $tag.attr('id');
 
             w.utilities.selectElementById(id, !isNote);

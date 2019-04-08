@@ -108,6 +108,11 @@ $.contextMenu.types.cwrcTag = function(item, parentMenu, root) {
 function getItems() {
     var items = {};
 
+    if (this.tagId == null) {
+        console.warn('tagContextMenu: no tagId!');
+        return {};
+    }
+
     if (this.w.isAnnotator) {
         addEntities.call(this, items);
         return items;
