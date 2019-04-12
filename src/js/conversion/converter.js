@@ -25,6 +25,7 @@ function Converter(writer) {
         processDocument: xml2cwrc.processDocument,
         buildEditorString: xml2cwrc.buildEditorString,
         reservedAttributes: xml2cwrc.reservedAttributes,
+        getEntityConfigFromElement: xml2cwrc.getEntityConfigFromElement,
 
         getDocumentContent: cwrc2xml.getDocumentContent,
         buildXMLString: cwrc2xml.buildXMLString

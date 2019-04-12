@@ -16,6 +16,7 @@ function EntitiesManager(writer) {
         this.highlightEntity(entityId);
     }, this));
     this.w.event('entityEdited').subscribe($.proxy(function(entityId) {
+        // TODO update text content for entity here?
         this.highlightEntity(entityId);
     }, this));
     this.w.event('entityRemoved').subscribe($.proxy(function(entityId) {
@@ -51,6 +52,9 @@ EntitiesManager.prototype = {
             entity = new Entity(config);
         }
         
+        entity.setContent(this.getTextContentForEntity(entity.id));
+
+        this.setUrisForEntity(entity);
         
         this.entities[entity.id] = entity;
         
@@ -134,12 +138,54 @@ EntitiesManager.prototype = {
     
     /**
      * Sets the currently highlighted entity ID.
-     * @returns {String} Entity ID
+     * @param {String} entityId
      */
     setCurrentEntity: function(entityId) {
         this.currentEntity = entityId;
     },
+
+    /**
+     * Gets all the content of the text nodes that the entity surrounds.
+     * @param {String} entityId 
+     * @returns {String} The text content
+     */
+    getTextContentForEntity: function(entityId) {
+        var entityTextContent = '';
+        $('[name='+entityId+']', this.w.editor.getBody()).each(function(i, el) {
+            entityTextContent += el.textContent;
+        });
+        return entityTextContent;
+    },
     
+    /**
+     * Set the (temp) URIs for an Entity
+     * @param {Entity} entity
+     */
+    setUrisForEntity: function(entity) {
+        $.when(
+            this.w.utilities.getUriForEntity(entity),
+            this.w.utilities.getUriForAnnotation(),
+            this.w.utilities.getUriForDocument(),
+            this.w.utilities.getUriForTarget(),
+            this.w.utilities.getUriForSelector(),
+            this.w.utilities.getUriForUser()
+        ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
+            var lookupInfo = entity.getLookupInfo();
+            if (lookupInfo !== undefined && lookupInfo.id) {
+                // use the id already provided
+                entityUri = lookupInfo.id;
+            }
+            entity.setUris({
+                entityId: entityUri,
+                annotationId: annoUri,
+                docId: docUri,
+                targetId: targetUri,
+                selectorId: selectorUri,
+                userId: userUri
+            });
+        });
+    },
+
     removeHighlights: function() {
         var prevHighlight = $('.entityHighlight', this.w.editor.getBody());
         if (prevHighlight.length !== 0) {

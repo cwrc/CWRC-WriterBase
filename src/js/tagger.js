@@ -432,17 +432,15 @@ function Tagger(writer) {
      */
     tagger.convertTagToEntity = function($tag) {
         if ($tag != null) {
-            var xmlString = w.converter.buildXMLString($tag);
-            var xmlEl = w.utilities.stringToXML(xmlString).firstChild;
-
-            var type = w.schemaManager.mapper.getEntityTypeForTag(xmlEl);
+            var type = w.schemaManager.mapper.getEntityTypeForTag($tag.attr('_tag'));
             if (type === null) {
-                console.warn('tagger.convertTagToEntity: tag '+xmlEl.nodeName+' cannot be converted to entity!');
+                console.warn('tagger.convertTagToEntity: tag '+$tag.attr('_tag')+' cannot be converted to entity!');
                 return;
             }
-
             var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
-            var info = w.schemaManager.mapper.getReverseMapping(xmlEl, type); // TODO
+
+            var info = w.converter.getEntityConfigFromElement($tag[0], type);
+            info.attributes = tagger.getAttributesForTag($tag[0]); // override the attributes returned from getEntityConfigFromElement because they'll include reserved attributes
 
             if (isNote) {
                 if (info.properties === undefined) {
@@ -595,16 +593,10 @@ function Tagger(writer) {
             sanitizeObject(info.attributes);
             sanitizeObject(info.customValues);
 
-            w.editor.selection.moveToBookmark(w.editor.currentBookmark);
-            var sel = w.editor.selection;
-            var range = sel.getRng(true);
-            var content = sel.getContent();
-
             var config = {
                 id: id,
                 type: type,
                 isNote: w.schemaManager.mapper.isEntityTypeNote(type),
-                content: content,
                 tag: w.schemaManager.mapper.getParentTag(type),
                 attributes: info.attributes,
                 customValues: info.customValues,
@@ -618,34 +610,13 @@ function Tagger(writer) {
             }
             $.extend(config, info.properties);
 
-            // create entity here so we can set content properly before adding it to the manager
             var entity = new Entity(config);
             
+            w.editor.selection.moveToBookmark(w.editor.currentBookmark);
+            var range = w.editor.selection.getRng(true);
             tagger.addEntityTag(entity, range);
-            var entry = w.entitiesManager.addEntity(entity);
 
-            $.when(
-                w.utilities.getUriForEntity(entry),
-                w.utilities.getUriForAnnotation(),
-                w.utilities.getUriForDocument(),
-                w.utilities.getUriForTarget(),
-                w.utilities.getUriForSelector(),
-                w.utilities.getUriForUser()
-            ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
-                var lookupInfo = entry.getLookupInfo();
-                if (lookupInfo !== undefined && lookupInfo.id) {
-                    // use the id already provided
-                    entityUri = lookupInfo.id;
-                }
-                entry.setUris({
-                    entityId: entityUri,
-                    annotationId: annoUri,
-                    docId: docUri,
-                    targetId: targetUri,
-                    selectorId: selectorUri,
-                    userId: userUri
-                });
-            });
+            var entry = w.entitiesManager.addEntity(entity);
             
             return id;
         }
