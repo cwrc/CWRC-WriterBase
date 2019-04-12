@@ -2,204 +2,256 @@
 
 var $ = require('jquery');
 
+/**
+ * Navigates the schema JSON to get parents, children, and attributes for tags or paths.
+ * Paths are essentially XPaths, however only element names and the child axis "/" are supported, e.g. TEI/text/body/div/p
+ */
 function SchemaNavigator() {
-    var schemaJSON;
-    var schemaElements;
-    
     /**
      * @lends SchemaNavigator.prototype
      */
     var sn = {};
 
+    var schemaJSON;
     sn.setSchemaJSON = function(json) {
         schemaJSON = json;
     }
+
+    var schemaElements;
     sn.setSchemaElements = function(elements) {
         schemaElements = elements;
     }
 
-    var useLocalStorage = false;//supportsLocalStorage();
-    function supportsLocalStorage() {
-        try {
-            return 'localStorage' in window && window['localStorage'] !== null;
-        } catch (e) {
-            return false;
-        }
-    }
-
-    function isArray(obj) {
-        return toString.apply(obj) === '[object Array]';
-    }
-
-    function isObject(obj){
-        return !!obj && Object.prototype.toString.call(obj) === '[object Object]';
-    }
-
     /**
-     * Gets a list from the schema of valid parents for a particular tag
-     * @param config The config object
-     * @param config.tag The element name to get parents of
-     * @param [config.path] The path to the tag (optional)
-     * @param config.returnType Either: "array", "object", "names" (which is an array of just the element names)
+     * Returns an array of valid parents for a particular tag
+     * @param {String} tag The element name
+     * @returns {Array}
      */
-    sn.getParentsForTag = function(config) {
-        var parents = [];
-        
-        if (useLocalStorage) {
-            var localData = localStorage['cwrc.'+config.tag+'.parents'];
-            if (localData) {
-                parents = JSON.parse(localData);
-            }
-        }
-        
-        if (parents.length === 0) {
-            var elements = [];
-            if (config.path) {
-                var element = _getJsonEntryFromPath(config.path);
-                if (element !== null) {
-                    elements.push(element);
-                }
-            } else {
-                elements = _getElementEntries(config.tag);
-            }
-            if (elements.length == 0) {
-                console.warn('schemaNavigator: cannot find element for '+config.tag);
-            } else {
-                for (var i = 0; i < elements.length; i++) {
-                    var el = elements[i];
-                    var parent = el.$parent;
-                    while (parent !== undefined) {
-                        if (parent.$key === 'define' || parent.$key === 'element') {
-                            break;
-                        } else {
-                            parent = parent.$parent;
-                        }
-                    }
-                    
-                    if (parent.$key === 'define') {
-                        var defName = parent['@name'];
-                        var defHits = [];
-                        var level = 0;
-                        _getParentsJSON(defName, defHits, level, parents)
-                        
-                    } else if (parent.$key === 'element') {
-                        parents.push({name: parent['@name'], level: 0});
-                    }
-                }
-
-                parents.sort(function(a, b) {
-                    if (a.name > b.name) return 1;
-                    if (a.name < b.name) return -1;
-                    return 0;
-                });
-
-                if (useLocalStorage) {
-                    localStorage['cwrc.'+config.tag+'.parents'] = JSON.stringify(parents);
-                }
-            }
-        }
-        
-        var i;
-        var len = parents.length;
-        if (config.returnType == 'object') {
-            var parentsObj = {};
-            for (i = 0; i < len; i++) {
-                var c = parents[i];
-                parentsObj[c.name] = c;
-            }
-            return parentsObj;
-        } else if (config.returnType == 'names') {
-            var names = [];
-            for (i = 0; i < len; i++) {
-                names.push(parents[i].name);
-            }
-            return names;
+    sn.getParentsForTag = function(tag) {
+        var elements = _getEntriesForTag(tag);
+        if (elements.length == 0) {
+            console.warn('schemaNavigator: cannot find element for '+tag);
+            return [];
         } else {
+            var parents = [];
+            for (var i = 0; i < elements.length; i++) {
+                parents = parents.concat(_getElementParents(elements[i]));
+            }
+            _sortEntries(parents);
             return parents;
         }
-    };
+    }
 
     /**
-     * Gets a list from the schema of valid children for a particular tag
-     * @param config The config object
-     * @param config.tag The element name to get children of
-     * @param [config.path] The path to the tag (optional). If provided, only returns results for the tag matching the path.
-     * @param config.type The type of children to get: "element" or "attribute"
-     * @param config.returnType Either: "array", "object", "names" (which is an array of just the element names)
+     * Returns an array of valid parents for a particular path
+     * @param {String} path The path
+     * @returns {Array}
      */
-    sn.getChildrenForTag = function(config) {
-        config.type = config.type || 'element';
-        var children = [];
-        var i;
-        
-        if (useLocalStorage) {
-            var localData = localStorage['cwrc.'+config.tag+'.'+config.type+'.children'];
-            if (localData) {
-                children = JSON.parse(localData);
-            }
-        }
-        
-        if (children.length == 0) {
-            var elements = [];
-            if (config.path) {
-                var element = _getJsonEntryFromPath(config.path);
-                if (element !== null) {
-                    elements.push(element);
-                }
-            } else {
-                elements = _getElementEntries(config.tag);
-            }
-            if (elements.length == 0) {
-                console.warn('schemaNavigator: cannot find element for '+config.tag);
-            } else {
-                for (var i = 0; i < elements.length; i++) {
-                    var element = elements[i];
-                    var defHits = {};
-                    var level = 0;
-                    _getChildrenJSON(element, defHits, level, config.type, children); 
-                    if (children.indexOf('anyName') != -1) {
-                        children = [];
-                        // anyName means include all elements
-                        for (i = 0; i < schemaElements.length; i++) {
-                            var el = schemaElements[i];
-                            // TODO need to add more info than just the name
-                            children.push({
-                                name: el
-                            });
-                        }
-                    }
-                }
-                
-                children.sort(function(a, b) {
-                    if (a.name > b.name) return 1;
-                    if (a.name < b.name) return -1;
-                    return 0;
-                });
-                
-                if (useLocalStorage) {
-                    localStorage['cwrc.'+config.tag+'.'+config.type+'.children'] = JSON.stringify(children);
-                }
-            }
-        }
-        
-        if (config.returnType == 'object') {
-            var childrenObj = {};
-            for (i = 0; i < children.length; i++) {
-                var c = children[i];
-                childrenObj[c.name] = c;
-            }
-            return childrenObj;
-        } else if (config.returnType == 'names') {
-            var names = [];
-            for (i = 0; i < children.length; i++) {
-                names.push(children[i].name);
-            }
-            return names;
+    sn.getParentsForPath = function(path) {
+        var element = _getEntryForPath(path);
+        if (element === null) {
+            console.warn('schemaNavigator: cannot find element for '+path);
+            return [];
         } else {
+            var parents = _getElementParents(element);
+            _sortEntries(parents);
+            return parents;
+        }
+    }
+
+    /**
+     * Returns an array of valid children for a particular tag
+     * @param {String} tag The element name
+     * @returns {Array}
+     */
+    sn.getChildrenForTag = function(tag) {
+        var elements = _getEntriesForTag(tag);
+        if (elements.length == 0) {
+            console.warn('schemaNavigator: cannot find element for '+config.tag);
+            return [];
+        } else {
+            var children = [];
+            for (var i = 0; i < elements.length; i++) {
+                children = children.concat(_getElementChildren(elements[i], 'element'));
+            }
+            _sortEntries(children);
             return children;
         }
-    };
+    }
 
+    /**
+     * Returns an array of valid children for a particular path
+     * @param {String} path The path
+     * @returns {Array}
+     */
+    sn.getChildrenForPath = function(path) {
+        var element = _getEntryForPath(path);
+        if (element === null) {
+            console.warn('schemaNavigator: cannot find element for '+path);
+            return [];
+        } else {
+            var children = _getElementChildren(element, 'element');
+            _sortEntries(children);
+            return children;
+        }
+    }
+
+    /**
+     * Returns an array of valid attributes for a particular tag
+     * @param {String} tag The element name
+     * @returns {Array}
+     */
+    sn.getAttributesForTag = function(tag) {
+        var elements = _getEntriesForTag(tag);
+        if (elements.length == 0) {
+            console.warn('schemaNavigator: cannot find element for '+config.tag);
+            return [];
+        } else {
+            var children = [];
+            for (var i = 0; i < elements.length; i++) {
+                children = children.concat(_getElementChildren(elements[i], 'attribute'));
+            }
+            _sortEntries(children);
+            return children;
+        }
+    }
+
+    /**
+     * Returns an array of valid attributes for a particular path
+     * @param {String} path The path
+     * @returns {Array}
+     */
+    sn.getAttributesForPath = function(path) {
+        var element = _getEntryForPath(path);
+        if (element === null) {
+            console.warn('schemaNavigator: cannot find element for '+path);
+            return [];
+        } else {
+            var children = _getElementChildren(element, 'attribute');
+            _sortEntries(children);
+            return children;
+        }
+    }
+
+    /**
+     * Get the schema entries for a tag
+     * @param {String} name The element name
+     * @returns {Array}
+     */
+    function _getEntriesForTag(name) {
+        var matches = [];
+        _queryDown(schemaJSON.grammar, function(item) {
+            if (item.$key === 'element' && item['@name'] === name) {
+                matches.push(item);
+            }
+        });
+        return matches;
+    }
+
+    /**
+     * Uses a path to find the related entry in the schema.
+     * @param {String} path A forward slash delimited pseudo-xpath
+     * @returns {Object}
+     */
+    function _getEntryForPath(path) {
+        var context = schemaJSON.grammar;
+        var match = null;
+        
+        var tags = path.split('/');
+        for (var i = 0; i < tags.length; i++) {
+            var tag = tags[i];
+            if (tag !== '') {
+                tag = tag.replace(/\[\d+\]$/, ''); // remove any indexing
+                _queryDown(context, function(item) {
+                    if (item['@name'] && item['@name'] === tag) {
+                        context = item;
+                        if (i === tags.length - 1) {
+                            if (item['$key'] === 'element') {
+                                match = item;
+                                return false;
+                            } else {
+                                // the name matches but we're in define so drill down further
+                                context = item;
+                            }
+                        }
+                        return true;
+                    }
+                }, true);
+            }
+        }
+        return match;
+    }
+
+    /**
+     * Returns all the valid parents of an element schema entry
+     * @param {Object} el The schema entry
+     * @returns {Array}
+     */
+    function _getElementParents(el) {
+        var parents = [];
+
+        var parent = el.$parent;
+        while (parent !== undefined) {
+            if (parent.$key === 'define' || parent.$key === 'element') {
+                break;
+            } else {
+                parent = parent.$parent;
+            }
+        }
+        
+        if (parent.$key === 'define') {
+            _getParentsJSON(parent['@name'], {}, 0, parents);
+        } else if (parent.$key === 'element') {
+            parents.push({name: parent['@name'], level: 0});
+        }
+
+        return parents;
+    }
+
+    /**
+     * Returns all the valid element or attribute children of an element schema entry
+     * @param {Object} element The schema entry
+     * @param {String} type Either "element" or "attribute"
+     * @returns {Array}
+     */
+    function _getElementChildren(element, type) {
+        var children = [];
+
+        _getChildrenJSON(element, {}, 0, type, children); 
+        if (children.indexOf('anyName') != -1) {
+            children = [];
+            // anyName means include all elements
+            for (i = 0; i < schemaElements.length; i++) {
+                var el = schemaElements[i];
+                // TODO need to add more info than just the name
+                children.push({
+                    name: el
+                });
+            }
+        }
+
+        return children;
+    }
+
+    /**
+     * Sort the schema entries by name in ascending order
+     * @param {Array} entries An array of schema entries
+     */
+    function _sortEntries(entries) {
+        entries.sort(function(a, b) {
+            if (a.name > b.name) return 1;
+            if (a.name < b.name) return -1;
+            return 0;
+        });
+    }
+
+    /**
+     * Navigate the schema json to find all the parents for a schema definition name.
+     * @param {String} defName The name of the schema definition entry
+     * @param {Object} defHits A map to track what schema definitions have already been visited
+     * @param {Integer} level Tracks the current tree depth
+     * @param {Array} parents An array to store the results
+     */
     function _getParentsJSON(defName, defHits, level, parents) {
         var context = schemaJSON.grammar;
         var matches = [];
@@ -250,12 +302,13 @@ function SchemaNavigator() {
     }
 
     /**
-     * @param currEl The element that's currently being processed
-     * @param defHits A list of define tags that have already been processed
-     * @param level The level of recursion
-     * @param type The type of child to search for (element or attribute)
-     * @param children The children to return
-     * @param refParentProps For storing properties of a ref's parent (e.g. optional), if we're processing the ref's definition
+     * Navigate the schema json to find all the children for a schema entry
+     * @param {Object} currEl The schema entry element that's currently being processed
+     * @param {Object} defHits A map of define tags that have already been processed
+     * @param {Integer} level The level of recursion
+     * @param {String} type The type of child to search for (element or attribute)
+     * @param {Array} children The children to return
+     * @param {Object} refParentProps For storing properties of a ref's parent (e.g. optional), if we're processing the ref's definition
      */
     function _getChildrenJSON(currEl, defHits, level, type, children, refParentProps) {
         // first get the direct types
@@ -333,14 +386,21 @@ function SchemaNavigator() {
                         }
                     });
                     childObj.defaultValue = defaultVal || '';
-                    
+
                     var choice = null;
+                    var list = null;
                     _queryDown(child, function(item) {
                         if (item.choice) {
                             choice = item.choice;
+                        }
+                        if (item.list) {
+                            list = item.list;
+                        }
+                        if (choice !== null && list !== null) {
                             return false;
                         }
                     });
+
                     if (choice != null) {
                         var choices = [];
                         var values = [];
@@ -357,6 +417,10 @@ function SchemaNavigator() {
                             choices.push(val);
                         }
                         childObj.choices = choices;
+                    }
+
+                    if (list !== null) {
+                        // TODO
                     }
                 }
                 children.push(childObj);
@@ -403,54 +467,11 @@ function SchemaNavigator() {
     }
 
     /**
-     * Uses a path to find the related entry in the JSON schema.
-     * @param {String} path A forward slash delimited pseudo-xpath
-     * @returns {Object}
+     * Moves up the schema JSON "tree", call the passed function on each entry.
+     * Function should return false to stop moving up.
+     * @param {Object} context A schema entry, the starting point.
+     * @param {Function} matchingFunc The function that's called on each entry.
      */
-    function _getJsonEntryFromPath(path) {
-        var context = schemaJSON.grammar;
-        var match = null;
-        
-        var tags = path.split('/');
-        for (var i = 0; i < tags.length; i++) {
-            var tag = tags[i];
-            if (tag !== '') {
-                tag = tag.replace(/\[\d+\]$/, ''); // remove any indexing
-                _queryDown(context, function(item) {
-                    if (item['@name'] && item['@name'] === tag) {
-                        context = item;
-                        if (i === tags.length - 1) {
-                            if (item['$key'] === 'element') {
-                                match = item;
-                                return false;
-                            } else {
-                                // the name matches but we're in define so drill down further
-                                context = item;
-                            }
-                        }
-                        return true;
-                    }
-                }, true);
-            }
-        }
-        return match;
-    };
-
-    /**
-     * Get the element entries for the element name
-     * @param {String} name The element name
-     * @returns {Array}
-     */
-    function _getElementEntries(name) {
-        var matches = [];
-        _queryDown(schemaJSON.grammar, function(item) {
-            if (item.$key === 'element' && item['@name'] === name) {
-                matches.push(item);
-            }
-        });
-        return matches;
-    }
-
     function _queryUp(context, matchingFunc) {
         var continueQuery = true;
         while (continueQuery && context != null) {
@@ -461,10 +482,10 @@ function SchemaNavigator() {
     }
 
     /**
-     * Moves recursively down a JSON "tree", calling the passed function on each property.
+     * Moves recursively down the schema JSON "tree", calling the passed function on each entry.
      * Function should return false to stop the recursion.
-     * @param {Object} context The starting point for the recursion.
-     * @param {Function} matchingFunc The function that's called on each property.
+     * @param {Object} context A schema entry, the starting point.
+     * @param {Function} matchingFunc The function that's called on each entry.
      * @param {Boolean} [processRefs] Automatically process refs, i.e. fetch their definitions
      */
     function _queryDown(context, matchingFunc, processRefs) {
@@ -472,6 +493,13 @@ function SchemaNavigator() {
         
         var defHits = {};
         
+        function isArray(obj) {
+            return toString.apply(obj) === '[object Array]';
+        }
+        function isObject(obj){
+            return !!obj && Object.prototype.toString.call(obj) === '[object Object]';
+        }
+
         function doQuery(currContext) {
             if (continueQuery) {
                 continueQuery = matchingFunc.call(this, currContext);
@@ -518,6 +546,11 @@ function SchemaNavigator() {
         doQuery(context);
     }
 
+    /**
+     * Gets the schema definition for a specified name
+     * @param {String} name The name
+     * @returns {Object|Null}
+     */
     function _getDefinition(name) {
         var defs = schemaJSON.grammar.define;
         for (var i = 0, len = defs.length; i < len; i++) {
@@ -527,8 +560,13 @@ function SchemaNavigator() {
         return null;
     }
 
+    /**
+     * Parses the passed documentation string and returns the full name.
+     * If the tag name is an abbreviation, we expect the full name to be at the beginning of the documentation, in parentheses.
+     * @param {String} documentation The documentation string
+     * @returns {String}
+     */
     function _getFullNameFromDocumentation(documentation) {
-        // if the tag name is an abbreviation, we expect the full name to be at the beginning of the doc, in parentheses
         var hit = /^\((.*?)\)/.exec(documentation);
         if (hit !== null) {
             return hit[1];

@@ -374,8 +374,7 @@ function getChildrenForTag(tag) {
 
     setTimeout(function() {
         var path = this.w.utilities.getElementXPath(tag);
-        var tagName = tag.getAttribute('_tag');
-        var validKeys = this.w.schemaManager.getChildrenForTag({tag: tagName, path: path, type: 'element', returnType: 'array'});
+        var validKeys = this.w.schemaManager.getChildrenForPath(path);
 
         dfd.resolve(getSubmenu(validKeys));
     }.bind(this), 0);
@@ -388,8 +387,7 @@ function getParentsForTag(tag) {
 
     setTimeout(function() {
         var path = this.w.utilities.getElementXPath(tag);
-        var tagName = tag.getAttribute('_tag');
-        var validKeys = this.w.schemaManager.getParentsForTag({tag: tagName, path: path, returnType: 'array'});
+        var validKeys = this.w.schemaManager.getParentsForPath(path);
 
         dfd.resolve(getSubmenu(validKeys));
     }.bind(this), 0);
@@ -403,8 +401,7 @@ function getSiblingsForTag(tag) {
     setTimeout(function() {
         var parentTag = $(tag).parents('[_tag]');
         var path = this.w.utilities.getElementXPath(parentTag[0]);
-        var tagName = parentTag.attr('_tag');
-        var validKeys = this.w.schemaManager.getChildrenForTag({tag: tagName, path: path, type: 'element', returnType: 'array'});
+        var validKeys = this.w.schemaManager.getChildrenForPath(path);
 
         dfd.resolve(getSubmenu(validKeys));
     }.bind(this), 0);
@@ -418,14 +415,12 @@ function getInsertAroundTags(tag) {
     setTimeout(function() {
         // valid parents of the tag
         var path = this.w.utilities.getElementXPath(tag);
-        var tagName = tag.getAttribute('_tag');
-        var parentKeys = this.w.schemaManager.getParentsForTag({tag: tagName, path: path, returnType: 'array'});
+        var parentKeys = this.w.schemaManager.getParentsForPath(path);
 
         // valid children of the parent of the tag
         var parentTag = $(tag).parents('[_tag]');
         var path = this.w.utilities.getElementXPath(parentTag[0]);
-        var tagName = parentTag.attr('_tag');
-        var parentChildrenKeys = this.w.schemaManager.getChildrenForTag({tag: tagName, path: path, type: 'element', returnType: 'array'});
+        var parentChildrenKeys = this.w.schemaManager.getChildrenForPath(path);
 
         var validKeys = [];
 

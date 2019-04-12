@@ -282,19 +282,18 @@ function Tagger(writer) {
                 } else {
                     childName = w.schemaManager.mapper.getParentTag(type);
                 }
-                var validParents = w.schemaManager.getParentsForTag({tag: childName, returnType: 'names'});
                 var parentTag = w.editor.currentBookmark.rng.commonAncestorContainer;
                 while (parentTag.nodeType !== Node.ELEMENT_NODE) {
                     parentTag = parentTag.parentNode;
                 }
                 var parentName = parentTag.getAttribute('_tag');
-                var isValid = validParents.indexOf(parentName) !== -1;
+                var isValid = w.schemaManager.isTagValidChildOfParent(childName, parentName);
                 if (isValid) {
                     w.dialogManager.show(type, {type: type});
                 } else {
                     w.dialogManager.show('message', {
                         title: 'Invalid XML',
-                        msg: 'The element <b>'+childName+'</b> is not a valid child of <b>'+parentName+'</b>.<br/><br/>Valid parents for '+childName+' are:<br/><ul><li>'+validParents.join('</li><li>')+'</ul>',
+                        msg: 'You cannot add a '+type+' entity in this location because its element <b>'+childName+'</b> is not a valid child of <b>'+parentName+'</b>.',
                         type: 'error'
                     });
                 }

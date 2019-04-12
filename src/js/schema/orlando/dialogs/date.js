@@ -124,7 +124,7 @@ module.exports = function(writer, parentEl) {
             $('#'+id+'_date').show();
         }
         
-        var atts = w.schemaManager.getChildrenForTag({tag: tag, type: 'attribute', returnType: 'array'});
+        var atts = w.schemaManager.getAttributesForTag(tag);
         dialog.attributesWidget.buildWidget(atts);
         dialog.attWidgetInit = true;
         dialog.attributesWidget.reset();

@@ -217,7 +217,10 @@ tinymce.PluginManager.add('schematags', function(editor) {
         
         var validKeys = [];
         if (filterKey != editor.writer.schemaManager.getHeader()) {
-            validKeys = editor.writer.schemaManager.getChildrenForTag({tag: filterKey, returnType: 'names'});
+            var children = editor.writer.schemaManager.getChildrenForTag(filterKey);
+            validKeys = children.map(function(child) {
+                return child.name;
+            });
         }
         var count = 0, disCount = 0;
         menu.items().each(function(item) {

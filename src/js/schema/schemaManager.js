@@ -33,7 +33,11 @@ function SchemaManager(writer, config) {
 
     sm.navigator = new SchemaNavigator();
     sm.getChildrenForTag = sm.navigator.getChildrenForTag;
+    sm.getChildrenForPath = sm.navigator.getChildrenForPath;
+    sm.getAttributesForTag = sm.navigator.getAttributesForTag;
+    sm.getAttributesForPath = sm.navigator.getAttributesForPath;
     sm.getParentsForTag = sm.navigator.getParentsForTag;
+    sm.getParentsForPath = sm.navigator.getParentsForPath;
     
     /**
      * A map of schema objects. The key represents the schema ID, the "value" should have the following properties:
@@ -244,10 +248,10 @@ function SchemaManager(writer, config) {
      * @returns {Object}
      */
     sm.getRequiredChildrenForTag = function(tag) {
-        var tags = sm.getChildrenForTag({tag: tag, type:'element', returnType:'object'});
-        for (var key in tags) {
-            if (tags[key].required != true) {
-                delete tags[key];
+        var tags = sm.getChildrenForTag(tag);
+        for (var i = tags.length-1; i > -1; i--) {
+            if (tags[i].required !== true) {
+                tags.splice(i, 1);
             }
         }
         return tags;
@@ -259,8 +263,8 @@ function SchemaManager(writer, config) {
      * @returns boolean
      */
     sm.canTagHaveAttributes = function(tag) {
-        var atts = sm.getChildrenForTag({tag: tag, type: 'attribute', returnType: 'array'});
-        return atts.length != 0;
+        var atts = sm.getAttributesForTag(tag);
+        return atts.length !== 0;
     };
 
     /**
@@ -270,8 +274,13 @@ function SchemaManager(writer, config) {
      * @return {Boolean}
      */
     sm.isTagValidChildOfParent = function(childName, parentName) {
-        var validParents = sm.getParentsForTag({tag: childName, returnType: 'names'})
-        return validParents.indexOf(parentName) !== -1;
+        var parents = sm.getParentsForTag(childName);
+        for (var i = 0; i < parents.length; i++) {
+            if (parents[i].name === parentName) {
+                return true;
+            }
+        }
+        return false;
     };
 
 
