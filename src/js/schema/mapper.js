@@ -73,127 +73,6 @@ Mapper.getDefaultMapping = function(entity) {
     return [Mapper.getTagAndDefaultAttributes(entity), '</'+entity.getTag()+'>'];
 };
 
-Mapper.getDefaultReverseMapping = function(xml, customMappings) {
-    function getValueFromXPath(xpath) {
-        var value;
-        var result = Mapper.getXPathResult(xml, xpath);
-        if (result !== undefined) {
-            switch (result.nodeType) {
-                case Node.ELEMENT_NODE:
-                    value = Mapper.xmlToString(result);
-                    break;
-                case Node.TEXT_NODE:
-                    value = result.textContent;
-                    break;
-                case Node.ATTRIBUTE_NODE:
-                    value = result.value;
-                    break;
-                case undefined:
-                    value = result;
-            }
-        }
-        // TODO return match as well for use by xml2cwrc
-        // return {value: value, match: result};
-        return value;
-    }
-    
-    var obj = {};
-    if (customMappings !== undefined) {
-        for (var key in customMappings) {
-            if (typeof customMappings[key] === 'object') {
-                obj[key] = {};
-                for (var key2 in customMappings[key]) {
-                    var xpath = customMappings[key][key2];
-                    var val = getValueFromXPath(xpath);
-                    if (val !== undefined) {
-                        obj[key][key2] = val;
-                    }
-                }
-            } else if (typeof customMappings[key] === 'string') {
-                var xpath = customMappings[key];
-                var val = getValueFromXPath(xpath);
-                obj[key] = val;
-            }
-        }
-    }
-    obj.attributes = Mapper.getAttributesFromXml(xml);
-    
-    return obj;
-};
-
-/**
- * Returns the result of an xpath query on the passed xml
- * @param {Document|Element} contextNode
- * @param {String} xpath
- * @returns {Element|undefined}
- */
-Mapper.getXPathResult = function(contextNode, xpath) {
-    var doc = contextNode.ownerDocument;
-
-    // grouped matches: 1 separator, 2 axis, 3 namespace, 4 element name (or function), 5 predicate
-    var regex = /(\/{0,2})([\w-]+::)?(\w+?:)?([\w()]+)(\[.+?\])?/g;
-
-    var nsr = doc.createNSResolver(doc.documentElement);
-    var defaultNamespace = doc.documentElement.getAttribute('xmlns');
-
-    var nsResolver = function(prefix) {
-        return nsr.lookupNamespaceURI(prefix) || defaultNamespace;
-    }
-
-    // default namespace hack (http://stackoverflow.com/questions/9621679/javascript-xpath-and-default-namespaces)
-    if (defaultNamespace !== null) {
-        // add foo namespace to the element name
-        xpath = xpath.replace(regex, function(match, p1, p2, p3, p4, p5) {
-            if (p3 !== undefined) {
-                // already has a namespace
-                return match;
-            } else {
-                if (p4.indexOf('()') !== -1) {
-                    // it's a function not an element name
-                    return [p1,p2,p3,p4,p5].join('');
-                } else {
-                    return [p1,p2,'foo:',p4,p5].join('');
-                }
-            }
-        });
-    } else {
-        // remove all namespaces from the xpath
-        xpath = xpath.replace(regex, function(match, p1, p2, p3, p4, p5) {
-            return [p1,p2,p4,p5].join('');
-        });
-    }
-
-    var evalResult;
-    try {
-        evalResult = doc.evaluate(xpath, contextNode, nsResolver, XPathResult.ANY_TYPE, null);
-    } catch (e) {
-        console.warn('utilities.evaluateXPath: there was an error evaluating the xpath', e)
-        return undefined;
-    }
-    var result;
-    switch (evalResult.resultType) {
-        case XPathResult.NUMBER_TYPE:
-            result = evalResult.numberValue;
-            break;
-        case XPathResult.STRING_TYPE:
-            result = evalResult.stringValue;
-            break;
-        case XPathResult.BOOLEAN_TYPE:
-            result = evalResult.booleanValue;
-            break;
-        case XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
-        case XPathResult.ORDERED_NODE_ITERATOR_TYPE:
-            result = evalResult.iterateNext();
-            break;
-        case XPathResult.ANY_UNORDERED_NODE_TYPE:
-        case XPathResult.FIRST_ORDERED_NODE_TYPE:
-            result = evalResult.singleNodeValue;
-            break;
-    }
-    if (result === null) result = undefined;
-    return result;
-};
-
 Mapper.xmlToString = function(xmlData) {
     var xmlString = '';
     try {
@@ -266,11 +145,59 @@ Mapper.prototype = {
      * @returns {Object} The entity object.
      */
     getReverseMapping: function(xml, type) {
+        function getValueFromXPath(xpath) {
+            var value;
+            var result = this.w.utilities.evaluateXPath(xml, xpath);
+            if (result !== null) {
+                switch (result.nodeType) {
+                    case Node.ELEMENT_NODE:
+                        value = Mapper.xmlToString(result);
+                        break;
+                    case Node.TEXT_NODE:
+                        value = result.textContent;
+                        break;
+                    case Node.ATTRIBUTE_NODE:
+                        value = result.value;
+                        break;
+                    case undefined:
+                        value = result;
+                }
+    
+                return {value: value, match: result};
+            }
+            return undefined;
+        }
+
         var entry = this.getMappings().entities[type];
         var mapping = entry.reverseMapping;
+        
         if (mapping) {
-            return mapping(xml);
+            var obj = {};
+            if (mapping !== undefined) {
+                for (var key in mapping) {
+                    if (typeof mapping[key] === 'object') {
+                        obj[key] = {};
+                        for (var key2 in mapping[key]) {
+                            var xpath = mapping[key][key2];
+                            var val = getValueFromXPath.call(this, xpath);
+                            if (val !== undefined) {
+                                obj[key][key2] = val;
+                            }
+                        }
+                    } else if (typeof mapping[key] === 'string') {
+                        var xpath = mapping[key];
+                        var val = getValueFromXPath.call(this, xpath);
+                        if (val !== undefined) {
+                            obj[key] = val;
+                        }
+                    }
+                }
+            }
+            obj.attributes = Mapper.getAttributesFromXml(xml);
+            
+            return obj;
         }
+        
         return {};
     },
 
@@ -294,8 +221,8 @@ Mapper.prototype = {
         for (var type in mappings.entities) {
             var xpath = mappings.entities[type].xpathSelector;
             if (xpath !== undefined && isElement) {
-                var result = Mapper.getXPathResult(el, xpath);
-                if (result !== undefined) {
+                var result = this.w.utilities.evaluateXPath(el, xpath);
+                if (result !== null) {
                     resultType = type;
                     break; // prioritize xpath
                 }

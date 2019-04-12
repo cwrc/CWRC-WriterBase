@@ -264,9 +264,9 @@ function XML2CWRC(writer) {
                         var id = w.getUniqueId('dom_');
                         entityConfig.id = id;
                         
-                        // TODO need to get elements that are targeted by reverse mapping
                         var info = w.schemaManager.mapper.getReverseMapping(entityEl, entityConfig.type);
-                        console.log('reverseMapping', info);
+                        cleanProcessedEntity(entityEl, info);
+
                         $.extend(entityConfig.customValues, info.customValues);
                         $.extend(entityConfig.attributes, info.attributes);
                     }
@@ -432,7 +432,7 @@ function XML2CWRC(writer) {
         var isNote = w.schemaManager.mapper.isEntityTypeNote(entityType);
 
         var info = w.schemaManager.mapper.getReverseMapping(el, entityType);
-        console.log('reverseMapping', info);
+        cleanProcessedEntity(el, info);
 
         var config = {
             type: entityType,
@@ -446,6 +446,53 @@ function XML2CWRC(writer) {
         $.extend(config, info.properties);
 
         return config;
+    }
+
+    /**
+     * Removes the matched elements in the reverseMappingInfo, then removes the match entries from the reverseMappingInfo object.
+     * @param {Element} entityElement
+     * @param {Object} reverseMappingInfo
+     */
+    function cleanProcessedEntity(entityElement, reverseMappingInfo) {
+        function removeMatch(match) {
+            switch(match.nodeType) {
+                case Node.ATTRIBUTE_NODE:
+                    if (match.ownerElement !== entityElement) {
+                        // console.log('cleanProcessedEntity: removing', match.ownerElement);
+                        match.ownerElement.parentElement.removeChild(match.ownerElement);
+                    }
+                    break;
+                case Node.ELEMENT_NODE:
+                    if (match !== entityElement) {
+                        // console.log('cleanProcessedEntity: removing', match);
+                        match.parentElement.removeChild(match);
+                    }
+                    break;
+                case Node.TEXT_NODE:
+                    // TODO
+                    break;
+                default:
+                    console.warn('xml2cwrc.cleanProcessedEntity: cannot remove node with unknown type', match);
+            }
+        }
+
+        for (var key in reverseMappingInfo) {
+            if (key !== 'attributes') {
+                var level1 = reverseMappingInfo[key];
+                if (level1.match) {
+                    removeMatch(level1.match);
+                    reverseMappingInfo[key] = level1.value;
+                } else {
+                    for (var key2 in level1) {
+                        var level2 = level1[key2];
+                        if (level2.match) {
+                            removeMatch(level2.match);
+                            level1[key2] = level2.value;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -677,8 +724,7 @@ function XML2CWRC(writer) {
             // editor needs focus in order for entities to be properly inserted
             w.editor.focus();
 
-            var body = w.editor.getBody();
-            var doc = w.editor.getDoc();
+            var docRoot = $('[_tag="'+w.schemaManager.getRoot()+'"]', w.editor.getBody())[0];
             
             // insert entities
             var insertEntity = function(entry) {
@@ -691,11 +737,11 @@ function XML2CWRC(writer) {
 
                 // just rdf, no markup
                 if (range.endXPath) {
-                    var parent = w.utilities.evaluateXPath(doc, range.startXPath);
+                    var parent = w.utilities.evaluateXPath(docRoot, range.startXPath);
                     var result = getTextNodeFromParentAndOffset(parent, range.startOffset);
                     startNode = result.textNode;
                     startOffset = result.offset;
-                    parent = w.utilities.evaluateXPath(doc, range.endXPath);
+                    parent = w.utilities.evaluateXPath(docRoot, range.endXPath);
                     result = getTextNodeFromParentAndOffset(parent, range.endOffset);
                     endNode = result.textNode;
                     endOffset = result.offset;
@@ -709,7 +755,7 @@ function XML2CWRC(writer) {
                         if (entry.getContent() === undefined) {
                             w.entitiesManager.highlightEntity(); // remove highlight
                             w.entitiesManager.highlightEntity(entry.getId());
-                            content = $('.entityHighlight', body).text();
+                            content = $('.entityHighlight', docRoot).text();
                             w.entitiesManager.highlightEntity();
                         }
                     } catch (e) {
@@ -717,7 +763,7 @@ function XML2CWRC(writer) {
                     }
                 // markup
                 } else if (range.startXPath) {
-                    var entityNode = w.utilities.evaluateXPath(doc, range.startXPath);
+                    var entityNode = w.utilities.evaluateXPath(docRoot, range.startXPath);
                     if (entityNode !== null) {
                         var type = entry.getType();
 
@@ -730,13 +776,15 @@ function XML2CWRC(writer) {
                             'id': entry.getId()
                         });
 
-                        if (entry.getContent() === undefined) {
+                        if (entry.getContent() === undefined || entry.getContent() === '') {
                             entry.setContent($(entityNode).text());
                         }
 
                         if (entry.isNote()) {
                             entry.setNoteContent($(entityNode).html());
                         }
+                    } else {
+                        console.warn('xml2cwrc.insertEntities: cannot find entity tag for', range.startXPath);
                     }
                 }
             };

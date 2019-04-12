@@ -283,41 +283,32 @@ function Utilities(writer) {
             }
         }
 
-        return paths.length ? "/" + paths.join("/") : null;
+        return paths.length ? paths.join("/") : null;
     };
 
     /**
-     * Runs the specified xpath on the specified doc.
+     * Returns the result of the specified xpath on the specified context node.
      * Can detect and convert an XML xpath for use with the cwrc-writer format.
      * Adds support for default namespace.
-     * @param {Document} doc
+     * @param {Document|Element} contextNode
      * @param {String} xpath
-     * @returns {Node|null} The result or null
+     * @returns {XPathResult|null} The result or null
      */
-    u.evaluateXPath = function(doc, xpath) {
-        var isCWRC = $('[_tag]', doc).length > 0;
+    u.evaluateXPath = function(contextNode, xpath) {
+        var doc = contextNode.ownerDocument;
+        if (doc === null) {
+            doc = contextNode;
+        }
+        var isCWRC = doc === w.editor.getDoc();
 
-        var contextNode = doc;
+        // grouped matches: 1 separator, 2 axis, 3 namespace, 4 element name or attribute name or function, 5 predicate
+        var regex = /(\/{0,2})([\w-]+::|@)?(\w+?:)?([\w()]+)(\[.+?\])?/g;
+
         var nsResolver = null;
-
-        // grouped matches: 1 separator, 2 axis, 3 namespace, 4 element name, 5 predicate
-        // NB: this regex fails if xpath doesn't start with a separator
-        var regex = /(\/{1,2})([\w-]+::)?(\w+?:)?(\w+)(\[.*?\])?/g;
-
-        if (isCWRC) {
-            contextNode = $('body', doc)[0].firstElementChild;
-            // xpath needs to start with // because of non-document context node
-            if (xpath.substring(0, 2) !== '//') {
-                xpath = '/'+xpath;
-            }
-            // convert to cwrc-writer format
-            xpath = xpath.replace(regex, function(match, p1, p2, p3, p4, p5) {
-                return [p1,p2,p3,'*[@_tag="'+p4+'"]',p5].join('');
-            });
-        } else {
+        var defaultNamespace = doc.documentElement.getAttribute('xmlns');
+        // TODO should doc.documentElement.namespaceURI also be checked? it will return http://www.w3.org/1999/xhtml for the editor doc
+        if (!isCWRC) {
             var nsr = doc.createNSResolver(doc.documentElement);
-            var defaultNamespace = doc.documentElement.getAttribute('xmlns');
-
             nsResolver = function(prefix) {
                 return nsr.lookupNamespaceURI(prefix) || defaultNamespace;
             }
@@ -330,20 +321,86 @@ function Utilities(writer) {
                         // already has a namespace
                         return match;
                     } else {
-                        return [p1,p2,'foo:',p4,p5].join('');
+                        if (
+                            // it's an attribute and therefore doesn't need a default namespace
+                            (p2 !== undefined && (p2.indexOf('attribute') === 0 || p2.indexOf('@') === 0))
+                            ||
+                            // it's a function not an element name
+                            p4.indexOf('()') !== -1
+                        ) {
+                            return [p1,p2,p3,p4,p5].join('');
+                        } else {
+                            return [p1,p2,'foo:',p4,p5].join('');
+                        }
                     }
                 });
             }
         }
 
-        var result;
+        if (defaultNamespace === null) {
+            // remove all namespaces from the xpath
+            xpath = xpath.replace(regex, function(match, p1, p2, p3, p4, p5) {
+                return [p1,p2,p4,p5].join('');
+            });
+        }
+
+        if (isCWRC) {
+            // if the context node is the schema root then we need to make sure the xpath starts with "//"
+            if (contextNode.getAttribute('_tag') === w.schemaManager.getRoot() && xpath.charAt(0) !== '@') {
+                if (xpath.charAt(1) !== '/') {
+                    xpath = '/'+xpath;
+                    if (xpath.charAt(1) !== '/') {
+                        xpath = '/'+xpath;
+                    }
+                }
+            }
+
+            xpath = xpath.replace(regex, function(match, p1, p2, p3, p4, p5) {
+                if (
+                    // it's an attribute and therefore doesn't need a default namespace
+                    (p2 !== undefined && (p2.indexOf('attribute') === 0 || p2.indexOf('@') === 0))
+                    ||
+                    // it's a function not an element name
+                    p4.indexOf('()') !== -1
+                ) {
+                    return [p1,p2,p3,p4,p5].join('');
+                } else {
+                    return [p1,p2,p3,'*[@_tag="'+p4+'"]',p5].join('');
+                }
+            });
+        }
+
+        var evalResult;
         try {
-            result = doc.evaluate(xpath, contextNode, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+            evalResult = doc.evaluate(xpath, contextNode, nsResolver, XPathResult.ANY_TYPE, null);
         } catch (e) {
             console.warn('utilities.evaluateXPath: there was an error evaluating the xpath', e)
-            return null;
+            return undefined;
         }
-        return result.singleNodeValue;
+        var result;
+        switch (evalResult.resultType) {
+            case XPathResult.NUMBER_TYPE:
+                result = evalResult.numberValue;
+                break;
+            case XPathResult.STRING_TYPE:
+                result = evalResult.stringValue;
+                break;
+            case XPathResult.BOOLEAN_TYPE:
+                result = evalResult.booleanValue;
+                break;
+            case XPathResult.UNORDERED_NODE_ITERATOR_TYPE:
+            case XPathResult.ORDERED_NODE_ITERATOR_TYPE:
+                result = evalResult.iterateNext();
+                break;
+            case XPathResult.ANY_UNORDERED_NODE_TYPE:
+            case XPathResult.FIRST_ORDERED_NODE_TYPE:
+                result = evalResult.singleNodeValue;
+                break;
+        }
+
+        // console.log(contextNode, xpath, result);
+
+        return result;
     };
     
     /**

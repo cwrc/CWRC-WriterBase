@@ -58,10 +58,8 @@ person: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: '@REF'}
-        });
+    reverseMapping: {
+        cwrcInfo: {id: '@REF'}
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'foaf:Person', null, format);
@@ -73,10 +71,8 @@ org: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: '@REF'}
-        });
+    reverseMapping: {
+        cwrcInfo: {id: '@REF'}
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'foaf:Organization', null, format);
@@ -97,25 +93,9 @@ place: {
         
         return [startTag, endTag];
     },
-    reverseMapping: function(xml) {
-        var mapping = Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: '@REF'}
-        });
-        var typesPriority = ['ADDRESS','PLACENAME','SETTLEMENT','REGION','GEOG','AREA'];
-        var placeTypes = $(xml).find(typesPriority.join(','));
-        var type = '', placeType;
-        prioritize:
-        for (var i = 0; i < typesPriority.length; i++) {
-            type = typesPriority[i];
-            for (var j = 0; j < placeTypes.length; j++) {
-                placeType = placeTypes[j];
-                if (placeType.nodeName === type) {
-                    break prioritize;
-                }
-            }
-        }
-        mapping.properties = {tag: type};
-        return mapping;
+    reverseMapping: {
+        cwrcInfo: {id: '@REF'},
+        customValues: {tag: 'name(./*)'}
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'geo:SpatialThing', null, format);
@@ -127,10 +107,8 @@ title: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: '@REF'}
-        });
+    reverseMapping: {
+        cwrcInfo: {id: '@REF'}
     },
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, ['dcterms:BibliographicResource', 'dcterms:title'], 'oa:identifying', format);
@@ -153,10 +131,8 @@ date: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            properties: {tag: 'local-name(.)'}
-        });
+    reverseMapping: {
+        properties: {tag: 'local-name(.)'}
     },
     annotation: function(entity, format) {
         var types = [];
@@ -198,10 +174,8 @@ note: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            properties: {tag: 'local-name(.)'}
-        });
+    reverseMapping: {
+        properties: {tag: 'local-name(.)'}
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'bibo:Note', 'oa:commenting', format);
@@ -214,11 +188,9 @@ citation: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: 'cwrc:BIBCIT/@REF'},
-            noteContent: '.'
-        });
+    reverseMapping: {
+        cwrcInfo: {id: 'cwrc:BIBCIT/@REF'},
+        noteContent: '.'
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'dcterms:BibliographicResource', 'cw:citing', format);
@@ -230,9 +202,7 @@ correction: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml);
-    },
+    reverseMapping: {},
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:editing', format);
         
@@ -254,9 +224,7 @@ keyword: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml);
-    },
+    reverseMapping: {},
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, ['oa:Tag', 'cnt:ContentAsText', 'skos:Concept'], 'oa:classifying', format);
         
@@ -278,20 +246,9 @@ link: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml);
-    },
+    reverseMapping: {},
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:linking', format);
-    }
-},
-
-event: {
-    parentTag: '',
-    textTag: '',
-    mapping: function(entity) {
-    },
-    reverseMapping: function(xml) {
     }
 }
 
