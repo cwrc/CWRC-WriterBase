@@ -64,9 +64,7 @@ function Popup(writer, parentEl) {
     }
     
     var doMouseOut = function() {
-        popupCloseId = setTimeout(function() {
-            $popupEl.popup('close');
-        }, 500);
+        popupCloseId = setTimeout(hidePopup, 500);
     }
     
     var doClick = function() {
@@ -106,9 +104,7 @@ function Popup(writer, parentEl) {
         
         clearTimeout(popupCloseId);
         $currentTag.one('mouseout', function() {
-            popupCloseId = setTimeout(function() {
-                $popupEl.popup('close');
-            }, 1000);
+            popupCloseId = setTimeout(hidePopup, 1000);
         });
         
         $popupEl.parent().on('mouseover', doMouseOver);
@@ -173,6 +169,10 @@ function Popup(writer, parentEl) {
 
     var noteClick = function(e) {
         // we're showing the note contents so hide the popup
+        hidePopup();
+    }
+
+    var hidePopup = function() {
         $popupEl.popup('close');
     }
     
@@ -182,6 +182,7 @@ function Popup(writer, parentEl) {
         body.off('mouseover', linkSelector, linkMouseover);
         body.off('mouseover', noteMouseoverSelector, noteMouseover);
         body.off('click', noteClickSelector, noteClick);
+        body.off('contextmenu', hidePopup);
     }
 
     var setupListeners = function() {
@@ -211,6 +212,8 @@ function Popup(writer, parentEl) {
 
         body.on('mouseover', noteMouseoverSelector, noteMouseover);
         body.on('click', noteClickSelector, noteClick);
+
+        body.on('contextmenu', hidePopup);
     }
     
     w.event('schemaLoaded').subscribe(setupListeners);
