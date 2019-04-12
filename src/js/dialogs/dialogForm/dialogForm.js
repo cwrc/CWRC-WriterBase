@@ -191,7 +191,8 @@ DialogForm.prototype = {
             var type = formEl.data('type');
             switch (type) {
                 case 'radio':
-                    formEl.find('[data-default]').prop('checked', true);
+                    formEl.find('input').prop('checked', false); // reset all
+                    formEl.find('[data-default]').prop('checked', true); // set default if it exists
                     if (formEl.data('transform') === 'buttonset') {
                         $('input', formEl).button('refresh');
                     }
