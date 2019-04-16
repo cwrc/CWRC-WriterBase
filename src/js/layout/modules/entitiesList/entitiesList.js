@@ -23,6 +23,9 @@ function EntitiesList(config) {
     var id = config.parentId;
     $('#'+id).append(
         '<div class="moduleParent">'+
+            '<div class="moduleHeader">'+
+                '<button class="convert">Convert Potential Entities</button>'+
+            '</div>'+
             '<div class="moduleContent">'+
                 '<ul class="entitiesList"></ul>'+
             '</div>'+
@@ -36,6 +39,11 @@ function EntitiesList(config) {
         '</div>');
     
     var $entities = $('#'+id);
+
+    var $convertButton = $entities.find('.convert');
+    $convertButton.button().click(function() {
+        pm.convertEntities();
+    });
     
     var $seqButton = $entities.find('.sequence');
     $seqButton.button().click(function() {
@@ -92,42 +100,95 @@ function EntitiesList(config) {
      */
     var pm = {};
     
-    w.event('loadingDocument').subscribe(function() {
-        pm.clear();
-    });
-    w.event('documentLoaded').subscribe(function() {
-        pm.update();
-    });
-    w.event('schemaLoaded').subscribe(function() {
-        pm.update();
-    });
-    w.event('contentChanged').subscribe(function() {
-        pm.update();
-    });
-    w.event('contentPasted').subscribe(function() {
-        pm.update();
-    });
-    w.event('entityAdded').subscribe(function(entityId) {
-        pm.update();
-    });
-    w.event('entityEdited').subscribe(function(entityId) {
-        pm.update();
-    });
-    w.event('entityRemoved').subscribe(function(entityId) {
-        pm.remove(entityId);
-    });
-    w.event('entityFocused').subscribe(function(entityId) {
-        $entities.find('ul.entitiesList > li[name="'+entityId+'"]').addClass('selected').addClass('expanded').find('div[class="info"]').show();
-    });
-    w.event('entityUnfocused').subscribe(function(entityId) {
-        $entities.find('ul.entitiesList > li').each(function(index, el) {
-            $(this).removeClass('selected').removeClass('expanded').css('background-color', '').find('div[class="info"]').hide();
+    pm.convertEntities = function(typesToFind) {
+        var potentialEntitiesByType = findEntities(typesToFind);
+        var potentialEntities = [];
+        for (var type in potentialEntitiesByType) {
+            potentialEntities = potentialEntities.concat(potentialEntitiesByType[type]);
+        }
+
+        // filter out duplicates
+        potentialEntities = potentialEntities.filter(function(value, index, array) {
+            return array.indexOf(value) === index;
         });
-    });
-    w.event('entityPasted').subscribe(function(entityId) {
-        pm.update();
-    });
-    
+
+        if (potentialEntities.length > 0) {
+            w.dialogManager.confirm({
+                title: 'Entity Conversion',
+                msg: '<p>CWRC-Writer has found '+potentialEntities.length+' tags that are potential entities.</p>'+
+                '<p>Would you like to convert the tags to entities?</p>',
+                type: 'info',
+                callback: function(doIt) {
+                    if (doIt) {
+                        var li = w.dialogManager.getDialog('loadingindicator');
+                        li.setText('Converting Entities');
+                        li.show();
+
+                        w.utilities.processArray(potentialEntities, function(el) {
+                            w.tagger.convertTagToEntity(el);
+                        }).then(function() {
+                            li.hide();
+                            w.event('contentChanged').publish();
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Look for potential entities inside the passed element
+     * @param {Array} [typesToFind] An array of entity types to find, defaults to all types
+     * @returns {Object} A map of the entities, organized by type
+     */
+    function findEntities(typesToFind) {
+        var allTypes = ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'];
+        var nonNoteTypes = ['person', 'place', 'date', 'org', 'citation', 'title', 'link'];
+
+        typesToFind = typesToFind === undefined ? nonNoteTypes : typesToFind;
+        
+        var potentialEntities = {};
+        
+        var headerTag = w.schemaManager.mapper.getHeaderTag();
+
+        // TODO tei mapping for correction will match on both choice and corr tags, creating 2 entities when it should be one
+        var entityMappings = w.schemaManager.mapper.getMappings().entities;
+        for (var type in entityMappings) {
+            if (typesToFind.length == 0 || typesToFind.indexOf(type) != -1) {
+                var entityTagNames = [];
+                
+                var parentTag = entityMappings[type].parentTag;
+                if ($.isArray(parentTag)) {
+                    entityTagNames = entityTagNames.concat(parentTag);
+                } else if (parentTag !== '') {
+                    entityTagNames.push(parentTag);
+                }
+
+                entityTagNames = entityTagNames.map(function(name) {
+                    return '[_tag="'+name+'"]';
+                });
+
+                var matches = $(entityTagNames.join(','), w.editor.getBody()).filter(function(index, el) {
+                    if (el.getAttribute('_entity') === 'true') {
+                        return false;
+                    }
+                    if ($(el).parents('[_tag="'+headerTag+'"]').length !== 0) {
+                        return false;
+                    }
+                    // double check entity type using element instead of string, which forces xpath evaluation, which we want for tei note entities
+                    if (w.schemaManager.mapper.getEntityTypeForTag(el) === null) {
+                        return false;
+                    }
+                    return true;
+                });
+                potentialEntities[type] = $.makeArray(matches);
+            }
+        }
+
+        return potentialEntities;
+    }
+
+
     /**
      * @param sort
      */
@@ -241,6 +302,42 @@ function EntitiesList(config) {
         $entities.remove();
     };
     
+    w.event('loadingDocument').subscribe(function() {
+        pm.clear();
+    });
+    w.event('documentLoaded').subscribe(function() {
+        pm.update();
+    });
+    w.event('schemaLoaded').subscribe(function() {
+        pm.update();
+    });
+    w.event('contentChanged').subscribe(function() {
+        pm.update();
+    });
+    w.event('contentPasted').subscribe(function() {
+        pm.update();
+    });
+    w.event('entityAdded').subscribe(function(entityId) {
+        pm.update();
+    });
+    w.event('entityEdited').subscribe(function(entityId) {
+        pm.update();
+    });
+    w.event('entityRemoved').subscribe(function(entityId) {
+        pm.remove(entityId);
+    });
+    w.event('entityFocused').subscribe(function(entityId) {
+        $entities.find('ul.entitiesList > li[name="'+entityId+'"]').addClass('selected').addClass('expanded').find('div[class="info"]').show();
+    });
+    w.event('entityUnfocused').subscribe(function(entityId) {
+        $entities.find('ul.entitiesList > li').each(function(index, el) {
+            $(this).removeClass('selected').removeClass('expanded').css('background-color', '').find('div[class="info"]').hide();
+        });
+    });
+    w.event('entityPasted').subscribe(function(entityId) {
+        pm.update();
+    });
+
     // add to writer
     w.entitiesList = pm;
     

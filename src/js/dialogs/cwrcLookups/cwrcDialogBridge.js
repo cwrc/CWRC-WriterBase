@@ -56,7 +56,7 @@ function CwrcDialogBridge(writer, config) {
         show: function(config) {
             if (config.entry) {
                 // EDIT
-                var query = config.entry.getContent();
+                var query = config.entry.getContent().trim();
                 cD.popSearch[cwrcType]({
                     query: query,
                     parentEl: w.dialogManager.getDialogWrapper(),
@@ -76,16 +76,6 @@ function CwrcDialogBridge(writer, config) {
                         });
                     },
                     cancelled: function() {
-                        if (config.convertedEntity === true) {
-                            var $tag = $('#'+config.entry.id, w.editor.getBody());
-                            $tag.removeAttr('_entity _type class name');
-                            w.entitiesManager.removeEntity(config.entry.id);
-                            var attributes = {};
-                            $.each($($tag[0].attributes), function(index, att) {
-                                attributes[att.name] = att.value;
-                            });
-                            w.tagger.editStructureTag($tag, attributes);
-                        }
                     },
                     error: function(errorThrown) {
                     },

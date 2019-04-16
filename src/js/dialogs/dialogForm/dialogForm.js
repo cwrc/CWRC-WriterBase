@@ -52,18 +52,6 @@ function DialogForm(config) {
             role: 'cancel',
             click: $.proxy(function() {
                 this.$el.trigger('beforeCancel');
-                
-                if (this.showConfig.convertedEntity === true) {
-                    var $tag = $('#'+this.showConfig.entry.id, this.w.editor.getBody());
-                    $tag.removeAttr('_entity _type class name');
-                    this.w.entitiesManager.removeEntity(this.showConfig.entry.id);
-                    var attributes = {};
-                    $.each($($tag[0].attributes), function(index, att) {
-                        attributes[att.name] = att.value;
-                    });
-                    this.w.tagger.editStructureTag($tag, attributes);
-                }
-                
                 this.$el.trigger('beforeClose');
                 this.$el.dialog('close');
             }, this)

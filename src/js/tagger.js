@@ -424,53 +424,69 @@ function Tagger(writer) {
         w.editor.undoManager.add();
         w.event('contentChanged').publish();
     }
-    
+
     /**
-     * Convert a tag to an entity.
-     * @param {jQuery} $tag The jQuery selection of the tag
+     * Converts a tag to an entity
+     * @param {Element} tag The tag
+     * @param {Boolean} [showEntityDialog] Should the entity dialog be shown after conversion? Default is false
+     * @returns {Entity|null} The new entity
      */
-    tagger.convertTagToEntity = function($tag) {
-        if ($tag != null) {
-            var type = w.schemaManager.mapper.getEntityTypeForTag($tag.attr('_tag'));
-            if (type === null) {
-                console.warn('tagger.convertTagToEntity: tag '+$tag.attr('_tag')+' cannot be converted to entity!');
-                return;
-            }
-            var isNote = w.schemaManager.mapper.isEntityTypeNote(type);
+    tagger.convertTagToEntity = function(tag, showEntityDialog) {
+        showEntityDialog = showEntityDialog === undefined ? false : showEntityDialog;
 
-            var info = w.converter.getEntityConfigFromElement($tag[0], type);
-            info.attributes = tagger.getAttributesForTag($tag[0]); // override the attributes returned from getEntityConfigFromElement because they'll include reserved attributes
+        var tagName = tag.getAttribute('_tag');
+        var entityType = w.schemaManager.mapper.getEntityTypeForTag(tagName);
+        if (entityType !== null) {
+            var id = tag.getAttribute('id');
+            var isNote = w.schemaManager.mapper.isEntityTypeNote(entityType);
+            var config = {
+                id: id,
+                tag: tagName,
+                type: entityType,
+                isNote: isNote,
+                range: {startXPath: w.utilities.getElementXPath(tag)}
+            };
+
+            var mappingInfo = w.schemaManager.mapper.getReverseMapping(tag, true);
+            $.extend(config, mappingInfo);
 
             if (isNote) {
-                if (info.properties === undefined) {
-                    info.properties = {};
+                if (config.properties === undefined) {
+                    config.properties = {};
                 }
-                info.properties.content = $tag.text();
-                info.properties.noteContent = $tag.html();
+                var $tag = $(tag);
+                config.properties.content = $tag.text();
+                config.properties.noteContent = $tag.html();
             }
-
-            // TODO FIXME hardcoded ref attribute, consolidate with nerve mappings
-            var ref = $tag.attr('ref');
-            var id = $tag.attr('id');
-
-            w.utilities.selectElementById(id, !isNote);
+            
+            var entityAttributes = {
+                '_entity': true, '_type': entityType, 'class': 'entity '+entityType+' start end', 'name': id
+            };
             if (isNote) {
-                // place the selection outside of the note tag
-                w.editor.selection.collapse(false);
+                entityAttributes['_note'] = true;
+            }
+            for (var name in entityAttributes) {
+                tag.setAttribute(name, entityAttributes[name]);
+            }
+            if (isNote) {
+                addNoteWrapper(tag, entityType);
             }
 
-            w.editor.currentBookmark = w.editor.selection.getBookmark(1);
-            var newId = tagger.finalizeEntity(type, info);
+            var entity = w.entitiesManager.addEntity(config);
 
-            tagger.removeStructureTag(id, isNote); // TODO re-add structure tag if conversion was cancelled
-
-            if (ref == null) {
-                var tag = w.entitiesManager.getEntity(newId);
-                w.editor.currentBookmark = w.editor.selection.getBookmark(1);
-                var type = tag.getType();
-                w.dialogManager.show(type, {type: type, entry: tag, convertedEntity: true});
+            if (showEntityDialog) {
+                // TODO FIXME hardcoded ref attribute, consolidate with nerve mappings
+                var ref = tag.getAttribute('ref');
+                if (ref === null) {
+                    w.dialogManager.show(entityType, {type: entityType, entry: entity});
+                }
             }
+
+            return entity;
+        } else {
+            console.warn('tagger.convertTagToEntity: tag '+tag.getAttribute('_tag')+' cannot be converted to an entity!');
         }
+        return null;
     };
 
     /**

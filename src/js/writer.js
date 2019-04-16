@@ -132,20 +132,18 @@ function CWRCWriter(config) {
      * Loads a document into the editor
      * @fires Writer#loadingDocument
      * @param {String} docUrl An URL pointing to an XML document
-     * @param {Boolean} [convertEntities] Whether to convert entities, defaults to true
      */
-    w.loadDocumentURL = function(docUrl, convertEntities) {
-        w.converter.loadDocumentURL(docUrl, convertEntities);
+    w.loadDocumentURL = function(docUrl) {
+        w.converter.loadDocumentURL(docUrl);
     };
 
     /**
      * Load a document into the editor
      * @fires Writer#loadingDocument
      * @param {Document|String} docXml An XML document or a string representation of such.
-     * @param {Boolean} [convertEntities] Whether to convert entities, defaults to true
      */
-    w.loadDocumentXML = function(docXml, convertEntities) {
-        w.converter.loadDocumentXML(docXml, convertEntities);
+    w.loadDocumentXML = function(docXml) {
+        w.converter.loadDocumentXML(docXml);
     };
 
     w.showLoadDialog = function() {
@@ -219,10 +217,9 @@ function CWRCWriter(config) {
     /**
      * Set the current document for the editor
      * @param {Document|String} document Can be one of: URL, XML document, XML string
-     * @param {Boolean} [convertEntities] Whether to convert entities, defaults to true
      */
-    w.setDocument = function(document, convertEntities) {
-        w.converter.setDocument(document, convertEntities);
+    w.setDocument = function(document) {
+        w.converter.setDocument(document);
     };
 
     /**

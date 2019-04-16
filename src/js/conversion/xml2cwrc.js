@@ -38,10 +38,8 @@ function XML2CWRC(writer) {
      * @fires Writer#processingDocument
      * @fires Writer#documentLoaded
      * @param {Document} doc An XML DOM
-     * @param {Boolean} [convertEntities] Whether to convert entities, defaults to true
      */
-    xml2cwrc.processDocument = function(doc, convertEntities) {
-        convertEntities = convertEntities === undefined ? true : convertEntities;
+    xml2cwrc.processDocument = function(doc) {
 
         // clear current doc
         $(w.editor.getBody()).empty();
@@ -78,7 +76,7 @@ function XML2CWRC(writer) {
                                 });
                                 w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
                                     if (success) {
-                                        doProcessing(doc, convertEntities);
+                                        doProcessing(doc);
                                     } else {
                                         doBasicProcessing(doc);
                                     }
@@ -100,13 +98,13 @@ function XML2CWRC(writer) {
                     }
                     w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
                         if (success) {
-                            doProcessing(doc, convertEntities);
+                            doProcessing(doc);
                         } else {
                             doBasicProcessing(doc);
                         }
                     });
                 } else {
-                    doProcessing(doc, convertEntities);
+                    doProcessing(doc);
                 }
             }
         }, 0);
@@ -185,7 +183,7 @@ function XML2CWRC(writer) {
         w.event('documentLoaded').publish(false, w.editor.getBody());
     }
 
-    function doProcessing(doc, convertEntities) {
+    function doProcessing(doc) {
         w.event('processingDocument').publish();
 
         // reset the stores
@@ -196,43 +194,10 @@ function XML2CWRC(writer) {
 
         var hasRDF = processRDF(doc);
 
-        if (convertEntities) {
-            var typesToFind = undefined;
-            if (hasRDF) {
-                typesToFind = ['link', 'note'];
-            }
-
-            var potentialEntities = xml2cwrc.findEntities(doc, typesToFind);
-
-            if (potentialEntities.length > 0) {
-                w.dialogManager.confirm({
-                    title: 'Entity Conversion',
-                    msg: '<p>CWRC-Writer has found '+potentialEntities.length+' tags that are potential entities.</p>'+
-                    '<p>Would you like to convert the tags to entities during the loading process?</p>',
-                    type: 'info',
-                    callback: function(doIt) {
-                        if (doIt) {
-                            autoConvertEntityTags(potentialEntities).then(function() {
-                                finishProcessing(doc);
-                            });
-                        } else {
-                            finishProcessing(doc);
-                        }
-                    }
-                });
-            } else {
-                finishProcessing(doc);
-            }
-        } else {
-            finishProcessing(doc);
-        }
-        
-        function finishProcessing(doc) {
-            buildDocumentAndInsertEntities(doc).then(function() {
-                w.event('documentLoaded').publish(true, w.editor.getBody());
-                showMessage(doc);
-            });
-        }
+        buildDocumentAndInsertEntities(doc).then(function() {
+            showMessage(doc);
+            w.event('documentLoaded').publish(true, w.editor.getBody());
+        });
     }
 
     /**
@@ -253,22 +218,15 @@ function XML2CWRC(writer) {
 
                         // find the associated element and do additional processing
                         var entityEl = w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
-
                         if (entityEl === null) {
                             console.warn('xml2cwrc: no matching entity element for',entityConfig);
                             return;
                         }
 
-                        entityConfig.tag = entityEl.nodeName;
-                        
-                        var id = w.getUniqueId('dom_');
-                        entityConfig.id = id;
-                        
-                        var info = w.schemaManager.mapper.getReverseMapping(entityEl, entityConfig.type);
-                        cleanProcessedEntity(entityEl, info);
-
-                        $.extend(entityConfig.customValues, info.customValues);
-                        $.extend(entityConfig.attributes, info.attributes);
+                        var mappingInfo = w.schemaManager.mapper.getReverseMapping(entityEl, true);
+                        $.extend(entityConfig, mappingInfo);
+                    } else {
+                        // TODO review overlapping entities
                     }
 
                     // replace annotationId with xpath
@@ -280,7 +238,7 @@ function XML2CWRC(writer) {
                             entityConfig.range.endXPath = w.utilities.getElementXPath(entityElEnd);
                         }
                     }
-
+                    
                     w.entitiesManager.addEntity(entityConfig);
                 }
             });
@@ -307,191 +265,6 @@ function XML2CWRC(writer) {
             return true;
         } else {
             return false;
-        }
-    }
-
-    /**
-     * Processes an array incrementally, in order to not freeze the browser.
-     * @param {Array} array An array of values
-     * @param {Function} processFunc The function that accepts a value from the array
-     * @param {Number} refreshRate  How often to break (in milliseconds)
-     * @returns {Promise} A jQuery promise
-     */
-    function processArray(array, processFunc, refreshRate) {
-        var dfd = new $.Deferred();
-
-        var li = w.dialogManager.getDialog('loadingindicator');
-
-        var startingLength = array.length;
-        var time1 = new Date().getTime();
-
-        var parentFunc = function() {
-            while (array.length > 0) {
-                var entry = array.shift();
-
-                processFunc.call(this, entry);
-
-                var time2 = new Date().getTime();
-                if (time2 - time1 > refreshRate) {
-                    break;
-                }
-            }
-
-            var percent = Math.abs(array.length-startingLength) / startingLength * 100;
-            li.setValue(percent);
-
-            if (array.length > 0) {
-                time1 = new Date().getTime();
-                setTimeout(parentFunc, 10);
-            } else {
-                dfd.resolve();
-            }
-        }
-
-        parentFunc();
-
-        return dfd.promise();
-    }
-
-    /**
-     * Convert the entities.
-     * @param {Array} entities
-     */
-    function autoConvertEntityTags(entities) {
-        var li = w.dialogManager.getDialog('loadingindicator');
-        li.setText('Converting Entities');
-
-        return processArray(entities, function(el) {
-            processEntity(el);
-        }, 250);
-    }
-
-    /**
-     * Look for potential entities inside the passed element
-     * @param {Document|Element} contextEl
-     * @param {Array} [typesToFind] An array of entity types to find, defaults to all types
-     * @returns {Array} An array of elements
-     */
-    xml2cwrc.findEntities = function(contextEl, typesToFind) {
-        var entityTagNames = [];
-
-        var allTypes = ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'];
-        var nonNoteTypes = ['person', 'place', 'date', 'org', 'citation', 'title', 'link'];
-
-        typesToFind = typesToFind === undefined ? nonNoteTypes : typesToFind;
-        
-        var entityMappings = w.schemaManager.mapper.getMappings().entities;
-        for (var type in entityMappings) {
-            if (typesToFind.length == 0 || typesToFind.indexOf(type) != -1) {
-                var parentTag = entityMappings[type].parentTag;
-                if ($.isArray(parentTag)) {
-                    entityTagNames = entityTagNames.concat(parentTag);
-                } else if (parentTag !== '') {
-                    entityTagNames.push(parentTag);
-                }
-            }
-        }
-
-        // TODO tei mapping for correction will match on both choice and corr tags, creating 2 entities when it should be one
-        var headerTag = w.schemaManager.mapper.getHeaderTag();
-        var potentialEntities = $(entityTagNames.join(','), contextEl).filter(function(index, el) {
-            return $(el).parents(headerTag).length === 0; // filter out elements inside the header
-        });
-        return $.makeArray(potentialEntities);
-    }
-
-    /**
-     * Process the tag of an entity, and creates a new entry in the manager.
-     * @param {Element} el The XML element
-     */
-    function processEntity(el) {
-        var entityType = w.schemaManager.mapper.getEntityTypeForTag(el);
-        if (entityType !== null) {
-            var config = xml2cwrc.getEntityConfigFromElement(el, entityType);
-            
-            config.id = w.getUniqueId('dom_');
-            config.range = {
-                startXPath: w.utilities.getElementXPath(el)
-            }
-
-            var entity = w.entitiesManager.addEntity(config);
-        }
-    }
-
-    /**
-     * Returns a config object suitable for creating an Entity
-     * @param {Element} el The XML element
-     * @param {String} [entityType] The entity type (optional)
-     * @return {Object} The config object
-     */
-    xml2cwrc.getEntityConfigFromElement = function(el, entityType) {
-        if (entityType === undefined) {
-            entityType = w.schemaManager.mapper.getEntityTypeForTag(el);
-        }
-
-        var isNote = w.schemaManager.mapper.isEntityTypeNote(entityType);
-
-        var info = w.schemaManager.mapper.getReverseMapping(el, entityType);
-        cleanProcessedEntity(el, info);
-
-        var config = {
-            type: entityType,
-            isNote: isNote,
-            tag: el.nodeName,
-            attributes: info.attributes,
-            customValues: info.customValues,
-            noteContent: info.noteContent,
-            cwrcLookupInfo: info.cwrcInfo
-        };
-        $.extend(config, info.properties);
-
-        return config;
-    }
-
-    /**
-     * Removes the matched elements in the reverseMappingInfo, then removes the match entries from the reverseMappingInfo object.
-     * @param {Element} entityElement
-     * @param {Object} reverseMappingInfo
-     */
-    function cleanProcessedEntity(entityElement, reverseMappingInfo) {
-        function removeMatch(match) {
-            switch(match.nodeType) {
-                case Node.ATTRIBUTE_NODE:
-                    if (match.ownerElement !== entityElement) {
-                        // console.log('cleanProcessedEntity: removing', match.ownerElement);
-                        match.ownerElement.parentElement.removeChild(match.ownerElement);
-                    }
-                    break;
-                case Node.ELEMENT_NODE:
-                    if (match !== entityElement) {
-                        // console.log('cleanProcessedEntity: removing', match);
-                        match.parentElement.removeChild(match);
-                    }
-                    break;
-                case Node.TEXT_NODE:
-                    // TODO
-                    break;
-                default:
-                    console.warn('xml2cwrc.cleanProcessedEntity: cannot remove node with unknown type', match);
-            }
-        }
-
-        for (var key in reverseMappingInfo) {
-            if (key !== 'attributes') {
-                var level1 = reverseMappingInfo[key];
-                if (level1.match) {
-                    removeMatch(level1.match);
-                    reverseMappingInfo[key] = level1.value;
-                } else {
-                    for (var key2 in level1) {
-                        var level2 = level1[key2];
-                        if (level2.match) {
-                            removeMatch(level2.match);
-                            level1[key2] = level2.value;
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -789,7 +562,7 @@ function XML2CWRC(writer) {
                 }
             };
 
-            return processArray(entities, insertEntity, 250);
+            return w.utilities.processArray(entities, insertEntity);
         } else {
             var dfd = new $.Deferred();
             dfd.resolve();

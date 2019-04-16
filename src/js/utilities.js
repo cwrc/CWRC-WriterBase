@@ -402,6 +402,51 @@ function Utilities(writer) {
 
         return result;
     };
+
+    /**
+     * Used to processes a large array incrementally, in order to not freeze the browser.
+     * @param {Array} array An array of values
+     * @param {Function} processFunc The function that accepts a value from the array
+     * @param {Number} [refreshRate]  How often to break (in milliseconds). Default is 250.
+     * @returns {Promise} A jQuery promise
+     */
+    u.processArray = function(array, processFunc, refreshRate) {
+        refreshRate = refreshRate === undefined ? 250 : refreshRate;
+
+        var dfd = new $.Deferred();
+
+        var li = w.dialogManager.getDialog('loadingindicator');
+
+        var startingLength = array.length;
+        var time1 = new Date().getTime();
+
+        var parentFunc = function() {
+            while (array.length > 0) {
+                var entry = array.shift();
+
+                processFunc.call(this, entry);
+
+                var time2 = new Date().getTime();
+                if (time2 - time1 > refreshRate) {
+                    break;
+                }
+            }
+
+            var percent = Math.abs(array.length-startingLength) / startingLength * 100;
+            li.setValue(percent);
+
+            if (array.length > 0) {
+                time1 = new Date().getTime();
+                setTimeout(parentFunc, 10);
+            } else {
+                dfd.resolve();
+            }
+        }
+
+        parentFunc();
+
+        return dfd.promise();
+    };
     
     /**
      * Gets the URI for the entity

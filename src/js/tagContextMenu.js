@@ -209,7 +209,7 @@ function getItems() {
                 name: 'Convert to Entity',
                 icon: 'tag_edit',
                 callback: function() {
-                    this.w.tagger.convertTagToEntity($(tag));
+                    this.w.tagger.convertTagToEntity(tag, true);
                 }.bind(this)
             }
         }

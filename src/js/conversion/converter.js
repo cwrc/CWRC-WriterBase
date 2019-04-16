@@ -25,7 +25,6 @@ function Converter(writer) {
         processDocument: xml2cwrc.processDocument,
         buildEditorString: xml2cwrc.buildEditorString,
         reservedAttributes: xml2cwrc.reservedAttributes,
-        getEntityConfigFromElement: xml2cwrc.getEntityConfigFromElement,
 
         getDocumentContent: cwrc2xml.getDocumentContent,
         buildXMLString: cwrc2xml.buildXMLString
@@ -33,7 +32,7 @@ function Converter(writer) {
 
     // convenience methods
     
-    converter.loadDocumentURL = function(docUrl, convertEntities) {
+    converter.loadDocumentURL = function(docUrl) {
         w.currentDocId = docUrl;
         w.event('loadingDocument').publish();
         $.ajax({
@@ -41,7 +40,7 @@ function Converter(writer) {
             type: 'GET',
             success: function(doc, status, xhr) {
                 window.location.hash = '';
-                converter.processDocument(doc, convertEntities);
+                converter.processDocument(doc);
             },
             error: function(xhr, status, error) {
                 w.currentDocId = null;
@@ -56,12 +55,12 @@ function Converter(writer) {
         });
     };
 
-    converter.loadDocumentXML = function(docXml, convertEntities) {
+    converter.loadDocumentXML = function(docXml) {
         w.event('loadingDocument').publish();
         if (typeof docXml === 'string') {
             docXml = w.utilities.stringToXML(docXml);
         }
-        converter.processDocument(docXml, convertEntities);
+        converter.processDocument(docXml);
     };
 
     converter.getDocument = function(asString) {
@@ -84,11 +83,11 @@ function Converter(writer) {
         }
     };
 
-    converter.setDocument = function(document, convertEntities) {
+    converter.setDocument = function(document) {
         if (typeof document === 'string' && document.indexOf('http') === 0) {
-            converter.loadDocumentURL(document, convertEntities);
+            converter.loadDocumentURL(document);
         } else {
-            converter.loadDocumentXML(document, convertEntities);
+            converter.loadDocumentXML(document);
         }
     };
     

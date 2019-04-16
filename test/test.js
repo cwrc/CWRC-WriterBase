@@ -27,6 +27,11 @@ if (!window.$) {
 
 const CWRCWriter = require('../src/js/writer.js')
 
+function waitForInitAndLoadDoc(writer) {
+    writer.event('writerInitialized').subscribe(() => {
+        writer.setDocument(teiDoc)
+    })
+}
 
 // a function to reset the html document and the writer after each test
 function reset(writer) {
@@ -65,26 +70,28 @@ test('writer.setDocument writer.getDocument', (t)=> {
         reset(writer);
     })
     
-    writer.setDocument(teiDoc, false);
+    waitForInitAndLoadDoc(writer);
 });
 
 test('writer.setDocument convertEntities', (t)=> {
     t.plan(1);
     
     let writer = new CWRCWriter(getConfigForTestingConstructor())
-    
-    writer.event('processingDocument').subscribe(() => {
+
+    writer.event('documentLoaded').subscribe(function(success, body) {
+
+        writer.event('contentChanged').subscribe(() => {
+            t.true(window.$('[_entity]', writer.editor.getBody()).length > 0, 'document set, entities converted');
+            reset(writer);
+        });
+
+        writer.entitiesList.convertEntities();
         setTimeout(() => {
             dialogClickYes();
         }, 50);
     })
-
-    writer.event('documentLoaded').subscribe(function(success, body) {
-        t.true(window.$('[_entity]', writer.editor.getBody()).length > 0, 'document set, entities converted');
-        reset(writer);
-    })
     
-    writer.setDocument(teiDoc, true);
+    waitForInitAndLoadDoc(writer);
 });
 
 test('writer.validate', (t)=> {
@@ -109,69 +116,8 @@ test('writer.validate', (t)=> {
         writer.validate();
     });
     
-    writer.loadDocumentXML(teiDoc, false);
+    waitForInitAndLoadDoc(writer);
 });
-
-// test('tagger.getCurrentTag', (t) => {
-//     t.plan(1);
-    
-//     let writer = new CWRCWriter(getConfigForTestingConstructor())
-    
-//     writer.event('documentLoaded').subscribe(() => {
-//         let tag = writer.tagger.getCurrentTag('dom_'+(tinymce.DOM.counter-1));
-//         t.true(tag.length === 1, 'current tag got')
-//         reset(writer);
-//     });
-    
-//     writer.loadDocumentXML(teiDoc, false);
-// });
-
-// test('tagger.getAttributesForTag', (t) => {
-//     t.plan(1);
-    
-//     let writer = new CWRCWriter(getConfigForTestingConstructor())
-    
-//     writer.event('documentLoaded').subscribe(() => {
-//         let tag = window.$('[_tag="div"]', writer.editor.getBody())[0];
-//         let attributes = writer.tagger.getAttributesForTag(tag);
-//         t.true(attributes.type && attributes.type === 'letter', 'attributes for tag got');
-//         reset(writer);
-//     });
-    
-//     writer.loadDocumentXML(teiDoc, false);
-// });
-
-// test('tagger.setAttributesForTag', (t) => {
-//     t.plan(1);
-    
-//     let writer = new CWRCWriter(getConfigForTestingConstructor())
-    
-//     writer.event('documentLoaded').subscribe(() => {
-//         let tag = window.$('[_tag="div"]', writer.editor.getBody())[0];
-//         var attributes = {test: true};
-//         writer.tagger.setAttributesForTag(tag, attributes);
-//         t.true(tag.getAttribute('test') === 'true' && tag.getAttribute('type') === null, 'attributes for tag set');
-//         reset(writer);
-//     });
-    
-//     writer.loadDocumentXML(teiDoc, false);
-// });
-
-// test('tagger.addAttributesToTag', (t) => {
-//     t.plan(1);
-    
-//     let writer = new CWRCWriter(getConfigForTestingConstructor())
-    
-//     writer.event('documentLoaded').subscribe(() => {
-//         let tag = window.$('[_tag="div"]', writer.editor.getBody())[0];
-//         var attributes = {test: true};
-//         writer.tagger.addAttributesToTag(tag, attributes);
-//         t.true(tag.getAttribute('test') === 'true' && tag.getAttribute('type') === 'letter', 'attributes added to tag');
-//         reset(writer);
-//     });
-    
-//     writer.loadDocumentXML(teiDoc, false);
-// });
 
 test('tagger.addTagDialog tagger.addStructureTag tagger.removeStructureTag', (t) => {
     t.plan(2);
@@ -197,7 +143,7 @@ test('tagger.addTagDialog tagger.addStructureTag tagger.removeStructureTag', (t)
         reset(writer);
     });
     
-    writer.loadDocumentXML(teiDoc, false);
+    waitForInitAndLoadDoc(writer);
 });
 
 test('tagger.editTagDialog tagger.editStructureTag', (t) => {
@@ -227,7 +173,7 @@ test('tagger.editTagDialog tagger.editStructureTag', (t) => {
         reset(writer);
     });
     
-    writer.loadDocumentXML(teiDoc, false);
+    waitForInitAndLoadDoc(writer);
 });
 
 test('tagger.editEntity', (t) => {
@@ -238,14 +184,9 @@ test('tagger.editEntity', (t) => {
     let attributeName;
     const attributeValue = 'test';
 
-    writer.event('processingDocument').subscribe(() => {
-        setTimeout(() => {
-            dialogClickYes();
-        }, 50);
-    })
-
     writer.event('documentLoaded').subscribe(() => {
         dialogClickOk();
+
         let entityEl = window.$('[_entity]', writer.editor.getBody()).first();
         let entry = writer.entitiesManager.getEntity(entityEl.attr('id'));
         writer.dialogManager.show('schema/'+entry.getType(), {entry: entry})
@@ -266,7 +207,7 @@ test('tagger.editEntity', (t) => {
         reset(writer);
     });
     
-    writer.loadDocumentXML(teiDoc, true);
+    waitForInitAndLoadDoc(writer);
 });
 
 test('tagger.changeTagDialog', (t) => {
@@ -290,7 +231,7 @@ test('tagger.changeTagDialog', (t) => {
         reset(writer);
     });
     
-    writer.loadDocumentXML(teiDoc, false);
+    waitForInitAndLoadDoc(writer);
 });
 
 test('tagger.addEntityDialog tagger.removeEntity', (t) => {
@@ -301,6 +242,16 @@ test('tagger.addEntityDialog tagger.removeEntity', (t) => {
     const entityType = 'link';
 
     writer.event('documentLoaded').subscribe(() => {
+        writer.event('entityAdded').subscribe(function(entityId) {
+            t.true(window.$('#'+entityId, writer.editor.getBody()).attr('_type') === entityType, 'entity added');
+            writer.tagger.removeEntity(entityId);
+        });
+    
+        writer.event('entityRemoved').subscribe(function(entityId) {
+            t.true(window.$('#'+entityId, writer.editor.getBody()).length === 0, 'entity removed');
+            reset(writer);
+        });
+
         dialogClickOk();
         writer.utilities.selectElementById('dom_'+(tinymce.DOM.counter-1), true);
         writer.tagger.addEntityDialog(entityType);
@@ -308,18 +259,8 @@ test('tagger.addEntityDialog tagger.removeEntity', (t) => {
             dialogClickOk();
         }, 250);
     });
-
-    writer.event('entityAdded').subscribe(function(entityId) {
-        t.true(window.$('#'+entityId, writer.editor.getBody()).attr('_type') === entityType, 'entity added');
-        writer.tagger.removeEntity(entityId);
-    });
-
-    writer.event('entityRemoved').subscribe(function(entityId) {
-        t.true(window.$('#'+entityId, writer.editor.getBody()).length === 0, 'entity removed');
-        reset(writer);
-    });
     
-    writer.loadDocumentXML(teiDoc, false);
+    waitForInitAndLoadDoc(writer);
 });
 
 test('tagger.copyTag tagger.pasteTag', (t) => {
@@ -343,7 +284,7 @@ test('tagger.copyTag tagger.pasteTag', (t) => {
         reset(writer);
     });
     
-    writer.loadDocumentXML(teiDoc, false);
+    waitForInitAndLoadDoc(writer);
 });
 
 test('tagger.splitTag tagger.mergeTags', (t) => {
@@ -386,7 +327,7 @@ test('tagger.splitTag tagger.mergeTags', (t) => {
         writer.tagger.splitTag();
     });
     
-    writer.loadDocumentXML(teiDoc, false);
+    waitForInitAndLoadDoc(writer);
 });
 
 test('tagger.convertTagToEntity', (t) => {
@@ -403,73 +344,125 @@ test('tagger.convertTagToEntity', (t) => {
             reset(writer);
         });
 
-        let persTag = window.$('[_tag="persName"]', writer.editor.getBody()).first();
+        let persTag = window.$('[_tag="persName"]', writer.editor.getBody())[0];
         writer.tagger.convertTagToEntity(persTag);
     });
     
-    writer.loadDocumentXML(teiDoc, false);
+    waitForInitAndLoadDoc(writer);
 });
 
 let dialogClickOk = () => {
     let ok = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="ok"]');
+    if (ok.length === 0) console.warn('ok button not visible');
     ok.click();
 }
 
 let dialogClickCancel = () => {
     let cancel = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="cancel"]');
+    if (cancel.length === 0) console.warn('cancel button not visible');
     cancel.click();
 }
 
 let dialogClickYes = () => {
     let yes = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="yes"]');
+    if (yes.length === 0) console.warn('yes button not visible');
     yes.click();
 }
 
 let dialogClickNo = () => {
     let no = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="no"]');
+    if (no.length === 0) console.warn('no button not visible');
     no.click();
 }
 
-const teiDoc = `<?xml version="1.0" encoding="UTF-8"?>
-<?xml-model href="https://cwrc.ca/schemas/cwrc_tei_lite.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
-<?xml-stylesheet type="text/css" href="https://cwrc.ca/templates/css/tei.css"?>
-<TEI xmlns="http://www.tei-c.org/ns/1.0">
-    <teiHeader>
-        <fileDesc>
-            <titleStmt>
-                <title>Sample Document Title</title>
-            </titleStmt>
-            <publicationStmt>
-                <p></p>
-            </publicationStmt>
-            <sourceDesc>
-                <p></p>
-            </sourceDesc>
-        </fileDesc>
-    </teiHeader>
-    <text>
-        <body>
-            <div type="letter">
-                <head>
-                    <title>Sample Letter Title</title>
-                </head>
-                <opener>
-                    <note type="setting">
-                        <p>Some opening note describing the writing setting</p>
-                    </note>
-                    <dateline>
-                        <date>Some date (set date value in attribute).</date>
-                    </dateline>
-                    <salute>Some salutation, e.g. "Dearest <persName cert="definite" type="real" ref="http://viaf.org/viaf/39569752">Miquel</persName>"</salute>
-                </opener>
-                <p>Sample letter content</p>
-                <closer>
-                    <salute>Some closing salutation, e.g. "With love..."</salute>
-                    <signed>Sender name and/or signature.</signed>
-                </closer>
-            </div>
-        </body>
-    </text>
+const teiDoc = `<?xml version="1.0" encoding="UTF-8"?><?xml-model href="https://cwrc.ca/schemas/cwrc_tei_lite.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?><?xml-stylesheet type="text/css" href="https://cwrc.ca/templates/css/tei.css"?><TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:cw="http://cwrc.ca/ns/cw#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<teiHeader>
+    <fileDesc>
+        <titleStmt>
+            <title>Sample Document Title</title>
+        </titleStmt>
+        <publicationStmt>
+            <p></p>
+        </publicationStmt>
+        <sourceDesc>
+            <p></p>
+        </sourceDesc>
+    </fileDesc>
+<xenoData>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cw="http://cwrc.ca/ns/cw#">
+<rdf:Description rdf:about="http://localhost:8080/cwrcdev/editor/documents/null">
+<cw:mode>0</cw:mode>
+<cw:allowOverlap>false</cw:allowOverlap>
+</rdf:Description>
+<rdf:Description rdf:datatype="http://www.w3.org/TR/json-ld/"><![CDATA[
+{
+"@context": "http://www.w3.org/ns/oa/oa.ttl",
+"@id": "http://id.cwrc.ca/annotation/6cae06d6-5c6c-4def-b902-c556a7050761",
+"@type": "oa:Annotation",
+"motivatedBy": [
+    "oa:linking"
+],
+"annotatedAt": "2019-04-16T21:43:15.680Z",
+"annotatedBy": {
+    "@id": "http://id.cwrc.ca/user/8497d2ed-fe1a-48ca-8901-ff9cbdd34488",
+    "@type": "foaf:Person",
+    "mbox": {
+        "@id": ""
+    },
+    "name": ""
+},
+"serializedAt": "2019-04-16T21:43:15.680Z",
+"serializedBy": "",
+"hasBody": {
+    "@id": "http://id.cwrc.ca/link/f18a4646-7a88-47d0-b0e4-4118f16ac4d8",
+    "@type": [
+        "cnt:ContentAsText",
+        "oa:SemanticTag"
+    ]
+},
+"hasTarget": {
+    "@id": "http://id.cwrc.ca/doc/18cdc1bd-45d3-4c92-89d5-670a9f865f1c",
+    "@type": "oa:SpecificResource",
+    "hasSource": {
+        "@id": "http://id.cwrc.ca/doc/18cdc1bd-45d3-4c92-89d5-670a9f865f1c",
+        "@type": "dctypes:Text",
+        "format": "text/xml"
+    },
+    "hasSelector": {
+        "@id": "http://id.cwrc.ca/selector/b815ec89-cd08-4a90-83fc-0d7839f5b79d",
+        "@type": "oa:FragmentSelector",
+        "dcterms:conformsTo": "http://tools.ietf.org/rfc/rfc3023",
+        "rdf:value": "xpointer(TEI/text/body/div/p/ref)"
+    }
+},
+"cwrcAttributes": {
+    "target": "#"
+}
+}
+]]></rdf:Description></rdf:RDF></xenoData></teiHeader>
+<text>
+    <body>
+        <div type="letter">
+            <head>
+                <title>Sample Letter Title</title>
+            </head>
+            <opener>
+                <note type="setting">
+                    <p>Some opening note describing the writing setting</p>
+                </note>
+                <dateline>
+                    <date>Some date (set date value in attribute).</date>
+                </dateline>
+                <salute>Some salutation, e.g. "Dearest <persName cert="definite" type="real" ref="http://viaf.org/viaf/39569752">Miquel</persName>"</salute>
+            </opener>
+            <p>Sample letter content, including a <ref target="#">link</ref>.</p>
+            <closer>
+                <salute>Some closing salutation, e.g. "With love..."</salute>
+                <signed>Sender name and/or signature.</signed>
+            </closer>
+        </div>
+    </body>
+</text>
 </TEI>`;
 
 function getConfigForTestingConstructor() {

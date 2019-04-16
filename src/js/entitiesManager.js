@@ -13,7 +13,8 @@ function EntitiesManager(writer) {
     this.reset();
     
     this.w.event('entityAdded').subscribe($.proxy(function(entityId) {
-        this.highlightEntity(entityId);
+        // don't highlight the entity because we might be doing bulk additions
+        // this.highlightEntity(entityId);
     }, this));
     this.w.event('entityEdited').subscribe($.proxy(function(entityId) {
         // TODO update text content for entity here?
