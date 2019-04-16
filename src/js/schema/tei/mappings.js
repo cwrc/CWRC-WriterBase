@@ -248,7 +248,7 @@ date: {
 
 note: {
     parentTag: 'note',
-    xpathSelector: 'self::tei:note/node()',
+    xpathSelector: 'self::tei:note[@type]',
     textTag: '',
     isNote: true,
     requiresSelection: false,
@@ -263,7 +263,7 @@ note: {
 
 citation: {
     parentTag: 'note',
-    xpathSelector: 'self::tei:note/tei:bibl',
+    xpathSelector: 'self::tei:note[@type="citation"]/tei:bibl',
     textTag: 'bibl',
     isNote: true,
     requiresSelection: false,
