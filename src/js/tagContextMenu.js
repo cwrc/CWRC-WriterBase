@@ -20,7 +20,7 @@ function TagContextMenu(writer) {
         build: function($trigger, event) {
             return {
                 appendTo: '#'+this.w.containerId,
-                className: 'cwrc',
+                className: 'tagContextMenu cwrc',
                 animation: {duration: 0, show: 'show', hide: 'hide'},
                 items: getItems.call(this),
                 callback: function(key, options, event) {
@@ -90,6 +90,13 @@ TagContextMenu.prototype = {
             x: event.pageX,
             y: event.pageY
         });
+    },
+
+    /**
+     * Destroy the tag contextmenu
+     */
+    destroy: function() {
+        $(this.selector).contextMenu('destroy');
     }
 }
 

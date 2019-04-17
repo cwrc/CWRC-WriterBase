@@ -260,6 +260,7 @@ function CWRCWriter(config) {
         w.dialogManager.destroy();
         w.layoutManager.destroy();
         w.eventManager.destroy();
+        w.tagMenu.destroy();
     };
 
     // Unload functions
