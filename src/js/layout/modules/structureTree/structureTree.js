@@ -410,6 +410,8 @@ function StructureTree(config) {
         if (isCopy) {
             w.tagger.processPastedContent(dragNodeEditor[0]);
         }
+
+        w.editor.undoManager.add();
         w.event('contentChanged').publish();
     }
     
