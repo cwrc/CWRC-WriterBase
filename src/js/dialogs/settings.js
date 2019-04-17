@@ -24,7 +24,7 @@ function Settings(writer, config) {
     $.extend(defaultSettings, settings);
     
     var $helpLink = $('<div class="helpLink">Help</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
-    var $settingsLink = $('<div>Settings</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
+    var $settingsLink = $('<div class="settingsLink">Settings</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
     
     var $settingsDialog = $(''+
     '<div>'+
@@ -39,10 +39,10 @@ function Settings(writer, config) {
             '</select>'+
         '</div>'+
         '<div style="margin-top: 10px;">'+
-            '<label>Show Entities <input type="checkbox" class="showentities" /></label>'+
+            '<label>Show Entities <input type="checkbox" name="showEntities" class="showentities" /></label>'+
         '</div>'+
         '<div style="margin-top: 10px;">'+
-            '<label>Show Tags <input type="checkbox" class="showtags" /></label>'+
+            '<label>Show Tags <input type="checkbox" name="showTags" class="showtags" /></label>'+
         '</div>'+
         '<div class="settingsDialogAdvanced">'+
             '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #aaa;">'+
@@ -119,6 +119,7 @@ function Settings(writer, config) {
         autoOpen: false,
         buttons: [{
             text: 'Revert to Defaults',
+            role: 'revert',
             'class': 'left',
             click: function() {
                 setDefaults();
@@ -126,11 +127,13 @@ function Settings(writer, config) {
             },
         },{
             text: 'Cancel',
+            role: 'cancel',
             click: function() {
                 $settingsDialog.dialog('close');
             }
         },{
             text: 'Apply',
+            role: 'ok',
             click: function() {
                 applySettings();
             }
