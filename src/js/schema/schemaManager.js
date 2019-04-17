@@ -4,6 +4,7 @@ var $ = require('jquery');
 var Mapper = require('./mapper.js');
 var cssParser = require('css-parse');
 var cssStringify = require('css-stringify');
+var SchemaNavigator = require('./schemaNavigator.js');
 
 /**
  * @class SchemaManager
@@ -18,8 +19,25 @@ function SchemaManager(writer, config) {
      * @lends SchemaManager.prototype
      */
     var sm = {};
+
+    var BLOCK_TAG = 'div';
+    var INLINE_TAG = 'span';
+    sm.getBlockTag = function() {
+        return BLOCK_TAG;
+    }
+    sm.getInlineTag = function() {
+        return INLINE_TAG;
+    }
     
     sm.mapper = new Mapper({writer: w});
+
+    sm.navigator = new SchemaNavigator();
+    sm.getChildrenForTag = sm.navigator.getChildrenForTag;
+    sm.getChildrenForPath = sm.navigator.getChildrenForPath;
+    sm.getAttributesForTag = sm.navigator.getAttributesForTag;
+    sm.getAttributesForPath = sm.navigator.getAttributesForPath;
+    sm.getParentsForTag = sm.navigator.getParentsForTag;
+    sm.getParentsForPath = sm.navigator.getParentsForPath;
     
     /**
      * A map of schema objects. The key represents the schema ID, the "value" should have the following properties:
@@ -92,7 +110,7 @@ function SchemaManager(writer, config) {
 
     sm._root = null;
     /**
-     * Get the root element for the current schema.
+     * Get the root tag name for the current schema.
      * @returns {String}
      */
     sm.getRoot = function() {
@@ -101,7 +119,7 @@ function SchemaManager(writer, config) {
     
     sm._header = null;
     /**
-     * Get the header element for the current schema.
+     * Get the header tag name for the current schema.
      * @returns {String}
      */
     sm.getHeader = function() {
@@ -134,6 +152,139 @@ function SchemaManager(writer, config) {
         return sm.getCurrentSchema().schemaMappingsId === undefined;
     };
     
+    /**
+     * Checks to see if the tag can contain text, as specified in the schema
+     * @param {string} tag The tag to check
+     * @returns boolean
+     */
+    sm.canTagContainText = function(tag) {
+        if (tag == sm.getRoot()) return false;
+        
+        /**
+         * @param currEl The element that's currently being processed
+         * @param defHits A list of define tags that have already been processed
+         * @param level The level of recursion
+         * @param canContainText Whether the element can contain text
+         */
+        function checkForText(currEl, defHits, level, canContainText) {
+            if (canContainText.isTrue) {
+                return false;
+            }
+            
+            // check for the text element
+            var textHits = currEl.find('text');
+            if (textHits.length > 0) {
+                canContainText.isTrue = true;
+                return false;
+            }
+            
+            // now process the references
+            currEl.find('ref').each(function(index, el) {
+                var name = $(el).attr('name');
+                if ($(el).parents('element').length > 0 && level > 0) {
+                    return; // don't get attributes from other elements
+                }
+                if (!defHits[name]) {
+                    defHits[name] = true;
+                    var def = $('define[name="'+name+'"]', sm.schemaXML);
+                    return checkForText(def, defHits, level+1, canContainText);
+                }
+            });
+        }
+
+        var useLocalStorage = false;
+        if (useLocalStorage) {
+            var localData = localStorage['cwrc.'+tag+'.text'];
+            if (localData) return localData == 'true';
+        }
+        
+        var element = $('element[name="'+tag+'"]', sm.schemaXML);
+        var defHits = {};
+        var level = 0;
+        var canContainText = {isTrue: false}; // needs to be an object so change is visible outside of checkForText
+        checkForText(element, defHits, level, canContainText);
+        
+        if (useLocalStorage) {
+            localStorage['cwrc.'+tag+'.text'] = canContainText.isTrue;
+        }
+        
+        return canContainText.isTrue;
+    };
+
+    sm.isTagBlockLevel = function(tagName) {
+        if (tagName == sm.getRoot()) return true;
+        return w.editor.schema.getBlockElements()[tagName] != null;
+    };
+    
+    sm.isTagEntity = function(tagName) {
+        var type = sm.mapper.getEntityTypeForTag(tagName);
+        return type != null;
+    };
+    
+    sm.getTagForEditor = function(tagName) {
+        return sm.isTagBlockLevel(tagName) ? BLOCK_TAG : INLINE_TAG;
+    };
+
+    sm.getDocumentationForTag = function(tag) {
+        var element = $('element[name="'+tag+'"]', sm.schemaXML);
+        var doc = $('a\\:documentation, documentation', element).first().text();
+        return doc;
+    };
+    
+    sm.getFullNameForTag = function(tag) {
+        var element = $('element[name="'+tag+'"]', sm.schemaXML);
+        var doc = $('a\\:documentation, documentation', element).first().text();
+        // if the tag name is an abbreviation, we expect the full name to be at the beginning of the doc, in parentheses
+        var hit = /^\((.*?)\)/.exec(doc);
+        if (hit !== null) {
+            return hit[1];
+        }
+        return '';
+    };
+
+    /**
+     * Gets the children for a tag but only includes those that are required.
+     * @param {String} tag The tag name.
+     * @returns {Object}
+     */
+    sm.getRequiredChildrenForTag = function(tag) {
+        var tags = sm.getChildrenForTag(tag);
+        for (var i = tags.length-1; i > -1; i--) {
+            if (tags[i].required !== true) {
+                tags.splice(i, 1);
+            }
+        }
+        return tags;
+    };
+    
+    /**
+     * Checks to see if the tag can have attributes, as specified in the schema
+     * @param {string} tag The tag to check
+     * @returns boolean
+     */
+    sm.canTagHaveAttributes = function(tag) {
+        var atts = sm.getAttributesForTag(tag);
+        return atts.length !== 0;
+    };
+
+    /**
+     * Verifies that the child has a valid parent.
+     * @param {String} childName The child tag name
+     * @param {String} parentName The parent tag name
+     * @return {Boolean}
+     */
+    sm.isTagValidChildOfParent = function(childName, parentName) {
+        var parents = sm.getParentsForTag(childName);
+        for (var i = 0; i < parents.length; i++) {
+            if (parents[i].name === parentName) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+
+
     /**
      * Add a schema to the list.
      * @fires Writer#schemaAdded
@@ -269,28 +420,30 @@ function SchemaManager(writer, config) {
                         var tag = $(el).attr('name');
                         if (tag != null && elements.indexOf(tag) == -1) {
                             elements.push(tag);
-                            schemaTags += '.showTags *[_tag='+tag+']:before { color: #aaa !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "<'+tag+'>"; }';
-                            schemaTags += '.showTags *[_tag='+tag+']:after { color: #aaa !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "</'+tag+'>"; }';
+                            schemaTags += '.showTags *[_tag='+tag+']:before { color: #aaa !important; font-size: 13px !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "<'+tag+'>"; }';
+                            schemaTags += '.showTags *[_tag='+tag+']:after { color: #aaa !important; font-size: 13px !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "</'+tag+'>"; }';
                         }
                     });
                     elements.sort();
                     
                     // hide the header
-                    var tagName = w.utilities.getTagForEditor(sm._header);
+                    var tagName = sm.getTagForEditor(sm._header);
                     schemaTags += tagName+'[_tag='+sm._header+'] { display: none !important; }';
                     
                     $('#schemaTags', w.editor.getDoc()).text(schemaTags);
                     
                     sm.schema.elements = elements;
+                    sm.navigator.setSchemaElements(sm.schema.elements);
                     
                     if (callback == null) {
                         var text = '';
                         if (startText) text = 'Paste or type your text here.';
-                        var tag = w.utilities.getTagForEditor(sm._root);
+                        var tag = sm.getTagForEditor(sm._root);
                         w.editor.setContent('<'+tag+' _tag="'+sm._root+'">'+text+'</'+tag+'>');
                     }
                     
                     sm.schemaJSON = w.utilities.xmlToJSON($('grammar', sm.schemaXML)[0]);
+                    sm.navigator.setSchemaJSON(sm.schemaJSON);
                     
                     w.event('schemaLoaded').publish();
                     
@@ -395,8 +548,7 @@ function SchemaManager(writer, config) {
     // populateRoots();
 
     w.event('schemaChanged').subscribe(function(schemaId) {
-        w.schemaManager.schemaId = schemaId;
-        w.schemaManager.loadSchema(schemaId, false, true, function() {});
+        sm.loadSchema(schemaId, false, true, function() {});
     });
     
     return sm;

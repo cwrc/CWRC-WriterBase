@@ -60,10 +60,8 @@ person: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: '@ref'}
-        });
+    reverseMapping: {
+        cwrcInfo: {id: '@ref'}
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'foaf:Person', null, format);
@@ -76,10 +74,8 @@ org: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: '@ref'}
-        });
+    reverseMapping: {
+        cwrcInfo: {id: '@ref'}
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'foaf:Organization', null, format);
@@ -102,11 +98,9 @@ place: {
         
         return [startTag, endTag];
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: '@ref'},
-            customValues: {precision: 'tei:precision/@precision'}
-        });
+    reverseMapping: {
+        cwrcInfo: {id: '@ref'},
+        customValues: {precision: 'precision/@precision'}
     },
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, 'geo:SpatialThing', null, format);
@@ -134,10 +128,8 @@ title: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: '@ref'}
-        });
+    reverseMapping: {
+        cwrcInfo: {id: '@ref'}
     },
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, ['dcterms:BibliographicResource', 'dcterms:title'], 'oa:identifying', format);
@@ -181,10 +173,11 @@ correction: {
         
         return [startTag, endTag];
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            customValues: {sicText: 'tei:sic/text()', corrText: 'tei:corr/text()'}
-        });
+    reverseMapping: {
+        customValues: {
+            sicText: 'sic/text()',
+            corrText: 'corr/text()'
+        }
     },
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:editing', format);
@@ -207,9 +200,7 @@ link: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml);
-    },
+    reverseMapping: {},
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:linking', format);
     }
@@ -221,9 +212,7 @@ date: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml);
-    },
+    reverseMapping: {},
     annotation: function(entity, format) {
         var types = [];
         if (entity.getAttribute('when') !== undefined) {
@@ -259,16 +248,14 @@ date: {
 
 note: {
     parentTag: 'note',
-    xpathSelector: 'self::tei:note/node()',
+    xpathSelector: 'self::tei:note[@type]',
     textTag: '',
     isNote: true,
     requiresSelection: false,
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml);
-    },
+    reverseMapping: {},
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'bibo:Note', 'oa:commenting', format);
     }
@@ -276,7 +263,7 @@ note: {
 
 citation: {
     parentTag: 'note',
-    xpathSelector: 'self::tei:note/tei:bibl',
+    xpathSelector: 'self::tei:note[@type="citation"]/tei:bibl',
     textTag: 'bibl',
     isNote: true,
     requiresSelection: false,
@@ -285,11 +272,9 @@ citation: {
         var endTag = '</bibl></note>';
         return [startTag, endTag];
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            cwrcInfo: {id: 'tei:bibl/tei:ref/@target'},
-            noteContent: '.'
-        });
+    reverseMapping: {
+        cwrcInfo: {id: 'bibl/ref/@target'},
+        noteContent: '.'
     },
     annotation: function(entity, format) {
         return AnnotationsManager.commonAnnotation(entity, 'dcterms:BibliographicResource', 'cw:citing', format);
@@ -305,10 +290,8 @@ keyword: {
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
-    reverseMapping: function(xml) {
-        return Mapper.getDefaultReverseMapping(xml, {
-            content: 'tei:term'
-        });
+    reverseMapping: {
+        noteContent: 'term/text()'
     },
     annotation: function(entity, format) {
         var anno = AnnotationsManager.commonAnnotation(entity, ['oa:Tag', 'cnt:ContentAsText', 'skos:Concept'], 'oa:classifying', format);
@@ -323,15 +306,6 @@ keyword: {
         }
 
         return anno;
-    }
-},
-
-event: {
-    parentTag: '',
-    textTag: '',
-    mapping: function(entity) {
-    },
-    reverseMapping: function(xml) {
     }
 }
 

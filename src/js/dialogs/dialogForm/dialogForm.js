@@ -49,25 +49,15 @@ function DialogForm(config) {
         autoOpen: false,
         buttons: [{
             text: 'Cancel',
+            role: 'cancel',
             click: $.proxy(function() {
                 this.$el.trigger('beforeCancel');
-                
-                if (this.showConfig.convertedEntity === true) {
-                    var $tag = $('#'+this.showConfig.entry.id, this.w.editor.getBody());
-                    $tag.removeAttr('_entity _type class name');
-                    this.w.entitiesManager.removeEntity(this.showConfig.entry.id);
-                    var attributes = {};
-                    $.each($($tag[0].attributes), function(index, att) {
-                        attributes[att.name] = att.value;
-                    });
-                    this.w.tagger.editStructureTag($tag, attributes);
-                }
-                
                 this.$el.trigger('beforeClose');
                 this.$el.dialog('close');
             }, this)
         },{
-            text: 'Save',
+            text: 'Ok',
+            role: 'ok',
             click: $.proxy(function() {
                 this.save();
             }, this)
@@ -162,7 +152,7 @@ function initAttributeWidget(dialogInstance, config) {
     } else {
         tag = dialogInstance.w.schemaManager.mapper.getParentTag(dialogInstance.type);
     }
-    var atts = dialogInstance.w.utilities.getChildrenForTag({tag: tag, type: 'attribute', returnType: 'array'});
+    var atts = dialogInstance.w.schemaManager.getAttributesForTag(tag);
     dialogInstance.attributesWidget.buildWidget(atts);
     dialogInstance.attWidgetInit = true;
 };
@@ -189,7 +179,8 @@ DialogForm.prototype = {
             var type = formEl.data('type');
             switch (type) {
                 case 'radio':
-                    formEl.find('[data-default]').prop('checked', true);
+                    formEl.find('input').prop('checked', false); // reset all
+                    formEl.find('[data-default]').prop('checked', true); // set default if it exists
                     if (formEl.data('transform') === 'buttonset') {
                         $('input', formEl).button('refresh');
                     }

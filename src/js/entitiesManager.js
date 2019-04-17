@@ -13,9 +13,11 @@ function EntitiesManager(writer) {
     this.reset();
     
     this.w.event('entityAdded').subscribe($.proxy(function(entityId) {
-        this.highlightEntity(entityId);
+        // don't highlight the entity because we might be doing bulk additions
+        // this.highlightEntity(entityId);
     }, this));
     this.w.event('entityEdited').subscribe($.proxy(function(entityId) {
+        // TODO update text content for entity here?
         this.highlightEntity(entityId);
     }, this));
     this.w.event('entityRemoved').subscribe($.proxy(function(entityId) {
@@ -41,7 +43,7 @@ EntitiesManager.prototype = {
             entity = config;
         } else {
             if (config.id === undefined) {
-                config.id = this.w.getUniqueId('ent_');
+                config.id = this.w.getUniqueId('dom_');
             }
             
             if (config.tag === undefined) {
@@ -50,36 +52,13 @@ EntitiesManager.prototype = {
             
             entity = new Entity(config);
         }
+        
+        entity.setContent(this.getTextContentForEntity(entity.id));
 
-        // TODO temp uris
-        if (Object.keys(entity.getUris()).length === 0) {
-            $.when(
-                this.w.utilities.getUriForEntity(entity),
-                this.w.utilities.getUriForAnnotation(),
-                this.w.utilities.getUriForDocument(),
-                this.w.utilities.getUriForTarget(),
-                this.w.utilities.getUriForSelector(),
-                this.w.utilities.getUriForUser()
-            ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
-                var lookupInfo = entity.getLookupInfo();
-                if (lookupInfo !== undefined && lookupInfo.id) {
-                    // use the id already provided
-                    entityUri = lookupInfo.id;
-                }
-                entity.setUris({
-                    entityId: entityUri,
-                    annotationId: annoUri,
-                    docId: docUri,
-                    targetId: targetUri,
-                    selectorId: selectorUri,
-                    userId: userUri
-                });
-            });
-        }
+        this.setUrisForEntity(entity);
         
         this.entities[entity.id] = entity;
         
-        this.w.editor.isNotDirty = false;
         this.w.event('entityAdded').publish(entity.id);
         
         return entity;
@@ -95,7 +74,6 @@ EntitiesManager.prototype = {
     removeEntity: function(id) {
         if (this.entities[id] !== undefined) {
             delete this.entities[id];
-            this.w.editor.isNotDirty = false;
             this.w.event('entityRemoved').publish(id);
         }
     },
@@ -129,7 +107,7 @@ EntitiesManager.prototype = {
      */
     cloneEntity: function(id) {
         var clone = this.entities[id].clone();
-        clone.id = this.w.getUniqueId('ent_');
+        clone.id = this.w.getUniqueId('dom_');
         // TODO get new URIs
         return clone;
     },
@@ -161,12 +139,54 @@ EntitiesManager.prototype = {
     
     /**
      * Sets the currently highlighted entity ID.
-     * @returns {String} Entity ID
+     * @param {String} entityId
      */
     setCurrentEntity: function(entityId) {
         this.currentEntity = entityId;
     },
+
+    /**
+     * Gets all the content of the text nodes that the entity surrounds.
+     * @param {String} entityId 
+     * @returns {String} The text content
+     */
+    getTextContentForEntity: function(entityId) {
+        var entityTextContent = '';
+        $('[name='+entityId+']', this.w.editor.getBody()).each(function(i, el) {
+            entityTextContent += el.textContent;
+        });
+        return entityTextContent;
+    },
     
+    /**
+     * Set the (temp) URIs for an Entity
+     * @param {Entity} entity
+     */
+    setUrisForEntity: function(entity) {
+        $.when(
+            this.w.utilities.getUriForEntity(entity),
+            this.w.utilities.getUriForAnnotation(),
+            this.w.utilities.getUriForDocument(),
+            this.w.utilities.getUriForTarget(),
+            this.w.utilities.getUriForSelector(),
+            this.w.utilities.getUriForUser()
+        ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
+            var lookupInfo = entity.getLookupInfo();
+            if (lookupInfo !== undefined && lookupInfo.id) {
+                // use the id already provided
+                entityUri = lookupInfo.id;
+            }
+            entity.setUris({
+                entityId: entityUri,
+                annotationId: annoUri,
+                docId: docUri,
+                targetId: targetUri,
+                selectorId: selectorUri,
+                userId: userUri
+            });
+        });
+    },
+
     removeHighlights: function() {
         var prevHighlight = $('.entityHighlight', this.w.editor.getBody());
         if (prevHighlight.length !== 0) {
@@ -241,6 +261,85 @@ EntitiesManager.prototype = {
                 this.w.event('entityFocused').publish(id);
             }
         }
+    },
+
+    /**
+     * Check to see if any of the entities overlap.
+     * @returns {Boolean}
+     */
+    doEntitiesOverlap: function() {
+        // remove highlights
+        this.highlightEntity();
+        
+        var overlap = false;
+        this.eachEntity(function(id, entity) {
+            var markers = this.w.editor.dom.select('[name="'+id+'"]');
+            if (markers.length > 1) {
+                var start = markers[0];
+                var end = markers[markers.length-1];
+                if (start.parentNode !== end.parentNode) {
+                    overlap = true;
+                    return false; // stop looping through entities
+                }
+            }
+        }.bind(this));
+
+        return overlap;
+    },
+
+    /**
+     * Removes entities that overlap other entities.
+     */
+    removeOverlappingEntities: function() {
+        this.highlightEntity();
+        
+        this.eachEntity(function(id, entity) {
+            var markers = this.w.editor.dom.select('[name="'+id+'"]');
+            if (markers.length > 1) {
+                var start = markers[0];
+                var end = markers[markers.length-1];
+                if (start.parentNode !== end.parentNode) {
+                    this.w.tagger.removeEntity(id);
+                }
+            }
+        }.bind(this));
+    },
+
+    /**
+     * Converts boundary entities (i.e. entities that overlapped) to tag entities, if possible.
+     * TODO review
+     */
+    convertBoundaryEntitiesToTags: function() {
+        this.eachEntity(function(id, entity) {
+            var markers = this.w.editor.dom.select('[name="'+id+'"]');
+            if (markers.length > 1) {
+                var canConvert = true;
+                var parent = markers[0].parentNode;
+                for (var i = 0; i < markers.length; i++) {
+                    if (markers[i].parentNode !== parent) {
+                        canConvert = false;
+                        break;
+                    }
+                }
+                if (canConvert) {
+                    var $tag = $(this.w.editor.dom.create('span', {}, ''));
+                    var atts = markers[0].attributes;
+                    for (var i = 0; i < atts.length; i++) {
+                        var att = atts[i];
+                        $tag.attr(att.name, att.value);
+                    }
+                    
+                    $tag.addClass('end');
+                    $tag.attr('id', $tag.attr('name'));
+                    $tag.attr('_tag', entity.getTag());
+                    // TODO add entity.getAttributes() as well?
+                    
+                    $(markers).wrapAll($tag);
+                    $(markers).contents().unwrap();
+                    // TODO normalize child text?
+                }
+            }
+        }.bind(this));
     },
     
     /**

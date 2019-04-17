@@ -135,6 +135,9 @@ Entity.prototype = {
     getId: function() {
         return this.id;
     },
+    setId: function(id) {
+        this.id = id;
+    },
     getType: function() {
         return this.type;
     },
@@ -170,10 +173,10 @@ Entity.prototype = {
         return this.attributes;
     },
     setAttribute: function(name, value) {
-        // TODO should this update the view as well?
         this.attributes[name] = value;
     },
     setAttributes: function(attObj) {
+        this.attributes = {};
         for (var key in attObj) {
             this.attributes[key] = attObj[key];
         }

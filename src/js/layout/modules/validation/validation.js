@@ -72,12 +72,7 @@ function Validation(config) {
                 '</li>');
         }
 
-        // need to temporarily remove all noteWrappers in order for xpath/selector to work
-        w.entitiesManager.eachEntity(function(id, ent) {
-            if (ent.isNote()) {
-                $('#'+id, w.editor.getBody()).unwrap();
-            }
-        });
+        w.tagger.removeNoteWrappersForEntities();
         
         $('warning', resultDoc).each(function(index, el) {
             var id = null;
@@ -191,12 +186,7 @@ function Validation(config) {
             }
         });
 
-        // re-add the noteWrappers
-        w.entitiesManager.eachEntity(function(id, ent) {
-            if (ent.isNote()) {
-                w.tagger.addNoteWrapper($('#'+id, w.editor.getBody()), ent.getType());
-            }
-        });
+        w.tagger.addNoteWrappersForEntities();
         
         list.find('li').click(function() {
             list.find('li').removeClass('selected');

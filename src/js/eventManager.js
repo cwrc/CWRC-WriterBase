@@ -82,9 +82,9 @@ function EventManager(writer) {
      */
     w.event('nodeChanged');
     /**
-     * Content was changed in the editor
+     * Content was changed in the editor.
+     * Should only be fired if tags change, not simply text.
      * @event Writer#contentChanged
-     * @param {TinyMCE} editor The editor
      */
     w.event('contentChanged');
     

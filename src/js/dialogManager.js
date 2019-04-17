@@ -14,14 +14,14 @@ var Header = require('./dialogs/header.js');
 var EditSource = require('./dialogs/editSource.js');
 var Message = require('./dialogs/message.js');
 var Triple = require('./dialogs/triple.js');
-var SchemaTags = require('./dialogs/schemaTags/schemaTags.js');
+var AttributesEditor = require('./dialogs/attributesEditor/attributesEditor.js');
 var CopyPaste = require('./dialogs/copyPaste.js');
 var Popup = require('./dialogs/popup.js');
-var CwrcPerson = require('./dialogs/cwrcPerson.js');
-var CwrcPlace = require('./dialogs/cwrcPlace.js');
-var CwrcOrg = require('./dialogs/cwrcOrg.js');
-var CwrcTitle = require('./dialogs/cwrcTitle.js');
-var CwrcCitation = require('./dialogs/cwrcCitation.js');
+var CwrcPerson = require('./dialogs/cwrcLookups/cwrcPerson.js');
+var CwrcPlace = require('./dialogs/cwrcLookups/cwrcPlace.js');
+var CwrcOrg = require('./dialogs/cwrcLookups/cwrcOrg.js');
+var CwrcTitle = require('./dialogs/cwrcLookups/cwrcTitle.js');
+var CwrcCitation = require('./dialogs/cwrcLookups/cwrcCitation.js');
 
 // TODO hardcoded schemas
 var schemaDialogsMaps = {
@@ -205,10 +205,10 @@ function DialogManager(writer) {
         title: CwrcTitle,
         citation: CwrcCitation,
         place: CwrcPlace,
-        schemaTags: SchemaTags
+        attributesEditor: AttributesEditor
     };
     
-    if (w.isReadOnly !== true && w.isAnnotator !== true && w.isEmbedded !== true) {
+    if (w.isReadOnly !== true && w.isAnnotator !== true) {
         defaultDialogs.header = Header;
         defaultDialogs.editSource = EditSource;
     }

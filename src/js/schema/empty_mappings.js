@@ -27,9 +27,7 @@ listeners: {
  * parentTag {String|Array}: the XML tag(s) that encapsulates the entity, also used to determine if an XML tag is associated with an entity
  * textTag {String}: the tag that contains the text content of the entity
  * mapping {Function}: a function which accepts an Entity and returns an array of start and end XML strings to display in the Writer (see Mapper.getDefaultMapping)
- * reverseMapping {Function}: a function which accepts an XML fragment and returns a JSON object (see Mapper.getDefaultReverseMapping) with the following entries:
- *     attributes: JSON representation of the XML attributes, see Entity.attributes
- *     customValues: JSON object of additional values, see Entity.customValues
+ * reverseMapping {Object}: a map of XPaths to entity values and will be passed to Mapper.getDefaultReverseMapping. Possible entity values are: attributes, customValues, noteContent, cwrcInfo.
  * annotation {Function}: a function which accepts an Entity and a format string (either 'xml' or 'json') and returns an annotation in the specified format (see AnnotationsManager.commonAnnotation)
  * 
  * Optional members:

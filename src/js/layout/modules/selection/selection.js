@@ -16,7 +16,7 @@ function Selection(config) {
     
     var id = w.getUniqueId('selection_');
     
-    var selectionTrimLength = 100000;
+    var selectionTrimLength = 500000;
         
     var lastUpdate = new Date().getTime();
     
@@ -26,6 +26,9 @@ function Selection(config) {
     $('#'+config.parentId).append(`
     <div class="moduleParent">
         <div id="${id}" class="moduleContent"></div>
+        <div id="${id}" class="moduleFooter">
+            <label>Include RDF <input type="checkbox" name="includeRdf" /></label>
+        </div>
         <div id="${id}_selectionContents" style="display: none;"></div>
     </div>
     `);
@@ -34,8 +37,10 @@ function Selection(config) {
     
     var $selectionContents = $('#'+id+'_selectionContents');
     
-    w.event('documentLoaded').subscribe(function() {
-        updateView();
+    var $includeRdf = $('#'+id+' [name="includeRdf"]').checkboxradio();
+
+    w.event('loadingDocument').subscribe(function() {
+        clearView();
     });
 
     w.event('selectionChanged').subscribe(function() {
@@ -71,7 +76,7 @@ function Selection(config) {
      */
     var selection = {};
     
-    function updateView(useDoc) {
+    var updateView = function(useDoc) {
         var timestamp = new Date().getTime();
         var timeDiff = timestamp - lastUpdate; // track to avoid double update on nodeChanged/tagSelected combo
         if ($prismContainer.is(':visible') && timeDiff > 250) {
@@ -79,7 +84,8 @@ function Selection(config) {
             
             var xmlString = '';
             if (useDoc || w.editor.selection.isCollapsed()) {
-                xmlString = w.converter.getDocumentContent(true);
+                var includeRdf = $includeRdf.prop('checked');
+                xmlString = w.converter.getDocumentContent(includeRdf);
                 showingFullDoc = true;
             } else {
                 var range = w.editor.selection.getRng(true);
@@ -101,11 +107,19 @@ function Selection(config) {
             Prism.highlightElement($('code', $prismContainer)[0]);
         }
     }
+
+    var clearView = function() {
+        $prismContainer.html('');
+    }
     
     selection.showSelection = function() {
         w.layoutManager.showModule('selection');
         updateView(true);
     };
+
+    selection.destroy = function() {
+        // TODO
+    }
     
     // add to writer
     w.selection = selection; // needed by view markup button

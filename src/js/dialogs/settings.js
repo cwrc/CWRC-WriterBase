@@ -168,7 +168,7 @@ function Settings(writer, config) {
         
         if (doModeChange) {
             var message;
-            var existingOverlaps = w.utilities.doEntitiesOverlap();
+            var existingOverlaps = w.entitiesManager.doEntitiesOverlap();
             // switching to xml mode from an xmlrdf mode
             if (editorMode === 'xml') {
                 message = 'If you select the XML only mode, no RDF will be created when tagging entities.<br/>Furthermore, the existing RDF annotations will be discarded.<br/><br/>Do you wish to continue?';
@@ -196,8 +196,8 @@ function Settings(writer, config) {
                     callback: function(confirmed) {
                         if (confirmed) {
                             if (editorMode !== 'xmlrdfoverlap') {
-                                w.utilities.removeOverlappingEntities();
-                                w.utilities.convertBoundaryEntitiesToTags();
+                                w.entitiesManager.removeOverlappingEntities();
+                                w.entitiesManager.convertBoundaryEntitiesToTags();
                             }
                             doApplySettings(editorMode);
                         }

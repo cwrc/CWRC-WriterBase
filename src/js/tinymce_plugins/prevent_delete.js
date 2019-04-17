@@ -84,6 +84,8 @@ tinymce.PluginManager.add('preventdelete', function(ed) {
                         type: 'info',
                         callback: function(doIt) {
                             if (doIt) {
+                                ed.writer.tagger.processRemovedContent(range);
+                                
                                 ed.focus()
                                 if (evt.keyCode === 8 || evt.keyCode === 46) {
                                     ed.getDoc().execCommand('insertText', false, '')
@@ -91,13 +93,7 @@ tinymce.PluginManager.add('preventdelete', function(ed) {
                                     ed.getDoc().execCommand('insertText', false, evt.key)
                                 }
 
-                                // normalize remaining text
-                                range.commonAncestorContainer.normalize();
-
-                                var doUpdate = ed.writer.tagger.findNewAndDeletedTags();
-                                if (doUpdate) {
-                                    ed.writer.event('contentChanged').publish(ed.writer.editor);
-                                }
+                                ed.writer.event('contentChanged').publish();
 
                                 ed.undoManager.add();
                             }

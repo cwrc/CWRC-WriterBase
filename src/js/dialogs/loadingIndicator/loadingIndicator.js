@@ -37,17 +37,12 @@ function LoadingIndicator(writer, parentEl) {
     w.event('loadingDocument').subscribe(function() {
         w.dialogManager.show('loadingindicator');
         progressLabel.text('Loading Document');
-        progressBar.progressbar('value', 5);
+        progressBar.progressbar('value', false);
     });
     w.event('loadingSchema').subscribe(function() {
         w.dialogManager.show('loadingindicator');
         progressLabel.text('Loading Schema');
-        progressBar.progressbar('value', 10);
-    });
-    w.event('processingDocument').subscribe(function(percentComplete) {
-        var val = percentComplete === undefined ? 50 : percentComplete;
-        progressLabel.text('Processing Document');
-        progressBar.progressbar('value', val);
+        progressBar.progressbar('value', false);
     });
     w.event('documentLoaded').subscribe(function(success, docBody) {
         progressBar.progressbar('value', 100);

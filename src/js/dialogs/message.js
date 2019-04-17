@@ -52,32 +52,41 @@ function Message(writer, parentEl) {
     return {
         show: function(config) {
             var $message = createMessageDialog(config);
-            $message.dialog('option', 'buttons', {
-                'Ok': function() {
+            $message.dialog('option', 'buttons', [{
+                text: 'Ok',
+                role: 'ok',
+                click: function() {
                     $message.dialog('close');
                 }
-            });
+            }]);
             $message.dialog('open');
         },
         confirm: function(config) {
             var $message = createMessageDialog(config);
             var callback = config.callback;
-            $message.dialog('option', 'buttons', {
-                'Yes': function() {
-                    $message.dialog('close');
-                    // make sure dialog closes before callback
-                    setTimeout(function() {
-                        callback(true);
-                    }, 0);
-                },
-                'No': function() {
-                    $message.dialog('close');
-                    // make sure dialog closes before callback
-                    setTimeout(function() {
-                        callback(false);
-                    }, 0);
+            $message.dialog('option', 'buttons', [
+                {
+                    text: 'Yes',
+                    role: 'yes',
+                    click: function() {
+                        $message.dialog('close');
+                        // make sure dialog closes before callback
+                        setTimeout(function() {
+                            callback(true);
+                        }, 0);
+                    },
+                },{
+                    text: 'No',
+                    role: 'no',
+                    click: function() {
+                        $message.dialog('close');
+                        // make sure dialog closes before callback
+                        setTimeout(function() {
+                            callback(false);
+                        }, 0);
+                    }
                 }
-            });
+            ]);
             $message.dialog('open');
         },
         destroy: function() {

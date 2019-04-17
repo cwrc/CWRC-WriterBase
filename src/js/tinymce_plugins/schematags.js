@@ -148,7 +148,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
         for (var i = 0; i < schemaElements.length; i++) {
             var tag = schemaElements[i];
             var text = tag;
-            var fullName = editor.writer.utilities.getFullNameForTag(tag);
+            var fullName = editor.writer.schemaManager.getFullNameForTag(tag);
             if (fullName !== '') {
                 text += ' ('+fullName+')';
             }
@@ -160,13 +160,12 @@ tinymce.PluginManager.add('schematags', function(editor) {
                 initialFilterState: null,
                 image: imageUrl+'tag_blue.png',
                 onclick: function(e) {
-                    var tag = this.settings.key;
+                    var tagName = this.settings.key;
                     var action = this.settings.action;
-                    var d = editor.writer.dialogManager.getDialog('schemaTags');
                     if (action == "add") {
-                        d.addSchemaTag({key: tag});
+                        editor.writer.tagger.addTagDialog(tagName, action);
                     } else {
-                        d.changeSchemaTag({key: tag});
+                        editor.writer.tagger.changeTagDialog(tagName);
                     }
                 }
             });
@@ -218,7 +217,10 @@ tinymce.PluginManager.add('schematags', function(editor) {
         
         var validKeys = [];
         if (filterKey != editor.writer.schemaManager.getHeader()) {
-            validKeys = editor.writer.utilities.getChildrenForTag({tag: filterKey, returnType: 'names'});
+            var children = editor.writer.schemaManager.getChildrenForTag(filterKey);
+            validKeys = children.map(function(child) {
+                return child.name;
+            });
         }
         var count = 0, disCount = 0;
         menu.items().each(function(item) {
