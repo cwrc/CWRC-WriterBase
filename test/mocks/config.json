@@ -44,7 +44,5 @@
             "cssUrl": "https://cwrc.ca/templates/css/cwrc.css",
             "schemaMappingsId": "cwrcEntry"
         }
-    },
-    "defaultDocument": "templates/letter",
-    "container":"cwrcWriterContainer"
+    }
 }
