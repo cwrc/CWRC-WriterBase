@@ -150,12 +150,13 @@
     border-left: none !important;
     border-right: none !important;
     border-radius: 0 !important;
-    border-bottom: 1px solid #b3bbbe !important;
-    background: #eee !important;
+    border-bottom: 1px solid #bbbbbb !important;
+    background: #e0e0e0 !important;
 }
 
 .cwrc.tabs > ul li a {
     padding: 4px 1em !important;
+    outline: 0 !important;
 }
 
 .cwrc.tabs .ui-tabs-panel {
@@ -165,16 +166,16 @@
 }
 
 .cwrc.tabs > ul li.ui-state-default {
-    border-color: #eee !important;
-    background: #eee !important;
+    border-color: #dedede !important;
+    background: #ececec !important;
 }
 
 .cwrc.tabs > ul li.ui-state-hover {
-    background: #b3bbbe !important;
+    background: #fafafa !important;
 }
 
 .cwrc.tabs > ul li.ui-state-active {
-    border-color: #b3bbbe !important;
+    border-color: #bbbbbb !important;
     background: #ffffff !important;
 }
 
