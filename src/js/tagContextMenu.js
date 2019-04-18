@@ -216,7 +216,7 @@ function getItems() {
                 name: 'Convert to Entity',
                 icon: 'tag_edit',
                 callback: function() {
-                    this.w.tagger.convertTagToEntity(tag, true);
+                    this.w.schemaManager.mapper.convertTagToEntity(tag, true);
                 }.bind(this)
             }
         }

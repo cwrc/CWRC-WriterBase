@@ -101,7 +101,7 @@ function EntitiesList(config) {
     var pm = {};
     
     pm.convertEntities = function(typesToFind) {
-        var potentialEntitiesByType = findEntities(typesToFind);
+        var potentialEntitiesByType = w.schemaManager.mapper.findEntities(typesToFind);
         var potentialEntities = [];
         for (var type in potentialEntitiesByType) {
             potentialEntities = potentialEntities.concat(potentialEntitiesByType[type]);
@@ -125,7 +125,7 @@ function EntitiesList(config) {
                         li.show();
 
                         w.utilities.processArray(potentialEntities, function(el) {
-                            w.tagger.convertTagToEntity(el);
+                            w.schemaManager.mapper.convertTagToEntity(el);
                         }).then(function() {
                             li.hide();
                             w.event('contentChanged').publish();
@@ -135,59 +135,6 @@ function EntitiesList(config) {
             });
         }
     }
-
-    /**
-     * Look for potential entities inside the passed element
-     * @param {Array} [typesToFind] An array of entity types to find, defaults to all types
-     * @returns {Object} A map of the entities, organized by type
-     */
-    function findEntities(typesToFind) {
-        var allTypes = ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'];
-        var nonNoteTypes = ['person', 'place', 'date', 'org', 'citation', 'title', 'link'];
-
-        typesToFind = typesToFind === undefined ? nonNoteTypes : typesToFind;
-        
-        var potentialEntities = {};
-        
-        var headerTag = w.schemaManager.mapper.getHeaderTag();
-
-        // TODO tei mapping for correction will match on both choice and corr tags, creating 2 entities when it should be one
-        var entityMappings = w.schemaManager.mapper.getMappings().entities;
-        for (var type in entityMappings) {
-            if (typesToFind.length == 0 || typesToFind.indexOf(type) != -1) {
-                var entityTagNames = [];
-                
-                var parentTag = entityMappings[type].parentTag;
-                if ($.isArray(parentTag)) {
-                    entityTagNames = entityTagNames.concat(parentTag);
-                } else if (parentTag !== '') {
-                    entityTagNames.push(parentTag);
-                }
-
-                entityTagNames = entityTagNames.map(function(name) {
-                    return '[_tag="'+name+'"]';
-                });
-
-                var matches = $(entityTagNames.join(','), w.editor.getBody()).filter(function(index, el) {
-                    if (el.getAttribute('_entity') === 'true') {
-                        return false;
-                    }
-                    if ($(el).parents('[_tag="'+headerTag+'"]').length !== 0) {
-                        return false;
-                    }
-                    // double check entity type using element instead of string, which forces xpath evaluation, which we want for tei note entities
-                    if (w.schemaManager.mapper.getEntityTypeForTag(el) === null) {
-                        return false;
-                    }
-                    return true;
-                });
-                potentialEntities[type] = $.makeArray(matches);
-            }
-        }
-
-        return potentialEntities;
-    }
-
 
     /**
      * @param sort

@@ -426,70 +426,6 @@ function Tagger(writer) {
     }
 
     /**
-     * Converts a tag to an entity
-     * @param {Element} tag The tag
-     * @param {Boolean} [showEntityDialog] Should the entity dialog be shown after conversion? Default is false
-     * @returns {Entity|null} The new entity
-     */
-    tagger.convertTagToEntity = function(tag, showEntityDialog) {
-        showEntityDialog = showEntityDialog === undefined ? false : showEntityDialog;
-
-        var tagName = tag.getAttribute('_tag');
-        var entityType = w.schemaManager.mapper.getEntityTypeForTag(tagName);
-        if (entityType !== null) {
-            var id = tag.getAttribute('id');
-            var isNote = w.schemaManager.mapper.isEntityTypeNote(entityType);
-            var config = {
-                id: id,
-                tag: tagName,
-                type: entityType,
-                isNote: isNote,
-                range: {startXPath: w.utilities.getElementXPath(tag)}
-            };
-
-            var mappingInfo = w.schemaManager.mapper.getReverseMapping(tag, true);
-            $.extend(config, mappingInfo);
-
-            if (isNote) {
-                if (config.properties === undefined) {
-                    config.properties = {};
-                }
-                var $tag = $(tag);
-                config.properties.content = $tag.text();
-                config.properties.noteContent = $tag.html();
-            }
-            
-            var entityAttributes = {
-                '_entity': true, '_type': entityType, 'class': 'entity '+entityType+' start end', 'name': id
-            };
-            if (isNote) {
-                entityAttributes['_note'] = true;
-            }
-            for (var name in entityAttributes) {
-                tag.setAttribute(name, entityAttributes[name]);
-            }
-            if (isNote) {
-                addNoteWrapper(tag, entityType);
-            }
-
-            var entity = w.entitiesManager.addEntity(config);
-
-            if (showEntityDialog) {
-                // TODO FIXME hardcoded ref attribute, consolidate with nerve mappings
-                var ref = tag.getAttribute('ref');
-                if (ref === null) {
-                    w.dialogManager.show(entityType, {type: entityType, entry: entity});
-                }
-            }
-
-            return entity;
-        } else {
-            console.warn('tagger.convertTagToEntity: tag '+tag.getAttribute('_tag')+' cannot be converted to an entity!');
-        }
-        return null;
-    };
-
-    /**
      * Performs a paste using the specified element at the current cursor point
      * @param {Element} element
      */
@@ -804,7 +740,7 @@ function Tagger(writer) {
             range = sel.getRng(true);
             range.insertNode(tag);
 
-            addNoteWrapper(tag, type);
+            tagger.addNoteWrapper(tag, type);
         } else {
             if (range.startContainer.parentNode != range.endContainer.parentNode) {
                 var nodes = getNodesInBetween(range.startContainer, range.endContainer, NodeFilter.TEXT_NODE);
@@ -924,7 +860,7 @@ function Tagger(writer) {
         return nodes;
     };
     
-    var addNoteWrapper = function(tag, type) {
+    tagger.addNoteWrapper = function(tag, type) {
         $(tag)
             .wrap('<span class="noteWrapper '+type+'" />')
             .parent().on('click', function(e) {
@@ -939,7 +875,7 @@ function Tagger(writer) {
         w.entitiesManager.eachEntity(function(id, entity) {
             if (entity.isNote()) {
                 var note = $('#'+id, w.editor.getBody());
-                addNoteWrapper(note, entity.getType());
+                tagger.addNoteWrapper(note, entity.getType());
             }
         });
     }

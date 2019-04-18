@@ -332,7 +332,7 @@ test('tagger.splitTag tagger.mergeTags', (t) => {
     })
 });
 
-test('tagger.convertTagToEntity', (t) => {
+test('mapper.convertTagToEntity', (t) => {
     t.plan(1);
     
     let writer = new CWRCWriter(getConfigForTestingConstructor())
@@ -345,24 +345,7 @@ test('tagger.convertTagToEntity', (t) => {
         });
 
         let persTag = window.$('[_tag="persName"]', writer.editor.getBody())[0];
-        writer.tagger.convertTagToEntity(persTag);
-    })
-});
-
-test('tagger.convertTagToEntity', (t) => {
-    t.plan(1);
-    
-    let writer = new CWRCWriter(getConfigForTestingConstructor())
-    
-    initAndLoadDoc(writer, teiDoc).then(() => {
-        writer.event('entityAdded').subscribe((entityId) => {
-            let tag = window.$('#'+entityId, writer.editor.getBody());
-            t.true(tag.attr('_type') === 'person', 'tag converted');
-            reset(writer);
-        });
-
-        let persTag = window.$('[_tag="persName"]', writer.editor.getBody())[0];
-        writer.tagger.convertTagToEntity(persTag);
+        writer.schemaManager.mapper.convertTagToEntity(persTag);
     })
 });
 

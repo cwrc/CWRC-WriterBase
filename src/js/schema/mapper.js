@@ -326,6 +326,122 @@ Mapper.prototype = {
     },
 
     /**
+     * Converts a tag to an entity
+     * @param {Element} tag The tag
+     * @param {Boolean} [showEntityDialog] Should the entity dialog be shown after conversion? Default is false
+     * @returns {Entity|null} The new entity
+     */
+    convertTagToEntity: function(tag, showEntityDialog) {
+        showEntityDialog = showEntityDialog === undefined ? false : showEntityDialog;
+
+        var tagName = tag.getAttribute('_tag');
+        var entityType = this.getEntityTypeForTag(tagName);
+        if (entityType !== null) {
+            var id = tag.getAttribute('id');
+            var isNote = this.isEntityTypeNote(entityType);
+            var config = {
+                id: id,
+                tag: tagName,
+                type: entityType,
+                isNote: isNote,
+                range: {startXPath: this.w.utilities.getElementXPath(tag)}
+            };
+
+            var mappingInfo = this.getReverseMapping(tag, true);
+            $.extend(config, mappingInfo);
+
+            if (isNote) {
+                if (config.properties === undefined) {
+                    config.properties = {};
+                }
+                var $tag = $(tag);
+                config.properties.content = $tag.text();
+                config.properties.noteContent = $tag.html();
+            }
+            
+            var entityAttributes = {
+                '_entity': true, '_type': entityType, 'class': 'entity '+entityType+' start end', 'name': id
+            };
+            if (isNote) {
+                entityAttributes['_note'] = true;
+            }
+            for (var name in entityAttributes) {
+                tag.setAttribute(name, entityAttributes[name]);
+            }
+            if (isNote) {
+                this.w.tagger.addNoteWrapper(tag, entityType);
+            }
+
+            var entity = this.w.entitiesManager.addEntity(config);
+
+            if (showEntityDialog) {
+                // TODO FIXME hardcoded ref attribute, consolidate with nerve mappings
+                var ref = tag.getAttribute('ref');
+                if (ref === null) {
+                    this.w.dialogManager.show(entityType, {type: entityType, entry: entity});
+                }
+            }
+
+            return entity;
+        } else {
+            console.warn('tagger.convertTagToEntity: tag '+tag.getAttribute('_tag')+' cannot be converted to an entity!');
+        }
+        return null;
+    },
+
+    /**
+     * Look for potential entities inside the passed element
+     * @param {Array} [typesToFind] An array of entity types to find, defaults to all types
+     * @returns {Object} A map of the entities, organized by type
+     */
+    findEntities: function(typesToFind) {
+        var allTypes = ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'];
+        var nonNoteTypes = ['person', 'place', 'date', 'org', 'citation', 'title', 'link'];
+
+        typesToFind = typesToFind === undefined ? nonNoteTypes : typesToFind;
+        
+        var potentialEntities = {};
+        
+        var headerTag = this.getHeaderTag();
+
+        // TODO tei mapping for correction will match on both choice and corr tags, creating 2 entities when it should be one
+        var entityMappings = this.getMappings().entities;
+        for (var type in entityMappings) {
+            if (typesToFind.length == 0 || typesToFind.indexOf(type) != -1) {
+                var entityTagNames = [];
+                
+                var parentTag = entityMappings[type].parentTag;
+                if ($.isArray(parentTag)) {
+                    entityTagNames = entityTagNames.concat(parentTag);
+                } else if (parentTag !== '') {
+                    entityTagNames.push(parentTag);
+                }
+
+                entityTagNames = entityTagNames.map(function(name) {
+                    return '[_tag="'+name+'"]';
+                });
+
+                var matches = $(entityTagNames.join(','), this.w.editor.getBody()).filter(function(index, el) {
+                    if (el.getAttribute('_entity') === 'true') {
+                        return false;
+                    }
+                    if ($(el).parents('[_tag="'+headerTag+'"]').length !== 0) {
+                        return false;
+                    }
+                    // double check entity type using element instead of string, which forces xpath evaluation, which we want for tei note entities
+                    if (this.getEntityTypeForTag(el) === null) {
+                        return false;
+                    }
+                    return true;
+                }.bind(this));
+                potentialEntities[type] = $.makeArray(matches);
+            }
+        }
+
+        return potentialEntities;
+    },
+
+    /**
      * Returns the parent tag for entity when converted to a particular schema.
      * @param type The entity type.
      * @returns {String}
