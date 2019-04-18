@@ -26,10 +26,10 @@
   },
   "homepage": "https://github.com/cwrc/CWRC-WriterBase#readme",
   "browser": {
-    "objtree": "./src/lib/objtree/ObjTree.js",
-    "jquery-watermark": "./src/lib/jquery/jquery.watermark.min.js",
-    "jquery-popup": "./src/lib/jquery/jquery.popup.js",
-    "layout": "./src/lib/jquery/jquery.layout_and_plugins.js",
+    "objtree": "./lib/objtree/ObjTree.js",
+    "jquery-watermark": "./lib/jquery/jquery.watermark.min.js",
+    "jquery-popup": "./lib/jquery/jquery.popup.js",
+    "layout": "./lib/jquery/jquery.layout_and_plugins.js",
     "dialogForm": "./src/js/dialogs/dialogForm/dialogForm.js"
   },
   "dependencies": {
