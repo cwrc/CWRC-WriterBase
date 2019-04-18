@@ -42,7 +42,14 @@
 .cwrcHeader {
     overflow: hidden !important;
     color: #eee !important;
-    background-color: #455372 !important;
+    background-color: #445372 !important;
+}
+
+.cwrcFooter {
+    overflow: hidden !important;
+    color: #eee !important;
+    background-color: #ddd !important;
+    border-top: 1px solid #bbb !important;
 }
 
 .headerParent {

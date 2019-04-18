@@ -147,16 +147,16 @@
     }
 
 .ui-layout-toggler-north-open, .ui-layout-toggler-south-closed {
-    background: url("../img/arrow_up.gif") no-repeat scroll center bottom transparent;
+    background: url("../img/layout_arrow_up.png") no-repeat scroll center center transparent;
 }
 .ui-layout-toggler-north-closed, .ui-layout-toggler-south-open {
-    background: url("../img/arrow_down.gif") no-repeat scroll center top transparent;
+    background: url("../img/layout_arrow_down.png") no-repeat scroll center center transparent;
 }
 .ui-layout-toggler-east-closed, .ui-layout-toggler-west-open {
-    background: url("../img/arrow_left.gif") no-repeat scroll right center transparent;
+    background: url("../img/layout_arrow_left.png") no-repeat scroll center center transparent;
 }
 .ui-layout-toggler-east-open, .ui-layout-toggler-west-closed {
-    background: url("../img/arrow_right.gif") no-repeat scroll left center transparent;
+    background: url("../img/layout_arrow_right.png") no-repeat scroll center center transparent;
 }
 
 /*

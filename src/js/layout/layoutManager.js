@@ -74,6 +74,12 @@ LayoutManager.prototype = {
             </div>`;
         
         html += addPanel(editorId, 'east', this.modulesLayout.east);
+
+        html += `
+        <div class="cwrc cwrcFooter ui-layout-south">
+            <div></div>
+        </div>
+        `;
         
         this.$container.append(html);
         
@@ -147,7 +153,16 @@ LayoutManager.prototype = {
                 spacing_open: 0,
                 minSize: 35,
                 maxSize: 60,
-                closable: false
+                closable: false,
+                resizable: false
+            },
+            south: {
+                size: 15,
+                minSize: 15,
+                maxSize: 15,
+                spacing_open: 0,
+                closable: false,
+                resizable: false
             }
         };
         
@@ -204,7 +219,7 @@ LayoutManager.prototype = {
                     var module = initModule(editorId, this.w, module);
                     this.modules.push(module);
                 }.bind(this));
-                var $region = this.$container.find('.ui-layout-'+region);
+                var $region = this.$container.find('.ui-layout-'+region+':not(.cwrcHeader):not(.cwrcFooter)');
                 $region.tabs({
                     activate: function(event, ui) {
                         $.layout.callbacks.resizeTabLayout(event, ui);
