@@ -57,6 +57,7 @@ entities: {
 person: {
     parentTag: 'persName',
     textTag: '',
+    linkingXPath: './@ref',
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
@@ -71,6 +72,7 @@ person: {
 org: {
     parentTag: 'orgName',
     textTag: '',
+    linkingXPath: './@ref',
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
@@ -85,6 +87,7 @@ org: {
 place: {
     parentTag: 'placeName',
     textTag: 'placeName',
+    linkingXPath: './@ref',
     mapping: function(entity) {
         var startTag = Mapper.getTagAndDefaultAttributes(entity);
         
@@ -125,6 +128,7 @@ place: {
 title: {
     parentTag: 'title',
     textTag: '',
+    linkingXPath: './@ref',
     mapping: function(entity) {
         return Mapper.getDefaultMapping(entity);
     },
@@ -248,7 +252,7 @@ date: {
 
 note: {
     parentTag: 'note',
-    xpathSelector: 'self::tei:note[@type]',
+    xpathSelector: 'self::tei:note[not(@type="citation")]',
     textTag: '',
     isNote: true,
     requiresSelection: false,
@@ -265,6 +269,7 @@ citation: {
     parentTag: 'note',
     xpathSelector: 'self::tei:note[@type="citation"]/tei:bibl',
     textTag: 'bibl',
+    linkingXPath: './bibl/ref/@target',
     isNote: true,
     requiresSelection: false,
     mapping: function(entity) {

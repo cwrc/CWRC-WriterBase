@@ -34,6 +34,7 @@ listeners: {
  * isNote {Boolean}: boolean indicating the entity is a "note type" (default is false)
  * xpathSelector {String}: if the entity can have several different parentTags or if several entities share the same parentTag, this selector can help differentiate
  * requiresSelection {Boolean}: boolean indicating is a text selection is required to add the entity (as opposed to a point in the text) (default is true)
+ * linkingXPath {String}: an XPath pointing to a value that should be provided for LOD/annotation to be generated
  */
 
 entities: {

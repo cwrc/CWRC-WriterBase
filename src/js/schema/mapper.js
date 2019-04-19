@@ -334,14 +334,13 @@ Mapper.prototype = {
     convertTagToEntity: function(tag, showEntityDialog) {
         showEntityDialog = showEntityDialog === undefined ? false : showEntityDialog;
 
-        var tagName = tag.getAttribute('_tag');
-        var entityType = this.getEntityTypeForTag(tagName);
+        var entityType = this.getEntityTypeForTag(tag);
         if (entityType !== null) {
             var id = tag.getAttribute('id');
             var isNote = this.isEntityTypeNote(entityType);
             var config = {
                 id: id,
-                tag: tagName,
+                tag: tag.getAttribute('_tag'),
                 type: entityType,
                 isNote: isNote,
                 range: {startXPath: this.w.utilities.getElementXPath(tag)}
@@ -384,13 +383,13 @@ Mapper.prototype = {
 
             return entity;
         } else {
-            console.warn('tagger.convertTagToEntity: tag '+tag.getAttribute('_tag')+' cannot be converted to an entity!');
+            console.warn('mapper.convertTagToEntity: tag '+tag.getAttribute('_tag')+' cannot be converted to an entity!');
         }
         return null;
     },
 
     /**
-     * Look for potential entities inside the passed element
+     * Look for candidate entities inside the passed element
      * @param {Array} [typesToFind] An array of entity types to find, defaults to all types
      * @returns {Object} A map of the entities, organized by type
      */
@@ -400,7 +399,7 @@ Mapper.prototype = {
 
         typesToFind = typesToFind === undefined ? nonNoteTypes : typesToFind;
         
-        var potentialEntities = {};
+        var candidateEntities = {};
         
         var headerTag = this.getHeaderTag();
 
@@ -429,16 +428,25 @@ Mapper.prototype = {
                         return false;
                     }
                     // double check entity type using element instead of string, which forces xpath evaluation, which we want for tei note entities
-                    if (this.getEntityTypeForTag(el) === null) {
+                    var type = this.getEntityTypeForTag(el);
+                    if (type === null) {
                         return false;
+                    } else {
+                        var linkingXPath = this.getLinkingXPath(type);
+                        if (linkingXPath !== undefined) {
+                            var result = this.w.utilities.evaluateXPath(el, linkingXPath);
+                            if (result !== null) {
+                                return true;
+                            }
+                        }
                     }
-                    return true;
+                    return false;
                 }.bind(this));
-                potentialEntities[type] = $.makeArray(matches);
+                candidateEntities[type] = $.makeArray(matches);
             }
         }
 
-        return potentialEntities;
+        return candidateEntities;
     },
 
     /**
@@ -468,6 +476,10 @@ Mapper.prototype = {
             return '';
         }
         return tag;
+    },
+
+    getLinkingXPath: function(type) {
+        return this.getMappings().entities[type].linkingXPath;
     },
 
     /**
