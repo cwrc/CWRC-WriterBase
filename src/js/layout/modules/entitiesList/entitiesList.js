@@ -3,7 +3,6 @@
 var $ = require('jquery');
 
 require('jquery-ui/ui/widgets/button');
-require('jquery-ui/ui/widgets/controlgroup');
 require('jquery-contextmenu');
     
 /**
@@ -16,51 +15,59 @@ require('jquery-contextmenu');
 function EntitiesList(config) {
     
     var w = config.writer;
-    
-    var metaKeys = ['_id', '_ref'];
-    var showMetaKeys = false;
-    
     var id = config.parentId;
-    $('#'+id).append(
-        '<div class="moduleParent">'+
-            '<div class="moduleHeader">'+
-                '<button class="convert">Convert Potential Entities</button>'+
-            '</div>'+
-            '<div class="moduleContent">'+
-                '<ul class="entitiesList"></ul>'+
-            '</div>'+
-            '<div class="moduleFooter entitiesOptions">'+
-                '<div class="sortBy"><span>Sort By</span> '+
-                    '<label>Sequence <input type="radio" class="sequence" name="sortBy" checked="checked" /></label>'+
-                    '<label>Category <input type="radio" class="category" name="sortBy" /></label>'+
-                '</div>'+
-                '<!--<div><input type="checkbox" id="metaKeys" /><label for="metaKeys">Show Metadata</label></div>-->'+
-            '</div>'+
-        '</div>');
-    
-    var $entities = $('#'+id);
 
-    var $convertButton = $entities.find('.convert');
-    $convertButton.button().click(function() {
+    var $entities = $('#'+id);
+    $entities.append(
+        `<div class="moduleParent">
+            <div class="moduleHeader">
+                <button class="convert">Scrape Candidate Entities</button>
+            </div>
+            <div class="moduleContent">
+                <ul class="entitiesList"></ul>
+            </div>
+            <div class="moduleFooter">
+                <div>
+                    <label for="filter">Filter</label>
+                    <select name="filter">
+                        <option value="all" selected="selected">All</option>
+                        <option value="person">Person</option>
+                        <option value="place">Place</option>
+                        <option value="date">Date</option>
+                        <option value="org">Organization</option>
+                        <option value="citation">Citation</option>
+                        <option value="note">Note</option>
+                        <option value="title">Title</option>
+                        <option value="correction">Correction</option>
+                        <option value="keyword">Keyword</option>
+                        <option value="link">Link</option>
+                    </select>
+                </div>
+                <div style="margin-top: 5px;">
+                    <label for="sorting">Sorting</label>
+                    <select name="sorting">
+                        <option value="sequential" selected="selected">Sequential</option>
+                        <option value="alphabetical">Alphabetical</option>
+                        <option value="categorical">Categorical</option>
+                    </select>
+                </div>
+            </div>
+        </div>`
+    );
+
+    $entities.find('.convert').button().click(function() {
         pm.convertEntities();
     });
-    
-    var $seqButton = $entities.find('.sequence');
-    $seqButton.button().click(function() {
-        w.entitiesList.update('sequence');
-        w.entitiesManager.highlightEntity(w.entitiesManager.getCurrentEntity());
-    });
-    var $catButton = $entities.find('.category')
-    $catButton.button().click(function() {
-        w.entitiesList.update('category');
-        w.entitiesManager.highlightEntity(w.entitiesManager.getCurrentEntity());
-    });
-    $entities.find('.sortBy').controlgroup();
-//    $('#metaKeys').button().click(function() {
-//        showMetaKeys = !showMetaKeys;
-//        w.entitiesList.update();
-//        w.entitiesManager.highlightEntity(w.entitiesManager.getCurrentEntity());
-//    });
+
+    var getFilter = function() {
+        return $entities.find('select[name="filter"]').val();
+    }
+    var getSorting = function() {
+        return $entities.find('select[name="sorting"]').val();
+    }
+
+    $entities.find('select[name="filter"]').change(function() { pm.update() });
+    $entities.find('select[name="sorting"]').change(function() { pm.update() });
     
     if (w.isReadOnly !== true) {
         $.contextMenu({
@@ -99,7 +106,106 @@ function EntitiesList(config) {
      * @lends EntitiesList.prototype
      */
     var pm = {};
-    
+
+    pm.update = function() {
+        clear();
+        
+        var entities = getEntities();
+        var entitiesString = '';
+
+        var filter = getFilter();
+        if (filter !== 'all') {
+            entities = entities.filter(function(entry) {
+                return entry.getType() === filter;
+            });
+        }
+
+        switch(getSorting()) {
+            case 'categorical':
+                var categories = {};
+                entities.forEach(function(entry) {
+                    var type = entry.getType();
+                    if (categories[type] === undefined) {
+                        categories[type] = [];
+                    }
+                    categories[type].push(entry);
+                });
+                for (var type in categories) {
+                    var category = categories[type];
+                    for (var i = 0; i < category.length; i++) {
+                        var entry = category[i];
+                        entitiesString += getEntityView(entry);
+                    }
+                }
+                break;
+            case 'alphabetical':
+                entities.sort(function(a, b) {
+                    var charA = a.getTitle().charAt(0).toLowerCase();
+                    var charB = b.getTitle().charAt(0).toLowerCase();
+                    if (charA < charB) return -1;
+                    if (charA > charB) return 1;
+                    return 0;
+                });
+            default:
+                entities.forEach(function(entry) {
+                    entitiesString += getEntityView(entry);
+                });
+                break;
+        }
+        
+        $entities.find('ul.entitiesList').html(entitiesString);
+        $entities.find('ul.entitiesList > li').click(function(event) {
+            $(this).removeClass('over');
+            w.entitiesManager.highlightEntity(this.getAttribute('name'), null, true);
+        });
+        
+        if (w.entitiesManager.getCurrentEntity()) {
+            $entities.find('ul.entitiesList  > li[name="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('selected expanded').find('div[class="info"]').show();
+        }
+    };
+
+    var getEntities = function() {
+        var entities = [];
+        var entityTags = $('[_entity][class~=start]:not([_nerve])', w.editor.getBody()); // sequential ordering
+        entityTags.each(function(index, el) {
+            var entry = w.entitiesManager.getEntity($(el).attr('name'));
+            if (entry !== undefined) {
+                entities.push(entry);
+            }
+        });
+        return entities;
+    }
+
+    var getEntityView = function(entity) {
+        var infoString = '<ul>';
+        var buildString = function(infoObject) {
+            var urlAttributes = w.schemaManager.mapper.getUrlAttributes();
+            for (var infoKey in infoObject) {
+                var info = infoObject[infoKey];
+                if (urlAttributes.indexOf(infoKey) !== -1 || info.indexOf('http') === 0) {
+                    infoString += '<li><strong>'+infoKey+'</strong>: <a href="'+info+'" target="_blank" rel="noopener">'+info+'</a></li>';
+                } else {
+                    if ($.isPlainObject(info)) {
+                        buildString(info);
+                    } else {
+                        infoString += '<li><strong>'+infoKey+'</strong>: '+info+'</li>';
+                    }
+                }
+            }
+        };
+        buildString(entity.getAttributes());
+        infoString += '</ul>';
+        return ''+
+        '<li class="'+entity.getType()+'" name="'+entity.getId()+'">'+
+            '<div>'+
+                '<div class="header">'+
+                    '<span class="icon"/><span class="entityTitle">'+entity.getContent()+'</span>'+
+                '</div>'+
+                '<div class="info">'+infoString+'</div>'+
+            '</div>'+
+        '</li>';
+    }
+
     pm.convertEntities = function(typesToFind) {
         var potentialEntitiesByType = w.schemaManager.mapper.findEntities(typesToFind);
         var potentialEntities = [];
@@ -113,144 +219,44 @@ function EntitiesList(config) {
         });
 
         if (potentialEntities.length > 0) {
-            w.dialogManager.confirm({
-                title: 'Entity Conversion',
-                msg: '<p>CWRC-Writer has found '+potentialEntities.length+' tags that are potential entities.</p>'+
-                '<p>Would you like to convert the tags to entities?</p>',
-                type: 'info',
-                callback: function(doIt) {
-                    if (doIt) {
-                        var li = w.dialogManager.getDialog('loadingindicator');
-                        li.setText('Converting Entities');
-                        li.show();
+            var li = w.dialogManager.getDialog('loadingindicator');
+            li.setText('Converting Entities');
+            li.show();
 
-                        w.utilities.processArray(potentialEntities, function(el) {
-                            w.schemaManager.mapper.convertTagToEntity(el);
-                        }).then(function() {
-                            li.hide();
-                            w.event('contentChanged').publish();
-                        });
-                    }
-                }
+            w.utilities.processArray(potentialEntities, function(el) {
+                w.schemaManager.mapper.convertTagToEntity(el);
+            }).then(function() {
+                li.hide();
+                w.event('contentChanged').publish();
+            });
+        } else {
+            w.dialogManager.show('message', {
+                title: 'Entities',
+                msg: 'No candidate entities were found.',
+                type: 'info'
             });
         }
     }
-
-    /**
-     * @param sort
-     */
-    pm.update = function(sort) {
-        pm.clear();
-        
-        if (sort == null) {
-            if ($seqButton.prop('checked')) {
-                sort = 'sequence';
-            } else {
-                sort = 'category';
-            }
-        }
-        
-        var entitiesString = '';
-        var entityTags = $('[_entity][class~=start]:not([_nerve])', w.editor.getBody());
-        if (sort == 'category') {
-            var categories = {};
-            entityTags.each(function(index, el) {
-                var entry = w.entitiesManager.getEntity($(el).attr('name'));
-                if (entry !== undefined) {
-                    var type = entry.getType();
-                    if (categories[type] == null) {
-                        categories[type] = [];
-                    }
-                    categories[type].push(entry);
-                }
-            });
-            for (var type in categories) {
-                var category = categories[type];
-                for (var i = 0; i < category.length; i++) {
-                    var entry = category[i];
-                    entitiesString += _buildEntity(entry);
-                }
-            }
-        } else if (sort == 'sequence') {
-            entityTags.each(function(index, el) {
-                var entry = w.entitiesManager.getEntity($(el).attr('name'));
-                if (entry !== undefined) {
-                    entitiesString += _buildEntity(entry);
-                }
-            });
-        }
-
-        function _buildEntity(entity) {
-            var infoString = '<ul>';
-            var buildString = function(infoObject) {
-                var urlAttributes = w.schemaManager.mapper.getUrlAttributes();
-                for (var infoKey in infoObject) {
-                    if (showMetaKeys || metaKeys.indexOf(infoKey) == -1) {
-                        var info = infoObject[infoKey];
-                        if (urlAttributes.indexOf(infoKey) !== -1 || info.indexOf('http') === 0) {
-                            infoString += '<li><strong>'+infoKey+'</strong>: <a href="'+info+'" target="_blank" rel="noopener">'+info+'</a></li>';
-                        } else {
-                            if ($.isPlainObject(info)) {
-                                buildString(info);
-                            } else {
-                                infoString += '<li><strong>'+infoKey+'</strong>: '+info+'</li>';
-                            }
-                        }
-                    }
-                }
-            };
-            buildString(entity.getAttributes());
-            infoString += '</ul>';
-            return ''+
-            '<li class="'+entity.getType()+'" name="'+entity.getId()+'">'+
-                '<div>'+
-                    '<div class="header">'+
-                        '<span class="icon"/><span class="entityTitle">'+entity.getContent()+'</span>'+
-                    '</div>'+
-                    '<div class="info">'+infoString+'</div>'+
-                '</div>'+
-            '</li>';
-        }
-        
-        $entities.find('ul.entitiesList').html(entitiesString);
-        $entities.find('ul.entitiesList > li').hover(function() {
-            // if (!$(this).hasClass('selected')) {
-            //     $(this).addClass('over');
-            // }
-        }, function() {
-            // if (!$(this).hasClass('selected')) {
-            //     $(this).removeClass('over');
-            // }
-        }).mousedown(function(event) {
-            $(this).removeClass('over');
-            w.entitiesManager.highlightEntity(this.getAttribute('name'), null, true);
-        });
-        
-        if (w.entitiesManager.getCurrentEntity()) {
-            $entities.find('ul.entitiesList  > li[name="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('selected expanded').find('div[class="info"]').show();
-        }
-    };
-
-    pm.clear = function() {
-        $entities.find('ul').empty();
-    };
-    
-    pm.remove = function(id) {
-        $entities.find('li[name="'+id+'"]').remove();
-    };
     
     pm.destroy = function() {
-        $seqButton.button('destroy');
-        $catButton.button('destroy');
-        $entities.find('.sortBy').controlgroup('destroy');
-        
-        $('#'+id+'_contextMenu').remove();
+        $('#'+id+' ul.entitiesList > li').contextMenu('destroy');
+
+        $entities.find('.convert').button('destroy');
         
         $entities.remove();
     };
+
+    var clear = function() {
+        $entities.find('ul').empty();
+    };
+    
+    var remove = function(id) {
+        $entities.find('li[name="'+id+'"]').remove();
+    };
+
     
     w.event('loadingDocument').subscribe(function() {
-        pm.clear();
+        clear();
     });
     w.event('documentLoaded').subscribe(function() {
         pm.update();
@@ -271,7 +277,7 @@ function EntitiesList(config) {
         pm.update();
     });
     w.event('entityRemoved').subscribe(function(entityId) {
-        pm.remove(entityId);
+        remove(entityId);
     });
     w.event('entityFocused').subscribe(function(entityId) {
         $entities.find('ul.entitiesList > li[name="'+entityId+'"]').addClass('selected').addClass('expanded').find('div[class="info"]').show();
@@ -284,6 +290,7 @@ function EntitiesList(config) {
     w.event('entityPasted').subscribe(function(entityId) {
         pm.update();
     });
+
 
     // add to writer
     w.entitiesList = pm;
