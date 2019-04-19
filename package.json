@@ -30,7 +30,8 @@
     "jquery-watermark": "./lib/jquery/jquery.watermark.min.js",
     "jquery-popup": "./lib/jquery/jquery.popup.js",
     "layout": "./lib/jquery/jquery.layout_and_plugins.js",
-    "dialogForm": "./src/js/dialogs/dialogForm/dialogForm.js"
+    "dialogForm": "./src/js/dialogs/dialogForm/dialogForm.js",
+    "entity": "./src/js/entity.js"
   },
   "dependencies": {
     "css-parse": "^2.0.0",

@@ -2,7 +2,7 @@
 'use strict';
 
 var $ = require('jquery');
-var Entity = require('../entity.js');
+var Entity = require('entity');
 
 function Mapper(config) {
     this.w = config.writer;
