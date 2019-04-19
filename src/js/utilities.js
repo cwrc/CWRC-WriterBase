@@ -296,7 +296,7 @@ function Utilities(writer) {
      */
     u.evaluateXPath = function(contextNode, xpath) {
         var doc = contextNode.ownerDocument;
-        if (doc === null) {
+        if (doc === null) { // then the contextNode is a doc
             doc = contextNode;
         }
         var isCWRC = doc === w.editor.getDoc();
@@ -345,6 +345,9 @@ function Utilities(writer) {
         }
 
         if (isCWRC) {
+            if (doc === contextNode) {
+                contextNode = doc.documentElement;
+            }
             // if the context node is the schema root then we need to make sure the xpath starts with "//"
             if (contextNode.getAttribute('_tag') === w.schemaManager.getRoot() && xpath.charAt(0) !== '@') {
                 if (xpath.charAt(1) !== '/') {
@@ -375,7 +378,7 @@ function Utilities(writer) {
             evalResult = doc.evaluate(xpath, contextNode, nsResolver, XPathResult.ANY_TYPE, null);
         } catch (e) {
             console.warn('utilities.evaluateXPath: there was an error evaluating the xpath', e)
-            return undefined;
+            return null;
         }
         var result;
         switch (evalResult.resultType) {
