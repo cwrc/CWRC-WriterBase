@@ -53,7 +53,9 @@ EntitiesManager.prototype = {
             entity = new Entity(config);
         }
         
-        entity.setContent(this.getTextContentForEntity(entity.id));
+        if (entity.getContent() === undefined) {
+            entity.setContent(this.getTextContentForEntity(entity.id));
+        }
 
         this.setUrisForEntity(entity);
         
