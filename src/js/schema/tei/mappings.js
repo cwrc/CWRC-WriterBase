@@ -273,7 +273,11 @@ citation: {
     isNote: true,
     requiresSelection: false,
     mapping: function(entity) {
-        var startTag = '<note type="citation"><bibl><ref target="'+entity.getLookupInfo().id+'"/>';
+        var startTag = '<note type="citation"><bibl>';
+        var lookupId = entity.getLookupInfo().id;
+        if (lookupId) {
+            startTag += '<ref target="'+lookupId+'"/>';
+        }
         var endTag = '</bibl></note>';
         return [startTag, endTag];
     },
