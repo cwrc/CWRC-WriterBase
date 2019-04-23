@@ -10,7 +10,7 @@ var DialogForm = require('dialogForm');
 var NERVEWrapper = require('cwrc-nerve-wrapper');
 
 // nerve values to schema mappings
-// should this be moved to schema mappings files?
+// TODO merge with linkingXPath from mappings
 var nerveAttributeMappings = {
     tei: {
         lemma: {
@@ -599,7 +599,7 @@ function Nerve(config) {
     }
 
     var selectRangeForEntity = function(entry) {
-        var parent = w.utilities.evaluateXPath(w.editor.getDoc(), entry.xpath);
+        var parent = w.utilities.evaluateXPath(w.editor.getBody(), entry.xpath);
         if (parent === null) {
             console.warn('nerve: could not get parent for "',entry.lemma,'" at:',entry.xpath);
             return null;
@@ -667,7 +667,7 @@ function Nerve(config) {
         var range = selectRangeForEntity(entry);
         if (range !== null) {
             var parentEl = range.commonAncestorContainer.parentElement;
-            if (parentEl.getAttribute('_entity') === 'true' && range.textOffset === 0) {
+            if (parentEl.getAttribute('_entity') === 'true' && range.startOffset === 0) {
                 console.log('nerve: entity already exists for',entry);
                 range.collapse();
                 return false;
@@ -692,10 +692,8 @@ function Nerve(config) {
             var entity = w.entitiesManager.addEntity(entityConfig);
             mapCustomValuesToAttributes(entity);
 
-            entry.id = entity.id;
-
             w.tagger.addEntityTag(entity, range);
-            $('#'+entity.id, w.editor.getBody()).attr('_nerve', 'true');
+            $('#'+entity.id, w.editor.getBody()).attr('_nerve', 'true'); // have to manually add this since addEntityTag won't (since it's reserved)
 
             range.collapse();
             return true;
@@ -705,12 +703,20 @@ function Nerve(config) {
 
     var acceptEntity = function(entityId) {
         var entity = w.entitiesManager.getEntity(entityId);
-        mapCustomValuesToAttributes(entity);
-        entity.removeCustomValue('nerve');
-        entity.removeCustomValue('lemma');
-        entity.removeCustomValue('link');
-        entity.removeAttribute('_nerve');
-        $('#'+entityId, w.editor.getBody()).removeAttr('_nerve');
+
+        var linkAttributeName = getAttributeForNerveValue('link', entity.getType());
+        var linkValue = entity.getAttribute(linkAttributeName);
+        if (linkValue === undefined) {
+            w.tagger.convertEntityToTag(entityId);
+        } else {
+            mapCustomValuesToAttributes(entity);
+            entity.removeCustomValue('nerve');
+            entity.removeCustomValue('lemma');
+            entity.removeCustomValue('link');
+            entity.removeAttribute('_nerve');
+            $('#'+entityId, w.editor.getBody()).removeAttr('_nerve');
+        }
+
         removeEntityFromView(entityId);
     }
 

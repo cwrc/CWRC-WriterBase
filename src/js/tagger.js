@@ -229,7 +229,7 @@ function Tagger(writer) {
                         var selectionContents = $('#tempSelection', w.editor.getBody());
                         var parentTag = selectionContents.parent();
                         w.editor.selection.select(selectionContents[0].firstChild);
-                        w.editor.currentBookmark = w.editor.selection.getBookmark();
+                        w.editor.currentBookmark = w.editor.selection.getBookmark(1);
                         selectionContents.contents().unwrap();
                         var tagPath = w.utilities.getElementXPath(parentTag[0]);
                         tagPath += '/'+tagName;
@@ -697,6 +697,32 @@ function Tagger(writer) {
         w.entitiesManager.removeEntity(id);
         
         w.editor.undoManager.add();
+    };
+
+    /**
+     * Converts an entity back to a tag.
+     * @param {String} entityId
+     * TODO FIXME values not stored in attributes property are lost
+     */
+    tagger.convertEntityToTag = function(entityId) {
+        var $tag = $('#'+entityId, w.editor.getBody());
+
+        var tagName = $tag.attr('_tag');
+        var attributes = tagger.getAttributesForTag($tag[0]);
+
+        $tag.wrapInner('<span id="tempSelection"/>');
+        
+        tagger.removeEntity(entityId);
+        
+        var selectionContents = $('#tempSelection', w.editor.getBody());
+
+        var rng = w.editor.selection.getRng(true);
+        rng.selectNodeContents(selectionContents[0]);
+        w.editor.currentBookmark = w.editor.selection.getBookmark(1);
+        
+        tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, tagger.ADD);
+
+        selectionContents.contents().unwrap(); // remove tempSelection span
     };
     
     /**
