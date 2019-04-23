@@ -703,13 +703,12 @@ function Nerve(config) {
 
     var acceptEntity = function(entityId) {
         var entity = w.entitiesManager.getEntity(entityId);
-
+        mapCustomValuesToAttributes(entity);
         var linkAttributeName = getAttributeForNerveValue('link', entity.getType());
         var linkValue = entity.getAttribute(linkAttributeName);
         if (linkValue === undefined) {
             w.tagger.convertEntityToTag(entityId);
         } else {
-            mapCustomValuesToAttributes(entity);
             entity.removeCustomValue('nerve');
             entity.removeCustomValue('lemma');
             entity.removeCustomValue('link');
