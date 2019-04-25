@@ -105,6 +105,8 @@ function EntitiesList(config) {
 
     $entities.find('select[name="filter"]').on('selectmenuchange', function() { pm.update() });
     $entities.find('select[name="sorting"]').on('selectmenuchange', function() { pm.update() });
+    // $entities.find('select[name="filter"]').on('change', function() { pm.update() });
+    // $entities.find('select[name="sorting"]').on('change', function() { pm.update() });
 
     /**
      * @lends EntitiesList.prototype
@@ -188,6 +190,8 @@ function EntitiesList(config) {
         }
         infoString += '</ul>';
 
+        var regularActions = '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"/></span>'+
+        '<span data-action="remove" class="ui-state-default" title="Remove"><span class="ui-icon ui-icon-close"/></span>';
         var convertActions = '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"/></span>'+
         '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"/></span>';
 
@@ -197,10 +201,7 @@ function EntitiesList(config) {
                 <div class="header">
                     <span class="icon"/>
                     <span class="entityTitle">${entity.getContent()}</span>
-                    <div class="actions">
-                        <span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"/></span>${isConvert ?
-                            convertActions : '<span data-action="remove" class="ui-state-default" title="Remove"><span class="ui-icon ui-icon-close"/></span>'}
-                    </div>
+                    <div class="actions">${isConvert ? convertActions : regularActions}</div>
                 </div>
                 <div class="info">${infoString}</div>
             </div>
@@ -208,10 +209,8 @@ function EntitiesList(config) {
     }
     
     pm.destroy = function() {
-        $('#'+id+' ul.entitiesList > li').contextMenu('destroy');
-
-        $entities.find('.convert').button('destroy');
-        
+        $entities.find('button').button('destroy');
+        $entities.find('select').selectmenu('destroy');
         $entities.remove();
     };
 

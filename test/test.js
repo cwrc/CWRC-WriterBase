@@ -115,36 +115,46 @@ test('writer.setDocument writer.getDocument', (t)=> {
 //     })
 // });
 
-test('writer.validate pass fail', (t)=> {
-    t.plan(2);
+test('writer.validate pass', (t)=> {
+    t.plan(1);
     
     let writer = new CWRCWriter(getConfigForTestingConstructor())
-    
-    let firstCall = true;
 
     initAndLoadDoc(writer, teiDoc).then(() => {
         let passStub = sinon.stub(window.$, 'ajax')
         passStub.yieldsTo('success', '<?xml version="1.0" encoding="UTF-8"?><validation-result><status>pass</status></validation-result>')
         
         writer.event('documentValidated').subscribe(function(valid, data) {
+            window.$.ajax.restore();
             if (valid) {
                 t.pass('document validated pass');
             } else {
                 t.pass('document validated fail');
             }
+            reset(writer);
+        });
+        
+        writer.validate();
+    })
+});
 
+test('writer.validate fail', (t)=> {
+    t.plan(1);
+    
+    let writer = new CWRCWriter(getConfigForTestingConstructor())
+
+    initAndLoadDoc(writer, teiDoc).then(() => {
+        let failStub = sinon.stub(window.$, 'ajax')
+        failStub.yieldsTo('success', '<?xml version="1.0" encoding="UTF-8"?><validation-result><status>fail</status><warning><line>19</line><column>15</column><message></message><element>title</element><path>/TEI/text[1]/body[1]/div[1]</path></warning></validation-result>')
+        
+        writer.event('documentValidated').subscribe(function(valid, data) {
             window.$.ajax.restore();
-
-            if (firstCall) {
-                firstCall = false;
-
-                let failStub = sinon.stub(window.$, 'ajax')
-                failStub.yieldsTo('success', '<?xml version="1.0" encoding="UTF-8"?><validation-result><status>fail</status><warning><line>19</line><column>15</column><message></message><element>title</element><path>/TEI/text[1]/body[1]/div[1]</path></warning></validation-result>')
-
-                writer.validate();
+            if (valid) {
+                t.pass('document validated pass');
             } else {
-                reset(writer);
+                t.pass('document validated fail');
             }
+            reset(writer);
         });
         
         writer.validate();
