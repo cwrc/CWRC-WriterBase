@@ -166,6 +166,14 @@ function EntitiesList(config) {
                 case 'remove':
                     w.tagger.removeEntity(id);
                     break;
+                case 'acceptmatching':
+                    acceptMatching(id);
+                    pm.update();
+                    break;
+                case 'rejectmatching':
+                    rejectMatching(id);
+                    pm.update();
+                    break;
             }
         });
         
@@ -194,6 +202,13 @@ function EntitiesList(config) {
         '<span data-action="remove" class="ui-state-default" title="Remove"><span class="ui-icon ui-icon-close"/></span>';
         var convertActions = '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"/></span>'+
         '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"/></span>';
+        if (isConvert) {
+            var hasMatching = getMatchesForEntity(entity.getId()).length > 0;
+            if (hasMatching) {
+                convertActions += '<span data-action="acceptmatching" class="ui-state-default" title="Accept All Matching"><span class="ui-icon ui-icon-circle-check"/></span>';
+                convertActions += '<span data-action="rejectmatching" class="ui-state-default" title="Reject All Matching"><span class="ui-icon ui-icon-circle-close"/></span>';
+            }
+        }
 
         return `
         <li class="${entity.getType()}" data-type="${entity.getType()}" data-id="${entity.getId()}">
@@ -270,6 +285,22 @@ function EntitiesList(config) {
         return entities;
     }
 
+    var getMatchesForEntity = function(entityId) {
+        var matches = [];
+        var match = w.entitiesManager.getEntity(entityId);
+        w.entitiesManager.eachEntity(function(i, ent) {
+            if (ent.getId() !== match.getId()) {
+                if (JSON.stringify(ent.getAttributes()) === JSON.stringify(match.getAttributes()) &&
+                    JSON.stringify(ent.getCustomValues()) === JSON.stringify(match.getCustomValues()) &&
+                    ent.getContent() === match.getContent()
+                ) {
+                    matches.push(ent.getId());
+                }
+            }
+        });
+        return matches;
+    }
+
     var acceptEntity = function(entityId) {
         var entity = w.entitiesManager.getEntity(entityId);
         entity.removeAttribute('_candidate');
@@ -278,6 +309,24 @@ function EntitiesList(config) {
 
     var rejectEntity = function(entityId) {
         w.tagger.convertEntityToTag(entityId);
+    }
+
+    var acceptMatching = function(entityId) {
+        var matches = getMatchesForEntity(entityId);
+        
+        acceptEntity(entityId);
+        matches.forEach(function(entId) {
+            acceptEntity(entId);
+        });
+    }
+
+    var rejectMatching = function(entityId) {
+        var matches = getMatchesForEntity(entityId);
+        
+        rejectEntity(entityId);
+        matches.forEach(function(entId) {
+            rejectEntity(entId);
+        });
     }
 
     var acceptAll = function() {

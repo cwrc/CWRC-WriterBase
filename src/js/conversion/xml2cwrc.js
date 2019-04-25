@@ -195,8 +195,9 @@ function XML2CWRC(writer) {
         var hasRDF = processRDF(doc);
 
         buildDocumentAndInsertEntities(doc).then(function() {
-            showMessage(doc);
+            // we need loading indicator to close before showing another modal dialog, so publish event before showMessage
             w.event('documentLoaded').publish(true, w.editor.getBody());
+            showMessage(doc);
         });
     }
 
