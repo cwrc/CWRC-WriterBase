@@ -22,7 +22,7 @@ function XML2CWRC(writer) {
         '_tag': true,
         '_textallowed': true,
         '_note': true,
-        '_nerve': true,
+        '_candidate': true,
         '_attributes': true,
         'id': true,
         'name': true,

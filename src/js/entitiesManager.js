@@ -123,6 +123,54 @@ EntitiesManager.prototype = {
     },
     
     /**
+     * Gets all the entities, sorted by a particular method.
+     * @param {String} [sortingMethod] Either "seq" (sequential), "cat" (categorical), or "alpha" (alphabetical). Default is "seq".
+     * @returns {Array}
+     */
+    getEntitiesArray: function(sortingMethod) {
+        sortingMethod = sortingMethod === undefined ? 'seq' : sortingMethod;
+
+        var sortedEntities = [];
+
+        if (sortingMethod === 'cat') {
+            var entArray = Object.values(this.entities);
+            var categories = {};
+            entArray.forEach(function(entry) {
+                var type = entry.getType();
+                if (categories[type] === undefined) {
+                    categories[type] = [];
+                }
+                categories[type].push(entry);
+            });
+            for (var type in categories) {
+                var category = categories[type];
+                for (var i = 0; i < category.length; i++) {
+                    var entry = category[i];
+                    sortedEntities.push(entry);
+                }
+            }
+        } else if (sortingMethod === 'alpha') {
+            sortedEntities = Object.values(this.entities).sort(function(a, b) {
+                var charA = a.getTitle().charAt(0).toLowerCase();
+                var charB = b.getTitle().charAt(0).toLowerCase();
+                if (charA < charB) return -1;
+                if (charA > charB) return 1;
+                return 0;
+            });
+        } else {
+            var entityTags = $('[_entity][class~=start]', this.w.editor.getBody()); // sequential ordering
+            entityTags.each(function(index, el) {
+                var entry = this.getEntity($(el).attr('name'));
+                if (entry !== undefined) {
+                    sortedEntities.push(entry);
+                }
+            }.bind(this));
+        }
+
+        return sortedEntities;
+    },
+
+    /**
      * Iterate through all entities.
      * Callback is passed the ID and the Entity as arguments.
      * @param {Function} callback

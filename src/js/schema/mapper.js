@@ -395,7 +395,7 @@ Mapper.prototype = {
      */
     findEntities: function(typesToFind) {
         var allTypes = ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'];
-        var nonNoteTypes = ['person', 'place', 'date', 'org', 'citation', 'title', 'link'];
+        var nonNoteTypes = ['person', 'place', 'date', 'org', 'title', 'link'];
 
         typesToFind = typesToFind === undefined ? nonNoteTypes : typesToFind;
         

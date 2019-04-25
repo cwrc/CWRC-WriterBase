@@ -6,6 +6,10 @@
     padding: 0;
 }
 
+.entitiesPanel .moduleHeader > div {
+    margin: 5px;
+}
+
 .entitiesList > li {
     list-style: none;
     margin: 5px 5px 10px 5px;
@@ -49,6 +53,20 @@
 
 .entitiesList .selected .entityTitle {
     color: #fff;
+}
+
+.entitiesList .actions {
+    margin: 6px 0 2px 2px;
+    display: none;
+}
+
+.entitiesList > li:hover .actions, .entitiesList .expanded .actions {
+    display: block;
+}
+
+.entitiesList .actions > span {
+    background: none !important;
+    border: none !important;
 }
 
 .entitiesList .info {

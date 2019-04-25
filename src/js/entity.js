@@ -172,6 +172,11 @@ Entity.prototype = {
     getAttributes: function() {
         return this.attributes;
     },
+    /**
+     * Set an attribute for the entity
+     * @param {String} name 
+     * @param {String} value 
+     */
     setAttribute: function(name, value) {
         this.attributes[name] = value;
     },

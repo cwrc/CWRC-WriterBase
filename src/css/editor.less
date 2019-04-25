@@ -76,20 +76,32 @@
     border-color: @entity-link;
 }
 
-.nerve .entity[_nerve] {
-    border-width: 0px;
+.entity[_candidate] {
+    border-width: 0px !important;
 }
-.nerve .entity.person[_nerve] {
-    color: @entity-person;
+.entity.person[_candidate] {
+    color: @entity-person !important;
 }
-.nerve .entity.place[_nerve] {
-    color: @entity-place;
+.entity.place[_candidate] {
+    color: @entity-place !important;
 }
-.nerve .entity.org[_nerve] {
-    color: @entity-org;
+.entity.org[_candidate] {
+    color: @entity-org !important;
 }
-.nerve .entity.title[_nerve] {
-    color: @entity-title;
+.entity.title[_candidate] {
+    color: @entity-title !important;
+}
+.entity.date[_candidate] {
+    color: @entity-date !important;
+}
+.entity.correction[_candidate] {
+    color: @entity-correction !important;
+}
+.entity.link[_candidate] {
+    color: @entity-link !important;
+}
+.entity.keyword[_candidate] {
+    color: @entity-keyword !important;
 }
 
 .noteWrapper::before {
