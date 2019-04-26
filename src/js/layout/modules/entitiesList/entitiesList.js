@@ -25,7 +25,18 @@ function EntitiesList(config) {
             <div class="moduleHeader">
                 <div>
                     <button class="convert">Scrape Candidate Entities</button>
+                    <span style="display: none;">Candidate Entities</span>
                 </div>
+                <div class="convertActions" style="display: none;">
+                    <button class="accept">Accept All</button>
+                    <button class="reject">Reject All</button>
+                    <button class="done">Done</button>
+                </div>
+            </div>
+            <div class="moduleContent">
+                <ul class="entitiesList"></ul>
+            </div>
+            <div class="moduleFooter">
                 <div>
                     <label for="filter">Filter</label>
                     <select name="filter">
@@ -50,20 +61,15 @@ function EntitiesList(config) {
                         <option value="cat">Categorical</option>
                     </select>
                 </div>
-                <div class="convertActions" style="display: none;">
-                    <button class="accept">Accept All</button>
-                    <button class="reject">Reject All</button>
-                    <button class="done">Done</button>
-                </div>
-            </div>
-            <div class="moduleContent">
-                <ul class="entitiesList"></ul>
             </div>
         </div>`
     );
 
     $entities.find('select').selectmenu({
-        appendTo: w.layoutManager.getContainer()
+        appendTo: w.layoutManager.getContainer(),
+        position: {
+            my: "left top", at: "left bottom", collision: "flipfit"
+        }
     });
 
     $entities.find('button.convert').button().click(function() {
@@ -119,9 +125,9 @@ function EntitiesList(config) {
         var entities = w.entitiesManager.getEntitiesArray(getSorting());
 
         if (isConvert) {
-            entities = entities.filter(function(entry) {
-                return entry.getAttribute('_candidate') === 'true' && entry.getCustomValue('nerve') !== 'true';
-            });
+            $entities.find('ul.entitiesList').addClass('candidates');
+        } else {
+            $entities.find('ul.entitiesList').removeClass('candidates');
         }
 
         var filter = getFilter();
@@ -183,6 +189,8 @@ function EntitiesList(config) {
     };
 
     var getEntityView = function(entity) {
+        var isCandidate = entity.getAttribute('_candidate') === 'true';
+
         var infoString = '<ul>';
         var entityAttributes = entity.getAttributes()
         var urlAttributes = w.schemaManager.mapper.getUrlAttributes();
@@ -211,12 +219,12 @@ function EntitiesList(config) {
         }
 
         return `
-        <li class="${entity.getType()}" data-type="${entity.getType()}" data-id="${entity.getId()}">
+        <li class="${entity.getType()} ${isCandidate ? 'candidate' : ''}" data-type="${entity.getType()}" data-id="${entity.getId()}">
             <div>
                 <div class="header">
                     <span class="icon"/>
                     <span class="entityTitle">${entity.getContent()}</span>
-                    <div class="actions">${isConvert ? convertActions : regularActions}</div>
+                    <div class="actions">${isConvert && isCandidate ? convertActions : regularActions}</div>
                 </div>
                 <div class="info">${infoString}</div>
             </div>
@@ -254,7 +262,7 @@ function EntitiesList(config) {
         if (potentialEntities.length > 0) {
             isConvert = true;
             $entities.find('.convertActions').show();
-            $entities.find('button.convert').button('option', 'disabled', true);
+            $entities.find('button.convert').hide().button('option', 'disabled', true).next('span').show();
 
             var li = w.dialogManager.getDialog('loadingindicator');
             li.setText('Converting Entities');
@@ -348,7 +356,7 @@ function EntitiesList(config) {
     var handleDone = function() {
         isConvert = false;
         $entities.find('.convertActions').hide();
-        $entities.find('button.convert').button('option', 'disabled', false);
+        $entities.find('button.convert').show().button('option', 'disabled', false).next('span').hide();
         pm.update();
     }
     // CONVERSION END
@@ -383,7 +391,7 @@ function EntitiesList(config) {
     });
     w.event('entityUnfocused').subscribe(function(entityId) {
         $entities.find('ul.entitiesList > li').each(function(index, el) {
-            $(this).removeClass('selected').removeClass('expanded');
+            $(this).removeClass('expanded');
         });
     });
     w.event('entityPasted').subscribe(function(entityId) {

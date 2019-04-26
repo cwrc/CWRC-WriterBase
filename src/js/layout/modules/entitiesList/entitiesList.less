@@ -6,10 +6,6 @@
     padding: 0;
 }
 
-.entitiesPanel .moduleHeader > div {
-    margin: 5px;
-}
-
 .entitiesList > li {
     list-style: none;
     margin: 5px 5px 10px 5px;
@@ -60,7 +56,7 @@
     display: none;
 }
 
-.entitiesList > li:hover .actions, .entitiesList .expanded .actions {
+.entitiesList > li:hover .actions, .entitiesList .expanded .actions, .entitiesList > li.candidate .actions {
     display: block;
 }
 
@@ -96,134 +92,151 @@
     word-break: break-all;
 }
 
-.entitiesList .person .icon {
+.entitiesList .person .icon, .entitiesList.candidates .person.candidate .icon {
     background-image: url('../img/user.png');
+    opacity: 1;
 }
-
-.entitiesList .person > div {
+.entitiesList .person > div, .entitiesList.candidates .person.candidate > div {
     background-color: mix(desaturate(@entity-person, 30%), #fff, 50%);
 }
-
-.entitiesList .person.selected > div , .entitiesList .person.over > div  {
-    background-color: @entity-person;
+.entitiesList.candidates .person > div {
+    background-color: mix(desaturate(@entity-person, 60%), #fff, 25%);
+}
+.entitiesList.candidates .person .icon {
+    opacity: 0.5;
 }
 
-.entitiesList .place .icon {
+
+.entitiesList .place .icon, .entitiesList.candidates .place.candidate .icon {
     background-image: url('../img/world.png');
+    opacity: 1;
 }
-
-.entitiesList .place > div {
+.entitiesList .place > div, .entitiesList.candidates .place.candidate > div {
     background-color: mix(desaturate(@entity-place, 30%), #fff, 50%);
 }
-
-.entitiesList .place.selected > div, .entitiesList .place.over > div {
-    background-color: @entity-place;
+.entitiesList.candidates .place > div {
+    background-color: mix(desaturate(@entity-place, 60%), #fff, 25%);
+}
+.entitiesList.candidates .place .icon {
+    opacity: 0.5;
 }
 
-.entitiesList .date .icon {
+
+.entitiesList .date .icon, .entitiesList.candidates .date.candidate .icon {
     background-image: url('../img/calendar.png');
+    opacity: 1;
 }
-
-.entitiesList .date > div {
+.entitiesList .date > div, .entitiesList.candidates .date.candidate > div {
     background-color: mix(desaturate(@entity-date, 30%), #fff, 50%);
 }
-
-.entitiesList .date.selected > div, .entitiesList .date.over > div {
-    background-color: @entity-date;
+.entitiesList.candidates .date > div {
+    background-color: mix(desaturate(@entity-date, 60%), #fff, 25%);
+}
+.entitiesList.candidates .date .icon {
+    opacity: 0.5;
 }
 
-.entitiesList .event .icon {
-    background-image: url('../img/cake.png');
-}
 
-.entitiesList .event > div {
-    background-color: mix(desaturate(@entity-event, 30%), #fff, 50%);
-}
-
-.entitiesList .event.selected > div, .entitiesList .event.over > div {
-    background-color: @entity-event;
-}
-
-.entitiesList .org .icon {
+.entitiesList .org .icon, .entitiesList.candidates .org.candidate .icon {
     background-image: url('../img/group.png');
+    opacity: 1;
 }
-
-.entitiesList .org > div {
+.entitiesList .org > div, .entitiesList.candidates .org.candidate > div {
     background-color: mix(desaturate(@entity-org, 30%), #fff, 50%);
 }
-
-.entitiesList .org.selected > div, .entitiesList .org.over > div {
-    background-color: @entity-org;
+.entitiesList.candidates .org > div {
+    background-color: mix(desaturate(@entity-org, 60%), #fff, 25%);
+}
+.entitiesList.candidates .org .icon {
+    opacity: 0.5;
 }
 
-.entitiesList .citation .icon {
+
+.entitiesList .citation .icon, .entitiesList.candidates .citation.candidate .icon {
     background-image: url('../img/vcard.png');
+    opacity: 1;
 }
-
-.entitiesList .citation > div {
+.entitiesList .citation > div, .entitiesList.candidates .citation.candidate > div {
     background-color: mix(desaturate(@entity-citation, 30%), #fff, 50%);
 }
-
-.entitiesList .citation.selected > div, .entitiesList .citation.over > div {
-    background-color: @entity-citation;
+.entitiesList.candidates .citation > div {
+    background-color: mix(desaturate(@entity-citation, 60%), #fff, 25%);
+}
+.entitiesList.candidates .citation .icon {
+    opacity: 0.5;
 }
 
-.entitiesList .note .icon {
+
+.entitiesList .note .icon, .entitiesList.candidates .note.candidate .icon {
     background-image: url('../img/note.png');
+    opacity: 1;
 }
-
-.entitiesList .note > div {
+.entitiesList .note > div, .entitiesList.candidates .note.candidate > div {
     background-color: mix(desaturate(@entity-note, 30%), #fff, 50%);
 }
-
-.entitiesList .note.selected > div, .entitiesList .note.over > div {
-    background-color: @entity-note;
+.entitiesList.candidates .note > div {
+    background-color: mix(desaturate(@entity-note, 60%), #fff, 25%);
+}
+.entitiesList.candidates .note .icon {
+    opacity: 0.5;
 }
 
-.entitiesList .title .icon {
+
+.entitiesList .title .icon, .entitiesList.candidates .title.candidate .icon {
     background-image: url('../img/book.png');
+    opacity: 1;
 }
-
-.entitiesList .title > div {
+.entitiesList .title > div, .entitiesList.candidates .title.candidate > div {
     background-color: mix(desaturate(@entity-title, 30%), #fff, 50%);
 }
-
-.entitiesList .title.selected > div, .entitiesList .title.over > div {
-    background-color: @entity-title;
+.entitiesList.candidates .title > div {
+    background-color: mix(desaturate(@entity-title, 60%), #fff, 25%);
+}
+.entitiesList.candidates .title .icon {
+    opacity: 0.5;
 }
 
-.entitiesList .correction .icon {
+
+.entitiesList .correction .icon, .entitiesList.candidates .correction.candidate .icon {
     background-image: url('../img/error.png');
+    opacity: 1;
 }
-
-.entitiesList .correction > div {
+.entitiesList .correction > div, .entitiesList.candidates .correction.candidate > div {
     background-color: mix(desaturate(@entity-correction, 30%), #fff, 50%);
 }
-
-.entitiesList .correction.selected > div, .entitiesList .correction.over > div {
-    background-color: @entity-correction;
+.entitiesList.candidates .correction > div {
+    background-color: mix(desaturate(@entity-correction, 60%), #fff, 25%);
+}
+.entitiesList.candidates .correction .icon {
+    opacity: 0.5;
 }
 
-.entitiesList .keyword .icon {
+
+.entitiesList .keyword .icon, .entitiesList.candidates .keyword.candidate .icon {
     background-image: url('../img/page_key.png');
+    opacity: 1;
 }
-
-.entitiesList .keyword > div {
+.entitiesList .keyword > div, .entitiesList.candidates .keyword.candidate > div {
     background-color: mix(desaturate(@entity-keyword, 30%), #fff, 50%);
 }
-
-.entitiesList .keyword.selected > div, .entitiesList .keyword.over > div {
-    background-color: @entity-keyword;
+.entitiesList.candidates .keyword > div {
+    background-color: mix(desaturate(@entity-keyword, 60%), #fff, 25%);
+}
+.entitiesList.candidates .keyword .icon {
+    opacity: 0.5;
 }
 
-.entitiesList .link .icon {
+
+.entitiesList .link .icon, .entitiesList.candidates .link.candidate .icon {
     background-image: url('../img/link.png');
+    opacity: 1;
 }
-
-.entitiesList .link > div {
+.entitiesList .link > div, .entitiesList.candidates .link.candidate > div {
     background-color: mix(desaturate(@entity-link, 30%), #fff, 50%);
 }
-
-.entitiesList .link.selected > div, .entitiesList .link.over > div {
-    background-color: @entity-link;
+.entitiesList.candidates .link > div {
+    background-color: mix(desaturate(@entity-link, 60%), #fff, 25%);
+}
+.entitiesList.candidates .link .icon {
+    opacity: 0.5;
 }
