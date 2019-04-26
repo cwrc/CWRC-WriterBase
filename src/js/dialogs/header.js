@@ -22,8 +22,10 @@ function Header(writer, parentEl) {
         width: 400,
         position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
         autoOpen: false,
-        buttons: {
-            'Ok': function() {
+        buttons: [{
+            text: 'Ok',
+            role: 'ok',
+            click: function() {
                 var editorString = '<head>'+$headerDialog.find('textarea').val()+'</head>';
                 var xml;
                 try {
@@ -44,11 +46,14 @@ function Header(writer, parentEl) {
                 $('[_tag="'+w.schemaManager.getHeader()+'"]', w.editor.getBody()).html(headerString);
                 
                 $headerDialog.dialog('close');
-            },
-            'Cancel': function() {
+            }
+        },{
+            text: 'Cancel',
+            role: 'cancel',
+            click: function() {
                 $headerDialog.dialog('close');
             }
-        }
+        }]
     });
     
     function doOpen() {

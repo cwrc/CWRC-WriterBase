@@ -20,18 +20,23 @@ function EditSource(writer, parentEl) {
         height: 480,
         width: 640,
         autoOpen: false,
-        buttons: {
-            'Ok': function() {
+        buttons: [{
+            text: 'Ok',
+            role: 'ok',
+            click: function() {
                 var newDocString = $('textarea', $edit).val();
                 $edit.dialog('close');
                 setTimeout(function() {
                     w.loadDocumentXML(newDocString, false);
                 }, 0);
             },
-            'Cancel': function() {
+        },{
+            text: 'Cancel',
+            role: 'cancel',
+            click: function() {
                 $edit.dialog('close');
             }
-        },
+        }],
         open: function(e) {
             console.time('set focus');
             var $text = $(this).find('textarea');

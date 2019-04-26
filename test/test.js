@@ -398,6 +398,91 @@ test('dialogs.settings', (t) => {
         dialogClickOk();
 
         t.true(writer.settings.getSettings().showTags === !initShowTagSetting, 'show tags changed');
+
+        reset(writer)
+    })
+});
+
+test('dialogs.header', (t) => {
+    t.plan(2);
+    
+    let writer = new CWRCWriter(getConfigForTestingConstructor())
+    
+    initAndLoadDoc(writer, teiDoc).then(() => {
+        window.$('.editHeader', writer.layoutManager.getHeaderButtonsParent()).click();
+        
+        let headerDialog = window.$('.cwrcDialogWrapper .ui-dialog:visible');
+        t.true(headerDialog.find('.ui-dialog-title').text() === 'Edit Header', 'dialog shown');
+        
+        headerDialog.find('textarea').val('<test>Test Header</test>');
+
+        dialogClickOk();
+
+        t.true(window.$('[_tag="teiHeader"] > [_tag="test"]', writer.editor.getBody()).length === 1, 'header changed');
+
+        reset(writer)
+    })
+});
+
+test('dialogs.message confirm', (t) => {
+    t.plan(2);
+    
+    let writer = new CWRCWriter(getConfigForTestingConstructor())
+    
+    initAndLoadDoc(writer, teiDoc).then(() => {
+        writer.dialogManager.confirm({
+            title: 'Confirm Test',
+            msg: 'Test',
+            callback: (doIt) => {
+                t.true(doIt === true, 'yes clicked');
+                reset(writer);
+            }
+        })
+
+        let confirmDialog = window.$('.cwrcDialogWrapper .ui-dialog:visible');
+        t.true(confirmDialog.find('.ui-dialog-title').text() === 'Confirm Test', 'dialog shown');
+
+        dialogClickYes();
+    })
+});
+
+test('dialogs.editSource', (t) => {
+    t.plan(2);
+    
+    let writer = new CWRCWriter(getConfigForTestingConstructor())
+    
+    initAndLoadDoc(writer, teiDoc).then(() => {
+        writer.dialogManager.show('editSource');
+        dialogClickYes();
+
+        setTimeout(() => {
+            let editDialog = window.$('.cwrcDialogWrapper .ui-dialog:visible');
+            t.true(editDialog.find('.ui-dialog-title').text() === 'Edit Source', 'dialog shown');
+
+            editDialog.find('textarea').val('<?xml version="1.0" encoding="UTF-8"?><?xml-model href="https://cwrc.ca/schemas/cwrc_tei_lite.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?><?xml-stylesheet type="text/css" href="https://cwrc.ca/templates/css/tei.css"?><TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><text><body>Test</body></text></TEI>');
+            dialogClickOk();
+
+            setTimeout(() => {
+                t.true(window.$('[_tag="teiHeader"]', writer.editor.getBody()).length === 0, 'source edited');
+                reset(writer);
+            }, 50);
+        }, 50);
+    })
+});
+
+test('dialogs.popup', (t) => {
+    t.plan(1);
+    
+    let writer = new CWRCWriter(getConfigForTestingConstructor())
+    
+    initAndLoadDoc(writer, teiDoc).then(() => {
+        window.$('[_tag="ref"][_type="link"]', writer.editor.getBody()).trigger('mouseover');
+
+        setTimeout(() => {
+            let popup = window.$('.cwrcDialogWrapper .ui-dialog.popup:visible');
+            t.true(popup.length === 1, 'popup shown');
+            reset(writer);
+        }, 50)
     })
 });
 
@@ -426,7 +511,7 @@ let dialogClickNo = () => {
     no.click();
 }
 
-const teiDoc = `<?xml version="1.0" encoding="UTF-8"?><?xml-model href="https://cwrc.ca/schemas/cwrc_tei_lite.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?><?xml-stylesheet type="text/css" href="https://cwrc.ca/templates/css/tei.css"?><TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:cw="http://cwrc.ca/ns/cw#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+const teiDoc = `<?xml version="1.0" encoding="UTF-8"?><?xml-model href="https://cwrc.ca/schemas/cwrc_tei_lite.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?><?xml-stylesheet type="text/css" href="https://cwrc.ca/templates/css/tei.css"?><TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 <teiHeader>
     <fileDesc>
         <titleStmt>
