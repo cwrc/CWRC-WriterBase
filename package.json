@@ -92,7 +92,7 @@
     "precommit": "npm run test && npm run check-coverage",
     "test": "npm run test:electron && npm run generate-coverage",
     "test:watch": "watchify test/test.js --debug -o test/build/test.js -g deamdify -t [ browserify-istanbul --ignore \"**/schema/cwrcEntry/**\" --ignore \"**/schema/orlando/**\" ]",
-    "test:electron": "mkdirp coverage && browserify -g deamdify -t [ browserify-istanbul --ignore \"**/schema/cwrcEntry/**\" --ignore \"**/schema/orlando/**\" ] test/test.js | browser-run --static . | node test/extract-coverage.js | faucet ",
+    "test:electron": "mkdirp coverage && mkdirp .nyc_output && browserify -g deamdify -t [ browserify-istanbul --ignore \"**/schema/cwrcEntry/**\" --ignore \"**/schema/orlando/**\" ] test/test.js | browser-run --static . | node test/extract-coverage.js | faucet ",
     "generate-coverage": "nyc report --reporter=lcov",
     "check-coverage": "nyc check-coverage --statements 5 --branches 1 --functions 1 --lines 5",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
