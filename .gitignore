@@ -11,4 +11,4 @@
 /coverage
 /test/build/test.js
 npm-debug.log
-
+/.nyc_output
