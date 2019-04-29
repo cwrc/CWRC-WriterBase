@@ -96,10 +96,11 @@ LayoutManager.prototype = {
         fscreen.addEventListener('fullscreenchange', function() {
             var fscreenButton = this.w.editor.theme.panel.find('button#fullscreen');
             if (fscreenButton.length == 1) {
+                var $iEl = fscreenButton[0].$el.find('i');
                 if (fscreen.fullscreenElement !== null) {
-                    fscreenButton[0].$el.find('i').css('background-image', 'url("' + this.w.cwrcRootUrl + 'img/arrow_in.png")');
+                    $iEl.removeClass('fullscreen-activate').addClass('fullscreen-deactivate');
                 } else {
-                    fscreenButton[0].$el.find('i').css('background-image', 'url("' + this.w.cwrcRootUrl + 'img/arrow_out.png")');
+                    $iEl.removeClass('fullscreen-deactivate').addClass('fullscreen-activate');
                 }
             }
             if (this.w.isReadOnly || this.w.isAnnotator) {

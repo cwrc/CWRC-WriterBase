@@ -349,6 +349,19 @@ test('tagger.splitTag tagger.mergeTags', (t) => {
     })
 });
 
+test('schemaManager.getRootForSchema', (t) => {
+    t.plan(1);
+    
+    let writer = new CWRCWriter(getConfigForTestingConstructor())
+    
+    initAndLoadDoc(writer, teiDoc).then(() => {
+        writer.schemaManager.getRootForSchema('tei').then((result) => {
+            t.true(result === 'TEI', 'got root for schema');
+            reset(writer);
+        });
+    })
+});
+
 test('mapper.convertTagToEntity', (t) => {
     t.plan(1);
     
@@ -363,6 +376,18 @@ test('mapper.convertTagToEntity', (t) => {
 
         let persTag = window.$('[_tag="persName"]', writer.editor.getBody())[0];
         writer.schemaManager.mapper.convertTagToEntity(persTag);
+    })
+});
+
+test('mapper.findEntities', (t) => {
+    t.plan(1);
+    
+    let writer = new CWRCWriter(getConfigForTestingConstructor())
+    
+    initAndLoadDoc(writer, teiDoc).then(() => {
+        let entities = writer.schemaManager.mapper.findEntities()
+        t.true(entities.person.length === 1, 'entity found')
+        reset(writer)
     })
 });
 
