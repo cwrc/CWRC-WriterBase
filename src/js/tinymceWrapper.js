@@ -19,6 +19,7 @@ function TinymceWrapper() {
  * @param {Writer} config.writer
  * @param {String} config.editorId
  * @param {String} config.layoutContainerId
+ * @param {String} [config.iconType] "img" or "fas"
  * @param {String} [config.buttons1]
  * @param {String} [config.buttons2]
  * @param {String} [config.buttons3]
@@ -27,6 +28,8 @@ TinymceWrapper.init = function(config) {
     var w = config.writer;
     var editorId = config.editorId;
     var layoutContainerId = config.layoutContainerId;
+
+    var iconType = config.iconType === undefined ? 'img' : config.iconType;
 
     /**
      * Init tinymce
@@ -192,79 +195,73 @@ TinymceWrapper.init = function(config) {
             };
 
             addButtonToEditor('addperson', {
-                title: 'Tag Person', image: w.cwrcRootUrl + 'img/user.png', entityButton: true,
+                title: 'Tag Person', icon: ' '+iconType+' person', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('person');
                 }
             });
             addButtonToEditor('addplace', {
-                title: 'Tag Place', image: w.cwrcRootUrl + 'img/world.png', entityButton: true,
+                title: 'Tag Place', icon: ' '+iconType+' place', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('place');
                 }
             });
             addButtonToEditor('adddate', {
-                title: 'Tag Date', image: w.cwrcRootUrl + 'img/calendar.png', entityButton: true,
+                title: 'Tag Date', icon: ' '+iconType+' date', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('date');
                 }
             });
-            addButtonToEditor('addevent', {
-                title: 'Tag Event', image: w.cwrcRootUrl + 'img/cake.png', entityButton: true,
-                onclick: function() {
-                    w.tagger.addEntityDialog('event');
-                }
-            });
             addButtonToEditor('addorg', {
-                title: 'Tag Organization', image: w.cwrcRootUrl + 'img/group.png', entityButton: true,
+                title: 'Tag Organization', icon: ' '+iconType+' org', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('org');
                 }
             });
             addButtonToEditor('addcitation', {
-                title: 'Tag Citation', image: w.cwrcRootUrl + 'img/vcard.png', entityButton: true,
+                title: 'Tag Citation', icon: ' '+iconType+' citation', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('citation');
                 }
             });
             addButtonToEditor('addnote', {
-                title: 'Tag Note', image: w.cwrcRootUrl + 'img/note.png', entityButton: true,
+                title: 'Tag Note', icon: ' '+iconType+' note', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('note');
                 }
             });
             addButtonToEditor('addcorrection', {
-                title: 'Tag Correction', image: w.cwrcRootUrl + 'img/error.png', entityButton: true,
+                title: 'Tag Correction', icon: ' '+iconType+' correction', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('correction');
                 }
             });
             addButtonToEditor('addkeyword', {
-                title: 'Tag Keyword', image: w.cwrcRootUrl + 'img/key.png', entityButton: true,
+                title: 'Tag Keyword', icon: ' '+iconType+' keyword', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('keyword');
                 }
             });
             addButtonToEditor('addlink', {
-                title: 'Tag Link', image: w.cwrcRootUrl + 'img/link.png', entityButton: true,
+                title: 'Tag Link', icon: ' '+iconType+' link', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('link');
                 }
             });
             addButtonToEditor('addtitle', {
-                title: 'Tag Text/Title', image: w.cwrcRootUrl + 'img/book.png', entityButton: true,
+                title: 'Tag Text/Title', icon: ' '+iconType+' title', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('title');
                 }
             });
             addButtonToEditor('editTag', {
-                title: 'Edit Tag', image: w.cwrcRootUrl + 'img/tag_blue_edit.png',
+                title: 'Edit Tag', icon: ' '+iconType+' tag-edit',
                 onclick: function() {
                     w.tagger.editTagDialog();
                 }
             });
             addButtonToEditor('removeTag', {
-                title: 'Remove Tag', image: w.cwrcRootUrl + 'img/tag_blue_delete.png',
+                title: 'Remove Tag', icon: ' '+iconType+' tag-delete',
                 onclick: function() {
                     w.tagger.removeTag();
                 }
@@ -276,7 +273,7 @@ TinymceWrapper.init = function(config) {
                 }
             });
             addButtonToEditor('savebutton', {
-                title: 'Save', image: w.cwrcRootUrl + 'img/save.png',
+                title: 'Save', icon: ' '+iconType+' save',
                 onclick: function() {
                     w.showSaveDialog();
                 }
@@ -294,20 +291,20 @@ TinymceWrapper.init = function(config) {
                 }
             });
             addButtonToEditor('loadbutton', {
-                title: 'Load', image: w.cwrcRootUrl + 'img/folder_page.png',
+                title: 'Load', icon: ' '+iconType+' load',
                 onclick: function() {
                     w.showLoadDialog();
                 }
             });
 
             addButtonToEditor('viewmarkup', {
-                title: 'View Markup', image: w.cwrcRootUrl + 'img/page_white_code.png',
+                title: 'View Markup', icon: ' '+iconType+' view-markup',
                 onclick: function() {
                     w.selection.showSelection();
                 }
             });
             addButtonToEditor('toggletags', {
-                title: 'Toggle Tags', image: w.cwrcRootUrl + 'img/tag.png',
+                title: 'Toggle Tags', icon: ' '+iconType+' toggle-tags',
                 onclick: function() {
                     $('body', w.editor.getDoc()).toggleClass('showTags');
                     this.active($('body', w.editor.getDoc()).hasClass('showTags'));
@@ -315,26 +312,26 @@ TinymceWrapper.init = function(config) {
             });
 
             addButtonToEditor('editsource', {
-                title: 'Edit Source', image: w.cwrcRootUrl + 'img/page_white_edit.png',
+                title: 'Edit Source', icon: ' '+iconType+' edit-source',
                 onclick: function() {
                     w.dialogManager.show('editSource');
                 }
             });
             addButtonToEditor('validate', {
-                title: 'Validate', image: w.cwrcRootUrl + 'img/validate.png',
+                title: 'Validate', icon: ' '+iconType+' validate',
                 onclick: function() {
                     w.validate();
                 }
             });
             addButtonToEditor('addtriple', {
-                title: 'Add Relation', image: w.cwrcRootUrl + 'img/chart_org.png',
+                title: 'Add Relation', icon: ' '+iconType+' add-triple',
                 onclick: function() {
                     $('#westTabs').tabs('option', 'active', 2);
                     w.dialogManager.show('triple');
                 }
             });
             addButtonToEditor('fullscreen', {
-                name: 'fullscreen', title: 'Toggle Fullscreen', image: w.cwrcRootUrl + 'img/arrow_out.png',
+                name: 'fullscreen', title: 'Toggle Fullscreen', icon: ' '+iconType+' fullscreen-activate',
                 onclick: function() {
                     w.layoutManager.toggleFullScreen();
                 }

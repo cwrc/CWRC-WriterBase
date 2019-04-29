@@ -37,8 +37,8 @@ function EntitiesList(config) {
                 <ul class="entitiesList"></ul>
             </div>
             <div class="moduleFooter">
-                <div>
-                    <label for="filter">Filter</label>
+                <div style="display: inline-block;">
+                    <label for="filter" title="Filter" class="fas fa-filter"></label>
                     <select name="filter">
                         <option value="all" selected="selected">All</option>
                         <option value="person">Person</option>
@@ -53,8 +53,8 @@ function EntitiesList(config) {
                         <option value="link">Link</option>
                     </select>
                 </div>
-                <div>
-                    <label for="sorting">Sorting</label>
+                <div style="display: inline-block;">
+                    <label for="sorting" title="Sorting" class="fas fa-sort"></label>
                     <select name="sorting">
                         <option value="seq" selected="selected">Sequential</option>
                         <option value="alpha">Alphabetical</option>
@@ -69,7 +69,8 @@ function EntitiesList(config) {
         appendTo: w.layoutManager.getContainer(),
         position: {
             my: "left top", at: "left bottom", collision: "flipfit"
-        }
+        },
+        width: 90
     });
 
     $entities.find('button.convert').button().click(function() {
@@ -184,7 +185,7 @@ function EntitiesList(config) {
         });
         
         if (w.entitiesManager.getCurrentEntity()) {
-            $entities.find('ul.entitiesList  > li[data-id="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('selected expanded').find('div[class="info"]').show();
+            $entities.find('ul.entitiesList  > li[data-id="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('expanded').find('div[class="info"]').show();
         }
     };
 

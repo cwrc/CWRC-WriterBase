@@ -1,0 +1,198 @@
+@entity-person: rgb(255, 0, 0);
+@entity-place: rgb(0, 153, 153);
+@entity-date: rgb(255, 114, 0);
+@entity-org: rgb(109, 56, 214);
+@entity-title: rgb(224, 190, 0);
+@entity-correction: rgb(255, 51, 0);
+@entity-link: rgb(50, 101, 255);
+@entity-event: rgb(0, 204, 0);
+@entity-citation: rgb(205, 0, 116);
+@entity-note: rgb(13, 86, 166);
+@entity-keyword: rgb(0, 128, 64);
+
+.fa, .fas {
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    color: #777;
+}
+
+/* entities */
+
+.fas.person:before {
+    content: "\f007";
+    color: @entity-person;
+}
+.img.person:before {
+    content: url(../img/user.png);
+}
+
+.fas.org:before {
+    content: "\f0c0";
+    color: @entity-org;
+}
+.img.org:before {
+    content: url(../img/group.png);
+}
+
+.fas.place:before {
+    content: "\f0ac";
+    color: @entity-place;
+}
+.img.place:before {
+    content: url(../img/world.png);
+}
+
+.fas.date:before {
+    content: "\f073";
+    color: @entity-date;
+}
+.img.date:before {
+    content: url(../img/calendar.png);
+}
+
+.fas.citation:before {
+    content: "\f2bb";
+    color: @entity-citation;
+}
+.img.citation:before {
+    content: url(../img/vcard.png);
+}
+
+.fas.note:before {
+    content: "\f249";
+    color: @entity-note;
+}
+.img.note:before {
+    content: url(../img/note.png);
+}
+
+.fas.title:before {
+    content: "\f02d";
+    color: @entity-title;
+}
+.img.title:before {
+    content: url(../img/book.png);
+}
+
+.fas.correction:before {
+    content: "\f06a";
+    color: @entity-correction;
+}
+.img.correction:before {
+    content: url(../img/error.png);
+}
+
+.fas.keyword:before {
+    content: "\f084";
+    color: @entity-keyword;
+}
+.img.keyword:before {
+    content: url(../img/key.png);
+}
+
+.fas.link:before {
+    content: "\f0c1";
+    color: @entity-link;
+}
+.img.link:before {
+    content: url(../img/link.png);
+}
+
+/* general purpose */
+
+.fas.tag:before {
+    content: "\f02b";
+}
+
+.fas.tag-edit:before {
+    content: "\f02b";
+    color: #dfb667;
+}
+.img.tag-edit:before {
+    content: url(../img/tag_blue_edit.png);
+}
+
+.fas.tag-delete:before {
+    content: "\f02b";
+    color: #e36e20;
+}
+.img.tag-delete:before {
+    content: url(../img/tag_blue_delete.png);
+}
+
+.fas.tag-copy:before {
+    content: "\f02c";
+}
+
+.fas.toggle-tags:before {
+    content: "\f121";
+    color: #63a0e0;
+}
+.img.toggle-tags:before {
+    content: url(../img/tag.png);
+}
+
+.fas.view-markup:before {
+    content: "\f1c9";
+    color: #63a0e0;
+}
+.img.view-markup:before {
+    content: url(../img/page_white_code.png);
+}
+
+.fas.edit-source:before {
+    content: "\f044";
+}
+.img.edit-source:before {
+    content: url(../img/page_white_edit.png);
+}
+
+.fas.add-triple:before {
+    content: "\f542";
+}
+.img.add-triple:before {
+    content: url(../img/chart_org.png);
+}
+
+.fas.help:before {
+    content: "\f059";
+}
+
+.fas.settings:before {
+    content: "\f013";
+}
+
+.fas.save:before {
+    content: "\f0c7";
+}
+.img.save:before {
+    content: url(../img/save.png);
+}
+
+.fas.load:before {
+    content: "\f07c";
+}
+.img.load:before {
+    content: url(../img/folder_page.png);
+}
+
+.fas.validate:before {
+    content: "\f46c";
+}
+.img.validate:before {
+    content: url(../img/validate.png);
+}
+
+.fas.fullscreen-activate:before {
+    content: "\f31e";
+}
+.img.fullscreen-activate:before {
+    content: url(../img/arrow_out.png);
+}
+
+.fas.fullscreen-deactivate:before {
+    content: "\f78c";
+}
+.img.fullscreen-deactivate:before {
+    content: url(../img/arrow_in.png);
+}
