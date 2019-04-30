@@ -64,7 +64,6 @@
     background-color: #fff;
 }
 
-
 .headerDialog div {
     position: absolute;
     top: 5px;
@@ -78,30 +77,4 @@
     height: 100%;
     margin: 0;
     padding: 0;
-}
-
-.mce-cwrc.mce-btn {
-    border: none;
-    background: rgba(0, 0, 0, 0);
-    margin-bottom: 1px;
-}
-
-.mce-cwrc.mce-btn button i {
-    margin-right: 4px;
-    padding: 0px;
-}
-
-.mce-cwrc.mce-btn.mce-active, .mce-cwrc.mce-btn:hover {
-    background-color: #2d8ac7 !important;
-}
-
-.mce-cwrc.mce-btn.mce-active button, .mce-cwrc.mce-btn:hover button {
-    text-decoration: none;
-    color: #fff !important;
-}
-
-.mce-cwrc label {
-    padding: 6px 15px 6px 12px;
-    background-color: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.2);
 }

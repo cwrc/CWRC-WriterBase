@@ -1,4 +1,14 @@
-/* tinymce context menu overrides */
+.cwrc .mce-container, .cwrc .mce-container *, .cwrc .mce-widget, .cwrc .mce-widget * {
+    font-family: Lato,Arial,Helvetica,sans-serif;
+    font-size: 14px;
+}
+
+/* tinymce toolbar button override */
+.mce-toolbar-grp .mce-btn .mce-txt {
+    line-height: 14px;
+}
+
+/* tinymce menu overrides */
 .mce-cwrc .mce-menu-item {
     padding: 4px 2px;
 }
