@@ -79,6 +79,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
     }));
     
  
+    // Button to trigger the cwrcmenu
     tinymce.ui.Factory.add('cwrcpanelbutton', tinymce.ui.PanelButton.extend({
         // CHANGES
         // set popover to false
@@ -160,6 +161,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
                 initialFilterState: null,
                 image: imageUrl+'tag_blue.png',
                 onclick: function(e) {
+                    e.stopPropagation(); // prevent multiple click triggers from both parent floatpanels
                     var tagName = this.settings.key;
                     var action = this.settings.action;
                     if (action == "add") {
@@ -337,6 +339,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
     editor.addButton('schematags', {
         type: 'cwrcpanelbutton',
         text: 'Tags',
+        icon: ' img tag',
         popoverAlign: ['bl-tl', 'bl-tc'],
         panel: filterPanel
     });
