@@ -54,12 +54,11 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.24.1",
     "babelify": "^8.0.0",
-    "browser-run": "^5.0.0",
-    "browserify": "^14.5.0",
+    "browser-run": "^5.0.1",
+    "browserify": "^16.2.3",
     "browserify-istanbul": "^3.0.1",
-    "codecov": "^3.1.0",
-    "commitizen": "^2.10.1",
-    "concat-stream": "^1.6.2",
+    "codecov": "^3.3.0",
+    "commitizen": "^3.1.1",
     "copyfiles": "^1.2.0",
     "cross-env": "^5.2.0",
     "cwrc-git-dialogs": "^1.8.0",
@@ -69,7 +68,7 @@
     "deamdify": "^0.3.0",
     "faucet": "^0.0.1",
     "getty-entity-lookup": "^1.4.2",
-    "husky": "^0.13.4",
+    "husky": "^2.1.0",
     "less": "^3.8.1",
     "mkdirp": "^0.5.1",
     "nyc": "^14.0.0",
@@ -81,15 +80,13 @@
     "tape-promise": "^4.0.0",
     "travis-deploy-once": "^5.0.7",
     "viaf-entity-lookup": "^1.2.2",
-    "watch": "^1.0.2",
-    "watchify": "^3.11.0",
+    "watchify": "^3.11.1",
     "wikidata-entity-lookup": "^1.2.2"
   },
   "scripts": {
     "semantic-release": "semantic-release",
     "travis-deploy-once": "travis-deploy-once",
     "cm": "git-cz",
-    "precommit": "npm run test && npm run check-coverage",
     "test": "npm run test:electron && npm run generate-coverage",
     "test:watch": "watchify test/test.js --debug -o test/build/test.js -g deamdify -t [ browserify-istanbul --ignore \"**/schema/cwrcEntry/**\" --ignore \"**/schema/orlando/**\" ]",
     "test:electron": "mkdirp coverage && mkdirp .nyc_output && browserify -g deamdify -t [ browserify-istanbul --ignore \"**/schema/cwrcEntry/**\" --ignore \"**/schema/orlando/**\" ] test/test.js | browser-run --static . | node test/extract-coverage.js | faucet ",
@@ -111,6 +108,11 @@
   "config": {
     "commitizen": {
       "path": "node_modules/cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run test"
     }
   },
   "nyc": {
