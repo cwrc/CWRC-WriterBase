@@ -161,16 +161,15 @@ TinymceWrapper.init = function(config) {
                 if (w.isReadOnly) {
                     return;
                 }
-        
-                var containerPos = w.utilities.getOffsetPosition(w.layoutManager.getContainer());
-                var editorPosition = w.utilities.getOffsetPosition(ed.getContentAreaContainer());
+
+                var editorPosition = w.utilities.getOffsetPosition(ed.getContentAreaContainer(), window.document.documentElement);
 
                 var $editorBody = $(ed.getDoc().documentElement);
                 var editorScrollTop = $editorBody.scrollTop();
                 var editorScrollLeft = $editorBody.scrollLeft();
 
-                var adjustLeft = containerPos.left + editorPosition.left - editorScrollLeft;
-                var adjustTop = containerPos.top + editorPosition.top - editorScrollTop;
+                var adjustLeft = editorPosition.left - editorScrollLeft;
+                var adjustTop = editorPosition.top - editorScrollTop;
         
                 e.pageX += adjustLeft;
                 e.pageY += adjustTop;
