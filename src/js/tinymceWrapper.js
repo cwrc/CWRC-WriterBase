@@ -162,19 +162,18 @@ TinymceWrapper.init = function(config) {
                     return;
                 }
         
-                var position = w.utilities.getOffsetPosition(ed.getContentAreaContainer());
-                position.left += e.pageX;
-                position.top += e.pageY;
-        
+                var containerPos = w.utilities.getOffsetPosition(w.layoutManager.getContainer());
+                var editorPosition = w.utilities.getOffsetPosition(ed.getContentAreaContainer());
+
                 var $editorBody = $(ed.getDoc().documentElement);
                 var editorScrollTop = $editorBody.scrollTop();
                 var editorScrollLeft = $editorBody.scrollLeft();
+
+                var adjustLeft = containerPos.left + editorPosition.left - editorScrollLeft;
+                var adjustTop = containerPos.top + editorPosition.top - editorScrollTop;
         
-                position.left = position.left - editorScrollLeft;
-                position.top = position.top - editorScrollTop;
-        
-                e.pageX = position.left;
-                e.pageY = position.top;
+                e.pageX += adjustLeft;
+                e.pageY += adjustTop;
 
                 w.tagMenu.show(e, undefined, true);
             });
