@@ -106,6 +106,9 @@ function EntitiesList(config) {
     var getFilter = function() {
         return $entities.find('select[name="filter"]').val();
     }
+    var setFilter = function(value) {
+        $entities.find('select[name="filter"]').val(value).selectmenu('refresh');
+    }
     var getSorting = function() {
         return $entities.find('select[name="sorting"]').val();
     }
@@ -343,19 +346,27 @@ function EntitiesList(config) {
     }
 
     var acceptAll = function() {
+        var filter = getFilter();
         w.entitiesManager.eachEntity(function(i, entity) {
             if (entity.getAttribute('_candidate') === 'true' && entity.getCustomValue('nerve') !== 'true') {
-                acceptEntity(entity.getId());
+                if (filter === 'all' || filter === entity.getType()) {
+                    acceptEntity(entity.getId());
+                }
             }
         });
+        setFilter('all');
     }
 
     var rejectAll = function() {
+        var filter = getFilter();
         w.entitiesManager.eachEntity(function(i, entity) {
             if (entity.getAttribute('_candidate') === 'true' && entity.getCustomValue('nerve') !== 'true') {
-                rejectEntity(entity.getId());
+                if (filter === 'all' || filter === entity.getType()) {
+                    rejectEntity(entity.getId());
+                }
             }
         });
+        setFilter('all');
     }
 
     var handleDone = function() {
