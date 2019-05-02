@@ -24,13 +24,13 @@ function EntitiesList(config) {
         `<div class="moduleParent entitiesPanel">
             <div class="moduleHeader">
                 <div>
-                    <button class="convert">Scrape Candidate Entities</button>
+                    <button type="button" class="convert">Scrape Candidate Entities</button>
                     <span style="display: none;">Candidate Entities</span>
                 </div>
                 <div class="convertActions" style="display: none;">
-                    <button class="accept">Accept All</button>
-                    <button class="reject">Reject All</button>
-                    <button class="done">Done</button>
+                    <button type="button" class="accept">Accept All</button>
+                    <button type="button" class="reject">Reject All</button>
+                    <button type="button" class="done">Done</button>
                 </div>
             </div>
             <div class="moduleContent">

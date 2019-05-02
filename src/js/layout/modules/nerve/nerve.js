@@ -73,8 +73,8 @@ function Nerve(config) {
                         <!--<option value="both">Recognition & Linking</option>
                         <option value="link">Linking Only</option>-->
                     </select>
-                    <button class="run">Run</button>
-                    <button class="done" style="display: none;">Done</button>
+                    <button type="button" class="run">Run</button>
+                    <button type="button" class="done" style="display: none;">Done</button>
                 </div>
                 <div class="filters" style="display: none; margin: 0px;">
                     <div style="display: inline-block; margin: 5px;">
@@ -97,19 +97,19 @@ function Nerve(config) {
                     </div>
                 </div>
                 <div class="listActions" style="display: none;">
-                    <button class="expand">Expand All</button>
-                    <button class="accept">Accept All</button>
-                    <button class="reject">Reject All</button>
+                    <button type="button" class="expand">Expand All</button>
+                    <button type="button" class="accept">Accept All</button>
+                    <button type="button" class="reject">Reject All</button>
                 </div>
             </div>
             <div class="moduleContent">
                 <ul class="entitiesList"></ul>
             </div>
             <div class="moduleFooter">
-                <button class="mergeEntities">Merge Entities</button>
+                <button type="button" class="mergeEntities">Merge Entities</button>
                 <div class="mergeActions" style="display: none;">
-                    <button class="merge">Merge</button>
-                    <button class="cancelMerge">Cancel</button>
+                    <button type="button" class="merge">Merge</button>
+                    <button type="button" class="cancelMerge">Cancel</button>
                 </div>
             </div>
         </div>`);
@@ -959,7 +959,7 @@ function NerveEditDialog(writer, parentEl) {
         '<div>'+
             '<label>URI:</label>'+
             '<input type="text" data-type="textbox" data-mapping="custom.link" style="margin-right: 5px;" />'+
-            '<button title="Entity lookup" data-action="lookup"></button>'+
+            '<button type="button" title="Entity lookup" data-action="lookup"></button>'+
         '</div>'+
     '</div>').appendTo(parentEl);
 
@@ -1020,7 +1020,7 @@ function MergeDialog(writer, parentEl) {
             '<div style="margin-top: 5px;">'+
                 '<label>Other URI:</label>'+
                 '<input name="otherLink" type="text" style="margin-right: 5px;"/>'+
-                '<button title="Entity lookup" data-action="lookup"></button>'+
+                '<button type="button" title="Entity lookup" data-action="lookup"></button>'+
             '</div>'+
         '</div>'+
     '</div>').appendTo(parentEl);
