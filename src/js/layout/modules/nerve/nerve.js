@@ -639,11 +639,10 @@ function Nerve(config) {
         var schemaId = w.schemaManager.schemaId;
         var mappings = nerveAttributeMappings[schemaId];
         if (mappings === undefined) {
-            console.warn('nerve: no attribute mappings for',schemaId);
-            return undefined;
-        } else {
-            return mappings[valueName][entityType];
+            console.warn('nerve: no attribute mappings for',schemaId,'defaulting to tei');
+            mappings = nerveAttributeMappings['tei'];
         }
+        return mappings[valueName][entityType];
     }
 
     var mapCustomValuesToAttributes = function(entity) {
