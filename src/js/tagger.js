@@ -214,7 +214,6 @@ function Tagger(writer) {
      * @param {String} tagName The new tag name
      * @param {String} [id] The tag id. If undefined, will get the currently selected tag.
      */
-    // TODO broken for entities
     tagger.changeTagDialog = function(tagName, id) {
         var tag = tagger.getCurrentTag(id);
         if (tag.attr('_entity')) {
@@ -223,20 +222,13 @@ function Tagger(writer) {
                 msg: 'Changing this tag will remove the associated annotation. Do you want to proceed?',
                 callback: function(yes) {
                     if (yes) {
-                        tag = tag.first();
-                        tag.wrapInner('<span id="tempSelection"/>');
-                        tagger.removeEntity(id);
-                        var selectionContents = $('#tempSelection', w.editor.getBody());
-                        var parentTag = selectionContents.parent();
-                        w.editor.selection.select(selectionContents[0].firstChild);
-                        w.editor.currentBookmark = w.editor.selection.getBookmark(1);
-                        selectionContents.contents().unwrap();
-                        var tagPath = w.utilities.getElementXPath(parentTag[0]);
+                        var newTag = tagger.removeEntity(id);
+                        var tagPath = w.utilities.getElementXPath(newTag.parentElement);
                         tagPath += '/'+tagName;
-                        // TODO keep old attributes?
-                        w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, {}, function(attributes) {
-                            if (attributes !== null) {
-                                tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, tagger.ADD);
+                        var attributes = tagger.getAttributesForTag(newTag);
+                        w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, attributes, function(newAttributes) {
+                            if (newAttributes !== null) {
+                                tagger.editStructureTag($(newTag), newAttributes, tagName);
                             }
                         });
                     }
@@ -660,69 +652,47 @@ function Tagger(writer) {
         _doPaste(w.editor.copiedEntity);
         w.editor.copiedEntity = null;
     };
-    
+
     /**
-     * Remove an entity
+     * Removes the entity annotation and converts the entity back to a tag.
      * @fires Writer#entityRemoved
-     * @param {String} id The entity id
-     * @param {Boolean} [removeContents] Remove the contents as well
-     */
-    tagger.removeEntity = function(id, removeContents) {
-        id = id || w.entitiesManager.getCurrentEntity();
-        removeContents = removeContents || false;
-        
-        var entity = w.entitiesManager.getEntity(id);
-
-        var node = $('[name="'+id+'"]', w.editor.getBody());
-        var parent = node[0].parentNode;
-
-        if (entity.isNote()) {
-            var wrapper = node.parent('.noteWrapper');
-            parent = wrapper[0].parentNode;
-            wrapper.remove();
-        } else {
-            if (removeContents) {
-                node.remove();
-            } else {
-                var contents = node.contents();
-                if (contents.length > 0) {
-                    contents.unwrap();
-                } else {
-                    node.remove();
-                }
-            }
-        }
-        parent.normalize();
-        
-        w.entitiesManager.removeEntity(id);
-        
-        w.editor.undoManager.add();
-    };
-
-    /**
-     * Converts an entity back to a tag.
      * @param {String} entityId
-     * TODO FIXME values not stored in attributes property are lost
+     * @returns {Element} The tag
      */
-    tagger.convertEntityToTag = function(entityId) {
+    tagger.removeEntity = function(entityId) {
+        entityId = entityId || w.entitiesManager.getCurrentEntity();
+
+        var entity = w.entitiesManager.getEntity(entityId);
+
         var $tag = $('#'+entityId, w.editor.getBody());
 
         var tagName = $tag.attr('_tag');
         var attributes = tagger.getAttributesForTag($tag[0]);
 
-        $tag.wrapInner('<span id="tempSelection"/>');
-        
-        tagger.removeEntity(entityId);
-        
-        var selectionContents = $('#tempSelection', w.editor.getBody());
+        if (entity.isNote()) {
+            tagger.removeNoteWrapper($tag);
+        }
 
+        // replace tag with tempSelection span
+        $tag.wrapInner('<span id="tempSelection"/>');
+        var $temp = $('#tempSelection', w.editor.getBody());
+        $temp.unwrap();
+
+        w.entitiesManager.removeEntity(entityId);
+        
+        // bookmark temp selection
         var rng = w.editor.selection.getRng(true);
-        rng.selectNodeContents(selectionContents[0]);
+        rng.selectNodeContents($temp[0]);
         w.editor.currentBookmark = w.editor.selection.getBookmark(1);
         
-        tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, tagger.ADD);
+        var newTag = tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, tagger.ADD);
 
-        selectionContents.contents().unwrap(); // remove tempSelection span
+        $temp.contents().unwrap(); // remove tempSelection span
+
+        // TODO how to undo this?
+        // w.editor.undoManager.add();
+
+        return newTag;
     };
     
     /**
@@ -906,13 +876,16 @@ function Tagger(writer) {
         });
     }
 
+    tagger.removeNoteWrapper = function(tag) {
+        $(tag).unwrap('.noteWrapper');
+    }
+
     // remove all the noteWrapper elements.
     // needed when running evaluateXPath on cwrc docs and used in conjunction with addNoteWrappersForEntities.
     tagger.removeNoteWrappersForEntities = function() {
         w.entitiesManager.eachEntity(function(id, entity) {
             if (entity.isNote()) {
-                var note = $('#'+id, w.editor.getBody());
-                note.unwrap('.noteWrapper');
+                tagger.removeNoteWrapper($('#'+id, w.editor.getBody()));
             }
         });
     }
@@ -924,6 +897,7 @@ function Tagger(writer) {
      * @param {Object} attributes The tag attributes
      * @param {Object} bookmark A tinymce bookmark object, with an optional custom tagId property
      * @param {String} action Where to insert the tag, relative to the bookmark (before, after, around, inside); can also be null
+     * @returns {Element} The new tag
      */
     tagger.addStructureTag = function(tagName, attributes, bookmark, action) {        
         sanitizeObject(attributes);
@@ -1031,6 +1005,8 @@ function Tagger(writer) {
             rng.collapse(false);
             w.editor.selection.setRng(rng);
         }
+
+        return newTag[0];
     };
     
     /**

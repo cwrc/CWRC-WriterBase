@@ -704,7 +704,7 @@ function Nerve(config) {
         var linkAttributeName = getAttributeForNerveValue('link', entity.getType());
         var linkValue = entity.getAttribute(linkAttributeName);
         if (linkValue === undefined) {
-            w.tagger.convertEntityToTag(entityId);
+            w.tagger.removeEntity(entityId);
         } else {
             entity.removeCustomValue('nerve');
             entity.removeCustomValue('lemma');
@@ -755,6 +755,7 @@ function Nerve(config) {
     }
 
     var rejectEntity = function(entityId) {
+        // TODO remove tag and entity if both added by nerve. if tag already existed and nerve is just linking, then only remove the entity
         w.tagger.removeEntity(entityId);
         removeEntityFromView(entityId);
     }

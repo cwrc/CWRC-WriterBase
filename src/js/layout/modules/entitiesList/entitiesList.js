@@ -321,7 +321,7 @@ function EntitiesList(config) {
     }
 
     var rejectEntity = function(entityId) {
-        w.tagger.convertEntityToTag(entityId);
+        w.tagger.removeEntity(entityId);
     }
 
     var acceptMatching = function(entityId) {

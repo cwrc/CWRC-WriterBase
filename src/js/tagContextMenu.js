@@ -271,6 +271,15 @@ function getItems() {
         }
     }
     items.sep2 = '---';
+    if (this.isEntity) {
+        items.remove_entity = {
+            name: 'Remove Entity',
+            icon: 'tag_remove',
+            callback: function() {
+                this.w.tagger.removeEntity(this.tagId);
+            }.bind(this)
+        }
+    }
     items.remove_tag = {
         name: 'Remove Tag Only',
         icon: 'tag_remove',
