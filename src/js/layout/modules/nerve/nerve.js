@@ -7,7 +7,13 @@ require('jquery-ui/ui/widgets/selectmenu');
 
 var DialogForm = require('dialogForm');
 
-var NERVEWrapper = require('cwrc-nerve-wrapper');
+// nerve nodeNames to entity types
+var nerveNodeMappings = {
+    PERSON: 'person',
+    ORGANIZATION: 'org',
+    LOCATION: 'place',
+    TITLE: 'title'
+}
 
 // nerve values to schema mappings
 // TODO merge with linkingXPath from mappings
@@ -45,6 +51,8 @@ function Nerve(config) {
     
     var id = config.parentId;
 
+    var nerveUrl = 'https://dh.sharcnet.ca/NerveService/';
+
     var mergedEntities = {};
 
     var editDialog = null; // holder for initialized edit dialog
@@ -53,6 +61,8 @@ function Nerve(config) {
 
     var isMerge = false; // are we in merge mode
 
+    var runOptions = []; // what options did the user select when running nerve
+
     var $parent = $('#'+id);
     $parent.append(`
         <div class="moduleParent nervePanel">
@@ -60,15 +70,15 @@ function Nerve(config) {
                 <div>
                     <select name="processOptions">
                         <option value="tag">Entity Recognition</option>
-                        <option value="both">Recognition & Linking</option>
-                        <option value="link">Linking Only</option>
+                        <!--<option value="both">Recognition & Linking</option>
+                        <option value="link">Linking Only</option>-->
                     </select>
                     <button class="run">Run</button>
                     <button class="done" style="display: none;">Done</button>
                 </div>
-                <div class="filters" style="display: none;">
-                    <div>
-                        <label for="filter">Filter</label>
+                <div class="filters" style="display: none; margin: 0px;">
+                    <div style="display: inline-block; margin: 5px;">
+                        <label for="filter" title="Filter" class="fas fa-filter"></label>
                         <select name="filter">
                             <option value="all" selected="selected">All</option>
                             <option value="person">Person</option>
@@ -77,8 +87,8 @@ function Nerve(config) {
                             <option value="title">Title</option>
                         </select>
                     </div>
-                    <div style="margin-top: 5px;">
-                        <label for="sorting">Sorting</label>
+                    <div style="display: inline-block; margin: 5px;">
+                        <label for="sorting" title="Sorting" class="fas fa-sort"></label>
                         <select name="sorting">
                             <option value="seq" selected="selected">Sequential</option>
                             <option value="alpha">Alphabetical</option>
@@ -104,8 +114,12 @@ function Nerve(config) {
             </div>
         </div>`);
 
-    $parent.find('select').selectmenu({
+    $parent.find('select[name=processOptions]').selectmenu({
         appendTo: w.layoutManager.getContainer()
+    });
+    $parent.find('.filters select').selectmenu({
+        appendTo: w.layoutManager.getContainer(),
+        width: 90
     });
     // RUN
     $parent.find('button.run').button().on('click', function() {
@@ -175,26 +189,45 @@ function Nerve(config) {
         setMergeMode(false);
     });
 
+
     var run = function() {
-        var options = $parent.find('select[name="processOptions"]').val();
         nrv.reset();
+        
         // var document = w.converter.getDocumentContent(false);
         var document = getBasicXmlDocument();
-        var optionsArray = ['tag', 'link'];
+        
+        var options = $parent.find('select[name="processOptions"]').val();
+        runOptions = ['tag', 'link'];
         if (options === 'tag') {
-            optionsArray = ['tag'];
+            runOptions = ['tag'];
         } else if (options === 'link') {
-            optionsArray = ['link'];
+            runOptions = ['link'];
         }
-        nerveWrapper.run(document, optionsArray).then(function(resp) {
-            var entities = processEncodedDocument(resp.result);
+        
+        var li = w.dialogManager.getDialog('loadingindicator');
+        li.setText('NERVE Processing');
+        li.setValue(false);
+        li.show();
+        
+        $.when(
+            $.ajax({
+                url: nerveUrl + 'ner',
+                method: 'POST',
+                data: JSON.stringify({"document": document})
+            })
+        ).then(function(response) {
+            li.hide();
+
+            var doc = w.utilities.stringToXML(response.document);
+            var context = JSON.parse(response.context);
+            var entities = processNerveResponse(doc, context);
 
             w.tagger.removeNoteWrappersForEntities();
             
             var index = entities.length-1;
             while (index >= 0) {
                 var entry = entities[index];
-                var success = addEntity(entry);
+                var success = addEntityFromNerve(entry);
                 if (!success) {
                     entities.splice(index, 1);
                 }
@@ -216,7 +249,6 @@ function Nerve(config) {
             $parent.find('button.mergeEntities').button('enable');
         }, function(msg) {
             console.warn('encoding failed', msg);
-            var li = w.dialogManager.getDialog('loadingindicator');
             li.hide();
             w.dialogManager.show('message', {
                 title: 'Error',
@@ -264,15 +296,23 @@ function Nerve(config) {
         
         xmlString = xmlString.replace(/\uFEFF/g, '');
 
-        console.log(xmlString);
-
         return xmlString;
     }
 
-    var processEncodedDocument = function(documentString) {
+    var processNerveResponse = function(document, context) {
         var entities = [];
 
-        function getOffsetFromParent(parent, target) {
+        var lemmaAttribute;
+        for (var key in context.tags) {
+            var lemmaAtt = context.tags[key].lemmaAttribute;
+            if (lemmaAttribute === undefined) {
+                lemmaAttribute = lemmaAtt;
+            } else if (lemmaAttribute !== lemmaAtt) {
+                console.warn('nerve: inconsistent lemma attribute names:',lemmaAttribute,'and',lemmaAtt);
+            }
+        }
+
+        var getOffsetFromParent = function(parent, target) {
             var offset = 0;
             var walker = parent.ownerDocument.createTreeWalker(parent, NodeFilter.SHOW_ALL);
             while (walker.nextNode()) {
@@ -286,61 +326,41 @@ function Nerve(config) {
             return offset;
         }
 
-        function getEntities(node) {
-            if (node.nodeType === Node.ELEMENT_NODE && node.getAttribute('class') === 'taggedentity') {
-                var tag = node.getAttribute('xmltagname');
-                var type;
-                switch (tag) {
-                    case 'PERSON':
-                        type = 'person';
-                        break;
-                    case 'LOCATION':
-                        type = 'place';
-                        break;
-                    case 'ORGANIZATION':
-                        type = 'org';
-                        break;
-                    case 'TITLE':
-                        type = 'title';
-                        break;
-                }
-                var header = w.schemaManager.mapper.getHeaderTag();
-                var xpath = w.utilities.getElementXPath(node.parentElement, 'xmltagname');
-                if (xpath.indexOf(header) === -1) {
-                    var offset = getOffsetFromParent(node.parentElement, node);
-                    var entity = {
-                        text: node.textContent,
-                        xpath: xpath,
-                        textOffset: offset,
-                        textLength: node.textContent.length,
-                        lemma: node.getAttribute('data-lemma'),
-                        link: node.getAttribute('data-link'),
-                        type: type
-                    }
-                    entities.push(entity);
+        var getEntities = function(node) {
+            if (node.nodeType === Node.ELEMENT_NODE && node.getAttribute(lemmaAttribute)) {
+                var tag = node.nodeName;
+                var type = nerveNodeMappings[tag];
+                if (type === undefined) {
+                    console.warn('nerve: unrecognized entity type for',tag);
                 } else {
-                    // don't include tags in the header
+                    var header = w.schemaManager.mapper.getHeaderTag();
+                    var xpath = w.utilities.getElementXPath(node.parentElement);
+                    if (xpath.indexOf(header) === -1) {
+                        var offset = getOffsetFromParent(node.parentElement, node);
+                        var entity = {
+                            text: node.textContent,
+                            xpath: xpath,
+                            textOffset: offset,
+                            textLength: node.textContent.length,
+                            lemma: node.getAttribute('lemma'),
+                            type: type
+                        }
+                        var link = node.getAttribute('link');
+                        if (link !== null) {
+                            entity.link = link;
+                        }
+                        entities.push(entity);
+                    } else {
+                        // don't include tags in the header
+                    }
                 }
             }
             node.childNodes.forEach(function(el, index) {
                 getEntities(el);
             });
         }
-
-        var doc = w.utilities.stringToXML('<wrap>'+documentString+'</wrap>'); // need to wrap because response has no root node
-        var docChildren = doc.documentElement.childNodes;
-        var rootNode = undefined;
-        for (var i = 0; i < docChildren.length; i++) {
-            var child = docChildren[i];
-            if (child.nodeType === Node.ELEMENT_NODE && child.getAttribute('class') === 'xmltag') {
-                rootNode = child;
-                break;
-            }
-        }
-
-        if (rootNode !== undefined) {
-            getEntities(rootNode);
-        }
+        
+        getEntities(document.documentElement);
 
         return entities;
     }
@@ -640,7 +660,7 @@ function Nerve(config) {
         }
     }
 
-    var addEntity = function(entry) {
+    var addEntityFromNerve = function(entry) {
         var range = selectRangeForEntity(entry);
         if (range !== null) {
             var parentEl = range.commonAncestorContainer.parentElement;
@@ -879,32 +899,6 @@ function Nerve(config) {
 
         w.event('contentChanged').publish();
     }
-
-
-    var messageRelay = function(msgType, msgContent) {
-        var li = w.dialogManager.getDialog('loadingindicator');
-        switch(msgType) {
-            case 'serverStart':
-                li.setText(msgContent);
-                li.setValue(false);
-                li.show();
-                break;
-            case 'serverUpdateMessage':
-                li.setText(msgContent);
-                break;
-            case 'serverUpdateProgress':
-                li.setValue(msgContent);
-                break;
-            case 'serverEnd':
-                li.hide();
-                break;
-        }
-    }
-
-    var nerveWrapper = new NERVEWrapper();
-    var url = "wss://dh.sharcnet.ca:443/NERVESERVER/NerveSocket";
-    // var url = "ws://localhost:8888/NERVESERVER/NerveSocket";
-    nerveWrapper.init(url, messageRelay);
 
     var nrv = {
         reset: function() {

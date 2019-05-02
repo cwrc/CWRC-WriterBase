@@ -125,11 +125,9 @@ function EntitiesList(config) {
 
         var entities = w.entitiesManager.getEntitiesArray(getSorting());
 
-        if (isConvert) {
-            $entities.find('ul.entitiesList').addClass('candidates');
-        } else {
-            $entities.find('ul.entitiesList').removeClass('candidates');
-        }
+        entities = entities.filter(function(entry) {
+            return entry.getCustomValue('nerve') !== 'true';
+        });
 
         var filter = getFilter();
         if (filter !== 'all') {
@@ -142,6 +140,12 @@ function EntitiesList(config) {
         entities.forEach(function(entry) {
             entitiesString += getEntityView(entry);
         });
+
+        if (isConvert) {
+            $entities.find('ul.entitiesList').addClass('candidates');
+        } else {
+            $entities.find('ul.entitiesList').removeClass('candidates');
+        }
         
         $entities.find('ul.entitiesList').html(entitiesString);
         $entities.find('ul.entitiesList > li > div').on('click', function(event) {

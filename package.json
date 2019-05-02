@@ -36,7 +36,6 @@
   "dependencies": {
     "css-parse": "^2.0.0",
     "css-stringify": "^2.0.0",
-    "cwrc-nerve-wrapper": "0.0.2",
     "fscreen": "1.0.2",
     "jquery": "3.2.1",
     "jquery-contextmenu": "^2.8.0",
@@ -93,7 +92,6 @@
     "generate-coverage": "nyc report --reporter=lcov",
     "check-coverage": "nyc check-coverage --statements 5 --branches 1 --functions 1 --lines 5",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
-    "nerve-build": "browserify src/js/layout/modules/nerve.js -o build/nerve.js -g babelify -g deamdify --debug --verbose",
     "clean": "rimraf build",
     "build": "npm run build-css && npm run copy-files-to-build",
     "build-css": "mkdirp build/css && npm run build-scoped-css && npm run build-editor-css",
