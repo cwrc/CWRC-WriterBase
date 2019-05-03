@@ -1,6 +1,6 @@
 var $ = require('jquery');
 var Mapper = require('../mapper.js');
-var AnnotationsManager = require('../../annotationsManager.js');
+var AnnotationsManager = require('annotationsManager');
 
 // TODO add resp for note type entities
     

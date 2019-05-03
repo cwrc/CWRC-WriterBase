@@ -31,7 +31,8 @@
     "jquery-popup": "./src/lib/jquery/jquery.popup.js",
     "layout": "./src/lib/jquery/jquery.layout_and_plugins.js",
     "dialogForm": "./src/js/dialogs/dialogForm/dialogForm.js",
-    "entity": "./src/js/entity.js"
+    "annotationsManager": "./src/js/entities/annotationsManager.js",
+    "entity": "./src/js/entities/entity.js"
   },
   "dependencies": {
     "css-parse": "^2.0.0",

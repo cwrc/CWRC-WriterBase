@@ -1,6 +1,6 @@
 var $ = require('jquery');
 var Mapper = require('../mapper.js');
-var AnnotationsManager = require('../../annotationsManager.js');
+var AnnotationsManager = require('annotationsManager');
 
 function handleGraphics($tag) {
     var url = $tag.attr('url');
