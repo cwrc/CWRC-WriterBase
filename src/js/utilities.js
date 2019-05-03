@@ -537,7 +537,7 @@ function Utilities(writer) {
     };
     
     /**
-     * Get the offset position of an element, relative to cwrc-writer container
+     * Get the offset position of an element, relative to the parent (default is cwrc-writer container).
      * @param {Element} el The element
      * @param {Element} [parent] The offset parent. Default is the cwrc-writer container.
      * @returns {Object} position An object container top and left properties

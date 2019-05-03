@@ -13,17 +13,11 @@ var Selection = require('./modules/selection/selection.js');
 var ImageViewer = require('./modules/imageViewer/imageViewer.js');
 var Nerve = require('./modules/nerve/nerve.js');
 
+// track modules which cannot appear in readonly mode
+var writeOnlyModules = ['nerve'];
+
 /**
- * 
  * @param {Writer} writer
- * @param {Object} config
- * @param {Object} config.modules
- * @param {jQuery} config.container
- * @param {String} config.editorId
- * @param {String} config.name
- * @param {String} config.version
- * 
- * @returns
  */
 function LayoutManager(writer, config) {
     this.w = writer;
@@ -32,6 +26,14 @@ function LayoutManager(writer, config) {
 LayoutManager.prototype = {
     constructor: LayoutManager,
 
+    /**
+     * Init the layout manager
+     * @param {Object} config
+     * @param {Object} config.modules
+     * @param {jQuery} config.container
+     * @param {String} config.editorId
+     * @param {String} config.name
+     */
     init: function(config) {
         var defaultModulesLayout = {
             west: ['structure','entities'],
@@ -42,8 +44,6 @@ LayoutManager.prototype = {
         
         this.modules = [];
         
-        this.mode; // 'reader' or 'annotator'
-        
         this.$container = $('<div id="'+this.w.getUniqueId('cwrc_')+'" class="cwrc cwrcWrapper"></div>').appendTo(config.container);
         
         var name = config.name;
@@ -51,6 +51,18 @@ LayoutManager.prototype = {
         
         var loadingMaskHtml = `<div class="cwrc cwrcLoadingMask" style="width: 100%; height: 100%; background-color: #DDD; position: absolute; z-index: 1000;"><div>Loading ${name}</div></div>`;
         this.$container.html(loadingMaskHtml);
+
+        // filter modules
+        for (var region in this.modulesLayout) {
+            var regionModules = this.modulesLayout[region];
+            if (Array.isArray(regionModules)) {
+                this.modulesLayout[region] = regionModules.filter((module) => {
+                    return isModuleAllowed(this.w, module);
+                });
+            } else {
+                this.modulesLayout[region] = isModuleAllowed(this.w, regionModules) ? regionModules : '';
+            }
+        }
 
         var html = `
         <div class="cwrc cwrcHeader ui-layout-north">
@@ -218,7 +230,9 @@ LayoutManager.prototype = {
             if (Array.isArray(modules)) {
                 modules.forEach(function(module) {
                     var module = initModule(editorId, this.w, module);
-                    this.modules.push(module);
+                    if (module !== null) {
+                        this.modules.push(module);
+                    }
                 }.bind(this));
                 var $region = this.$container.find('.ui-layout-'+region+':not(.cwrcHeader):not(.cwrcFooter)');
                 $region.tabs({
@@ -231,7 +245,9 @@ LayoutManager.prototype = {
                 });
             } else {
                 var module = initModule(editorId, this.w, modules);
-                this.modules.push(module);
+                if (module !== null) {
+                    this.modules.push(module);
+                }
             }
         }
         
@@ -441,6 +457,9 @@ LayoutManager.prototype = {
     }
 }
 
+function isModuleAllowed(writer, module) {
+    return !writer.isReadOnly || (writer.isReadOnly && writeOnlyModules.indexOf(module) === -1);
+}
 
 function addPanel(idPrefix, panelRegion, panelConfig) {
     var html = '';
@@ -475,6 +494,10 @@ function addPanel(idPrefix, panelRegion, panelConfig) {
 }
 
 function initModule(idPrefix, writer, module) {
+    if (isModuleAllowed(writer, module) === false) {
+        return null;
+    }
+    
     var domId = idPrefix+'-'+module;
     
     switch(module) {

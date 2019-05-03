@@ -103,6 +103,10 @@ function EntitiesList(config) {
         }
     });
 
+    if (w.isReadOnly) {
+        $entities.find('.moduleHeader').hide();
+    }
+
     var getFilter = function() {
         return $entities.find('select[name="filter"]').val();
     }
@@ -214,15 +218,19 @@ function EntitiesList(config) {
         }
         infoString += '</ul>';
 
-        var regularActions = '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"/></span>'+
-        '<span data-action="remove" class="ui-state-default" title="Remove"><span class="ui-icon ui-icon-close"/></span>';
-        var convertActions = '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"/></span>'+
-        '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"/></span>';
-        if (isConvert) {
-            var hasMatching = getMatchesForEntity(entity.getId()).length > 0;
-            if (hasMatching) {
-                convertActions += '<span data-action="acceptmatching" class="ui-state-default" title="Accept All Matching"><span class="ui-icon ui-icon-circle-check"/></span>';
-                convertActions += '<span data-action="rejectmatching" class="ui-state-default" title="Reject All Matching"><span class="ui-icon ui-icon-circle-close"/></span>';
+        var actions = '';
+        if (w.isReadOnly === false) {
+            if (isConvert && isCandidate) {
+                actions = '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"/></span>'+
+                '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"/></span>';
+                var hasMatching = getMatchesForEntity(entity.getId()).length > 0;
+                if (hasMatching) {
+                    actions += '<span data-action="acceptmatching" class="ui-state-default" title="Accept All Matching"><span class="ui-icon ui-icon-circle-check"/></span>';
+                    actions += '<span data-action="rejectmatching" class="ui-state-default" title="Reject All Matching"><span class="ui-icon ui-icon-circle-close"/></span>';
+                }
+            } else {
+                actions = '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"/></span>'+
+                '<span data-action="remove" class="ui-state-default" title="Remove"><span class="ui-icon ui-icon-close"/></span>';
             }
         }
 
@@ -232,7 +240,7 @@ function EntitiesList(config) {
                 <div class="header">
                     <span class="icon"/>
                     <span class="entityTitle">${entity.getContent()}</span>
-                    <div class="actions">${isConvert && isCandidate ? convertActions : regularActions}</div>
+                    <div class="actions">${actions}</div>
                 </div>
                 <div class="info">${infoString}</div>
             </div>
