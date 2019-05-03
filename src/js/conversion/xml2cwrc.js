@@ -230,8 +230,14 @@ function XML2CWRC(writer) {
                         // TODO review overlapping entities
                     }
 
-                    // replace annotationId with xpath
                     if (xml2cwrc.isLegacyDocument) {
+                        // remove legacy attributes
+                        if (entityConfig.attributes) {
+                            delete entityConfig.attributes.annotationId;
+                            delete entityConfig.attributes.offsetId;
+                        }
+
+                        // replace annotationId with xpath
                         var entityEl = w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
                         entityConfig.range.startXPath = w.utilities.getElementXPath(entityEl);
                         if (isOverlapping) {
