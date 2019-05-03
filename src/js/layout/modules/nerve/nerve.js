@@ -635,6 +635,14 @@ function Nerve(config) {
         }
     }
 
+    var getNamedEntityTags = function() {
+        var namedEntities = ['person', 'place', 'title', 'org'];
+        var namedEntityTags = namedEntities.map((type) => {
+            return w.schemaManager.mapper.getParentTag(type);
+        });
+        return namedEntityTags;
+    }
+
     var getAttributeForNerveValue = function(valueName, entityType) {
         var schemaId = w.schemaManager.schemaId;
         var mappings = nerveAttributeMappings[schemaId];
@@ -663,10 +671,13 @@ function Nerve(config) {
         var range = selectRangeForEntity(entry);
         if (range !== null) {
             var parentEl = range.commonAncestorContainer.parentElement;
-            if (parentEl.getAttribute('_entity') === 'true' && range.startOffset === 0) {
-                console.log('nerve: entity already exists for',entry);
-                range.collapse();
-                return false;
+            if (range.startOffset === 0) {
+                var namedEntityTags = getNamedEntityTags();
+                if (parentEl.getAttribute('_entity') === 'true' || namedEntityTags.indexOf(parentEl.getAttribute('_tag')) !== -1) {
+                    console.log('nerve: entity already exists for',entry);
+                    range.collapse();
+                    return false;
+                }
             }
 
             var entityConfig = {
@@ -754,8 +765,14 @@ function Nerve(config) {
     }
 
     var rejectEntity = function(entityId) {
-        // TODO remove tag and entity if both added by nerve. if tag already existed and nerve is just linking, then only remove the entity
-        w.tagger.removeEntity(entityId);
+        var entry = w.entitiesManager.getEntity(entityId);
+        if (entry.getCustomValue('link') === undefined) {
+            // remove tag and entity if both added by nerve
+            w.tagger.removeStructureTag(entityId, false);
+        } else {
+            // if tag already existed and nerve is just linking, then only remove the entity
+            w.tagger.removeEntity(entityId);
+        }
         removeEntityFromView(entityId);
     }
 
