@@ -281,7 +281,7 @@ function Tagger(writer) {
                 var parentName = parentTag.getAttribute('_tag');
                 var isValid = w.schemaManager.isTagValidChildOfParent(childName, parentName);
                 if (isValid) {
-                    w.dialogManager.show(type, {type: type});
+                    w.dialogManager.show(type);
                 } else {
                     w.dialogManager.show('message', {
                         title: 'Invalid XML',
@@ -291,7 +291,7 @@ function Tagger(writer) {
                 }
             } else if (result === tagger.OVERLAP) {
                 if (w.allowOverlap === true) {
-                    w.dialogManager.show(type, {type: type});
+                    w.dialogManager.show(type);
                 } else {
                     w.dialogManager.confirm({
                         title: 'Warning',
@@ -300,7 +300,7 @@ function Tagger(writer) {
                             if (confirmed) {
                                 w.allowOverlap = true;
                                 w.mode = w.XMLRDF;
-                                w.dialogManager.show(type, {type: type});
+                                w.dialogManager.show(type);
                             }
                         }
                     });

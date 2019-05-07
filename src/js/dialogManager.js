@@ -152,7 +152,14 @@ function DialogManager(writer) {
         return $cwrcDialogWrapper;
     };
     
+    /**
+     * Show the dialog specified by type.
+     * @param {String} type The dialog type
+     * @param {Object} [config] A configuration object to pass to the dialog
+     */
     dm.show = function(type, config) {
+        config = config === undefined ? {} : config;
+
         var dialog;
         if (type.indexOf('schema/') === 0) {
             var typeParts = type.split('/');
