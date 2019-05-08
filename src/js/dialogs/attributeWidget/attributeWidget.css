@@ -7,11 +7,6 @@
     display: inline;
 }
 
-.attributeWidget input, .attributeWidget select {
-    width: 80%;
-    border: 1px solid #ccc;
-}
-
 .attributeWidget .attributeSelector {
     flex: 1;
     display: flex;

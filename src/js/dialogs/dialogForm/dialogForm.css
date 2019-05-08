@@ -34,7 +34,7 @@
 }
 
 /* styling to make textboxes match jquery-ui style */
-.annotationDialog input[type=text] {
+.annotationDialog input[type=text], .annotationDialog select {
     border-radius: 3px;
     border: 1px solid #c5c5c5;
     padding: 3px 3px;
