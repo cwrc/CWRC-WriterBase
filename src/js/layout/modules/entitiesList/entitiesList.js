@@ -68,7 +68,7 @@ function EntitiesList(config) {
     $entities.find('select').selectmenu({
         appendTo: w.layoutManager.getContainer(),
         position: {
-            my: "left top", at: "left bottom", collision: "flipfit"
+            my: "left bottom", at: "left top", collision: "flipfit"
         },
         width: 90
     });
