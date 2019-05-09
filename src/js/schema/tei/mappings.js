@@ -178,7 +178,7 @@ correction: {
         }
     },
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText');
+        var anno = annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText', 'oa:editing');
         
         if (format === 'xml') {
             var corrXml = $.parseXML('<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">'+entity.getCustomValue('corrText')+'</cnt:chars>');
@@ -196,7 +196,7 @@ link: {
     parentTag: 'ref',
     textTag: '',
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText');
+        return annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText', 'oa:linking');
     }
 },
 
