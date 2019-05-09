@@ -7,59 +7,66 @@
 function Entity(config) {
     
     /**
-     * The ID of the entity.
-     * @type String
+     * The internal ID of the entity.
+     * @type {String}
      */
-    this.id;
+    this.id = undefined;
     
     /**
      * The type of the entity, e.g. person, place, date.
-     * @type String
+     * @type {String}
      */
-    this.type;
+    this.type = undefined;
 
     /**
      * Is the entity a note
-     * @type Boolean
+     * @type {Boolean}
      */
     this._isNote = false;
+
+    /**
+     * Is the entity named, i.e. does it have a URI
+     * @type {Boolean}
+     */
+    this._isNamedEntity = false;
     
     /**
      * The parent tag of the entity.
-     * @type String
+     * @type {String}
      */
-    this.tag;
+    this.tag = undefined;
     
     /**
      * The text content of the entity.
-     * @type String
+     * @type {String}
      */
-    this.content;
+    this.content = undefined;
     
     /**
      * A label for use when displaying information about the entity.
      * Typically will be a concatenated version of the content.
-     * @type String
+     * @type {String}
      */
-    this.title;
+    this.title = undefined;
     
     /**
      * Values that can be directly mapped onto the entity's tag.
-     * @type Object
+     * @type {Object}
      */
     this.attributes = {};
     
     /**
      * Values that can't be directly mapped onto the entity's tag.
+     * @type {Object}
      */
     this.customValues = {};
  
     /**
      * XML content, used by note-type entities.
-     * @type String
+     * @type {String}
      */
-    this.noteContent;
-    
+    this.noteContent = undefined;
+
     /**
      * URIs used to create the annotation object.
      * @type Object
@@ -71,29 +78,64 @@ function Entity(config) {
      * @params userId
      */
     this.annotationUris = {};
+
+    /**
+     * When the entity was created.
+     * TODO should this update if the entity is edited?
+     * @type {String} A date in ISO string format
+     */
+    this.dateCreated = undefined;
     
     /**
      * Values used to identify the text range of the entity. Mainly set by converter when loading a document.
-     * @type Object
-     * @params startXPath
-     * @params startOffset
-     * @params endXPath
-     * @params endOffset
+     * @type {Object}
+     * @property {String} startXPath
+     * @property {Integer} startOffset
+     * @property {String} endXPath
+     * @property {Integer} endOffset
      */
     this.annotationRange = {};
-    
+
+    // NAMED ENTITY PROPERTIES
+
     /**
-     * Values associated with the CWRC-Dialogs lookup.
-     * @type Object
-     * @params id
-     * @params name
-     * @params repository
+     * The URI associated with this entity (usually from a lookup).
+     * @type {String}
      */
-    this.cwrcLookupInfo;
+    this.uri = undefined;
+
+    /**
+     * The lemma for this entity (usually from a lookup).
+     * @type {String}
+     */
+    this.lemma = undefined;
+
+    /**
+     * The certainty of the entity annotation.
+     * @type {String}
+     */
+    this.certainty = undefined;
     
+
+
+    // SET VALUES FROM CONFIG
+
     this.id = config.id;
     this.type = config.type;
     this.tag = config.tag;
+
+    if (config.dateCreated !== undefined) {
+        // try setting the date
+        var date = new Date(config.dateCreated);
+        if (isNaN(date.valueOf())) {
+            // invalid date so use now
+            this.dateCreated = new Date().toISOString();
+        } else {
+            this.dateCreated = date.toISOString();
+        }
+    } else {
+        this.dateCreated = new Date().toISOString();
+    }
     
     if (config.content !== undefined) {
         this.setContent(config.content);
@@ -111,14 +153,21 @@ function Entity(config) {
     if (config.isNote !== undefined) {
         this._isNote = config.isNote;
     }
-    if (config.cwrcLookupInfo !== undefined) {
-        this.cwrcLookupInfo = config.cwrcLookupInfo;
-    }
-    if (config.uris !== undefined) {
-        this.annotationUris = config.uris;
-    }
     if (config.range !== undefined) {
         this.annotationRange = config.range;
+    }
+    if (config.uri !== undefined) {
+        this.uri = config.uri;
+        this._isNamedEntity = true;
+    }
+    if (config.lemma !== undefined) {
+        this.lemma = config.lemma;
+    }
+    if (config.certainty !== undefined) {
+        this.certainty = config.certainty;
+    }
+    if (config.isNamedEntity !== undefined) {
+        this._isNamedEntity = config.isNamedEntity;
     }
 }
 
@@ -144,6 +193,9 @@ Entity.prototype = {
     isNote: function() {
         return this._isNote;
     },
+    isNamedEntity: function() {
+        return this._isNamedEntity;
+    },
     getTag: function() {
         return this.tag;
     },
@@ -158,9 +210,8 @@ Entity.prototype = {
         this.title = Entity.getTitleFromContent(this.content);
     },
     getTitle: function() {
-        var info = this.getLookupInfo();
-        if (info && info.name) {
-            return info.name;
+        if (this.lemma !== undefined) {
+            return this.lemma;
         } else {
             return this.title;
         }
@@ -205,6 +256,12 @@ Entity.prototype = {
     removeCustomValue: function(name) {
         delete this.customValues[name];
     },
+
+    setProperty: function(property, value) {
+        if (this.hasOwnProperty(property)) {
+            this[property] = value;
+        }
+    },
     
     getNoteContent: function() {
         return this.noteContent;
@@ -213,18 +270,44 @@ Entity.prototype = {
         this.noteContent = content;
     },
 
+    getDateCreated: function() {
+        return this.dateCreated;
+    },
+    
     getUris: function() {
+        // console.warn('getUris called!');
+        // return {
+        //     entityId: 'foo',
+        //     annotationId: 'bar'
+        // }
         return this.annotationUris;
     },
     setUris: function(urisObj) {
         this.annotationUris = urisObj;
     },
-    
-    getLookupInfo: function() {
-        return this.cwrcLookupInfo;
+
+    getURI: function() {
+        return this.uri;
     },
-    setLookupInfo: function(infoObj) {
-        this.cwrcLookupInfo = infoObj;
+    setURI: function(uri) {
+        // TODO also set corresponding attribute?
+        this.uri = uri;
+    },
+
+    getLemma: function() {
+        return this.lemma;
+    },
+    setLemma: function(lemma) {
+        // TODO also set corresponding attribute?
+        this.lemma = lemma;
+    },
+
+    getCertainty: function() {
+        return this.certainty;
+    },
+    setCertainty: function(certainty) {
+        // TODO also set corresponding attribute?
+        this.certainty = certainty;
     },
     
     getRange: function() {

@@ -26,15 +26,14 @@ listeners: {
  * The entries for each entity. Each entity entry needs the following members:
  * parentTag {String|Array}: the XML tag(s) that encapsulates the entity, also used to determine if an XML tag is associated with an entity
  * textTag {String}: the tag that contains the text content of the entity
- * mapping {Function}: a function which accepts an Entity and returns an array of start and end XML strings to display in the Writer (see Mapper.getDefaultMapping)
- * reverseMapping {Object}: a map of XPaths to entity values and will be passed to Mapper.getDefaultReverseMapping. Possible entity values are: attributes, customValues, noteContent, cwrcInfo.
- * annotation {Function}: a function which accepts an Entity and a format string (either 'xml' or 'json') and returns an annotation in the specified format (see AnnotationsManager.commonAnnotation)
+ * annotation {Function}: a function which accepts the AnnotationsManager, an Entity, and a format string (either 'xml' or 'json'). It should return an annotation in the specified format (see AnnotationsManager.commonAnnotation)
  * 
  * Optional members:
+ * mappingFunction {Function}: a function which accepts an Entity and returns an array of start and end XML strings to display in the Writer (see Mapper.getDefaultMapping)
+ * mapping {Object}: a map of Entity config properties to XPaths
  * isNote {Boolean}: boolean indicating the entity is a "note type" (default is false)
  * xpathSelector {String}: if the entity can have several different parentTags or if several entities share the same parentTag, this selector can help differentiate
  * requiresSelection {Boolean}: boolean indicating is a text selection is required to add the entity (as opposed to a point in the text) (default is true)
- * linkingXPath {String}: an XPath pointing to a value that should be provided for LOD/annotation to be generated
  */
 
 entities: {
@@ -42,10 +41,9 @@ entities: {
 person: {
     parentTag: '',
     textTag: '',
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 },
@@ -53,10 +51,9 @@ person: {
 org: {
     parentTag: '',
     textTag: '',
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 },
@@ -64,10 +61,9 @@ org: {
 place: {
     parentTag: '',
     textTag: '',
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 },
@@ -75,10 +71,9 @@ place: {
 title: {
     parentTag: '',
     textTag: '',
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 },
@@ -86,10 +81,9 @@ title: {
 correction: {
     parentTag: '',
     textTag: '',
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 },
@@ -97,10 +91,9 @@ correction: {
 link: {
     parentTag: '',
     textTag: '',
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 },
@@ -108,10 +101,9 @@ link: {
 date: {
     parentTag: '',
     textTag: '',
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 },
@@ -120,10 +112,9 @@ note: {
     parentTag: '',
     textTag: '',
     isNote: true,
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 },
@@ -131,10 +122,9 @@ note: {
 citation: {
     parentTag: '',
     textTag: '',
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 },
@@ -142,10 +132,9 @@ citation: {
 keyword: {
     parentTag: '',
     textTag: '',
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 },
@@ -153,10 +142,9 @@ keyword: {
 event: {
     parentTag: '',
     textTag: '',
-    mapping: function(entity) {
+    mappingFunction: function(entity) {
     },
-    reverseMapping: function(xml) {
-    },
+    mapping: {},
     annotation: function(entity, format) {
     }
 }

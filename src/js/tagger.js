@@ -527,23 +527,23 @@ function Tagger(writer) {
      * @protected
      * @param {String} type Then entity type
      * @param {Object} info The entity info
-     * @returns {String} id The new entity ID
      */
     tagger.finalizeEntity = function(type, info) {
-        if (info != null) {
-            var id = w.getUniqueId('dom_');
-            
-            sanitizeObject(info.attributes);
-            sanitizeObject(info.customValues);
+        var isNamedEntity = w.schemaManager.mapper.isNamedEntity(type);
+        var tagName = w.schemaManager.mapper.getParentTag(type);
 
+        sanitizeObject(info.attributes);
+        sanitizeObject(info.customValues);
+
+        if (!isNamedEntity || (isNamedEntity && info.properties.uri)) {
             var config = {
-                id: id,
+                id: w.getUniqueId('dom_'),
                 type: type,
                 isNote: w.schemaManager.mapper.isEntityTypeNote(type),
-                tag: w.schemaManager.mapper.getParentTag(type),
+                isNamedEntity: isNamedEntity,
+                tag: tagName,
                 attributes: info.attributes,
-                customValues: info.customValues,
-                cwrcLookupInfo: info.cwrcInfo
+                customValues: info.customValues
             };
 
             if (info.properties && info.properties.noteContent) {
@@ -554,15 +554,19 @@ function Tagger(writer) {
             $.extend(config, info.properties);
 
             var entity = new Entity(config);
-            
+
+            w.schemaManager.mapper.updatePropertiesFromAttributes(entity);
+
             w.editor.selection.moveToBookmark(w.editor.currentBookmark);
             var range = w.editor.selection.getRng(true);
             tagger.addEntityTag(entity, range);
 
-            var entry = w.entitiesManager.addEntity(entity);
-            
-            return id;
+            w.entitiesManager.addEntity(entity);
+        } else {
+            tagger.addStructureTag(tagName, info.attributes, w.editor.currentBookmark, tagger.ADD);
         }
+
+        // TODO is this necessary?
         w.editor.currentBookmark = null;
         w.editor.focus();
     };
@@ -574,7 +578,6 @@ function Tagger(writer) {
      * @param {Object} info The entity info
      * @param {Object} info.attributes Key/value pairs of attributes
      * @param {Object} info.properties Key/value pairs of Entity properties
-     * @param {Object} info.cwrcInfo CWRC lookup info
      * @param {Object} info.customValues Any additional custom values
      */
     tagger.editEntity = function(id, info) {
@@ -590,16 +593,11 @@ function Tagger(writer) {
         // set properties
         if (info.properties !== undefined) {
             for (var key in info.properties) {
-                if (entity.hasOwnProperty(key)) {
-                    entity[key] = info.properties[key];
-                }
+                entity.setProperty(key, info.properties[key]);
             }
         }
-        
-        // set lookup info
-        if (info.cwrcInfo !== undefined) {
-            entity.setLookupInfo(info.cwrcInfo);
-        }
+
+        w.schemaManager.mapper.updatePropertiesFromAttributes(entity);
         
         // set custom values
         for (var key in info.customValues) {

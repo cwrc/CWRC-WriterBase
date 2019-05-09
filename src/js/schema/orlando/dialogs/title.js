@@ -40,14 +40,6 @@ module.exports = function(writer, parentEl) {
         title: 'Tag Title'
     });
     
-    dialog.$el.on('beforeShow', function(e, config, dialog) {
-        var cwrcInfo = dialog.currentData.cwrcInfo;
-        if (cwrcInfo !== undefined) {
-            dialog.attributesWidget.setData({REF: cwrcInfo.id});
-            dialog.attributesWidget.expand();
-        }
-    });
-    
     return {
         show: function(config) {
             dialog.show(config);

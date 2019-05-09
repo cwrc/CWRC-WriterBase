@@ -85,10 +85,10 @@ function DialogForm(config) {
                 });
         }
     }.bind(this));
-    $('[data-type="attributes"]', this.$el).first().each($.proxy(function(index, el) {
+    $('[data-type="attributes"]', this.$el).first().each(function(index, el) {
         this.attributesWidget = new AttributeWidget({writer: this.w, $parent: this.$el, $el: $(el)});
         this.attWidgetInit = false;
-    }, this));
+    }.bind(this));
 }
 
 DialogForm.ADD = 0;
@@ -214,22 +214,46 @@ DialogForm.prototype = {
         };
         
         if (this.mode === DialogForm.ADD) {
-            if (config.cwrcInfo != null) {
-                $('[data-type="tagAs"]', this.$el).html(config.cwrcInfo.name);
-                this.currentData.cwrcInfo = config.cwrcInfo;
+            $.extend(this.currentData.properties, config.properties);
+
+            // if it's a named entity, try setting attributes using the property mappings
+            var data = {}
+            if (this.currentData.properties.uri !== undefined) {
+                var uriMapping = this.w.schemaManager.mapper.getAttributeForProperty(this.type, 'uri');
+                if (uriMapping !== undefined) {
+                    data[uriMapping] = this.currentData.properties.uri;
+                }
+            }
+            if (this.currentData.properties.lemma !== undefined) {
+                $('[data-type="tagAs"]', this.$el).html(this.currentData.properties.lemma); // also set the tagAs field
+                var lemmaMapping = this.w.schemaManager.mapper.getAttributeForProperty(this.type, 'lemma');
+                if (lemmaMapping !== undefined) {
+                    data[lemmaMapping] = this.currentData.properties.lemma;
+                }
+            }
+            var showWidget = this.attributesWidget.setData(data);
+            if (showWidget) {
+                this.attributesWidget.expand();
             }
         } else if (this.mode === DialogForm.EDIT) {
             this.currentId = config.entry.getId();
             
             var data = config.entry.getAttributes();
             
-            var cwrcInfo = config.entry.getLookupInfo();
-            
             var customValues = config.entry.getCustomValues();
             
-            if (cwrcInfo != null) {
-                this.currentData.cwrcInfo = cwrcInfo;
-                $('[data-type="tagAs"]', this.$el).html(cwrcInfo.name);
+            if (config.entry.getURI() !== undefined) {
+                var uriMapping = this.w.schemaManager.mapper.getAttributeForProperty(config.entry.getType(), 'uri');
+                if (uriMapping !== undefined) {
+                    data[uriMapping] = config.entry.getURI();
+                }
+            }
+            if (config.entry.getLemma() !== undefined) {
+                $('[data-type="tagAs"]', this.$el).html(config.entry.getLemma());
+                var lemmaMapping = this.w.schemaManager.mapper.getAttributeForProperty(config.entry.getType(), 'lemma');
+                if (lemmaMapping !== undefined) {
+                    data[lemmaMapping] = config.entry.getLemma();
+                }
             }
             
             this.currentData.customValues = customValues;

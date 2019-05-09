@@ -1,4 +1,3 @@
-// TODO add IDs
 'use strict';
 
 var $ = require('jquery');
@@ -114,18 +113,20 @@ Mapper.prototype = {
      * @returns {Array} An 2 item array of opening and closing tags. If the tag is empty then it will be in the second index.
      */
     getMapping: function(entity) {
-        var mapping = this.getMappings().entities[entity.getType()].mapping;
-        if (mapping === undefined) {
-            return ['', '']; // return array of empty strings if there is no mapping
+        var type = entity.getType();
+        var entry = this.getMappings().entities[type];
+        if (entry.mappingFunction) {
+            return entry.mappingFunction(entity);
+        } else {
+            return Mapper.getDefaultMapping(entity)
         }
-        return mapping(entity);
     },
 
     /**
-     * Returns the mapping of an element to an entity object.
+     * Returns the mapping of an element to an entity config object.
      * @param {Element} el The element
      * @param {Boolean} [cleanUp] Whether to remove the elements that got matched by reverse mapping. Default is false.
-     * @returns {Object} The entity object.
+     * @returns {Object} The entity config object.
      */
     getReverseMapping: function(el, cleanUp) {
         function getValueFromXPath(contextEl, xpath) {
@@ -152,11 +153,11 @@ Mapper.prototype = {
         };
 
         /**
-         * Removes the matched elements in the reverseMappingInfo, then removes the match entries from the reverseMappingInfo object.
+         * Removes the matched elements in the mappingInfo, then removes the match entries from the mappingInfo object.
          * @param {Element} entityElement
-         * @param {Object} reverseMappingInfo
+         * @param {Object} mappingInfo
          */
-        function cleanProcessedEntity(entityElement, reverseMappingInfo) {
+        function cleanProcessedEntity(entityElement, mappingInfo) {
             function removeMatch(match) {
                 switch(match.nodeType) {
                     case Node.ATTRIBUTE_NODE:
@@ -179,12 +180,12 @@ Mapper.prototype = {
                 }
             }
 
-            for (var key in reverseMappingInfo) {
+            for (var key in mappingInfo) {
                 if (key !== 'attributes') {
-                    var level1 = reverseMappingInfo[key];
+                    var level1 = mappingInfo[key];
                     if (level1.match) {
                         removeMatch(level1.match);
-                        reverseMappingInfo[key] = level1.value;
+                        mappingInfo[key] = level1.value;
                     } else {
                         for (var key2 in level1) {
                             var level2 = level1[key2];
@@ -208,7 +209,7 @@ Mapper.prototype = {
             return {};
         }
         var entry = this.getMappings().entities[type];
-        var mapping = entry.reverseMapping;
+        var mapping = entry.mapping;
         
         var obj = {
             attributes: {}
@@ -292,9 +293,59 @@ Mapper.prototype = {
     },
 
     /**
-     * Checks if the particular entity type is "a note or note-like".
+     * Gets the mapping for a property of a specific entity type
      * @param {String} type The entity type
-     * @return {Boolean}
+     * @param {String} property The property name
+     * @returns {String|undefined} The mapping
+     */
+    getMappingForProperty: function(type, property) {
+        var entry = this.getMappings().entities[type];
+        if (entry.mapping && entry.mapping[property]) {
+            return entry.mapping[property];
+        }
+        return undefined;
+    },
+
+    /**
+     * Gets the attribute name mapping for a property of an entity type, if it exists
+     * @param {String} type The entity type
+     * @param {String} property The property name
+     * @returns {String|undefined} The mapping
+     */
+    getAttributeForProperty: function(type, property) {
+        var mappingString = this.getMappingForProperty(type, property);
+        if (mappingString !== undefined && /^@\w+$/.test(mappingString)) {
+            // if it looks like an attribute, remove the @ and return the attribute name
+            return mappingString.slice(1);
+        }
+        return undefined;
+    },
+
+    /**
+     * If the entity has properties that map to attributes, update the property values with those from the attributes
+     * @param {Entity} entity 
+     */
+    updatePropertiesFromAttributes: function(entity) {
+        var type = entity.getType();
+        var mappings = this.getMappings().entities[type];
+        for (var key in mappings) {
+            if (key !== 'customValues') {
+                var mapValue = mappings[key];
+                if (typeof mapValue === 'string' && /^@\w+$/.test(mapValue)) {
+                    var attributeName = mapValue.slice(1);
+                    var attributeValue = entity.getAttribute(attributeName);
+                    if (attributeValue !== undefined) {
+                        entity.setProperty(key, attributeValue);
+                    }
+                }
+            }
+        }
+    },
+
+    /**
+     * Checks if the specified entity type is "a note or note-like".
+     * @param {String} type The entity type
+     * @returns {Boolean}
      */
     isEntityTypeNote: function(type) {
         if (type == null) {
@@ -309,9 +360,26 @@ Mapper.prototype = {
     },
 
     /**
-     * Checkes is the particular entity type requires a text selection in order to be tagged
+     * Checks if the specified entity type is a named entity, i.e. specifies a URI.
      * @param {String} type The entity type
-     * @return {Boolean}
+     * @returns {Boolean}
+     */
+    isNamedEntity: function(type) {
+        if (type == null) {
+            return false;
+        }
+        var entry = this.getMappings().entities[type];
+        if (entry.mapping && entry.mapping.uri) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    /**
+     * Checks if the specified entity type requires a text selection in order to be tagged
+     * @param {String} type The entity type
+     * @returns {Boolean}
      */
     doesEntityRequireSelection: function(type) {
         if (type == null) {
@@ -338,11 +406,13 @@ Mapper.prototype = {
         if (entityType !== null) {
             var id = tag.getAttribute('id');
             var isNote = this.isEntityTypeNote(entityType);
+            var isNamedEntity = this.isNamedEntity(entityType);
             var config = {
                 id: id,
                 tag: tag.getAttribute('_tag'),
                 type: entityType,
                 isNote: isNote,
+                isNamedEntity: isNamedEntity,
                 range: {startXPath: this.w.utilities.getElementXPath(tag)}
             };
 
@@ -374,9 +444,7 @@ Mapper.prototype = {
             var entity = this.w.entitiesManager.addEntity(config);
 
             if (showEntityDialog) {
-                // TODO FIXME hardcoded ref attribute, consolidate with nerve mappings
-                var ref = tag.getAttribute('ref');
-                if (ref === null) {
+                if (!isNamedEntity || (isNamedEntity && entity.getURI() === undefined)) {
                     this.w.dialogManager.show(entityType, {type: entityType, entry: entity});
                 }
             }
@@ -396,6 +464,7 @@ Mapper.prototype = {
     findEntities: function(typesToFind) {
         var allTypes = ['person', 'place', 'date', 'org', 'citation', 'note', 'title', 'correction', 'keyword', 'link'];
         var nonNoteTypes = ['person', 'place', 'date', 'org', 'title', 'link'];
+        var namedEntities = ['person', 'place', 'org', 'title']
 
         typesToFind = typesToFind === undefined ? nonNoteTypes : typesToFind;
         
@@ -428,16 +497,19 @@ Mapper.prototype = {
                         return false;
                     }
                     // double check entity type using element instead of string, which forces xpath evaluation, which we want for tei note entities
-                    var type = this.getEntityTypeForTag(el);
-                    if (type === null) {
+                    var entityType = this.getEntityTypeForTag(el);
+                    if (entityType === null) {
                         return false;
                     } else {
-                        var linkingXPath = this.getLinkingXPath(type);
-                        if (linkingXPath !== undefined) {
-                            var result = this.w.utilities.evaluateXPath(el, linkingXPath);
+                        var entry = this.getMappings().entities[entityType];
+                        // if the mapping has a uri, check to make sure it exists
+                        if (entry.mapping && entry.mapping.uri) {
+                            var result = this.w.utilities.evaluateXPath(el, entry.mapping.uri);
                             if (result !== null) {
                                 return true;
                             }
+                        } else {
+                            return true;
                         }
                     }
                     return false;
@@ -476,10 +548,6 @@ Mapper.prototype = {
             return '';
         }
         return tag;
-    },
-
-    getLinkingXPath: function(type) {
-        return this.getMappings().entities[type].linkingXPath;
     },
 
     /**

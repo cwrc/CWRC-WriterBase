@@ -221,10 +221,8 @@ EntitiesManager.prototype = {
             this.w.utilities.getUriForSelector(),
             this.w.utilities.getUriForUser()
         ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
-            var lookupInfo = entity.getLookupInfo();
-            if (lookupInfo !== undefined && lookupInfo.id) {
-                // use the id already provided
-                entityUri = lookupInfo.id;
+            if (entity.getURI() !== undefined) {
+                entityUri = entity.getURI();
             }
             entity.setUris({
                 entityId: entityUri,

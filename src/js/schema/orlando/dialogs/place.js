@@ -32,14 +32,6 @@ module.exports = function(writer, parentEl) {
         height: 450
     });
     
-    dialog.$el.on('beforeShow', function(e, config, dialog) {
-        var cwrcInfo = dialog.currentData.cwrcInfo;
-        if (cwrcInfo !== undefined) {
-            dialog.attributesWidget.setData({REF: cwrcInfo.id});
-            dialog.attributesWidget.expand();
-        }
-    });
-    
     return {
         show: function(config) {
             dialog.show(config);

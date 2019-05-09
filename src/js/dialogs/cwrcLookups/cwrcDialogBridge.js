@@ -25,8 +25,8 @@ function CwrcDialogBridge(writer, config) {
             } else {
                 if (result.response !== undefined && result.response.pid !== undefined) {
                     w.dialogManager.show('schema/'+localDialog, {
-                        cwrcInfo: {
-                            id: result.response.uri
+                        properties: {
+                            uri: result.response.uri
                         }
                     });
                 } else {
@@ -61,15 +61,12 @@ function CwrcDialogBridge(writer, config) {
                     query: query,
                     parentEl: w.dialogManager.getDialogWrapper(),
                     success: function(result) {
-                        // set id to the uri
-                        // assume proper uri passed by the dialogs
-                        result.id = result.uri 
                         if ($.isArray(result.name)) {
                             result.name = result.name[0];
-                        }                        
-                        delete result.data;
+                        }
                         
-                        config.entry.setLookupInfo(result);
+                        config.entry.setURI(result.uri);
+                        config.entry.setLemma(result.name);
                         
                         w.dialogManager.show('schema/'+localDialog, {
                             entry: config.entry
@@ -101,19 +98,16 @@ function CwrcDialogBridge(writer, config) {
                     query: query,
                     parentEl: w.dialogManager.getDialogWrapper(),
                     success: function(result) {
-                        // set id to the uri
-                        // assume proper uri passed by the dialogs
-                        result.id = result.uri 
-                        
                         if ($.isArray(result.name)) {
                             result.name = result.name[0];
                         }
                         
-                        delete result.data;
-                        
                         w.dialogManager.show('schema/'+localDialog, {
                             query: query,
-                            cwrcInfo: result
+                            properties: {
+                                uri: result.uri,
+                                lemma: result.name
+                            }
                         });
                     },
                     error: function(errorThrown) {
