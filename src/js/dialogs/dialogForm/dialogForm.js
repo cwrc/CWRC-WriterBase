@@ -186,12 +186,14 @@ DialogForm.prototype = {
                     }
                     break;
                 case 'textbox':
-                case 'hidden':
                 case 'select':
                     formEl.val('');
                     break;
                 case 'tagAs':
                     formEl.empty();
+                    break;
+                case 'hidden':
+                    // do nothing for hidden
                     break;
             }
         });

@@ -560,7 +560,7 @@ function XML2CWRC(writer) {
                             entry.setContent($(entityNode).text());
                         }
 
-                        if (entry.isNote()) {
+                        if (entry.isNote() && (entry.getNoteContent() === undefined || entry.getNoteContent() === '')) {
                             entry.setNoteContent($(entityNode).html());
                         }
                     } else {

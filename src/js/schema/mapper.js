@@ -156,8 +156,10 @@ Mapper.prototype = {
          * Removes the matched elements in the mappingInfo, then removes the match entries from the mappingInfo object.
          * @param {Element} entityElement
          * @param {Object} mappingInfo
+         * @param {Boolean} isCWRC
+         * @param {String} textTag
          */
-        function cleanProcessedEntity(entityElement, mappingInfo) {
+        function cleanProcessedEntity(entityElement, mappingInfo, isCWRC, textTag) {
             function removeMatch(match) {
                 switch(match.nodeType) {
                     case Node.ATTRIBUTE_NODE:
@@ -173,7 +175,21 @@ Mapper.prototype = {
                         }
                         break;
                     case Node.TEXT_NODE:
-                        // TODO
+                        if (match.parentElement !== entityElement) {
+                            var removeText = true;
+                            if (isCWRC) {
+                                removeText = match.parentElement.getAttribute('_tag') !== textTag;
+                            } else {
+                                removeText = match.parentElement.nodeName !== textTag;
+                            }
+                            // if that text's parent is not the entity then remove the text and the parent if it's not the textTag
+                            // otherwise just remove the text's parent
+                            if (removeText) {
+                                $(match.parentElement).remove();
+                            } else {
+                                $(match).unwrap();
+                            }
+                        }
                         break;
                     default:
                         console.warn('schemaManager.cleanProcessedEntity: cannot remove node with unknown type', match);
@@ -245,7 +261,8 @@ Mapper.prototype = {
                 }
             }
             if (cleanUp) {
-                cleanProcessedEntity(el, obj);
+                var textTag = this.getTextTag(type);
+                cleanProcessedEntity(el, obj, isCWRC, textTag);
             }
         }
         
@@ -327,15 +344,17 @@ Mapper.prototype = {
      */
     updatePropertiesFromAttributes: function(entity) {
         var type = entity.getType();
-        var mappings = this.getMappings().entities[type];
-        for (var key in mappings) {
-            if (key !== 'customValues') {
-                var mapValue = mappings[key];
-                if (typeof mapValue === 'string' && /^@\w+$/.test(mapValue)) {
-                    var attributeName = mapValue.slice(1);
-                    var attributeValue = entity.getAttribute(attributeName);
-                    if (attributeValue !== undefined) {
-                        entity.setProperty(key, attributeValue);
+        var entry = this.getMappings().entities[type];
+        if (entry.mapping) {
+            for (var key in entry.mapping) {
+                if (key !== 'customValues') {
+                    var mapValue = entry.mapping[key];
+                    if (typeof mapValue === 'string' && /^@\w+$/.test(mapValue)) {
+                        var attributeName = mapValue.slice(1);
+                        var attributeValue = entity.getAttribute(attributeName);
+                        if (attributeValue !== undefined) {
+                            entity.setProperty(key, attributeValue);
+                        }
                     }
                 }
             }
@@ -544,9 +563,6 @@ Mapper.prototype = {
      */
     getTextTag: function(type) {
         var tag = this.getMappings().entities[type].textTag;
-        if (tag === undefined) {
-            return '';
-        }
         return tag;
     },
 

@@ -35,8 +35,9 @@ function AttributeWidget(config) {
             var formEl = $(el);
             var type = formEl.data('type');
             var mapping = formEl.data('mapping');
-            var isCustom = mapping.indexOf('custom.') === 0;
-            if (!isCustom) {
+            // check the mapping to make sure it's an attribute
+            // TODO if the data-type is hidden then the attribute should not be modifiable in this widget
+            if (mapping.indexOf('custom.') === -1 && mapping.indexOf('prop.') === -1) {
                 var changeEl;
                 if (type === 'radio') {
                     changeEl = $('input', formEl);

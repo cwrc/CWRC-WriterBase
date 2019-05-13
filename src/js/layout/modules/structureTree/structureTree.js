@@ -246,6 +246,10 @@ function StructureTree(config) {
         // entity tag
         if (w.isReadOnly === false && node.attr('_entity')) {
             var id = node.attr('name');
+            if (id === undefined) {
+                console.warn('structureTree: no id for',tag);
+                return null;
+            }
             
             nodeData = {
                 text: tag,
@@ -257,6 +261,10 @@ function StructureTree(config) {
         } else {
             if (w.isReadOnly === false || (w.isReadOnly && (tag === w.schemaManager.getRoot() || tree.tagFilter.indexOf(tag.toLowerCase()) !== -1))) {
                 var id = node.attr('id');
+                if (id === undefined) {
+                    console.warn('structureTree: no id for',tag);
+                    return null;
+                }
 
                 if (w.isReadOnly) {
                     if (tag !== w.schemaManager.getRoot()) {

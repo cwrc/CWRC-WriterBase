@@ -32,6 +32,10 @@ module.exports = function(writer, parentEl) {
             sicText = w.editor.currentBookmark.rng.toString();
         } else {
             sicText = config.entry.getCustomValue('sicText');
+            if (sicText === undefined) {
+                // update corrText from entity content
+                $el.find('textarea').val(config.entry.getContent());
+            }
         }
         if (sicText !== undefined && sicText !== '') {
             dialog.currentData.customValues.sicText = sicText;
@@ -41,20 +45,32 @@ module.exports = function(writer, parentEl) {
     dialog.$el.on('beforeSave', function(e, dialog) {
         var sicText = dialog.currentData.customValues.sicText;
         var corrText = dialog.currentData.customValues.corrText;
+        // TODO need to handle conversion back and forth
+        dialog.currentData.customValues.corrText = w.utilities.convertTextForExport(corrText);
         
         if (dialog.mode === DialogForm.EDIT) {
-            // TODO
-//            if (sicText == undefined) {
-//                // edit the correction text
-//                var entityStart = $('[name="'+w.entitiesManager.getCurrentEntity()+'"]', writer.editor.getBody())[0];
-//                var textNode = w.utilities.getNextTextNode(entityStart);
-//                textNode.textContent = data.corrText;
-//            }
+            if (sicText == undefined) {
+                // set editor and entity content from corrText
+                var entityId = w.entitiesManager.getCurrentEntity();
+                $('#'+entityId, w.editor.getBody()).text(corrText);
+                w.entitiesManager.getEntity(entityId).setContent(corrText);
+            }
         } else {
+            // insert the correction text
             if (sicText === undefined) {
-                // insert the correction text so we can make an entity out of that
-                // TODO
-                w.editor.getDoc().execCommand('insertText', false, corrText);
+                var tempId = w.getUniqueId('temp');
+                var $temp = $('<span id="'+tempId+'"/>', w.editor.getDoc());
+                var range = w.editor.selection.getRng(true);
+                // insert temp span at the current range
+                range.surroundContents($temp[0]);
+                // add the text content
+                $temp.html(corrText);
+                var textNode = $temp[0].firstChild;
+                // remove the temp span
+                $(textNode).unwrap();
+                // select the text content as the new range and save as bookmark
+                range.selectNodeContents(textNode);
+                w.editor.currentBookmark = w.editor.selection.getBookmark(1);
             }
         }
     });

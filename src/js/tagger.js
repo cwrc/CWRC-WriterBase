@@ -631,13 +631,13 @@ function Tagger(writer) {
             }
         }
         
-        // the following is mostly here to support TEI keyword entities
-        if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
-            if (entity.isNote()) {
-                var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
-                $tag.find('[_tag='+textTag+']').text(info.properties.content);
-            }
-        }
+        // TODO rework the use of textTag so that this actually works
+        // if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
+        //     if (entity.isNote()) {
+        //         var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
+        //         $tag.find('[_tag='+textTag+']').text(info.properties.content);
+        //     }
+        // }
 
         w.event('entityEdited').publish(id);
     };
@@ -715,13 +715,20 @@ function Tagger(writer) {
         }
 
         if (entity.isNote()) {
-            // handling for note type entities
+            var noteContent = w.utilities.convertTextForExport(entity.getNoteContent());
+
+            // var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
+            // if (textTag) {
+            //     var textTagId = w.getUniqueId('dom_');
+            //     noteContent = '<span id="'+textTagId+'" _tag="'+textTag+'">'+noteContent+'</span>';
+            // }
+
             var tag = w.editor.dom.create(
                 'span',
                 $.extend(tagAttributes, {
                     '_entity': true, '_note': true, '_tag': parentTag, '_type': type, 'class': 'entity '+type+' start end', 'name': id, 'id': id
                 }),
-                entity.getNoteContent()
+                noteContent
             );
 
             var sel = w.editor.selection;

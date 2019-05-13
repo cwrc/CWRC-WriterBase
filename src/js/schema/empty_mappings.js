@@ -25,13 +25,13 @@ listeners: {
 /**
  * The entries for each entity. Each entity entry needs the following members:
  * parentTag {String|Array}: the XML tag(s) that encapsulates the entity, also used to determine if an XML tag is associated with an entity
- * textTag {String}: the tag that contains the text content of the entity
  * annotation {Function}: a function which accepts the AnnotationsManager, an Entity, and a format string (either 'xml' or 'json'). It should return an annotation in the specified format (see AnnotationsManager.commonAnnotation)
  * 
  * Optional members:
  * mappingFunction {Function}: a function which accepts an Entity and returns an array of start and end XML strings to display in the Writer (see Mapper.getDefaultMapping)
  * mapping {Object}: a map of Entity config properties to XPaths
  * isNote {Boolean}: boolean indicating the entity is a "note type" (default is false)
+ * textTag {String}: the tag that contains the text content of the entity, if the entity is a note
  * xpathSelector {String}: if the entity can have several different parentTags or if several entities share the same parentTag, this selector can help differentiate
  * requiresSelection {Boolean}: boolean indicating is a text selection is required to add the entity (as opposed to a point in the text) (default is true)
  */
@@ -40,7 +40,6 @@ entities: {
     
 person: {
     parentTag: '',
-    textTag: '',
     mappingFunction: function(entity) {
     },
     mapping: {},
@@ -50,7 +49,6 @@ person: {
 
 org: {
     parentTag: '',
-    textTag: '',
     mappingFunction: function(entity) {
     },
     mapping: {},
@@ -60,7 +58,6 @@ org: {
 
 place: {
     parentTag: '',
-    textTag: '',
     mappingFunction: function(entity) {
     },
     mapping: {},
@@ -70,7 +67,6 @@ place: {
 
 title: {
     parentTag: '',
-    textTag: '',
     mappingFunction: function(entity) {
     },
     mapping: {},
@@ -80,7 +76,6 @@ title: {
 
 correction: {
     parentTag: '',
-    textTag: '',
     mappingFunction: function(entity) {
     },
     mapping: {},
@@ -90,7 +85,6 @@ correction: {
 
 link: {
     parentTag: '',
-    textTag: '',
     mappingFunction: function(entity) {
     },
     mapping: {},
@@ -100,7 +94,6 @@ link: {
 
 date: {
     parentTag: '',
-    textTag: '',
     mappingFunction: function(entity) {
     },
     mapping: {},
@@ -130,16 +123,6 @@ citation: {
 },
 
 keyword: {
-    parentTag: '',
-    textTag: '',
-    mappingFunction: function(entity) {
-    },
-    mapping: {},
-    annotation: function(entity, format) {
-    }
-},
-
-event: {
     parentTag: '',
     textTag: '',
     mappingFunction: function(entity) {

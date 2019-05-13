@@ -55,7 +55,6 @@ entities: {
     
 person: {
     parentTag: 'persName',
-    textTag: '',
     mapping: {
         uri: '@ref',
         lemma: '@key',
@@ -68,7 +67,6 @@ person: {
 
 org: {
     parentTag: 'orgName',
-    textTag: '',
     mapping: {
         uri: '@ref',
         lemma: '@key',
@@ -81,7 +79,6 @@ org: {
 
 place: {
     parentTag: 'placeName',
-    textTag: 'placeName',
     mappingFunction: function(entity) {
         var startTag = Mapper.getTagAndDefaultAttributes(entity);
         
@@ -123,7 +120,6 @@ place: {
 
 title: {
     parentTag: 'title',
-    textTag: '',
     mapping: {
         uri: '@ref',
         lemma: '@key',
@@ -151,9 +147,10 @@ correction: {
     requiresSelection: false,
     mappingFunction: function(entity) {
         var corrText = entity.getCustomValue('corrText');
+        var sicText = entity.getCustomValue('sicText');
         
         var tag;
-        if (corrText) {
+        if (sicText) {
             tag = 'choice';
         } else {
             tag = 'corr';
@@ -162,7 +159,7 @@ correction: {
         var startTag = '<'+tag+Mapper.getAttributeString(entity.getAttributes())+'>';
         var endTag = '';
         
-        if (corrText) {
+        if (sicText) {
             startTag += '<sic>';
             endTag = '</sic><corr>'+corrText+'</corr></choice>';
         } else {
@@ -194,7 +191,6 @@ correction: {
 
 link: {
     parentTag: 'ref',
-    textTag: '',
     annotation: function(annotationsManager, entity, format) {
         return annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText', 'oa:linking');
     }
@@ -202,7 +198,6 @@ link: {
 
 date: {
     parentTag: 'date',
-    textTag: '',
     annotation: function(annotationsManager, entity, format) {
         var types = [];
         if (entity.getAttribute('when') !== undefined) {
@@ -239,7 +234,6 @@ date: {
 note: {
     parentTag: 'note',
     xpathSelector: 'self::tei:note[not(@type="citation")]',
-    textTag: '',
     isNote: true,
     requiresSelection: false,
     annotation: function(annotationsManager, entity, format) {
@@ -279,6 +273,11 @@ keyword: {
     textTag: 'term',
     isNote: true,
     requiresSelection: false,
+    mappingFunction: function(entity) {
+        var startTag = Mapper.getTagAndDefaultAttributes(entity)+'<term>';
+        var endTag = '</term></seg>';
+        return [startTag, endTag];
+    },
     mapping: {
         noteContent: 'term/text()'
     },

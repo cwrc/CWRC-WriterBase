@@ -21,6 +21,7 @@ module.exports = function(writer, parentEl) {
             '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
             '</div>'+
         '</div>'+
+        '<input type="hidden" data-type="hidden" data-mapping="type" value="citation" />'+
     '</div>').appendTo(parentEl);
 
     var dialog = new DialogForm({
@@ -33,7 +34,6 @@ module.exports = function(writer, parentEl) {
     });
 
     dialog.$el.on('beforeShow', function(e, config, dialog) {
-        $('#'+id+'_type').val('citation');
         if (dialog.mode === DialogForm.EDIT) {
             dialog.$el.find('label[for='+id+'_noteContent]').hide();
             dialog.$el.find('#'+id+'_noteContent').hide();

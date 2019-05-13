@@ -10,14 +10,16 @@ module.exports = function(writer, parentEl) {
     var $el = $(''+
     '<div class="annotationDialog">'+
         '<div>'+
-            '<label for="'+id+'_input">Keyword</label>'+
-            '<input type="text" id="'+id+'_input" data-type="textbox" data-mapping="prop.content" style="margin-right: 10px;"/>'+
+            '<label for="'+id+'_noteContent">Keyword</label>'+
+            '<input type="text" id="'+id+'_noteContent" data-type="textbox" data-mapping="prop.noteContent" style="margin-right: 10px;"/>'+
+            '<p>You will be able to edit the keyword in the main document.</p>'+
         '</div>'+
         '<div data-transform="accordion">'+
             '<h3>Markup options</h3>'+
             '<div id="'+id+'_attParent" class="attributes" data-type="attributes" data-mapping="attributes">'+
             '</div>'+
         '</div>'+
+        '<input type="hidden" data-type="hidden" data-mapping="type" value="keyword" />'+
     '</div>').appendTo(parentEl);
     
     var dialog = new DialogForm({
@@ -51,11 +53,6 @@ module.exports = function(writer, parentEl) {
                 });
             }
         }
-        if (dialog.isValid) {
-            var content = w.utilities.convertTextForExport(dialog.currentData.properties.content);
-            dialog.currentData.properties.content = content;
-            dialog.currentData.properties.noteContent = '<span _tag="term">'+content+'</span>';
-        }
     });
 
     dialog.$el.on('beforeShow', function(e, config) {
@@ -63,14 +60,13 @@ module.exports = function(writer, parentEl) {
         forceSave = false;
 
         if (dialog.mode === DialogForm.ADD) {
-            dialog.attributesWidget.setData({type: 'keyword'});
             dialog.attributesWidget.setData({ana: ''});
             dialog.attributesWidget.expand();
+            dialog.$el.find('label[for='+id+'_noteContent]').show();
+            dialog.$el.find('#'+id+'_noteContent').show();
         } else {
-            var noteContent = config.entry.getNoteContent();
-            var noteContentEl = w.utilities.stringToXML(noteContent);
-            var content = noteContentEl.documentElement.textContent;
-            $(this).find('#'+id+'_input').val(content);
+            dialog.$el.find('label[for='+id+'_noteContent]').hide();
+            dialog.$el.find('#'+id+'_noteContent').hide();
         }
     });
 
