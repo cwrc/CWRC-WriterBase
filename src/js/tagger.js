@@ -744,7 +744,7 @@ function Tagger(writer) {
             tagger.addNoteWrapper(tag, type);
         } else {
             if (range.startContainer.parentNode != range.endContainer.parentNode) {
-                var nodes = getNodesInBetween(range.startContainer, range.endContainer, NodeFilter.TEXT_NODE);
+                var nodes = getNodesInBetween(range.startContainer, range.endContainer, NodeFilter.SHOW_TEXT);
                 
                 var startRange = range.cloneRange();
                 startRange.setEnd(range.startContainer, range.startContainer.length);
