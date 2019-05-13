@@ -247,14 +247,20 @@ function CWRC2XML(writer) {
                 var isEntity = currNode.attr('_entity') === 'true';
                 if (isEntity) {
                     var entityEntry = w.entitiesManager.getEntity(id);
-                    array = w.schemaManager.mapper.getMapping(entityEntry);
-                    if (identifyEntities) {
-                        // add temp id so we can target it later in setEntityRanges
-                        if (array[0] !== '') {
-                            array[0] = array[0].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
-                        } else {
-                            array[1] = array[1].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
+                    if (entityEntry) {
+                        array = w.schemaManager.mapper.getMapping(entityEntry);
+                        if (identifyEntities) {
+                            // add temp id so we can target it later in setEntityRanges
+                            if (array[0] !== '') {
+                                array[0] = array[0].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
+                            } else {
+                                array[1] = array[1].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
+                            }
                         }
+                    } else {
+                        // TODO this occurs if the selection panel is open and we're finalizing an entity
+                        console.warn('cwrc2xml.buildXMLString: no entity entry for',id);
+                        array = ['', ''];
                     }
                 } else {
                     if (tag === '#comment') {
