@@ -59,7 +59,6 @@ function Nerve(config) {
                             <option value="person">Person</option>
                             <option value="place">Place</option>
                             <option value="org">Organization</option>
-                            <option value="title">Title</option>
                         </select>
                     </div>
                     <div style="display: inline-block; margin: 5px;">
@@ -110,7 +109,7 @@ function Nerve(config) {
                 type: 'info',
                 callback: function(doIt) {
                     if (doIt) {
-                        rejectAll();
+                        rejectAll(true);
                         handleDone();
                     }
                 }
@@ -621,7 +620,7 @@ function Nerve(config) {
      * Get the tag names used by the named entities
      */
     var getNamedEntityTags = function() {
-        var namedEntities = ['person', 'place', 'title', 'org'];
+        var namedEntities = ['person', 'place', 'org'];
         var namedEntityTags = namedEntities.map((type) => {
             return w.schemaManager.mapper.getParentTag(type);
         });
@@ -765,18 +764,18 @@ function Nerve(config) {
         removeEntityFromView(entityId);
     }
 
-    var rejectAll = function() {
+    var rejectAll = function(isDone) {
         var filter = getFilter();
 
         for (var key in mergedEntities) {
             var entry = mergedEntities[key];
-            if (filter === 'all' || filter === entry.type) {
+            if (isDone || filter === 'all' || filter === entry.type) {
                 rejectMerged(key);
             }
         }
 
         getNerveEntities().forEach(function(ent, index) {
-            if (filter === 'all' || filter === ent.getType()) {
+            if (isDone || filter === 'all' || filter === ent.getType()) {
                 rejectEntity(ent.getId());
             }
         });
