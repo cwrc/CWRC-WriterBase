@@ -11,7 +11,8 @@ function AttributesEditor(writer, parentEl) {
     
     var $schemaDialog = $(''+
     '<div class="annotationDialog">'+
-        '<div />'+
+        '<div class="entityWarning" style="display: none;">Warning: you are creating a tag but <em>not</em> a corresponding entity/linked data annotation. Use the button on the tool bar to create a tag and an entity simultaneously.</div>'+
+        '<div class="attributeWidget" />'+
     '</div>').appendTo(parentEl)
     
     var dialogOpenTimestamp = null;
@@ -55,13 +56,21 @@ function AttributesEditor(writer, parentEl) {
     var attributesWidget = new AttributeWidget({
         writer: w,
         $parent: $schemaDialog,
-        $el: $schemaDialog.children('div'),
+        $el: $schemaDialog.find('.attributeWidget'),
         showSchemaHelp: true
     });
     
     var doShow = function(tagName, tagPath, attributes) {
         w.editor.getBody().blur(); // lose keyboard focus in editor
         
+        $schemaDialog.find('.entityWarning').hide();
+        if (w.mode !== w.XML) {
+            var type = w.schemaManager.mapper.getEntityTypeForTag(tagName);
+            if (type !== null) {
+                $schemaDialog.find('.entityWarning').show();
+            }
+        }
+
         if ($.isEmptyObject(attributes)) {
             attributesWidget.mode = AttributeWidget.ADD;
         } else {

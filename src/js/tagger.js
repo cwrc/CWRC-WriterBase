@@ -124,12 +124,6 @@ function Tagger(writer) {
         if (tagName === w.schemaManager.getHeader()) {
             w.dialogManager.show('header');
             return;
-        } else {
-            var type = w.schemaManager.mapper.getEntityTypeForTag(tagName);
-            if (type != null) {
-                w.tagger.addEntityDialog(type, tagName);
-                return;
-            }
         }
 
         var tagId = w.editor.currentBookmark.tagId; // set by structureTree
