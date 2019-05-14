@@ -79,20 +79,19 @@ place: {
     parentTag: 'PLACE',
     textTag: ['ADDRESS', 'AREA', 'GEOG', 'PLACENAME', 'REGION', 'SETTLEMENT'],
     mappingFunction: function(entity) {
-        var tag = entity.getCustomValue('tag');
-        var startTag = Mapper.getTagAndDefaultAttributes(entity);
-        startTag += '<'+tag+'>';
+        var placeType = entity.getCustomValue('placeType') || 'ADDRESS';
 
-        var endTag = '</'+tag+'>';
-        tag = entity.getTag();
-        endTag += '</'+tag+'>';
+        var startTag = Mapper.getTagAndDefaultAttributes(entity);
+        startTag += '<'+placeType+'>';
+
+        var endTag = '</'+placeType+'></'+entity.getTag()+'>';
         
         return [startTag, endTag];
     },
     mapping: {
         uri: '@REF',
         lemma: '@REG',
-        customValues: {tag: 'name(./*)'}
+        customValues: {placeType: 'name(./*)'}
     },
     annotation: function(annotationsManager, entity, format) {
         return annotationsManager.commonAnnotation(entity, format, 'geo:SpatialThing');

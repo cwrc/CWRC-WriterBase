@@ -7,7 +7,7 @@ module.exports = function(writer, parentEl) {
     var id = w.getUniqueId('placeForm_');
     var $el = $(''+
     '<div class="annotationDialog">'+
-        '<div id="'+id+'_certainty" data-transform="buttonset" data-type="radio" data-mapping="custom.tag">'+
+        '<div id="'+id+'_certainty" data-transform="buttonset" data-type="radio" data-mapping="custom.placeType">'+
             '<p>Type of place:</p>'+
             '<input type="radio" id="'+id+'_address" name="'+id+'_type_place" value="ADDRESS" data-default="true" /><label for="'+id+'_address">Address</label>'+
             '<input type="radio" id="'+id+'_area" name="'+id+'_type_place" value="AREA" /><label for="'+id+'_area">Area</label>'+

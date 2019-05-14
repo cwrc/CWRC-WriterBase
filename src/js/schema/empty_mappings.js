@@ -31,7 +31,7 @@ listeners: {
  * mappingFunction {Function}: a function which accepts an Entity and returns an array of start and end XML strings to display in the Writer (see Mapper.getDefaultMapping)
  * mapping {Object}: a map of Entity config properties to XPaths
  * isNote {Boolean}: boolean indicating the entity is a "note type" (default is false)
- * textTag {String}: the tag that contains the text content of the entity, if the entity is a note
+ * textTag {String|Array}: used to specify the tag that contains the text content of the entity, mainly used by notes but also by more complex entity mappings
  * xpathSelector {String}: if the entity can have several different parentTags or if several entities share the same parentTag, this selector can help differentiate
  * requiresSelection {Boolean}: boolean indicating is a text selection is required to add the entity (as opposed to a point in the text) (default is true)
  */

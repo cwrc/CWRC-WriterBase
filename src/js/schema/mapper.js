@@ -133,18 +133,29 @@ Mapper.prototype = {
             var value;
             var result = this.w.utilities.evaluateXPath(contextEl, xpath);
             if (result !== null) {
-                switch (result.nodeType) {
-                    case Node.ELEMENT_NODE:
-                        value = Mapper.xmlToString(result);
-                        break;
-                    case Node.TEXT_NODE:
-                        value = result.textContent;
-                        break;
-                    case Node.ATTRIBUTE_NODE:
-                        value = result.value;
-                        break;
-                    case undefined:
-                        value = result;
+                if (result.nodeType) {
+                    switch (result.nodeType) {
+                        case Node.ELEMENT_NODE:
+                            value = Mapper.xmlToString(result);
+                            break;
+                        case Node.TEXT_NODE:
+                            value = result.textContent;
+                            break;
+                        case Node.ATTRIBUTE_NODE:
+                            value = result.value;
+                            break;
+                    }
+                } else if (typeof result === 'string') {
+                    // it's probably a name() function
+                    value = result;
+                    var innerXPath = /^name\((.*)\)$/.exec(xpath); // try to get the inside of the name function
+                    if (innerXPath !== null) {
+                        innerXPath = innerXPath[1];
+                        var innerResult = getValueFromXPath.call(this, contextEl, innerXPath);
+                        result = innerResult.match;
+                    } else {
+                        console.warn('mapper.getReverseMapping.getValueFromXPath: cannot get match for unrecognizable xpath',xpath);
+                    }
                 }
     
                 return {value: value, match: result};
@@ -157,42 +168,51 @@ Mapper.prototype = {
          * @param {Element} entityElement
          * @param {Object} mappingInfo
          * @param {Boolean} isCWRC
-         * @param {String} textTag
+         * @param {String|Array} textTag
          */
         function cleanProcessedEntity(entityElement, mappingInfo, isCWRC, textTag) {
+            function isTextTag(node) {
+                var nodeName;
+                if (isCWRC) {
+                    nodeName = node.getAttribute('_tag');
+                } else {
+                    nodeName = node.nodeName;
+                }
+                if (Array.isArray(textTag)) {
+                    return textTag.indexOf(nodeName) !== -1;
+                } else {
+                    return nodeName === textTag;
+                }
+            }
             function removeMatch(match) {
                 switch(match.nodeType) {
                     case Node.ATTRIBUTE_NODE:
                         if (match.ownerElement !== entityElement) {
-                            // console.log('cleanProcessedEntity: removing', match.ownerElement);
                             match.ownerElement.parentElement.removeChild(match.ownerElement);
                         }
                         break;
                     case Node.ELEMENT_NODE:
                         if (match !== entityElement) {
-                            // console.log('cleanProcessedEntity: removing', match);
-                            match.parentElement.removeChild(match);
+                            if (isTextTag(match)) {
+                                $(match.firstChild).unwrap();
+                            } else {
+                                match.parentElement.removeChild(match);
+                            }
                         }
                         break;
                     case Node.TEXT_NODE:
                         if (match.parentElement !== entityElement) {
-                            var removeText = true;
-                            if (isCWRC) {
-                                removeText = match.parentElement.getAttribute('_tag') !== textTag;
-                            } else {
-                                removeText = match.parentElement.nodeName !== textTag;
-                            }
                             // if that text's parent is not the entity then remove the text and the parent if it's not the textTag
                             // otherwise just remove the text's parent
-                            if (removeText) {
-                                $(match.parentElement).remove();
-                            } else {
+                            if (isTextTag(match.parentElement)) {
                                 $(match).unwrap();
+                            } else {
+                                $(match.parentElement).remove();
                             }
                         }
                         break;
                     default:
-                        console.warn('schemaManager.cleanProcessedEntity: cannot remove node with unknown type', match);
+                        console.warn('mapper.getReverseMapping.cleanProcessedEntity: cannot remove node with unknown type', match);
                 }
             }
 
@@ -272,7 +292,7 @@ Mapper.prototype = {
     /**
      * Checks if the tag is for an entity.
      * @param {Element|String} el The tag to check.
-     * @returns {String} The entity type, or null
+     * @returns {String|null} The entity type, or null
      */
     getEntityTypeForTag: function(el) {
         var tag;
