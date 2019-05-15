@@ -244,6 +244,7 @@ Mapper.prototype = {
             // TODO should we return null and then have to check for that?
             return {};
         }
+
         var entry = this.getMappings().entities[type];
         var mapping = entry.mapping;
         
@@ -285,6 +286,9 @@ Mapper.prototype = {
                 cleanProcessedEntity(el, obj, isCWRC, textTag);
             }
         }
+
+        // set type after mapping and cleanup is done
+        obj.type = type;
         
         return obj;
     },

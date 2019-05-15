@@ -220,11 +220,14 @@ function XML2CWRC(writer) {
                         // find the associated element and do additional processing
                         var entityEl = w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
                         if (entityEl === null) {
-                            console.warn('xml2cwrc: no matching entity element for',entityConfig);
+                            console.warn('xml2cwrc.processRDF: no matching entity element for',entityConfig);
                             return;
                         }
 
                         var mappingInfo = w.schemaManager.mapper.getReverseMapping(entityEl, true);
+                        if (mappingInfo.type !== entityConfig.type) {
+                            console.warn('xml2cwrc.processRDF: entity type mismatch. RDF =', entityConfig.type+'. Element =',mappingInfo.type+'.');
+                        }
                         $.extend(entityConfig, mappingInfo);
                     } else {
                         // TODO review overlapping entities

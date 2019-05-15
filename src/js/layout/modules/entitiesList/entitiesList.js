@@ -286,8 +286,10 @@ function EntitiesList(config) {
 
             w.utilities.processArray(potentialEntities, function(el) {
                 var entity = w.schemaManager.mapper.convertTagToEntity(el);
-                entity.setAttribute('_candidate', 'true');
-                $('#'+entity.id, w.editor.getBody()).attr('_candidate', 'true');
+                if (entity !== null) {
+                    entity.setAttribute('_candidate', 'true');
+                    $('#'+entity.id, w.editor.getBody()).attr('_candidate', 'true');
+                }
             }).then(function() {
                 li.hide();
                 w.event('contentChanged').publish();
