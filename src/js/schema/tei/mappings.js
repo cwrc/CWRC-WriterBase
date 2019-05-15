@@ -259,7 +259,7 @@ citation: {
     mapping: {
         uri: 'bibl/ref/@target',
         certainty: '@cert',
-        noteContent: '.'
+        noteContent: 'bibl/text()'
     },
     annotation: function(annotationsManager, entity, format) {
         return annotationsManager.commonAnnotation(entity, format, 'dcterms:BibliographicResource');
