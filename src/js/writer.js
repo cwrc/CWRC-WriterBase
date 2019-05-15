@@ -154,6 +154,17 @@ function CWRCWriter(config) {
         w.storageDialogs.save(w);
     };
 
+    w.getDocumentURI = function() {
+        var guid = w.utilities.createGuid();
+        return 'http://id.cwrc.ca/doc/'+guid;
+    };
+
+    w.getUserId = function() {
+        // writer.githubUser.html_url
+        var guid = w.utilities.createGuid();
+        return 'http://id.cwrc.ca/user/'+guid;
+    };
+
     w.showSaveAsDialog = function() {
         //        w.storageDialogs.saveAs(w);
     };

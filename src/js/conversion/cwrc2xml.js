@@ -87,6 +87,7 @@ function CWRC2XML(writer) {
             } else {
                 rdfmode = 'json';
             }
+            rdfmode = 'json'; // hardcode for now, until xml is implemented
 
             var entities = [];
             w.entitiesManager.eachEntity(function(id, ent) {

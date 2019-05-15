@@ -2,6 +2,9 @@
 
 var $ = require('jquery');
 var Entity = require('entity');
+
+var moment = require('moment/moment');
+moment.suppressDeprecationWarnings = true;
  
 /**
  * @class AnnotationsManager
@@ -45,10 +48,13 @@ AnnotationsManager.types = {
 AnnotationsManager.prototype = {
     constructor: AnnotationsManager,
 
-    getResp: function() {
-        return 'PLACEHOLDER_USER';
+    getAnnotationURIForEntity: function(entity) {
+        var range = entity.getRange();
+        var annoIdDateString = moment(entity.getDateCreated()).format('YYYYMMDDHHmmss');
+        var annotationId = range.startXPath+'_'+annoIdDateString; // github doc + xpath + datestring
+        return annotationId;
     },
-
+    
     /**
      * Get the annotation object for the entity.
      * @param {Entity} entity The Entity instance.
@@ -79,198 +85,143 @@ AnnotationsManager.prototype = {
      * @returns {JSON|XML} 
      */
     commonAnnotation: function(entity, format, types, motivations) {
-        format = format || 'xml';
-    
-        var uris = entity.getUris();
-        var certainty = entity.getCertainty();
-        var range = entity.getRange();
-        var cwrcInfo = {
-            uri: entity.getURI(),
-            name: entity.getLemma()
-        };
-        var attributes = entity.getAttributes();
-    
+        format = format || 'json';
+
         if (!$.isArray(types)) {
             types = [types];
         }
         
         if (motivations === undefined) {
-            motivations = ['oa:tagging','oa:identifying'];
+            motivations = ['oa:identifying'];
         }
         if (!$.isArray(motivations)) {
             motivations = [motivations];
         }
+
+        // USER
+        var annotatedById = this.w.getUserId();
+        var gitHubUserId = ''; // writer.githubUser.login
+        var userName = ''; // wrtier.githubUser.name
         
-        var date = new Date().toISOString();
-        var annotationId = uris.annotationId;
-        var body = '';
-        var annotatedById = uris.userId;
-        var userName = '';
-        var userMbox = '';
-        var entityId = uris.entityId;
-        var docId = uris.docId;
-        var targetId = uris.targetId;
-        var selectorId = uris.selectorId;
+        // APP
+        var appUri = 'https://cwrc-writer.cwrc.ca/'; // if nerve it should be https://nerve.cwrc.ca/
+        var appVersion = '1.0';
+
+        // TIME
+        var now = new Date();
+        var createdDate = entity.getDateCreated();
+        var issuedDate = now.toISOString();
+
+        var annoIdDateString = moment(now).format('YYYYMMDDHHmmss');
+        
+        // ENTITY
+        var entityType = entity.getType();
+        var certainty = entity.getCertainty();
+        var range = entity.getRange();
+
+        var entityId = entity.getURI();
+        var docId = this.w.getDocumentURI();
+        var annotationId = docId + '?' + this.getAnnotationURIForEntity(entity);
         
         var annotation;
         
         if (format === 'xml') {
-            var namespaces = {
-                'rdf': 'xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"',
-                'oa': 'xmlns:oa="http://www.w3.org/ns/oa#"',
-                'cw': 'xmlns:cw="http://cwrc.ca/ns/cw#"'
-            };
-            
-            var typesString = '';
-            for (var i = 0; i < types.length; i++) {
-                var typeParts = types[i].split(':');
-                var prefix = typeParts[0];
-                var namespace = AnnotationsManager.prefixMap[prefix];
-                namespaces[prefix] = 'xmlns:'+prefix+'="'+namespace+'"';
-                typesString += '\n\t<rdf:type rdf:resource="'+namespace+typeParts[1]+'"/>';
-            }
-            
-            var motivationsString = '';
-            for (var i = 0; i < motivations.length; i++) {
-                var motivationParts = motivations[i].split(':');
-                var prefix = motivationParts[0];
-                var namespace = AnnotationsManager.prefixMap[prefix];
-                namespaces[prefix] = 'xmlns:'+prefix+'="'+namespace+'"';
-                motivationsString += '\n\t<oa:motivatedBy rdf:resource="'+namespace+motivationParts[1]+'"/>';
-            }
-            
-            var namespaceString = '';
-            for (var prefix in namespaces) {
-                namespaceString += ' '+namespaces[prefix];
-            }
-            
-            var certaintyString = '';
-            if (certainty != null) {
-                // fix for discrepancy between schemas
-                if (certainty === 'reasonably certain') {
-                    certainty = 'reasonable';
-                }
-                certaintyString = '\n\t<cw:hasCertainty rdf:resource="http://cwrc.ca/ns/cw#'+certainty+'"/>';
-            }
-            
-            var selectorString = ''+
-            '\n<rdf:Description rdf:about="'+targetId+'">'+
-                '\n\t<oa:hasSource rdf:resource="'+docId+'"/>'+
-                '\n\t<rdf:type rdf:resource="http://www.w3.org/ns/oa#SpecificResource"/>'+
-                '\n\t<oa:hasSelector rdf:resource="'+selectorId+'"/>'+
-            '\n</rdf:Description>';
-            if (range.endXPath) {
-                selectorString += ''+
-                '\n<rdf:Description rdf:about="'+selectorId+'">'+
-                    '\n\t<oa:start>xpointer(string-range('+range.startXPath+',"",'+range.startOffset+'))</oa:start>'+
-                    '\n\t<oa:end>xpointer(string-range('+range.endXPath+',"",'+range.endOffset+'))</oa:end>'+
-                    '\n\t<rdf:type rdf:resource="http://www.w3.org/ns/oa#TextPositionSelector"/>'+
-                '\n</rdf:Description>';
-            } else {
-                selectorString += ''+
-                '\n<rdf:Description rdf:about="'+selectorId+'">'+
-                    '\n\t<rdf:value>xpointer('+range.startXPath+')</rdf:value>'+
-                    '\n\t<rdf:type rdf:resource="http://www.w3.org/ns/oa#FragmentSelector"/>'+
-                '\n</rdf:Description>';
-            }
-            
-            var cwrcInfoString = '';
-            if (cwrcInfo !== undefined) {
-                delete cwrcInfo.data; // remove extra XML data
-                var cwrcInfo = JSON.stringify(cwrcInfo);
-                cwrcInfoString = '\n\t<cw:cwrcInfo>'+cwrcInfo+'</cw:cwrcInfo>';
-            }
-            
-            var cwrcAttributesString = '';
-            if (attributes != null) {
-                var cwrcAttributes = JSON.stringify(attributes);
-                cwrcAttributesString = '\n\t<cw:cwrcAttributes>'+cwrcAttributes+'</cw:cwrcAttributes>';
-            }
-            
-            var rdfString = ''+
-            '\n<rdf:RDF'+namespaceString+'>'+
-                '\n<rdf:Description rdf:about="'+annotationId+'">'+
-                    '\n\t<oa:hasTarget rdf:resource="'+targetId+'"/>'+
-                    '\n\t<oa:hasBody rdf:resource="'+entityId+'"/>'+
-                    '\n\t<oa:annotatedBy rdf:resource="'+annotatedById+'"/>'+
-                    '\n\t<oa:annotatedAt>'+date+'</oa:annotatedAt>'+
-                    '\n\t<oa:serializedBy rdf:resource=""/>'+
-                    '\n\t<oa:serializedAt>'+date+'</oa:serializedAt>'+
-                    '\n\t<rdf:type rdf:resource="http://www.w3.org/ns/oa#Annotation"/>'+
-                    motivationsString+
-                    certaintyString+
-                    cwrcInfoString+
-                    cwrcAttributesString+
-                '\n</rdf:Description>'+
-                '\n<rdf:Description rdf:about="'+entityId+'">'+
-                    '\n\t<rdf:type rdf:resource="http://www.w3.org/ns/oa#SemanticTag"/>'+
-                    typesString+
-                '\n</rdf:Description>'+
-                selectorString+
-            '\n</rdf:RDF>';
-            
-            annotation = $($.parseXML(rdfString));
+            annotation = $($.parseXML('<rdf:RDF></rdf:RDF>'));
         } else if (format === 'json') {
             types.push('oa:SemanticTag');
             
             annotation = {
-                '@context': 'http://www.w3.org/ns/oa/oa.ttl',
-                '@id': annotationId,
-                '@type': 'oa:Annotation',
-                'motivatedBy': motivations,
-                'annotatedAt': date,
-                'annotatedBy': {
-                    '@id': annotatedById,
-                    '@type': 'foaf:Person',
-                    'mbox': {
-                        '@id': userMbox
+                "@context": {
+                    "as": "http://www.w3.org/ns/activitystreams#",
+                    "cwrc": "http://sparql.cwrc.ca/ontologies/cwrc#",
+                    "dc": "http://purl.org/dc/elements/1.1/",
+                    "dcterms": "http://purl.org/dc/terms/",
+                    "foaf": "http://xmlns.com/foaf/0.1/",
+                    "geo": "http://www.geonames.org/ontology#",
+                    "oa": "http://www.w3.org/ns/oa#",
+                    "schema": "http://schema.org/",
+                    "xsd": "http://www.w3.org/2001/XMLSchema#",
+                    "dcterms:created": {
+                        "@type": "xsd:dateTime",
+                        "@id": "dcterms:created"
                     },
-                    'name': userName
+                    "dcterms:issued": {
+                        "@type": "xsd:dateTime",
+                        "@id": "dcterms:issued"
+                    },
+                    "oa:motivatedBy": {
+                        "@type": "oa:Motivation"
+                    },
+                    "@language": "en"
                 },
-                'serializedAt': date,
-                'serializedBy': '',
-                'hasBody': {
-                    '@id': entityId,
-                    '@type': types
+                "@id": annotationId,
+                "@type": "oa:Annotation",
+                "oa:motivatedBy": motivations,
+                "dcterms:created": createdDate,
+                "dcterms:issued": issuedDate,
+                "oa:annotatedBy": {
+                    "@id": annotatedById,
+                    "@type": [
+                        "cwrc:NaturalPerson",
+                        "schema:Person"
+                    ],
+                    "cwrc:hasName": userName,
+                    "dc:creator": gitHubUserId,
+                    "foaf:nick": gitHubUserId
                 },
-                'hasTarget': {
-                    '@id': docId,
-                    '@type': 'oa:SpecificResource',
-                    'hasSource': {
-                        '@id': docId,
-                        '@type': 'dctypes:Text',
-                          'format': 'text/xml'
+                "oa:hasTarget": {
+                    "@id": docId+'#Target',
+                    "@type": "oa:SpecificResource",
+                    "oa:hasSource": {
+                        "@id": docId,
+                        "@type": "dctypes:Text",
+                        "format": "text/xml"
                     }
+                },
+                "oa:renderedVia": {
+                    "@id": appUri,
+                    "@type": "as:Application",
+                    "rdfs:label": "CWRC Writer",
+                    "schema:softwareVersion": appVersion
                 }
             };
-            
-            if (certainty !== undefined) {
-                annotation.hasCertainty = 'cw:'+certainty;
+
+            if (entityId && entityType !== 'citation') {
+                annotation["oa:hasBody"] = {
+                    "@id": entityId,
+                    "@type": "oa:TextualBody",
+                    "dc:format": "text/html"
+                };
             }
-            
-            if (cwrcInfo !== undefined) {
-                annotation.cwrcInfo = cwrcInfo;
-            }
-            
-            if (attributes !== undefined) {
-                annotation.cwrcAttributes = attributes;
-            }
-            
+
             if (range.endXPath) {
-                annotation.hasTarget.hasSelector = {
-                    '@id': selectorId,
-                    '@type': 'oa:TextPositionSelector',
-                    'dcterms:conformsTo': 'http://tools.ietf.org/rfc/rfc3023',
-                    'oa:start': 'xpointer(string-range('+range.startXPath+',"",'+range.startOffset+'))',
-                    'oa:end': 'xpointer(string-range('+range.endXPath+',"",'+range.endOffset+'))',
+                annotation["oa:hasSelector"] = {
+                    "@id": docId+'#Selector',
+                    "@type": "oa:RangeSelector",
+                    "oa:hasStartSelector": {
+                        "@type": "oa:XPathSelector",
+                        "rdf:value": range.startXPath
+                    },
+                    "oa:hasEndSelector": {
+                        "@type": "oa:XPathSelector",
+                        "rdf:value": range.endXPath
+                    },
+                    "oa:refinedBy": {
+                        "@type": "oa:TextPositionSelector",
+                        "oa:start": range.startOffset,
+                        "oa:end": range.endOffset
+                    }
                 };
             } else {
-                annotation.hasTarget.hasSelector = {
-                    '@id': selectorId,
-                    '@type': 'oa:FragmentSelector',
-                    'dcterms:conformsTo': 'http://tools.ietf.org/rfc/rfc3023',
-                    'rdf:value': 'xpointer('+range.startXPath+')'
+                annotation["oa:hasSelector"] = {
+                    "@id": docId+'#Selector',
+                    "@type": "oa:XPathSelector",
+                    "rdf:value": range.startXPath
                 };
+            }
+            
+            if (certainty !== undefined) {
+                annotation["oa:hasCertainty"] = 'cwrc:'+certainty;
             }
         }
         
@@ -359,13 +310,21 @@ AnnotationsManager.prototype = {
      */
     getEntityConfigFromAnnotation: function(rdfEl) {
         var entityConfig = null;
-        // json-ld
-        if (rdfEl.getAttribute('rdf:datatype') === 'http://www.w3.org/TR/json-ld/') {
-            entityConfig = this._getEntityConfigFromJsonAnnotation(rdfEl);
-        // rdf/xml
-        } else if (rdfEl.getAttribute('rdf:about') !== null) {
-            entityConfig = this._getEntityConfigFromXmlAnnotation(rdfEl);
+
+        var isLegacy = rdfEl.parentElement.hasAttribute('xmlns:cw');
+        if (isLegacy) {
+            // json-ld
+            if (rdfEl.getAttribute('rdf:datatype') === 'http://www.w3.org/TR/json-ld/') {
+                entityConfig = this._getEntityConfigFromJsonAnnotationLegacy(rdfEl);
+            // rdf/xml
+            } else if (rdfEl.getAttribute('rdf:about') !== null) {
+                entityConfig = this._getEntityConfigFromXmlAnnotationLegacy(rdfEl);
+            }
+        } else {
+            // TODO
+            return {};
         }
+
         return entityConfig;
     },
 
@@ -374,7 +333,7 @@ AnnotationsManager.prototype = {
      * @param {Element} rdfEl An RDF element containing JSON text
      * @returns {Object|null} Entity config object
      */
-    _getEntityConfigFromJsonAnnotation: function(rdfEl) {
+    _getEntityConfigFromJsonAnnotationLegacy: function(rdfEl) {
         var entityConfig = null;
         
         var rdf = $(rdfEl);
@@ -382,12 +341,8 @@ AnnotationsManager.prototype = {
         if (json != null) {
             entityConfig = {};
             
-            var rdfs = rdf.parent('rdf\\:RDF, RDF');
-            var doc = rdfs.parents().last()[0].parentNode;
-            
-            // determine entity type
+            // entity type
             var entityType = null;
-            
             var bodyTypes = json.hasBody['@type'];
             var needsMotivation = bodyTypes.indexOf('cnt:ContentAsText') !== -1;
             if (needsMotivation) {
@@ -395,51 +350,14 @@ AnnotationsManager.prototype = {
             }
             for (var i = 0; i < bodyTypes.length; i++) {
                 var typeUri = bodyTypes[i];
-                entityType = this.w.annotationsManager._getEntityTypeForAnnotation(typeUri);
+                entityType = this._getEntityTypeForAnnotation(typeUri);
                 if (entityType != null) {
                     break;
                 }
             }
-            
-            // get type specific info
-            var typeInfo = {};
-            var propObj = {};
-            
-            switch (entityType) {
-            case 'date':
-                var dateString = json.hasBody['xsd:date'];
-                var dateParts = dateString.split('/');
-                if (dateParts.length === 1) {
-                    typeInfo.date = dateParts[0];
-                } else {
-                    typeInfo.startDate = dateParts[0];
-                    typeInfo.endDate = dateParts[1];
-                }
-                break;
-            case 'place':
-                var precisionString = json.hasPrecision;
-                if (precisionString && precisionString != '') {
-                    precisionString = precisionString.split('#')[1];
-                }
-                propObj.precision = precisionString;
-                break;
-            case 'title':
-                var levelString = json.hasBody.pubType;
-                typeInfo.level = levelString;
-                break;
-            case 'correction':
-                var corrString = json.hasBody['cnt:chars'];
-                typeInfo.corrText = corrString;
-                break;
-            case 'keyword':
-                var keywordsArray = json.hasBody['cnt:chars'];
-                typeInfo.keywords = keywordsArray;
-                break;
-            case 'link':
-                typeInfo.url = ''; // FIXME never used
-                break;
-            }
-            
+            entityConfig.type = entityType;
+
+            // range
             var rangeObj;
             var selector = json.hasTarget.hasSelector;
             if (selector['@type'] == 'oa:TextPositionSelector') {
@@ -450,17 +368,27 @@ AnnotationsManager.prototype = {
                 var xpointer = selector['rdf:value'];
                 rangeObj = this._getRangeObject(xpointer);
             }
-            
-            // FIXME cwrcAttributes
-            $.extend(propObj, typeInfo);
-
-            entityConfig.type = entityType;
-            entityConfig.isNote = this.w.schemaManager.mapper.isEntityTypeNote(entityConfig.type);
-            entityConfig.attributes = json.cwrcAttributes;
-            entityConfig.customValues = propObj;
-            entityConfig.cwrcLookupInfo = json.cwrcInfo;
             entityConfig.range = rangeObj;
-            entityConfig.uris = {}; // TODO
+
+            // lookup info
+            if (json.cwrcInfo) {
+                entityConfig.uri = json.cwrcInfo.uri;
+                entityConfig.lemma = json.cwrcInfo.name;
+            }
+
+            // certainty
+            var certainty = json.hasCertainty;
+            if (certainty !== undefined) {
+                certainty = certainty.split(':')[1];
+                if (certainty === 'reasonable') {
+                    // fix for discrepancy between schemas
+                    certainty = 'reasonably certain';
+                }
+                entityConfig.certainty = certainty;
+            }
+
+            // date
+            entityConfig.dateCreated = json.annotatedAt;
         }
         
         return entityConfig;
@@ -471,14 +399,13 @@ AnnotationsManager.prototype = {
      * @param {Element} xml An RDF element containing XML elements
      * @returns {Object|null} Entity config object
      */
-    _getEntityConfigFromXmlAnnotation: function(xml) {
+    _getEntityConfigFromXmlAnnotationLegacy: function(xml) {
         var entityConfig = null;
         
         var rdf = $(xml);
         var aboutUri = rdf.attr('rdf:about');
         if (aboutUri.indexOf('id.cwrc.ca/annotation') !== -1) {
-            var rdfs = rdf.parent('rdf\\:RDF, RDF');            
-            var doc = rdfs.parents().last()[0].parentNode;
+            var rdfs = rdf.parent('rdf\\:RDF, RDF');      
 
             var hasBodyUri = rdf.find('oa\\:hasBody, hasBody').attr('rdf:resource');
             var body = rdfs.find('[rdf\\:about="'+hasBodyUri+'"]');
@@ -495,96 +422,17 @@ AnnotationsManager.prototype = {
             if (typeUri == null) {
                 console.warn('can\'t determine type for', xml);
             } else {
-                var entityType = this.w.annotationsManager._getEntityTypeForAnnotation(typeUri);
-                entityConfig = {};
-    
-                // get type specific info
-                var typeInfo = {};
-                var propObj = {};
-                
-                switch (entityType) {
-                    case 'date':
-                        var dateString = body.find('xsd\\:date, date').text();
-                        var dateParts = dateString.split('/');
-                        if (dateParts.length === 1) {
-                            typeInfo.date = dateParts[0];
-                        } else {
-                            typeInfo.startDate = dateParts[0];
-                            typeInfo.endDate = dateParts[1];
-                        }
-                        break;
-                    case 'place':
-                        var precisionString = rdf.find('cw\\:hasPrecision, hasPrecision').attr('rdf:resource');
-                        if (precisionString && precisionString != '') {
-                            precisionString = precisionString.split('#')[1];
-                        }
-                        propObj.precision = precisionString;
-                        break;
-                    case 'title':
-                        var levelString = body.find('cw\\:pubType, pubType').text();
-                        typeInfo.level = levelString;
-                        break;
-                    case 'correction':
-                        var corrString = body.find('cnt\\:chars, chars').text();
-                        typeInfo.corrText = corrString;
-                        break;
-                    case 'keyword':
-                        var keywordsArray = [];
-                        body.find('cnt\\:chars, chars').each(function() {
-                            keywordsArray.push($(this).text());
-                        });
-                        typeInfo.keywords = keywordsArray;
-                        break;
-                    case 'link':
-                        typeInfo.url = hasBodyUri; // FIXME never used
-                        break;
-                }
-    
-                // certainty
-                var certainty = rdf.find('cw\\:hasCertainty, hasCertainty').attr('rdf:resource');
-                if (certainty && certainty != '') {
-                    certainty = certainty.split('#')[1];
-                    if (certainty === 'reasonable') {
-                        // fix for discrepancy between schemas
-                        certainty = 'reasonably certain';
-                    }
-                    propObj.certainty = certainty;
-                }
-    
-                // cwrcInfo (from cwrcDialogs lookups)
-                var cwrcLookupObj = rdf.find('cw\\:cwrcInfo, cwrcInfo').text();
-                if (cwrcLookupObj != '') {
-                    cwrcLookupObj = JSON.parse(cwrcLookupObj);
-                } else {
-                    cwrcLookupObj = {};
-                }
-    
-                // cwrcAttributes (catch-all for properties not fully supported in rdf yet
-                var cwrcAttributes = rdf.find('cw\\:cwrcAttributes, cwrcAttributes').text();
-                if (cwrcAttributes != '') {
-                    cwrcAttributes = JSON.parse(cwrcAttributes);
-                } else {
-                    cwrcAttributes = {};
-                }
-    
-                // selector and annotation uris
-                // TODO no json-ld equivalent yet
-                var docUri = target.find('oa\\:hasSource, hasSource').attr('rdf:resource');
-                var selectorUri = target.find('oa\\:hasSelector, hasSelector').attr('rdf:resource');
-                var selector = rdfs.find('[rdf\\:about="'+selectorUri+'"]');
-                var selectorType = selector.find('rdf\\:type, type').attr('rdf:resource');
-                var annotationObj = {
-                    entityId: hasBodyUri,
-                    annotationId: aboutUri,
-                    targetId: hasTargetUri,
-                    docId: docUri,
-                    selectorId: selectorUri,
-                    userId: ''
+                var entityType = this._getEntityTypeForAnnotation(typeUri);
+                entityConfig = {
+                    type: entityType
                 };
-    
+
                 // range
                 var rangeObj = {};
                 // matching element
+                var selectorUri = target.find('oa\\:hasSelector, hasSelector').attr('rdf:resource');
+                var selector = rdfs.find('[rdf\\:about="'+selectorUri+'"]');
+                var selectorType = selector.find('rdf\\:type, type').attr('rdf:resource');
                 if (selectorType.indexOf('FragmentSelector') !== -1) {                    
                     var xpointer = selector.find('rdf\\:value, value').text();
                     rangeObj = this._getRangeObject(xpointer);
@@ -594,17 +442,29 @@ AnnotationsManager.prototype = {
                     var xpointerEnd = selector.find('oa\\:end, end').text();
                     rangeObj = this._getRangeObject(xpointerStart, xpointerEnd);
                 }
-    
-                // FIXME cwrcAttributes
-                $.extend(propObj, typeInfo);
-
-                entityConfig.type = entityType;
-                entityConfig.isNote = this.w.schemaManager.mapper.isEntityTypeNote(entityConfig.type);
-                entityConfig.attributes = cwrcAttributes;
-                entityConfig.customValues = propObj;
-                entityConfig.cwrcLookupInfo = cwrcLookupObj;
                 entityConfig.range = rangeObj;
-                entityConfig.uris = annotationObj;
+    
+                // certainty
+                var certainty = rdf.find('cw\\:hasCertainty, hasCertainty').attr('rdf:resource');
+                if (certainty && certainty != '') {
+                    certainty = certainty.split('#')[1];
+                    if (certainty === 'reasonable') {
+                        // fix for discrepancy between schemas
+                        certainty = 'reasonably certain';
+                    }
+                    entityConfig.certainty = certainty;
+                }
+    
+                // lookup info
+                var cwrcLookupObj = rdf.find('cw\\:cwrcInfo, cwrcInfo').text();
+                if (cwrcLookupObj != '') {
+                    cwrcLookupObj = JSON.parse(cwrcLookupObj);
+                    entityConfig.uri = cwrcLookupObj.uri;
+                    entityConfig.lemma = cwrcLookupObj.name;
+                }
+
+                // date created
+                entityConfig.dateCreated = rdf.find('cw\\:annotatedAt, annotatedAt').text();
             }
         }
         
@@ -685,98 +545,7 @@ AnnotationsManager.prototype = {
         }
 
         return rangeObj;
-    },
-    
-    /**
-     * TODO remove this
-     * Parses the RDF and adds entities to the EntitiesManager.
-     * Also processes any relations/triples.
-     * @param {Element} rdfEl RDF parent element
-     * @param {Boolean} [isLegacyDocument] True if this is a legacy document (i.e. it uses annotationId)
-     */
-    /*
-    setAnnotations: function(rdfEl, isLegacyDocument) {
-        isLegacyDocument = isLegacyDocument === undefined ? false : isLegacyDocument;
-
-        this.w.entitiesManager.reset();
-        
-        var rdfs = $(rdfEl);
-        
-        var root = rdfs.parents().last()[0];
-        var doc = root.parentNode;
-
-        var triples = [];
-        var noteChildEntities = [];
-
-        rdfs.children().each(function(index, el) {
-            var rdf = $(el);
-            var entityConfig = this.getEntityConfigFromAnnotation(rdf);
-            if (entityConfig != null) {
-                if (isLegacyDocument) {
-                    // replace annotationId with xpath
-                    var entityEl = this.w.utilities.evaluateXPath(doc, entityConfig.range.startXPath);
-                    entityConfig.range.startXPath = this.w.utilities.getElementXPath(entityEl);
-                    if (entityConfig.range.endXPath !== undefined) {
-                        var entityElEnd = this.w.utilities.evaluateXPath(doc, entityConfig.range.endXPath);
-                        entityConfig.range.endXPath = this.w.utilities.getElementXPath(entityElEnd);
-                    }
-                }
-                this.w.entitiesManager.addEntity(entityConfig);
-            } else if (rdf.attr('cw:external')) {
-                triples.push(rdf);
-            }
-        }.bind(this));
-
-        // process triples
-
-        this.w.triples = [];
-        for (var i = 0; i < triples.length; i++) {
-            var subject = triples[i];
-            var subjectUri = subject.attr('rdf:about');
-            var predicate = subject.children().first();
-            var object = subject.find('rdf\\:Description, Description');
-            var objectUri = object.attr('rdf:about');
-
-            var subEnt = null;
-            var objEnt = null;
-            this.w.entitiesManager.eachEntity(function(id, ent) {
-                if (ent.getUris().annotationId === subjectUri) {
-                    subEnt = ent;
-                }
-                if (ent.getUris().annotationId === objectUri) {
-                    objEnt = ent;
-                }
-                if (subEnt != null && objEnt != null) {
-                    return false;
-                }
-            });
-
-            if (subEnt != null && objEnt != null) {
-                var subExt = subject.attr('cw:external') == 'true' ? true : false;
-                var predExt = predicate.attr('cw:external') == 'true' ? true : false;
-                var objExt = object.attr('cw:external') == 'true' ? true : false;
-                var triple = {
-                    subject: {
-                        uri: subjectUri,
-                        text: subExt ? subjectUri : subEnt.getTitle(),
-                        external: subExt
-                    },
-                    predicate: {
-                        text: predicate.attr('cw:text'),
-                        name: predicate[0].nodeName.split(':')[1],
-                        external: predExt
-                    },
-                    object: {
-                        uri: objectUri,
-                        text: objExt ? objectUri : objEnt.getTitle(),
-                        external: objExt
-                    }
-                };
-                this.w.triples.push(triple);
-            }
-        }
     }
-    */
 };
 
 module.exports = AnnotationsManager;
