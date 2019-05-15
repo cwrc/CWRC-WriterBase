@@ -141,7 +141,7 @@ title: {
 },
 
 correction: {
-    xpathSelector: 'self::tei:choice|self::tei:corr',
+    xpathSelector: 'self::choice|self::corr',
     parentTag: ['choice', 'corr'],
     textTag: 'sic',
     requiresSelection: false,
@@ -233,7 +233,7 @@ date: {
 
 note: {
     parentTag: 'note',
-    xpathSelector: 'self::tei:note[not(@type="citation")]',
+    xpathSelector: 'self::note[not(@type="citation")]',
     isNote: true,
     requiresSelection: false,
     annotation: function(annotationsManager, entity, format) {
@@ -243,7 +243,7 @@ note: {
 
 citation: {
     parentTag: 'note',
-    xpathSelector: 'self::tei:note[@type="citation"]/tei:bibl',
+    xpathSelector: 'self::note[@type="citation"]/bibl',
     textTag: 'bibl',
     isNote: true,
     requiresSelection: false,
@@ -268,7 +268,7 @@ citation: {
 
 keyword: {
     parentTag: 'seg',
-    xpathSelector: 'self::tei:seg/tei:term',
+    xpathSelector: 'self::seg/term',
     textTag: 'term',
     isNote: true,
     requiresSelection: false,

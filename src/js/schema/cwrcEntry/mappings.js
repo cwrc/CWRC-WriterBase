@@ -111,7 +111,7 @@ date: {
     xpathSelector: 'self::cwrcEntry:DATE|self::cwrcEntry:DATERANGE',
     parentTag: ['DATE', 'DATERANGE'],
     mapping: {
-        tag: 'fn:node-name(.)'
+        tag: 'name(.)'
     },
     annotation: function(annotationsManager, entity, format) {
         var types = [];
@@ -151,7 +151,7 @@ note: {
     parentTag: ['RESEARCHNOTE', 'SCHOLARNOTE'],
     isNote: true,
     mapping: {
-        customValues: {parent: 'fn:node-name(.)'},
+        tag: 'name(.)',
         noteContent: '.'
     },
     annotation: function(annotationsManager, entity, format) {

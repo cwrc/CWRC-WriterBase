@@ -218,7 +218,7 @@ function SchemaManager(writer, config) {
     
     sm.isTagEntity = function(tagName) {
         var type = sm.mapper.getEntityTypeForTag(tagName);
-        return type != null;
+        return type !== null;
     };
     
     sm.getTagForEditor = function(tagName) {
