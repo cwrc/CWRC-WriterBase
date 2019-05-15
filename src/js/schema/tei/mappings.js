@@ -126,7 +126,7 @@ title: {
         certainty: '@cert'
     },
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, ['dcterms:BibliographicResource', 'dcterms:title']);
+        var anno = annotationsManager.commonAnnotation(entity, format, 'dcterms:title');
         
         if (format === 'xml') {
             var levelXml = $.parseXML('<cw:pubType xmlns:cw="http://cwrc.ca/ns/cw#">'+entity.getAttribute('level')+'</cw:pubType>');
