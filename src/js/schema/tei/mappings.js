@@ -248,8 +248,7 @@ citation: {
     isNote: true,
     requiresSelection: false,
     mappingFunction: function(entity) {
-        var startTag = Mapper.getTagAndDefaultAttributes(entity, false);
-        startTag += ' type="citation"><bibl>';
+        var startTag = Mapper.getTagAndDefaultAttributes(entity)+'<bibl>';
         var lookupId = entity.getURI();
         if (lookupId) {
             startTag += '<ref target="'+lookupId+'"/>';
