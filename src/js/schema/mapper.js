@@ -289,6 +289,7 @@ Mapper.prototype = {
 
         // set type after mapping and cleanup is done
         obj.type = type;
+        obj.isNote = this.isEntityTypeNote(type);
         
         return obj;
     },

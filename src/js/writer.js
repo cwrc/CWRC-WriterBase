@@ -159,10 +159,21 @@ function CWRCWriter(config) {
         return 'http://id.cwrc.ca/doc/'+guid;
     };
 
-    w.getUserId = function() {
-        // writer.githubUser.html_url
-        var guid = w.utilities.createGuid();
-        return 'http://id.cwrc.ca/user/'+guid;
+    w.getUserInfo = function() {
+        if (w.githubUser) {
+            return {
+                id: writer.githubUser.html_url,
+                name: writer.githubUser.name,
+                nick: writer.githubUser.login
+            }
+        } else {
+            var guid = w.utilities.createGuid();
+            return {
+                id: 'http://id.cwrc.ca/user/'+guid,
+                name: 'Placeholder',
+                nick: 'plchldr'
+            }
+        }
     };
 
     w.showSaveAsDialog = function() {
