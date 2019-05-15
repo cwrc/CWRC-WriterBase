@@ -77,7 +77,12 @@ function AttributesEditor(writer, parentEl) {
             attributesWidget.mode = AttributeWidget.EDIT;
         }
         
-        var atts = w.schemaManager.getAttributesForPath(tagPath);
+        var atts;
+        if (tagPath !== undefined) {
+            atts = w.schemaManager.getAttributesForPath(tagPath);
+        } else {
+            atts = w.schemaManager.getAttributesForTag(tagName);
+        }
         attributesWidget.buildWidget(atts, attributes, tagName);
         
         $schemaDialog.dialog('option', 'title', tagName);
