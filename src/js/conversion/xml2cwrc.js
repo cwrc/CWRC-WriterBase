@@ -394,6 +394,7 @@ function XML2CWRC(writer) {
         var dfd = new $.Deferred();
 
         var li = w.dialogManager.getDialog('loadingindicator');
+        li.show();
         li.setText('Building Document');
         
         var editorString = '';

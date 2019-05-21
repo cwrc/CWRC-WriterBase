@@ -50,6 +50,7 @@ function LoadingIndicator(writer, parentEl) {
     });
     w.event('schemaLoaded').subscribe(function() {
         progressLabel.text('Schema Loaded');
+        $loadingIndicator.dialog('close');
     });
     
     w.event('savingDocument').subscribe(function() {
