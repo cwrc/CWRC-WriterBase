@@ -333,7 +333,14 @@ function XML2CWRC(writer) {
         var closingTagString = '';
         if (node.nodeType === Node.ELEMENT_NODE) {
             var nodeName = node.nodeName;
-            var htmlTag = w.schemaManager.getTagForEditor(nodeName);
+            var htmlTag;
+            if (node.parentElement === null) {
+                // ensure that the root is always block level.
+                // needed in the case where the doc has a schema mismatch and so getTagForEditor would always return the inline tag.
+                htmlTag = w.schemaManager.getBlockTag();
+            } else {
+                htmlTag = w.schemaManager.getTagForEditor(nodeName);
+            }
 
             openingTagString += '<'+htmlTag+' _tag="'+nodeName+'"';
             closingTagString = '</'+htmlTag+'>';
