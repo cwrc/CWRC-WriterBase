@@ -68,18 +68,6 @@ function Entity(config) {
     this.noteContent = undefined;
 
     /**
-     * URIs used to create the annotation object.
-     * @type Object
-     * @params annotationId
-     * @params entityId
-     * @params docId
-     * @params selectorId
-     * @params targetId
-     * @params userId
-     */
-    this.annotationUris = {};
-
-    /**
      * When the entity was created.
      * TODO should this update if the entity is edited?
      * @type {String} A date in ISO string format
@@ -272,18 +260,6 @@ Entity.prototype = {
 
     getDateCreated: function() {
         return this.dateCreated;
-    },
-    
-    getUris: function() {
-        // console.warn('getUris called!');
-        // return {
-        //     entityId: 'foo',
-        //     annotationId: 'bar'
-        // }
-        return this.annotationUris;
-    },
-    setUris: function(urisObj) {
-        this.annotationUris = urisObj;
     },
 
     getURI: function() {

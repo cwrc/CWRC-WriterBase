@@ -154,11 +154,18 @@ function CWRCWriter(config) {
         w.storageDialogs.save(w);
     };
 
+    // TODO temp github implementation
     w.getDocumentURI = function() {
-        var guid = w.utilities.createGuid();
-        return 'http://id.cwrc.ca/doc/'+guid;
+        if (w.filePathInGithub) {
+            var uri = 'https://github.com/'+w.repoName+'/blob/master'+w.filePathInGithub;
+            return uri;
+        } else {
+            var uri = 'https://github.com/placeholder/blob/master/placeholder.xml';
+            return uri;
+        }
     };
 
+    // TODO temp github implementation
     w.getUserInfo = function() {
         if (w.githubUser) {
             return {
@@ -167,9 +174,8 @@ function CWRCWriter(config) {
                 nick: writer.githubUser.login
             }
         } else {
-            var guid = w.utilities.createGuid();
             return {
-                id: 'http://id.cwrc.ca/user/'+guid,
+                id: 'http://id.cwrc.ca/user/placeholder',
                 name: 'Placeholder',
                 nick: 'plchldr'
             }

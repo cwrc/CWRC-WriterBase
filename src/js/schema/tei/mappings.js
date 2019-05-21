@@ -73,6 +73,9 @@ person: {
             case 'both':
                 types = ['cwrc:NaturalPerson', 'schema:Person', 'cwrc:FictionalPerson'];
                 break;
+            default:
+                types = 'cwrc:NaturalPerson';
+                break;
         }
         return annotationsManager.commonAnnotation(entity, format, types);
     }
@@ -98,7 +101,7 @@ place: {
         var endTag = '';
         var precision = entity.getCustomValue('precision');
         if (precision !== undefined) {
-            endTag += '<precision precision="'+precision+'" />';
+            endTag += '<precision match="@ref" precision="'+precision+'" />';
         }
         var tag = entity.getTag();
         endTag += '</'+tag+'>';
@@ -113,6 +116,10 @@ place: {
     },
     annotation: function(annotationsManager, entity, format) {
         var anno = annotationsManager.commonAnnotation(entity, format, 'cwrc:Place');
+        var precision = entity.getCustomValue('precision');
+        if (precision) {
+            anno["cwrc:hasPrecision"] = 'cwrc:'+precision+'Certainty';
+        }
         return anno;
     }
 },
@@ -212,6 +219,7 @@ note: {
                 types = 'ScholarlyNote';
                 break;
             case 'typeAnnotation':
+                types = 'oa:TextualBody'
                 break;
         }
         return annotationsManager.commonAnnotation(entity, format, types, 'oa:describing');
@@ -240,6 +248,15 @@ citation: {
     },
     annotation: function(annotationsManager, entity, format) {
         var anno = annotationsManager.commonAnnotation(entity, format, 'cito:Citation', 'cwrc:citing');
+        anno["oa:hasBody"] = [
+            anno["oa:hasBody"],
+            {
+                "@id": anno["@id"]+'#Cites',
+                "@type": "cito:Citation",
+                "cito:hasCitationEvent": "cito:cites",
+                "cito:hasCitingEntity": entity.getURI()
+            }
+        ]
         return anno;
     }
 },
@@ -262,7 +279,8 @@ keyword: {
         var types = '';
         var motivations = '';
         var ana = entity.getAttribute('ana');
-        if (ana) {
+        var hasRef = ana && ana.indexOf('http') === 0;
+        if (hasRef) {
             types = 'fabio:ControlledVocabulary';
             motivations = 'oa:classifying';
         } else {
@@ -270,8 +288,9 @@ keyword: {
             motivations = 'oa:tagging';
         }
         var anno = annotationsManager.commonAnnotation(entity, format, types, motivations);
-        if (ana) {
-            anno["skos:altLabel"] = entity.getNoteContent();
+        if (hasRef) {
+            // TODO get actual note content
+            anno["skos:altLabel"] = entity.getContent();
         }
         return anno;
     }
