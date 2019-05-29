@@ -156,22 +156,26 @@ function CWRCWriter(config) {
 
     // TODO temp github implementation
     w.getDocumentURI = function() {
-        if (w.filePathInGithub) {
-            var uri = 'https://github.com/'+w.repoName+'/blob/master'+w.filePathInGithub;
-            return uri;
+        if (w.storageDialogs.getDocumentURI) {
+            return w.storageDialogs.getDocumentURI();
         } else {
-            var uri = 'https://github.com/placeholder/blob/master/placeholder.xml';
-            return uri;
+            if (w.filePathInGithub) {
+                var uri = 'https://github.com/'+w.repoName+'/blob/master'+w.filePathInGithub;
+                return uri;
+            } else {
+                var uri = 'https://github.com/placeholder/blob/master/placeholder.xml';
+                return uri;
+            }
         }
     };
 
-    // TODO temp github implementation
     w.getUserInfo = function() {
-        if (w.githubUser) {
+        if (w.storageDialogs.getUserInfo) {
+            var userInfo = w.storageDialogs.getUserInfo();
             return {
-                id: writer.githubUser.html_url,
-                name: writer.githubUser.name,
-                nick: writer.githubUser.login
+                id: userInfo.userUrl,
+                name: userInfo.userName,
+                nick: userInfo.userId
             }
         } else {
             return {
@@ -183,18 +187,9 @@ function CWRCWriter(config) {
     };
 
     w.showSaveAsDialog = function() {
-        //        w.storageDialogs.saveAs(w);
     };
 
     w.saveAndExit = function() {
-
-    };
-
-    w.closeDocument = function() {
-        //        if (w.editor.isDirty()) {
-        //        } else {
-        //            w.storageDialogs.load(w)
-        //        }
     };
 
     w.validate = function(callback) {
