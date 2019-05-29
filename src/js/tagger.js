@@ -857,6 +857,7 @@ function Tagger(writer) {
     
     tagger.addNoteWrapper = function(tag, type) {
         $(tag)
+            .filter(':visible') // don't add to invisible tags
             .wrap('<span class="noteWrapper '+type+'" />')
             .parent().on('click', function(e) {
                 var $target = $(e.target);
