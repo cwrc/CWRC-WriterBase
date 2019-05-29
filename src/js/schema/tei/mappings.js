@@ -192,13 +192,14 @@ link: {
 date: {
     parentTag: 'date',
     annotation: function(annotationsManager, entity, format) {
-        var types;
+        var anno = annotationsManager.commonAnnotation(entity, format, 'xsd:date');
+        var date;
         if (entity.getAttribute('when') !== undefined) {
-            types = entity.getAttribute('when');
+            date = entity.getAttribute('when');
         } else {
-            types = entity.getAttribute('from')+'/'+entity.getAttribute('to');
+            date = entity.getAttribute('from')+'/'+entity.getAttribute('to');
         }
-        var anno = annotationsManager.commonAnnotation(entity, format, types);
+        anno["oa:hasBody"]["rdf:value"] = date;
         return anno;
     }
 },
@@ -213,10 +214,10 @@ note: {
         var type = entity.getAttribute('type');
         switch(type) {
             case 'researchNote':
-                types = 'NoteInternal';
+                types = 'cwrc:NoteInternal';
                 break;
             case 'scholarNote':
-                types = 'ScholarlyNote';
+                types = 'cwrc:NoteScholarly';
                 break;
             case 'typeAnnotation':
                 types = 'oa:TextualBody'
