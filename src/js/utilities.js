@@ -21,30 +21,28 @@ function Utilities(writer) {
     u.xmlToString = function(xmlData) {
         var xmlString = '';
         try {
-            if (window.ActiveXObject) {
-                xmlString = xmlData.xml;
-            } else {
-                xmlString = (new XMLSerializer()).serializeToString(xmlData);
-            }
+            xmlString = (new XMLSerializer()).serializeToString(xmlData);
         } catch (e) {
-            alert(e);
+            console.warn(e);
         }
         return xmlString;
     };
     
     u.stringToXML = function(string) {
-        if (window.ActiveXObject) {
-            var oXML = new ActiveXObject("Microsoft.XMLDOM");
-            oXML.loadXML(string);
-            return oXML;
-        } else {
-            return (new DOMParser()).parseFromString(string, "text/xml");
+        var doc = (new DOMParser()).parseFromString(string, "text/xml");
+        var parsererror = doc.querySelector('parsererror');
+        if (parsererror !== null) {
+            return null;
         }
+        return doc;
     };
     
     u.xmlToJSON = function(xml) {
         if ($.type(xml) == 'string') {
             xml = u.stringToXML(xml);
+            if (xml === null) {
+                return null;
+            }
         }
         var xotree = new ObjTree();
         xotree.attr_prefix = '@';
