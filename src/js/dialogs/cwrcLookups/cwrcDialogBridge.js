@@ -93,6 +93,7 @@ function CwrcDialogBridge(writer, config) {
             } else {
                 // ADD
                 var query = w.editor.currentBookmark.rng.toString();
+                query = query.trim().replace(/\s+/g, ' '); // remove excess whitespace
                 
                 cD.popSearch[cwrcType]({
                     query: query,
