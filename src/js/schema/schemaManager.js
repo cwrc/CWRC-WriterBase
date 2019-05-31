@@ -443,6 +443,9 @@ function SchemaManager(writer, config) {
                     }
                     
                     sm.schemaJSON = w.utilities.xmlToJSON($('grammar', sm.schemaXML)[0]);
+                    if (sm.schemaJSON === null) {
+                        console.warn('schemaManager.loadSchema: schema XML could not be converted to JSON');
+                    }
                     sm.navigator.setSchemaJSON(sm.schemaJSON);
                     
                     w.event('schemaLoaded').publish();
