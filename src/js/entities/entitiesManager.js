@@ -56,8 +56,6 @@ EntitiesManager.prototype = {
         if (entity.getContent() === undefined) {
             entity.setContent(this.getTextContentForEntity(entity.id));
         }
-
-        this.setUrisForEntity(entity);
         
         this.entities[entity.id] = entity;
         
@@ -206,33 +204,6 @@ EntitiesManager.prototype = {
             entityTextContent += el.textContent;
         });
         return entityTextContent;
-    },
-    
-    /**
-     * Set the (temp) URIs for an Entity
-     * @param {Entity} entity
-     */
-    setUrisForEntity: function(entity) {
-        $.when(
-            this.w.utilities.getUriForEntity(entity),
-            this.w.utilities.getUriForAnnotation(),
-            this.w.utilities.getUriForDocument(),
-            this.w.utilities.getUriForTarget(),
-            this.w.utilities.getUriForSelector(),
-            this.w.utilities.getUriForUser()
-        ).then(function(entityUri, annoUri, docUri, targetUri, selectorUri, userUri) {
-            if (entity.getURI() !== undefined) {
-                entityUri = entity.getURI();
-            }
-            entity.setUris({
-                entityId: entityUri,
-                annotationId: annoUri,
-                docId: docUri,
-                targetId: targetUri,
-                selectorId: selectorUri,
-                userId: userUri
-            });
-        });
     },
 
     removeHighlights: function() {

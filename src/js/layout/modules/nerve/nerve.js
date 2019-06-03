@@ -193,6 +193,9 @@ function Nerve(config) {
             li.hide();
 
             var doc = w.utilities.stringToXML(response.document);
+            if (doc === null) {
+                console.warn('nerve.run: could not parse response from NERVE');
+            }
             var context = JSON.parse(response.context);
             var entities = processNerveResponse(doc, context);
 

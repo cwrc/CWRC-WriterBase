@@ -39,7 +39,6 @@ function Converter(writer) {
             url: docUrl,
             type: 'GET',
             success: function(doc, status, xhr) {
-                window.location.hash = '';
                 converter.processDocument(doc);
             },
             error: function(xhr, status, error) {
@@ -59,6 +58,15 @@ function Converter(writer) {
         w.event('loadingDocument').publish();
         if (typeof docXml === 'string') {
             docXml = w.utilities.stringToXML(docXml);
+            if (docXml === null) {
+                w.event('documentLoaded').publish(false, null);
+                w.dialogManager.show('message', {
+                    title: 'Error',
+                    msg: 'There was an error parsing the document.',
+                    type: 'error'
+                });
+                return false;
+            }
         }
         converter.processDocument(docXml);
     };

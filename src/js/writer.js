@@ -154,19 +154,42 @@ function CWRCWriter(config) {
         w.storageDialogs.save(w);
     };
 
+    // TODO temp github implementation
+    w.getDocumentURI = function() {
+        if (w.storageDialogs.getDocumentURI) {
+            return w.storageDialogs.getDocumentURI();
+        } else {
+            if (w.filePathInGithub) {
+                var uri = 'https://github.com/'+w.repoName+'/blob/master'+w.filePathInGithub;
+                return uri;
+            } else {
+                var uri = 'https://github.com/placeholder/blob/master/placeholder.xml';
+                return uri;
+            }
+        }
+    };
+
+    w.getUserInfo = function() {
+        if (w.storageDialogs.getUserInfo) {
+            var userInfo = w.storageDialogs.getUserInfo();
+            return {
+                id: userInfo.userUrl,
+                name: userInfo.userName,
+                nick: userInfo.userId
+            }
+        } else {
+            return {
+                id: 'http://id.cwrc.ca/user/placeholder',
+                name: 'Placeholder',
+                nick: 'plchldr'
+            }
+        }
+    };
+
     w.showSaveAsDialog = function() {
-        //        w.storageDialogs.saveAs(w);
     };
 
     w.saveAndExit = function() {
-
-    };
-
-    w.closeDocument = function() {
-        //        if (w.editor.isDirty()) {
-        //        } else {
-        //            w.storageDialogs.load(w)
-        //        }
     };
 
     w.validate = function(callback) {

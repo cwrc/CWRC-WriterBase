@@ -145,9 +145,9 @@ function Tagger(writer) {
             w.editor.currentBookmark = w.editor.selection.getBookmark(1);
         }
         
-        var tagPath;
+        var tagPath = undefined;
         if (Array.isArray(parentTagId)) {
-            tagPath = undefined;
+            // TODO multiple parent tags??
         } else if (action === tagger.ADD || action === tagger.INSIDE) { // TODO determine tagPath for other actions
             var parentTag;
             if (parentTagId === undefined) {
@@ -430,7 +430,7 @@ function Tagger(writer) {
     }
 
     /**
-     * Handling for duplicated tags in pasted content.
+     * Process newly added content
      */
     tagger.processPastedContent = function(domContent) {
         var processNewNodes = function(currNode) {

@@ -3,29 +3,29 @@
     font-size: 14px;
 }
 
-.cwrc h1 {
+.cwrc .ui-dialog h1 {
     font-size: 1.1em;
 }
 
-.cwrc h2 {
+.cwrc .ui-dialog h2 {
     font-size: 1em;
     line-height: 1.2em;
 }
 
-.cwrc h3 {
+.cwrc .ui-dialog h3 {
     font-size: 1em;
 }
 
-.cwrc h1, h2, h3 {
+.cwrc .ui-dialog h1, h2, h3 {
     margin: 0;
 }
 
-.cwrc textarea {
+.cwrc .ui-dialog textarea {
     overflow: auto;
     resize: none;
 }
 
-.cwrc label {
+.cwrc .ui-dialog label {
     margin-right: 5px;
     display: inline;
 }

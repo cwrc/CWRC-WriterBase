@@ -61,7 +61,23 @@ person: {
         certainty: '@cert'
     },
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'foaf:Person');
+        var types = '';
+        var type = entity.getAttribute('type');
+        switch(type) {
+            case 'real':
+                types = 'cwrc:NaturalPerson';
+                break;
+            case 'fictional':
+                types = ['schema:Person', 'cwrc:FictionalPerson'];
+                break;
+            case 'both':
+                types = ['cwrc:NaturalPerson', 'schema:Person', 'cwrc:FictionalPerson'];
+                break;
+            default:
+                types = 'cwrc:NaturalPerson';
+                break;
+        }
+        return annotationsManager.commonAnnotation(entity, format, types);
     }
 },
 
@@ -73,7 +89,7 @@ org: {
         certainty: '@cert'
     },
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'foaf:Organization');
+        return annotationsManager.commonAnnotation(entity, format, 'org:Organization');
     }
 },
 
@@ -85,7 +101,7 @@ place: {
         var endTag = '';
         var precision = entity.getCustomValue('precision');
         if (precision !== undefined) {
-            endTag += '<precision precision="'+precision+'" />';
+            endTag += '<precision match="@ref" precision="'+precision+'" />';
         }
         var tag = entity.getTag();
         endTag += '</'+tag+'>';
@@ -99,21 +115,11 @@ place: {
         customValues: {precision: 'precision/@precision'}
     },
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'geo:SpatialThing');
-        
+        var anno = annotationsManager.commonAnnotation(entity, format, 'cwrc:Place');
         var precision = entity.getCustomValue('precision');
-        if (precision !== undefined) {
-            if (format === 'xml') {
-                var precisionXml = $.parseXML('<cw:hasPrecision xmlns:cw="http://cwrc.ca/ns/cw#" rdf:resource="http://cwrc.ca/ns/cw#'+precision+'" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>');
-                // remove rdf namespace as it's included in parent and only needed to parse this XML
-                precisionXml.firstChild.attributes.removeNamedItem('xmlns:rdf');
-                var body = $('[rdf\\:about="'+entity.getUris().annotationId+'"]', anno);
-                body.append(precisionXml.firstChild);
-            } else {
-                anno.hasPrecision = 'cw:'+precision;
-            }
+        if (precision) {
+            anno["cwrc:hasPrecision"] = 'cwrc:'+precision+'Certainty';
         }
-        
         return anno;
     }
 },
@@ -126,16 +132,7 @@ title: {
         certainty: '@cert'
     },
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'dcterms:title');
-        
-        if (format === 'xml') {
-            var levelXml = $.parseXML('<cw:pubType xmlns:cw="http://cwrc.ca/ns/cw#">'+entity.getAttribute('level')+'</cw:pubType>');
-            var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
-            body.prepend(levelXml.firstChild);
-        } else {
-            anno.hasBody['pubType'] = entity.getAttribute('level');
-        }
-        
+        var anno = annotationsManager.commonAnnotation(entity, format, 'bf:title');
         return anno;
     }
 },
@@ -175,16 +172,7 @@ correction: {
         }
     },
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText', 'oa:editing');
-        
-        if (format === 'xml') {
-            var corrXml = $.parseXML('<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">'+entity.getCustomValue('corrText')+'</cnt:chars>');
-            var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
-            body.prepend(corrXml.firstChild);
-        } else {
-            anno.hasBody['cnt:chars'] = entity.getCustomValue('corrText');
-        }
-
+        var anno = annotationsManager.commonAnnotation(entity, format, 'fabio:Correction', 'oa:editing');
         return anno;
     }
 },
@@ -192,41 +180,26 @@ correction: {
 link: {
     parentTag: 'ref',
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText', 'oa:linking');
+        var anno = annotationsManager.commonAnnotation(entity, format, 'cito:Citation', 'oa:linking');
+        anno["oa:hasBody"] = {
+            "@id": entity.getAttribute('target'),
+            "@type": "cnt:ContentAsText"
+        };
+        return anno;
     }
 },
 
 date: {
     parentTag: 'date',
     annotation: function(annotationsManager, entity, format) {
-        var types = [];
+        var anno = annotationsManager.commonAnnotation(entity, format, 'xsd:date');
+        var date;
         if (entity.getAttribute('when') !== undefined) {
-            types.push('time:Instant');
+            date = entity.getAttribute('when');
         } else {
-            types.push('time:Interval');
+            date = entity.getAttribute('from')+'/'+entity.getAttribute('to');
         }
-        types.push('time:TemporalEntity');
-        
-        var anno = annotationsManager.commonAnnotation(entity, format, types);
-        
-        if (format === 'xml') {
-            var dateXml;
-            if (entity.getAttribute('when') !== undefined) {
-                dateXml = $.parseXML('<xsd:date xmlns:xsd="http://www.w3.org/2001/XMLSchema#">'+entity.getAttribute('when')+'</xsd:date>');
-            } else {
-                // TODO properly encode date range
-                dateXml = $.parseXML('<xsd:date xmlns:xsd="http://www.w3.org/2001/XMLSchema#">'+entity.getAttribute('from')+'/'+entity.getAttribute('to')+'</xsd:date>');
-            }
-            var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
-            body.prepend(dateXml.firstChild);
-        } else {
-            if (entity.getAttribute('when') !== undefined) {
-                anno.hasBody['xsd:date'] = entity.getAttribute('when');
-            } else {
-                anno.hasBody['xsd:date'] = entity.getAttribute('from')+'/'+entity.getAttribute('to');
-            }
-        }
-        
+        anno["oa:hasBody"]["rdf:value"] = date;
         return anno;
     }
 },
@@ -237,7 +210,20 @@ note: {
     isNote: true,
     requiresSelection: false,
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'bibo:Note');
+        var types = '';
+        var type = entity.getAttribute('type');
+        switch(type) {
+            case 'researchNote':
+                types = 'cwrc:NoteInternal';
+                break;
+            case 'scholarNote':
+                types = 'cwrc:NoteScholarly';
+                break;
+            case 'typeAnnotation':
+                types = 'oa:TextualBody'
+                break;
+        }
+        return annotationsManager.commonAnnotation(entity, format, types, 'oa:describing');
     }
 },
 
@@ -262,7 +248,17 @@ citation: {
         noteContent: 'bibl/text()'
     },
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'dcterms:BibliographicResource');
+        var anno = annotationsManager.commonAnnotation(entity, format, 'cito:Citation', 'cwrc:citing');
+        anno["oa:hasBody"] = [
+            anno["oa:hasBody"],
+            {
+                "@id": anno["@id"]+'#Cites',
+                "@type": "cito:Citation",
+                "cito:hasCitationEvent": "cito:cites",
+                "cito:hasCitingEntity": entity.getURI()
+            }
+        ]
+        return anno;
     }
 },
 
@@ -281,17 +277,22 @@ keyword: {
         noteContent: 'term/text()'
     },
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, ['oa:Tag', 'cnt:ContentAsText', 'skos:Concept']);
-        
-        var term = entity.getContent();
-        if (format === 'xml') {
-            var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
-            var termXML = $.parseXML('<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">'+term+'</cnt:chars>');
-            body.prepend(termXML.firstChild);
+        var types = '';
+        var motivations = '';
+        var ana = entity.getAttribute('ana');
+        var hasRef = ana && ana.indexOf('http') === 0;
+        if (hasRef) {
+            types = 'fabio:ControlledVocabulary';
+            motivations = 'oa:classifying';
         } else {
-            anno.hasBody['cnt:chars'] = term;
+            types = 'fabio:UncontrolledVocabulary';
+            motivations = 'oa:tagging';
         }
-
+        var anno = annotationsManager.commonAnnotation(entity, format, types, motivations);
+        if (hasRef) {
+            // TODO get actual note content
+            anno["skos:altLabel"] = entity.getContent();
+        }
         return anno;
     }
 }

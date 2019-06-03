@@ -91,7 +91,7 @@ place: {
     mapping: {
         uri: '@REF',
         lemma: '@REG',
-        customValues: {placeType: 'name(./*)'}
+        customValues: {placeType: 'local-name(./*)'}
     },
     annotation: function(annotationsManager, entity, format) {
         return annotationsManager.commonAnnotation(entity, format, 'geo:SpatialThing');

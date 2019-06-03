@@ -41,17 +41,20 @@ function CWRC2XML(writer) {
             $rootEl = $body.find('[_tag]:eq(0)'); // fallback
         }
         
-        // make sure the root has the right namespaces for validation purposes
-        var namespaceAttrs = {
-            'xmlns:cw': 'http://cwrc.ca/ns/cw#'
+        // remove previous namespaces
+        var rootAttributes = w.tagger.getAttributesForTag($rootEl[0]);
+        for (var attributeName in rootAttributes) {
+            if (attributeName.indexOf('xmlns') === 0) {
+                delete rootAttributes[attributeName];
+            }
         };
-        if (root === 'TEI') {
-            namespaceAttrs['xmlns'] = 'http://www.tei-c.org/ns/1.0';
+        if (root === 'TEI') { // TODO hardcoded
+            rootAttributes['xmlns'] = 'http://www.tei-c.org/ns/1.0';
         }
         if (includeRDF) {
-            namespaceAttrs['xmlns:rdf'] = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+            rootAttributes['xmlns:rdf'] = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
         }
-        w.tagger.addAttributesToTag($rootEl[0], namespaceAttrs);
+        w.tagger.setAttributesForTag($rootEl[0], rootAttributes);
 
         var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
         xmlString += '<?xml-model href="'+w.schemaManager.getCurrentSchema().url+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
@@ -87,6 +90,7 @@ function CWRC2XML(writer) {
             } else {
                 rdfmode = 'json';
             }
+            rdfmode = 'json'; // hardcode for now, until xml is implemented
 
             var entities = [];
             w.entitiesManager.eachEntity(function(id, ent) {
@@ -228,7 +232,7 @@ function CWRC2XML(writer) {
     /**
      * Converts the editor node and its contents into an XML string suitable for export.
      * @param {Element} node
-     * @param {Boolean} [identifyEntities] If true, adds cwrcTempId to entity elements
+     * @param {Boolean} [identifyEntities] If true, adds cwrcTempId to entity elements. Default is false.
      * @returns {String}
      */
     cwrc2xml.buildXMLString = function(node, identifyEntities) {

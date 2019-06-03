@@ -21,30 +21,28 @@ function Utilities(writer) {
     u.xmlToString = function(xmlData) {
         var xmlString = '';
         try {
-            if (window.ActiveXObject) {
-                xmlString = xmlData.xml;
-            } else {
-                xmlString = (new XMLSerializer()).serializeToString(xmlData);
-            }
+            xmlString = (new XMLSerializer()).serializeToString(xmlData);
         } catch (e) {
-            alert(e);
+            console.warn(e);
         }
         return xmlString;
     };
     
     u.stringToXML = function(string) {
-        if (window.ActiveXObject) {
-            var oXML = new ActiveXObject("Microsoft.XMLDOM");
-            oXML.loadXML(string);
-            return oXML;
-        } else {
-            return (new DOMParser()).parseFromString(string, "text/xml");
+        var doc = (new DOMParser()).parseFromString(string, "text/xml");
+        var parsererror = doc.querySelector('parsererror');
+        if (parsererror !== null) {
+            return null;
         }
+        return doc;
     };
     
     u.xmlToJSON = function(xml) {
         if ($.type(xml) == 'string') {
             xml = u.stringToXML(xml);
+            if (xml === null) {
+                return null;
+            }
         }
         var xotree = new ObjTree();
         xotree.attr_prefix = '@';
@@ -448,84 +446,6 @@ function Utilities(writer) {
 
         parentFunc();
 
-        return dfd.promise();
-    };
-    
-    /**
-     * Gets the URI for the entity
-     * @param {Object} entity The entity object
-     * @returns {Promise} The promise object
-     */
-    u.getUriForEntity = function(entity) {
-        var guid = u.createGuid();
-        var uri = 'http://id.cwrc.ca/'+entity.getType()+'/'+guid;
-        var dfd = new $.Deferred();
-        dfd.resolve(uri);
-        return dfd.promise();
-    };
-    
-    /**
-     * Gets the URI for the annotation
-     * @param {Object} entity The entity object
-     * @returns {Promise} The promise object
-     */
-    u.getUriForAnnotation = function() {
-        var guid = u.createGuid();
-        var uri = 'http://id.cwrc.ca/annotation/'+guid;
-        var dfd = new $.Deferred();
-        dfd.resolve(uri);
-        return dfd.promise();
-    };
-    
-    /**
-     * Gets the URI for the document
-     * @param {Object} entity The entity object
-     * @returns {Promise} The promise object
-     */
-    u.getUriForDocument = function() {
-        var guid = u.createGuid();
-        var uri = 'http://id.cwrc.ca/doc/'+guid;
-        var dfd = new $.Deferred();
-        dfd.resolve(uri);
-        return dfd.promise();
-    };
-    
-    /**
-     * Gets the URI for the target
-     * @param {Object} entity The entity object
-     * @returns {Promise} The promise object
-     */
-    u.getUriForTarget = function() {
-        var guid = u.createGuid();
-        var uri = 'http://id.cwrc.ca/target/'+guid;
-        var dfd = new $.Deferred();
-        dfd.resolve(uri);
-        return dfd.promise();
-    };
-    
-    /**
-     * Gets the URI for the selector
-     * @param {Object} entity The entity object
-     * @returns {Promise} The promise object
-     */
-    u.getUriForSelector = function() {
-        var guid = u.createGuid();
-        var uri = 'http://id.cwrc.ca/selector/'+guid;
-        var dfd = new $.Deferred();
-        dfd.resolve(uri);
-        return dfd.promise();
-    };
-    
-    /**
-     * Gets the URI for the user
-     * @param {Object} entity The entity object
-     * @returns {Promise} The promise object
-     */
-    u.getUriForUser = function() {
-        var guid = u.createGuid();
-        var uri = 'http://id.cwrc.ca/user/'+guid;
-        var dfd = new $.Deferred();
-        dfd.resolve(uri);
         return dfd.promise();
     };
     

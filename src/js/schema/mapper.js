@@ -146,9 +146,10 @@ Mapper.prototype = {
                             break;
                     }
                 } else if (typeof result === 'string') {
-                    // it's probably a name() function
+                    // TODO rework this because the result will be null
+                    // it's probably a local-name() function
                     value = result;
-                    var innerXPath = /^name\((.*)\)$/.exec(xpath); // try to get the inside of the name function
+                    var innerXPath = /^local-name\((.*)\)$/.exec(xpath); // try to get the inside of the name function
                     if (innerXPath !== null) {
                         innerXPath = innerXPath[1];
                         var innerResult = getValueFromXPath.call(this, contextEl, innerXPath);
@@ -289,6 +290,7 @@ Mapper.prototype = {
 
         // set type after mapping and cleanup is done
         obj.type = type;
+        obj.isNote = this.isEntityTypeNote(type);
         
         return obj;
     },
