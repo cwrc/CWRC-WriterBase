@@ -104,7 +104,7 @@ function SchemaNavigator() {
     sn.getAttributesForTag = function(tag) {
         var elements = _getEntriesForTag(tag);
         if (elements.length == 0) {
-            console.warn('schemaNavigator: cannot find element for '+config.tag);
+            console.warn('schemaNavigator: cannot find element for '+tag);
             return [];
         } else {
             var children = [];
@@ -422,6 +422,8 @@ function SchemaNavigator() {
                     if (list !== null) {
                         // TODO
                     }
+
+                    // TODO process data pattern using pcre-to-regexp
                 }
                 children.push(childObj);
             }
