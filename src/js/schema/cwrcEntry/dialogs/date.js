@@ -151,7 +151,7 @@ module.exports = function(writer, parentEl) {
                 }
             }
 
-            toggleDate('date');
+            toggleDate('DATE');
             $('#'+id+'_type_date').prop('checked', true).button('refresh');
             $dateInput.val(dateValue);
             $startDate.val('');
