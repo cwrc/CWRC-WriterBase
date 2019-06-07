@@ -67,7 +67,7 @@ LayoutManager.prototype = {
         var html = `
         <div class="cwrc cwrcHeader ui-layout-north">
             <div class="headerParent ui-widget">
-                <a class="titleLink" href="https://www.cwrc.ca" target="_blank">${name}</a>
+                <a class="titleLink" href="https://cwrc.ca" target="_blank">${name}</a>
                 <div class="headerButtons"></div>
             </div>
         </div>`;
