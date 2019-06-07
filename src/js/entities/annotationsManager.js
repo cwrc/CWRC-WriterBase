@@ -32,7 +32,7 @@ AnnotationsManager.prefixMap = {
     'xsd': 'http://www.w3.org/2001/XMLSchema#'
 };
 
-AnnotationsManager.types = {
+AnnotationsManager.legacyTypes = {
     person: 'foaf:Person',
     org: 'foaf:Organization',
     place: 'geo:SpatialThing',
@@ -305,8 +305,47 @@ AnnotationsManager.prototype = {
                 entityConfig = this._getEntityConfigFromXmlAnnotationLegacy(rdfEl);
             }
         } else {
+            return this.getEntityConfigFromJsonAnnotation(rdfEl);
+        }
+
+        return entityConfig;
+    },
+
+    // TODO
+    getEntityConfigFromJsonAnnotation: function(rdfEl) {
+        var entityConfig = null;
+        
+        var rdf = $(rdfEl);
+        var annotation = JSON.parse(rdf.text());
+        if (annotation != null) {
+            entityConfig = {};
+
+            // type
+            entityConfig.type = '';
             // TODO
-            return null;
+            // var types = annotation["oa:hasBody"]["@type"];
+            // if (Array.isArray(types) === false) {
+            //     types = [types];
+            // }
+            // for (var i = 0; i < types.length; i++) {
+            //     var type = this._getEntityTypeForAnnotation(types[i]);
+            //     if (type !== null) {
+            //         entityConfig.type = this._getEntityTypeForAnnotation(types);
+            //         break;
+            //     }
+            // }
+            
+            // range
+            entityConfig.range = {};
+            var selector = annotation["oa:hasTarget"]["oa:hasSelector"];
+            if (selector["oa:refinedBy"]) {
+                entityConfig.range.startXPath = selector["oa:hasStartSelector"]["rdf:value"];
+                entityConfig.range.startOffset = selector["oa:refinedBy"]["oa:start"];
+                entityConfig.range.endXPath = selector["oa:hasEndSelector"]["rdf:value"];
+                entityConfig.range.endOffset = selector["oa:refinedBy"]["oa:end"];
+            } else {
+                entityConfig.range.startXPath = selector["rdf:value"];
+            }
         }
 
         return entityConfig;
@@ -334,7 +373,7 @@ AnnotationsManager.prototype = {
             }
             for (var i = 0; i < bodyTypes.length; i++) {
                 var typeUri = bodyTypes[i];
-                entityType = this._getEntityTypeForAnnotation(typeUri);
+                entityType = this._getEntityTypeForAnnotationLegacy(typeUri);
                 if (entityType != null) {
                     break;
                 }
@@ -406,7 +445,7 @@ AnnotationsManager.prototype = {
             if (typeUri == null) {
                 console.warn('can\'t determine type for', xml);
             } else {
-                var entityType = this._getEntityTypeForAnnotation(typeUri);
+                var entityType = this._getEntityTypeForAnnotationLegacy(typeUri);
                 entityConfig = {
                     type: entityType
                 };
@@ -460,7 +499,7 @@ AnnotationsManager.prototype = {
      * @param {String} annotation The annotation string, e.g. 'foaf:Person'
      * @returns {String}
      */
-    _getEntityTypeForAnnotation: function(annotation) {
+    _getEntityTypeForAnnotationLegacy: function(annotation) {
         if (annotation.indexOf('http://') !== -1) {
             // convert uri to prefixed form
             for (var prefix in AnnotationsManager.prefixMap) {
@@ -471,8 +510,8 @@ AnnotationsManager.prototype = {
                 }
             }
         }
-        for (var entityType in AnnotationsManager.types) {
-            if (AnnotationsManager.types[entityType] === annotation) {
+        for (var entityType in AnnotationsManager.legacyTypes) {
+            if (AnnotationsManager.legacyTypes[entityType] === annotation) {
                 return entityType;
             }
         }
