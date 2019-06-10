@@ -54,6 +54,8 @@ function EditSource(writer, parentEl) {
         w.dialogManager.confirm({
             title: 'Edit Source',
             msg: 'Editing the source directly is only recommended for advanced users who know what they\'re doing.<br/><br/>Are you sure you wish to continue?',
+            showConfirmKey: 'confirm-edit-source',
+            type: 'info',
             callback: function(yes) {
                 if (yes) {
                     var docText = w.converter.getDocumentContent(true);

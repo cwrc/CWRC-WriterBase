@@ -43,6 +43,7 @@ module.exports = function(writer, parentEl) {
                     title: 'Warning',
                     msg: '<p>It is recommended to reference a taxonomy (using the ana attribute) when creating keywords.</p>'+
                     '<p>Are you sure you want to save your keyword without linking it to a taxonomy term?</p>',
+                    showConfirmKey: 'confirm-tei-keyword',
                     type: 'info',
                     callback: function(doIt) {
                         if (doIt) {

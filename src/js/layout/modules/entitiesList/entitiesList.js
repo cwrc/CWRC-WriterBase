@@ -90,6 +90,7 @@ function EntitiesList(config) {
                 title: 'Warning',
                 msg: '<p>All the remaining entities in the panel will be rejected.</p>'+
                 '<p>Do you wish to proceed?</p>',
+                showConfirmKey: 'confirm-reject-candidate-entities',
                 type: 'info',
                 callback: function(doIt) {
                     if (doIt) {

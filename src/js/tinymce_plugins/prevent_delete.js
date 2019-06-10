@@ -81,6 +81,7 @@ tinymce.PluginManager.add('preventdelete', function(ed) {
                     ed.writer.dialogManager.confirm({
                         title: 'Warning',
                         msg: '<p>The text you are trying to delete contains XML tags, do you want to proceed?</p>',
+                        showConfirmKey: 'confirm-delete-tags',
                         type: 'info',
                         callback: function(doIt) {
                             if (doIt) {

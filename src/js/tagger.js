@@ -214,6 +214,8 @@ function Tagger(writer) {
             w.dialogManager.confirm({
                 title: 'Remove Entity?',
                 msg: 'Changing this tag will remove the associated annotation. Do you want to proceed?',
+                showConfirmKey: 'confirm-change-tag-remove-entity',
+                type: 'info',
                 callback: function(yes) {
                     if (yes) {
                         var newTag = tagger.removeEntity(id);
@@ -289,7 +291,12 @@ function Tagger(writer) {
                 } else {
                     w.dialogManager.confirm({
                         title: 'Warning',
-                        msg: 'You are attempting to create overlapping entities or to create an entity across sibling XML tags, which is not allowed in this editor mode.<br/><br/>If you wish to continue, the editor mode will be switched to <b>XML and RDF (Overlapping Entities)</b> and only RDF will be created for the entity you intend to add.<br/><br/>Do you wish to continue?',
+                        msg: '<p>You are attempting to create overlapping entities or to create an entity across sibling XML tags, which is not allowed in this editor mode.</p>'+
+                        '<p>If you wish to continue, the editor mode will be switched to <b>XML and RDF (Overlapping Entities)</b> and only RDF will be created for the entity you intend to add.</p>'+
+                        '<p>Do you wish to continue?</p>',
+                        showConfirmKey: 'confirm-overlapping-entities',
+                        type: 'info',
+                        height: 350,
                         callback: function(confirmed) {
                             if (confirmed) {
                                 w.allowOverlap = true;

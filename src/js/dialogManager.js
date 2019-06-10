@@ -6,6 +6,9 @@ require('jquery-ui/ui/widgets/dialog');
 require('jquery-ui/ui/widgets/tooltip');
 require('jquery-popup');
 
+var DIALOG_PREFS_COOKIE_NAME = 'cwrc-writer-base-dialog-preferences';
+var Cookies = require('js-cookie');
+
 var DialogForm = require('dialogForm');
 
 var AddSchema = require('./dialogs/addSchema.js');
@@ -198,6 +201,28 @@ function DialogManager(writer) {
         }
         
         restorePreviousDialogListeners();
+    };
+
+    dm.getDialogPref = function(name) {
+        var prefs = Cookies.getJSON(DIALOG_PREFS_COOKIE_NAME);
+        if (prefs !== undefined && prefs[name] !== undefined) {
+            return prefs[name];
+        } else {
+            return undefined;
+        }
+    };
+
+    dm.setDialogPref = function(name, value) {
+        var prefs = Cookies.getJSON(DIALOG_PREFS_COOKIE_NAME);
+        if (prefs === undefined) {
+            prefs = {};
+        }
+        prefs[name] = value;
+        Cookies.set(DIALOG_PREFS_COOKIE_NAME, prefs, {expires: 7, path: ''});
+    };
+
+    dm.clearDialogPrefs = function() {
+        Cookies.remove(DIALOG_PREFS_COOKIE_NAME, {path: ''});
     };
     
     var defaultDialogs = {

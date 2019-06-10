@@ -26,53 +26,66 @@ function Settings(writer, config) {
     var $helpLink = $('<div class="helpLink">Help</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
     var $settingsLink = $('<div class="settingsLink">Settings</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
     
-    var $settingsDialog = $(''+
-    '<div>'+
-        '<div>'+
-            '<label>Font Size</label>'+
-            '<select name="fontsize">'+
-                '<option value="9pt">9pt</option>'+
-                '<option value="10pt">10pt</option>'+
-                '<option value="11pt">11pt</option>'+
-                '<option value="12pt">12pt</option>'+
-                '<option value="13pt">13pt</option>'+
-            '</select>'+
-        '</div>'+
-        '<div style="margin-top: 10px;">'+
-            '<label>Show Entities <input type="checkbox" name="showEntities" class="showentities" /></label>'+
-        '</div>'+
-        '<div style="margin-top: 10px;">'+
-            '<label>Show Tags <input type="checkbox" name="showTags" class="showtags" /></label>'+
-        '</div>'+
-        '<div class="settingsDialogAdvanced">'+
-            '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #aaa;">'+
-                '<label>Editor Mode</label>'+
-                '<select name="editormode">'+
-                    '<option value="xml">XML only (no overlap)</option>'+
-                    '<option value="xmlrdf">XML and RDF (no overlap)</option>'+
-                    '<option value="xmlrdfoverlap">XML and RDF (overlapping entities)</option>'+
-                    '<option value="rdf">RDF only</option>'+
-                '</select>'+
-            '</div>'+
-            '<div style="margin-top: 10px;">'+
-                '<label>Annotations Format</label>'+
-                '<select name="annotations">'+
-                    '<option value="xml">RDF/XML</option>'+
-                    '<option value="json">JSON-LD</option>'+
-                '</select>'+
-            '</div>'+
-            '<div style="margin-top: 10px;">'+
-                '<label>Schema</label>'+
-                '<select name="schema">'+
-                '</select>'+
-                '<br/><br/><button type="button">Add Schema</button>'+
-            '</div>'+
-        '</div>'+
-    '</div>').appendTo(w.dialogManager.getDialogWrapper());
+    var $settingsDialog = $(`
+    <div>
+        <div>
+            <label>Font Size</label>
+            <select name="fontsize">
+                <option value="9pt">9pt</option>
+                <option value="10pt">10pt</option>
+                <option value="11pt">11pt</option>
+                <option value="12pt">12pt</option>
+                <option value="13pt">13pt</option>
+            </select>
+        </div>
+        <div style="margin-top: 10px;">
+            <label>Show Entities <input type="checkbox" name="showEntities" class="showentities" /></label>
+        </div>
+        <div style="margin-top: 10px;">
+            <label>Show Tags <input type="checkbox" name="showTags" class="showtags" /></label>
+        </div>
+        <div class="settingsDialogAdvanced">
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #aaa;">
+                <label>Editor Mode</label>
+                <select name="editormode">
+                    <option value="xml">XML only (no overlap)</option>
+                    <option value="xmlrdf">XML and RDF (no overlap)</option>
+                    <option value="xmlrdfoverlap">XML and RDF (overlapping entities)</option>
+                    <option value="rdf">RDF only</option>
+                </select>
+            </div>
+            <div style="margin-top: 10px;">
+                <label>Annotations Format</label>
+                <select name="annotations">
+                    <option value="xml">RDF/XML</option>
+                    <option value="json">JSON-LD</option>
+                </select>
+            </div>
+            <div style="margin-top: 10px;">
+                <label>Schema</label>
+                <select name="schema">
+                </select>
+                <br/><br/><button type="button" name="addSchemaButton">Add Schema</button>
+            </div>
+            <div style="margin-top: 10px;">
+                <button type="button" name="resetConfirmButton">Reset Confirmation Dialog Preferences</button>
+            </div>
+        </div>
+    </div>
+    `).appendTo(w.dialogManager.getDialogWrapper());
     
     buildSchema();
-    $('select[name="schema"]', $settingsDialog).nextAll('button').button().click(function() {
+    $('button[name="addSchemaButton"]', $settingsDialog).button().click(function() {
         w.dialogManager.show('addschema');
+    });
+
+    $('button[name="resetConfirmButton"]', $settingsDialog).button().click(function() {
+        w.dialogManager.clearDialogPrefs();
+        w.dialogManager.show('message', {
+            title: 'Settings',
+            msg: 'Confirmation dialog preferences have been reset.',
+            height: 200
+        })
     });
     
     $settingsLink.click(function() {

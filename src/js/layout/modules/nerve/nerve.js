@@ -106,6 +106,7 @@ function Nerve(config) {
                 title: 'Warning',
                 msg: '<p>All the remaining entities in the panel will be rejected, including any edited ones.</p>'+
                 '<p>Do you wish to proceed?</p>',
+                showConfirmKey: 'confirm-reject-nerve-entities',
                 type: 'info',
                 callback: function(doIt) {
                     if (doIt) {
@@ -959,6 +960,7 @@ var doLookup = function(w, query, type, callback) {
 
 function NerveEditDialog(writer, parentEl) {
     var w = writer;
+    var forceSave = false; // needed for confirmation dialog in beforeSave
     var $el = $(''+
     '<div class="annotationDialog">'+
         '<div>'+
@@ -998,10 +1000,37 @@ function NerveEditDialog(writer, parentEl) {
         });
     });
 
+    dialog.$el.on('beforeShow', function() {
+        forceSave = false;
+    });
+
     dialog.$el.on('beforeSave', function(e, dialog) {
-        var type = dialog.currentData.properties.type;
-        var tag = w.schemaManager.mapper.getParentTag(type);
-        dialog.currentData.properties.tag = tag;
+        if (forceSave) {
+            dialog.isValid = true;
+            var type = dialog.currentData.properties.type;
+            var tag = w.schemaManager.mapper.getParentTag(type);
+            dialog.currentData.properties.tag = tag;
+        } else {
+            var uri = dialog.currentData.properties.uri;
+            if (uri !== undefined && uri.search(/^https?:\/\//) !== 0) {
+                dialog.isValid = false;
+                w.dialogManager.confirm({
+                    title: 'Warning',
+                    msg: '<p>The URI you\'ve entered does not look valid.</p>'+
+                    '<p>Are you sure you want to use it?</p>',
+                    showConfirmKey: 'confirm-nerve-uri',
+                    type: 'info',
+                    callback: function(doIt) {
+                        if (doIt) {
+                            forceSave = true;
+                            dialog.save();
+                        }
+                    }
+                });
+            } else {
+                dialog.isValid = true;
+            }
+        }
     });
 
     return dialog;
