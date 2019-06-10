@@ -1021,10 +1021,12 @@ function NerveEditDialog(writer, parentEl) {
                     showConfirmKey: 'confirm-nerve-uri',
                     type: 'info',
                     callback: function(doIt) {
-                        if (doIt) {
-                            forceSave = true;
-                            dialog.save();
-                        }
+                        setTimeout(function() { // need setTimeout in case confirm dialog is skipped
+                            if (doIt) {
+                                forceSave = true;
+                                dialog.save();
+                            }
+                        });
                     }
                 });
             } else {
