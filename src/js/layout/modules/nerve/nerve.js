@@ -18,7 +18,7 @@ function Nerve(config) {
     
     var id = config.parentId;
 
-    var nerveUrl = 'https://dh.sharcnet.ca/NerveService/';
+    var nerveUrl = 'https://nerve.services.cwrc.ca/';
 
     /**
      * Tracks the merged entities.
