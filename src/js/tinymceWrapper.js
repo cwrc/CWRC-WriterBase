@@ -296,7 +296,7 @@ TinymceWrapper.init = function(config) {
             });
 
             addButtonToEditor('viewmarkup', {
-                title: 'View Markup', icon: ' '+iconType+' view-markup',
+                title: 'Show Raw XML', icon: ' '+iconType+' view-markup',
                 onclick: function() {
                     w.selection.showSelection();
                 }
@@ -310,7 +310,7 @@ TinymceWrapper.init = function(config) {
             });
 
             addButtonToEditor('editsource', {
-                title: 'Edit Source', icon: ' '+iconType+' edit-source',
+                title: 'Edit Raw XML', icon: ' '+iconType+' edit-source',
                 onclick: function() {
                     w.dialogManager.show('editSource');
                 }

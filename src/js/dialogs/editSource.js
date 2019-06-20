@@ -52,8 +52,8 @@ function EditSource(writer, parentEl) {
     
     var doOpen = function() {
         w.dialogManager.confirm({
-            title: 'Edit Source',
-            msg: 'Editing the source directly is only recommended for advanced users who know what they\'re doing.<br/><br/>Are you sure you wish to continue?',
+            title: 'Edit Raw XML',
+            msg: 'Editing the XML directly is only recommended for advanced users who know what they\'re doing.<br/><br/>Are you sure you wish to continue?',
             showConfirmKey: 'confirm-edit-source',
             type: 'info',
             callback: function(yes) {

@@ -38,6 +38,9 @@ function Selection(config) {
     var $selectionContents = $('#'+id+'_selectionContents');
     
     var $includeRdf = $('#'+id+' [name="includeRdf"]').checkboxradio();
+    $includeRdf.on('click', function(ev) {
+        updateView(true);
+    });
 
     w.event('loadingDocument').subscribe(function() {
         clearView();
