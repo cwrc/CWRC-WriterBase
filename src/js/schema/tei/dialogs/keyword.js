@@ -41,8 +41,10 @@ module.exports = function(writer, parentEl) {
                 dialog.isValid = false;
                 w.dialogManager.confirm({
                     title: 'Warning',
-                    msg: '<p>It is recommended to reference a taxonomy (using the ana attribute) when creating keywords.</p>'+
-                    '<p>Are you sure you want to save your keyword without linking it to a taxonomy term?</p>',
+                    msg: '<p>A human-readable keyword is preferably linked, using the "ana" attribute, to a controlled vocabulary.</p>'+
+                    '<p>Click "Add Link" to add a URL for your term or "Skip Link" to save as is.</p>',
+                    yesText: 'Skip Link',
+                    noText: 'Add Link',
                     showConfirmKey: 'confirm-tei-keyword',
                     type: 'info',
                     callback: function(doIt) {

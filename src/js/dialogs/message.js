@@ -85,9 +85,11 @@ function Message(writer, parentEl) {
             }
             
             var callback = config.callback;
+            var yesText = config.yesText || 'Yes';
+            var noText = config.noText || 'No';
             $message.dialog('option', 'buttons', [
                 {
-                    text: 'Yes',
+                    text: yesText,
                     role: 'yes',
                     click: function() {
                         if (config.showConfirmKey) {
@@ -101,7 +103,7 @@ function Message(writer, parentEl) {
                         }, 0);
                     },
                 },{
-                    text: 'No',
+                    text: noText,
                     role: 'no',
                     click: function() {
                         if (config.showConfirmKey) {
