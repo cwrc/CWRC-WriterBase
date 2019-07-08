@@ -115,7 +115,7 @@ place: {
         customValues: {precision: 'precision/@precision'}
     },
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'cwrc:Place');
+        var anno = annotationsManager.commonAnnotation(entity, format, 'cwrc:RealPlace');
         var precision = entity.getCustomValue('precision');
         if (precision) {
             anno["cwrc:hasPrecision"] = 'cwrc:'+precision+'Certainty';
@@ -132,7 +132,7 @@ title: {
         certainty: '@cert'
     },
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'bf:title');
+        var anno = annotationsManager.commonAnnotation(entity, format, 'bf:Title');
         return anno;
     }
 },
@@ -173,6 +173,11 @@ correction: {
     },
     annotation: function(annotationsManager, entity, format) {
         var anno = annotationsManager.commonAnnotation(entity, format, 'fabio:Correction', 'oa:editing');
+        anno["oa:hasBody"] = {
+            "@type": "fabio:Correction",
+            "dc:format": "text/xml",
+            "rdf:value": entity.getCustomValue('corrText')
+        }
         return anno;
     }
 },
@@ -180,7 +185,7 @@ correction: {
 link: {
     parentTag: 'ref',
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'cito:Citation', 'oa:linking');
+        var anno = annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText', 'oa:linking');
         anno["oa:hasBody"] = {
             "@id": entity.getAttribute('target'),
             "@type": "cnt:ContentAsText"
@@ -249,15 +254,17 @@ citation: {
     },
     annotation: function(annotationsManager, entity, format) {
         var anno = annotationsManager.commonAnnotation(entity, format, 'cito:Citation', 'cwrc:citing');
-        anno["oa:hasBody"] = [
-            anno["oa:hasBody"],
-            {
-                "@id": anno["@id"]+'#Cites',
-                "@type": "cito:Citation",
-                "cito:hasCitationEvent": "cito:cites",
-                "cito:hasCitingEntity": entity.getURI()
-            }
-        ]
+        if (entity.getURI()) {
+            anno["oa:hasBody"] = [
+                anno["oa:hasBody"],
+                {
+                    "@id": anno["@id"]+'#Cites',
+                    "@type": "cito:Citation",
+                    "cito:hasCitedEntity": entity.getURI(),
+                    "cito:hasCitationEvent": "cito:cites"
+                }
+            ]
+        }
         return anno;
     }
 },
@@ -280,7 +287,8 @@ keyword: {
         var types = '';
         var motivations = '';
         var ana = entity.getAttribute('ana');
-        var hasRef = ana && ana.indexOf('http') === 0;
+        var hasAna = ana !== undefined;
+        var hasRef = hasAna && ana.indexOf('http') === 0;
         if (hasRef) {
             types = 'fabio:ControlledVocabulary';
             motivations = 'oa:classifying';
@@ -290,8 +298,27 @@ keyword: {
         }
         var anno = annotationsManager.commonAnnotation(entity, format, types, motivations);
         if (hasRef) {
-            // TODO get actual note content
-            anno["skos:altLabel"] = entity.getContent();
+            anno["oa:hasBody"] = [{
+                "@type": "fabio:ControlledVocabulary",
+                "rdf:value": ana
+            },{
+                "dc:format": "text/xml",
+                "skos:altLabel": entity.getContent()
+            }]
+        } else if (hasAna) {
+            anno["oa:hasBody"] = [{
+                "@type": "fabio:UncontrolledVocabulary",
+                "rdf:value": ana
+            },{
+                "dc:format": "text/xml",
+                "skos:altLabel": entity.getContent()
+            }]
+        } else {
+            anno["oa:hasBody"] = {
+                "@type": "fabio:UncontrolledVocabulary",
+                "dc:format": "text/xml",
+                "rdf:value": entity.getContent()
+            }
         }
         return anno;
     }

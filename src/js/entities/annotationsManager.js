@@ -159,7 +159,7 @@ AnnotationsManager.prototype = {
                     "oa:hasSource": {
                         "@id": docId,
                         "@type": "dctypes:Text",
-                        "format": "text/xml"
+                        "dc:format": "text/xml"
                     },
                     "oa:renderedVia": {
                         "@id": appUri,
@@ -185,8 +185,8 @@ AnnotationsManager.prototype = {
                 annotation["oa:hasBody"]["dc:format"] = "text/html";
             } else if (entity.isNote()) {
                 var noteEl = $('#'+entity.getId(), this.w.editor.getBody());
-                var noteContent = this.w.converter.buildXMLString(noteEl);
-                annotation["oa:hasBody"]["dc:format"] = "text/xml";
+                var noteContent = noteEl[0].textContent;
+                annotation["oa:hasBody"]["dc:format"] = "text/html";
                 annotation["oa:hasBody"]["rdf:value"] = noteContent;
             }
 
