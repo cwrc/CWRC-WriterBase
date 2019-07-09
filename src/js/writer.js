@@ -354,7 +354,7 @@ function CWRCWriter(config) {
     var editorId = w.getUniqueId('editor_');
     w.layoutManager = new LayoutManager(w);
     w.layoutManager.init({
-        name: 'CWRC-Writer 1.0',
+        name: 'CWRC-Writer 2.0',
         editorId: editorId,
         modules: config.modules,
         container: $('#' + w.containerId)
