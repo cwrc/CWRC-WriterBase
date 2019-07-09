@@ -23,7 +23,7 @@ function Settings(writer, config) {
     };
     $.extend(defaultSettings, settings);
     
-    var $helpLink = $('<div class="helpLink">Help</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
+    $('<div class="helpLink"><a href="https://cwrc.ca/Documentation/CWRC-Writer" target="_blank">Help</a></div>').prependTo(w.layoutManager.getHeaderButtonsParent());
     var $settingsLink = $('<div class="settingsLink">Settings</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
     
     var $settingsDialog = $(`
@@ -110,14 +110,6 @@ function Settings(writer, config) {
         }
         $('select[name="schema"] > option[value="'+w.schemaManager.schemaId+'"]', $settingsDialog).prop('selected', true);
         $settingsDialog.dialog('open');
-    });
-    
-    $helpLink.click(function() {
-        w.dialogManager.show('message', {
-            title: 'CWRC-Writer Help',
-            msg: '<p>For help with CWRC-Writer click <a href="https://cwrc.ca/CWRC-Writer_Documentation/" target="_blank">here</a>.</p>',
-            modal: false
-        });
     });
     
     $settingsDialog.dialog({

@@ -93,6 +93,15 @@
     padding-left: 20px;
 }
 
+.helpLink a {
+    color: #eee !important;
+    text-decoration: none;
+}
+
+.helpLink a:hover {
+    text-decoration: underline;
+}
+
 .fullscreenLink.out {
     background: url("../img/arrow_out.png") no-repeat scroll 0 0 transparent;
     padding-left: 20px;
