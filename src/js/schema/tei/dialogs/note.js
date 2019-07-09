@@ -11,7 +11,7 @@ module.exports = function(writer, parentEl) {
             '<div id="'+id+'_type" data-transform="buttonset" data-type="radio" data-mapping="type">'+
                 '<input type="radio" id="'+id+'_re" name="'+id+'_type" value="researchNote" data-default="true" /><label for="'+id+'_re" title="Internal to projects">Research Note</label>'+
                 '<input type="radio" id="'+id+'_scho" name="'+id+'_type" value="scholarNote" /><label for="'+id+'_scho" title="Footnotes/endnotes">Scholarly Note</label>'+
-                '<input type="radio" id="'+id+'_ann" name="'+id+'_type" value="typeAnnotation" /><label for="'+id+'_ann" title="Informal notes">Annotation</label>'+
+                '<input type="radio" id="'+id+'_ann" name="'+id+'_type" value="annotation" /><label for="'+id+'_ann" title="Informal notes">Annotation</label>'+
             '</div>'+
         '</div>'+
         '<div>'+

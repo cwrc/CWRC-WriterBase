@@ -224,7 +224,7 @@ note: {
             case 'scholarNote':
                 types = 'cwrc:NoteScholarly';
                 break;
-            case 'typeAnnotation':
+            case 'annotation':
                 types = 'oa:TextualBody'
                 break;
         }
