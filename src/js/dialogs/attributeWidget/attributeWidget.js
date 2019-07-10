@@ -3,6 +3,7 @@
 var $ = require('jquery');
 
 require('jquery-ui/ui/widgets/accordion');
+require('jquery-ui/ui/widgets/tooltip');
 
 function AttributeWidget(config) {
     this.w = config.writer;
@@ -156,6 +157,8 @@ AttributeWidget.prototype = {
         });
         
         $('ins', this.$el).tooltip({
+            show: false, // no animation,
+            hide: false,
             classes: {
                 'ui-tooltip': 'cwrc-tooltip'
             }
