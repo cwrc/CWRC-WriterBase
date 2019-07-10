@@ -4,6 +4,7 @@ var $ = require('jquery');
 
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/selectmenu');
+require('jquery-ui/ui/widgets/tooltip');
 
 var DialogForm = require('dialogForm');
 
@@ -470,6 +471,14 @@ function Nerve(config) {
                 }
             });
         }
+
+        $parent.find('ul.entitiesList .actions').tooltip({
+            show: false,
+            hide: false,
+            classes: {
+                'ui-tooltip': 'cwrc-tooltip'
+            }
+        });
     }
 
     var getEntityView = function(entity, merge) {
@@ -930,6 +939,7 @@ function Nerve(config) {
         },
         destroy: function() {
             $parent.empty();
+            $parent.find('ul.entitiesList .actions').tooltip('destroy');
         }
     }
 

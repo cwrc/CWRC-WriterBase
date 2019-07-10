@@ -4,7 +4,8 @@ var $ = require('jquery');
 
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/selectmenu');
-    
+require('jquery-ui/ui/widgets/tooltip');
+
 /**
  * @class EntitiesList
  * @fires Writer#entitiesListInitialized
@@ -195,6 +196,14 @@ function EntitiesList(config) {
                     break;
             }
         });
+
+        $entities.find('.actions').tooltip({
+            show: false,
+            hide: false,
+            classes: {
+                'ui-tooltip': 'cwrc-tooltip'
+            }
+        });
         
         if (w.entitiesManager.getCurrentEntity()) {
             $entities.find('ul.entitiesList  > li[data-id="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('expanded').find('div[class="info"]').show();
@@ -251,6 +260,7 @@ function EntitiesList(config) {
     pm.destroy = function() {
         $entities.find('button').button('destroy');
         $entities.find('select').selectmenu('destroy');
+        $entities.find('.actions').tooltip('destroy');
         $entities.remove();
     };
 

@@ -157,7 +157,7 @@ AttributeWidget.prototype = {
         });
         
         $('ins', this.$el).tooltip({
-            show: false, // no animation,
+            show: false,
             hide: false,
             classes: {
                 'ui-tooltip': 'cwrc-tooltip'

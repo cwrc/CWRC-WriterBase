@@ -75,12 +75,21 @@ function setDialogListeners($cwrcDialogWrapper) {
             });
         }
     });
-    
+
     // do the same for tooltips
     $.extend($.ui.tooltip.prototype.options, {
         create: function(e, ui) {
             var instance = $(this).tooltip('instance');
             instance.liveRegion = instance.liveRegion.appendTo($cwrcDialogWrapper);
+        }
+    });
+    $.extend($.ui.tooltip.prototype, {
+        _appendTo: function (target) {
+            var element = target.closest('.ui-front, dialog');
+            if (!element.length) {
+                element = $cwrcDialogWrapper; // add the tooltip to cwrcDialogWrapper if no ui-front or dialog is found
+            }
+            return element;
         }
     });
     
