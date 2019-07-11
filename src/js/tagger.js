@@ -668,6 +668,8 @@ function Tagger(writer) {
         var tagName = $tag.attr('_tag');
         var attributes = tagger.getAttributesForTag($tag[0]);
 
+        var hasSelection = w.editor.selection.getRng(true).collapsed === false;
+
         if (entity.isNote()) {
             tagger.removeNoteWrapper($tag);
         }
@@ -686,7 +688,12 @@ function Tagger(writer) {
         
         var newTag = tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, tagger.ADD);
 
-        $temp.contents().unwrap(); // remove tempSelection span
+        var contents = $temp.contents();
+        contents.unwrap(); // remove tempSelection span
+
+        if (hasSelection) {
+            _doReselect(contents);
+        }
 
         // TODO how to undo this?
         // w.editor.undoManager.add();
@@ -1095,6 +1102,8 @@ function Tagger(writer) {
         } else {
             tagger.processRemovedContent(tag[0], false);
 
+            var hasSelection = w.editor.selection.getRng(true).collapsed === false;
+
             var parent = tag.parent();
             var contents = tag.contents();
             if (contents.length > 0) {
@@ -1112,6 +1121,11 @@ function Tagger(writer) {
                     parent.remove();
                 }
             }
+
+            if (hasSelection) {
+                _doReselect(contents);
+            }
+
             parent[0].normalize();
         }
         
@@ -1169,6 +1183,27 @@ function Tagger(writer) {
             });
         } else {
             processRemovedNodes(domContent);
+        }
+    }
+
+    /**
+     * Re-select the contents of a node that's been removed
+     * @param {jQuery} contents A selection of nodes
+     */
+    var _doReselect = function(contents) {
+        var rng = w.editor.selection.getRng(true);
+        contents = contents.toArray().filter(function(el) {
+            return el.parentNode !== null; // if the node doesn't have a parent then we can't select it
+        });
+
+        if (contents.length > 0) {
+            if (contents.length === 1) {
+                rng.selectNodeContents(contents[0]);
+            } else {
+                // TODO selecting multiple nodes and then trying to add a tag doesn't work properly yet
+                // rng.setStartBefore(contents[0]);
+                // rng.setEndAfter(contents[contents.length-1]);
+            }
         }
     }
 
