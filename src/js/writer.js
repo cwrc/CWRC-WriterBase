@@ -192,6 +192,9 @@ function CWRCWriter(config) {
     w.saveAndExit = function() {
     };
 
+    w.exit = function() {
+    };
+
     w.validate = function(callback) {
         var docText = w.converter.getDocumentContent(false);
         var schemaUrl = w.schemaManager.schemas[w.schemaManager.schemaId].url;

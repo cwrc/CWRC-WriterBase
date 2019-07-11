@@ -80,7 +80,7 @@ TinymceWrapper.init = function(config) {
         valid_elements: '*[*]', // allow everything
 
         plugins: 'schematags,cwrcpath,preventdelete,paste',
-        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,|,fullscreen' : config.buttons1,
+        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,logoutbutton,|,fullscreen' : config.buttons1,
         toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
         toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
         menubar: false,
@@ -286,6 +286,12 @@ TinymceWrapper.init = function(config) {
                 title: 'Save & Exit', image: w.cwrcRootUrl + 'img/save_exit.png',
                 onclick: function() {
                     w.saveAndExit();
+                }
+            });
+            addButtonToEditor('logoutbutton', {
+                title: 'Log out', icon: ' '+iconType+' exit',
+                onclick: function() {
+                    w.exit();
                 }
             });
             addButtonToEditor('loadbutton', {
