@@ -1004,7 +1004,8 @@ function NerveEditDialog(writer, parentEl) {
     $el.find('button[data-action=lookup]').button({icon: 'ui-icon-search'}).on('click', function() {
         var entity = dialog.showConfig.entry;
         var type = $el.find('select').val();
-        doLookup(w, entity.content, type, function(result) {
+        var query = entity.content.trim().replace(/\s+/g, ' ');
+        doLookup(w, query, type, function(result) {
             $el.find('input[data-mapping="prop.lemma"]').val(result.name);
             $el.find('input[data-mapping="prop.uri"]').val(result.uri);
         });
