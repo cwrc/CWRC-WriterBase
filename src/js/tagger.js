@@ -430,7 +430,7 @@ function Tagger(writer) {
             var rng = sel.getRng(true);
             rng.insertNode(element);
 
-            tagger.processPastedContent(element);
+            tagger.processNewContent(element);
             
             w.event('contentChanged').publish(); // don't use contentPasted since we don't want to trigger copyPaste dialog
         }
@@ -439,7 +439,7 @@ function Tagger(writer) {
     /**
      * Process newly added content
      */
-    tagger.processPastedContent = function(domContent) {
+    tagger.processNewContent = function(domContent) {
         var processNewNodes = function(currNode) {
             if (currNode.nodeType === Node.ELEMENT_NODE) {
                 if (currNode.hasAttribute('_tag')) {
@@ -457,7 +457,7 @@ function Tagger(writer) {
                             newEntity.setId(newId);
                             w.entitiesManager.setEntity(newId, newEntity);
                         } else {
-                            console.warn('processPastedContent: copied entity tag had no Entity to clone for',oldId);
+                            console.warn('processNewContent: copied entity tag had no Entity to clone for',oldId);
                             w.entitiesManager.addEntity({
                                 id: newId,
                                 tag: currNode.getAttribute('_tag'),

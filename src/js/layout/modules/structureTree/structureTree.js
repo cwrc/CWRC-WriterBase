@@ -416,7 +416,7 @@ function StructureTree(config) {
         $tree.jstree('open_node', dropNode, null, false);
         
         if (isCopy) {
-            w.tagger.processPastedContent(dragNodeEditor[0]);
+            w.tagger.processNewContent(dragNodeEditor[0]);
         }
 
         w.editor.undoManager.add();

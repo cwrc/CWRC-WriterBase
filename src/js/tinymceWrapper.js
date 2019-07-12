@@ -69,7 +69,7 @@ TinymceWrapper.init = function(config) {
 
             // stripTags(0, $(ev.node));
 
-            w.tagger.processPastedContent(ev.node);
+            w.tagger.processNewContent(ev.node);
 
             window.setTimeout(function() {
                 // need to fire contentPasted here, after the content is actually within the document
@@ -484,25 +484,30 @@ TinymceWrapper.init = function(config) {
                     }).remove();
                 }
             }
-
-            // replace br's inserted on shift+enter
-            if (evt.shiftKey && evt.which == 13) {
-                var node = w.editor.currentNode;
-                if ($(node).attr('_tag') == 'lb') node = node.parentNode;
-                var tagName = w.schemaManager.getTagForEditor('lb');
-                $(node).find('br').replaceWith('<' + tagName + ' _tag="lb"></' + tagName + '>');
-            }
         }
 
         // enter key
         if (evt.which == 13) {
-            /* TODO review this
-            // find the element inserted by tinymce
-            var idCounter = tinymce.DOM.counter - 1;
-            var newTag = $('#dom_' + idCounter, w.editor.getBody());
-            if (newTag.text() == '') {
-                newTag.text('\uFEFF'); // insert zero-width non-breaking space so empty tag takes up space
-            }*/
+            var node = w.editor.currentNode; // the new element inserted by tinymce
+            if (node == null) {
+                console.warn('tinymceWrapper: user pressed enter but no new node found');
+            } else {
+                if (evt.shiftKey) {
+                    // TODO replace linebreaks inserted on shift+enter with schema specific linebreak tag
+                    // for now just undo the linebreak in the text
+                    node.normalize();
+                } else {
+                    // empty tag check
+                    var $node = $(node);
+                    if ($node.text() == '') {
+                        $node.text('\uFEFF'); // insert zero-width non-breaking space so empty tag takes up space
+                    }
+                    w.tagger.processNewContent(node);
+
+                    w.editor.undoManager.add();
+                    w.event('contentChanged').publish();
+                }
+            }
         }
 
         w.event('writerKeyup').publish(evt);
