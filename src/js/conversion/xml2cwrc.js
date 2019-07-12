@@ -38,20 +38,30 @@ function XML2CWRC(writer) {
      * @fires Writer#processingDocument
      * @fires Writer#documentLoaded
      * @param {Document} doc An XML DOM
+     * @param {String} [schemaIdOverride] An optional schemaId to override the one from the document
      */
-    xml2cwrc.processDocument = function(doc) {
+    xml2cwrc.processDocument = function(doc, schemaIdOverride) {
 
         // clear current doc
         $(w.editor.getBody()).empty();
 
         // setTimeout to make sure doc clears first
         setTimeout(function() {
-            var info = getSchemaInfo(doc);
+            var schemaId;
+            var schemaUrl;
+            var cssUrl;
+            var loadSchemaCss;
 
-            var schemaId = info.schemaId;
-            var schemaUrl = info.schemaUrl;
-            var cssUrl = info.cssUrl;
-            var loadSchemaCss = cssUrl === undefined; // load schema css if none was found in the document
+            if (schemaIdOverride !== undefined) {
+                schemaId = schemaIdOverride;
+                loadSchemaCss = true;
+            } else {
+                var info = getSchemaInfo(doc);
+                schemaId = info.schemaId;
+                schemaUrl = info.schemaUrl;
+                cssUrl = info.cssUrl;
+                loadSchemaCss = cssUrl === undefined; // load schema css if none was found in the document
+            }
 
             if (schemaUrl === undefined && schemaId === undefined) {
                 schemaId = w.schemaManager.getSchemaIdFromRoot(doc.firstElementChild.nodeName);
