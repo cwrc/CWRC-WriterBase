@@ -194,11 +194,14 @@ function CWRCWriter(config) {
     };
 
     w.validate = function(callback) {
-        function doCallback(isValid) {
-            callback.call(w, isValid);
-            w.event('documentValidated').unsubscribe(doCallback);    
+        if (callback !== undefined) {
+            var doCallback = function(isValid) {
+                callback.call(w, isValid);
+                w.event('documentValidated').unsubscribe(doCallback);    
+            }
+            w.event('documentValidated').subscribe(doCallback);
         }
-        w.event('documentValidated').subscribe(doCallback);
+        
         w.event('validationRequested').publish();
     }
 
