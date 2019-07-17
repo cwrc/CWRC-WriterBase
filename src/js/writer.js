@@ -193,7 +193,12 @@ function CWRCWriter(config) {
     w.exit = function() {
     };
 
-    w.validate = function() {
+    w.validate = function(callback) {
+        function doCallback(isValid) {
+            callback.call(w, isValid);
+            w.event('documentValidated').unsubscribe(doCallback);    
+        }
+        w.event('documentValidated').subscribe(doCallback);
         w.event('validationRequested').publish();
     }
 

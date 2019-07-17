@@ -60,7 +60,7 @@ function Validation(config) {
      */
     var validation = {};
     
-    validation.validate = function(callback) {
+    validation.validate = function() {
         var docText = w.converter.getDocumentContent(false);
         var schemaUrl = w.schemaManager.schemas[w.schemaManager.schemaId].url;
 
@@ -76,20 +76,14 @@ function Validation(config) {
             success: function(data, status, xhr) {
                 var valid = $('status', data).text() == 'pass';
                 w.event('documentValidated').publish(valid, data, docText);
-                if (callback) {
-                    callback.call(w, valid);
-                }
             },
             error: function() {
-                if (callback) {
-                    callback.call(w, null);
-                } else {
-                    w.dialogManager.show('message', {
-                        title: 'Error',
-                        msg: 'An error occurred while trying to validate the document.',
-                        type: 'error'
-                    });
-                }
+                w.dialogManager.show('message', {
+                    title: 'Error',
+                    msg: 'An error occurred while trying to validate the document.',
+                    type: 'error'
+                });
+                w.event('documentValidated').publish(null, '', '');
             }
         });
     };
