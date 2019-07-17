@@ -9,10 +9,16 @@ require('jquery-ui/ui/widgets/button');
  * @param {Object} config
  * @param {Writer} config.writer
  * @param {String} config.parentId
+ * @param {String} config.validationUrl
  */
 function Validation(config) {
     
     var w = config.writer;
+
+    var validationUrl = config.validationUrl;
+    if (validationUrl === undefined) {
+        console.error('Validation: no validationUrl specified!');
+    }
     
     var id = w.getUniqueId('validation_');
     
@@ -32,7 +38,7 @@ function Validation(config) {
         validation.clearResult();
     });
     
-    w.event('validationInitiated').subscribe(function() {
+    w.event('validationRequested').subscribe(function() {
         var list = $('#'+id+' > ul');
         list.empty();
         list.append(''+
@@ -40,6 +46,8 @@ function Validation(config) {
             '<span class="loading"></span> Validating...'+
         '</li>');
         w.layoutManager.showModule('validation');
+
+        validation.validate();
     });
     
     w.event('documentValidated').subscribe(function(valid, resultDoc, docString) {
@@ -52,6 +60,40 @@ function Validation(config) {
      */
     var validation = {};
     
+    validation.validate = function(callback) {
+        var docText = w.converter.getDocumentContent(false);
+        var schemaUrl = w.schemaManager.schemas[w.schemaManager.schemaId].url;
+
+        $.ajax({
+            url: validationUrl,
+            type: 'POST',
+            dataType: 'xml',
+            data: {
+                sch: schemaUrl,
+                type: 'RNG_XML',
+                content: docText
+            },
+            success: function(data, status, xhr) {
+                var valid = $('status', data).text() == 'pass';
+                w.event('documentValidated').publish(valid, data, docText);
+                if (callback) {
+                    callback.call(w, valid);
+                }
+            },
+            error: function() {
+                if (callback) {
+                    callback.call(w, null);
+                } else {
+                    w.dialogManager.show('message', {
+                        title: 'Error',
+                        msg: 'An error occurred while trying to validate the document.',
+                        type: 'error'
+                    });
+                }
+            }
+        });
+    };
+
     /**
      * Processes a validation response from the server.
      * @param resultDoc The actual response
@@ -206,7 +248,7 @@ function Validation(config) {
 
     var $validateButton = $('#'+id+'_buttons button[role=validate]').button();
     $validateButton.click(function() {
-        w.validate();
+        validation.validate();
     });
     var $clearButton = $('#'+id+'_buttons button[role=clear]').button();
     $clearButton.click(function() {

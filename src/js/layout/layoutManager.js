@@ -36,9 +36,8 @@ LayoutManager.prototype = {
      */
     init: function(config) {
         var defaultModulesLayout = {
-            west: ['structure','entities'],
-            east: ['selection'],
-            south: ['validation']
+            west: [{id: 'structure'},{id: 'entities'}],
+            east: [{id: 'selection'}]
         }
         this.modulesLayout = config.modules || defaultModulesLayout;
         
@@ -299,13 +298,13 @@ LayoutManager.prototype = {
             var modules = this.modulesLayout[region];
             if (Array.isArray(modules)) {
                 for (var i = 0; i < modules.length; i++) {
-                    if (modules[i] === moduleId) {
+                    if (modules[i].id === moduleId) {
                         this.showRegion(region, i);
                         return;
                     }
                 }
             } else {
-                if (modules === moduleId) {
+                if (modules.id === moduleId) {
                     this.showRegion(region);
                     return;
                 }
@@ -318,13 +317,13 @@ LayoutManager.prototype = {
             var modules = this.modulesLayout[region];
             if (Array.isArray(modules)) {
                 for (var i = 0; i < modules.length; i++) {
-                    if (modules[i] === moduleId) {
+                    if (modules[i].id === moduleId) {
                         this.hideRegion(region);
                         return;
                     }
                 }
             } else {
-                if (modules === moduleId) {
+                if (modules.id === moduleId) {
                     this.hideRegion(region);
                     return;
                 }
@@ -458,7 +457,7 @@ LayoutManager.prototype = {
 }
 
 function isModuleAllowed(writer, module) {
-    return !writer.isReadOnly || (writer.isReadOnly && writeOnlyModules.indexOf(module) === -1);
+    return !writer.isReadOnly || (writer.isReadOnly && writeOnlyModules.indexOf(module.id) === -1);
 }
 
 function addPanel(idPrefix, panelRegion, panelConfig) {
@@ -469,16 +468,19 @@ function addPanel(idPrefix, panelRegion, panelConfig) {
         <div class="cwrc tabs ui-layout-${panelRegion}">
             <ul>`;
             panelConfig.forEach(function(module) {
-                var moduleTitle = module.charAt(0).toUpperCase()+module.substring(1);
+                var moduleTitle = module.title;
+                if (moduleTitle === undefined) {
+                    moduleTitle = module.id.charAt(0).toUpperCase()+module.id.substring(1);
+                }
                 html += `
-                <li><a href="#${idPrefix}-${module}">${moduleTitle}</a></li>`;
+                <li><a href="#${idPrefix}-${module.id}">${moduleTitle}</a></li>`;
             });
             html += `
             </ul>
             <div class="ui-layout-content">`;
             panelConfig.forEach(function(module) {
                 html += `
-                <div id="${idPrefix}-${module}"></div>`;
+                <div id="${idPrefix}-${module.id}"></div>`;
             });
             html += `
             </div>
@@ -486,7 +488,7 @@ function addPanel(idPrefix, panelRegion, panelConfig) {
         } else {
             var module = Array.isArray(panelConfig) ? panelConfig[0] : panelConfig;
             html += `
-        <div id="${idPrefix}-${module}" class="cwrc ui-layout-${panelRegion}"></div>`;
+        <div id="${idPrefix}-${module.id}" class="cwrc ui-layout-${panelRegion}"></div>`;
         }
     }
     
@@ -497,30 +499,32 @@ function initModule(idPrefix, writer, module) {
     if (isModuleAllowed(writer, module) === false) {
         return null;
     }
-    
-    var domId = idPrefix+'-'+module;
-    
-    switch(module) {
+
+    var config = module.config || {};
+    config.writer = writer;
+    config.parentId = idPrefix+'-'+module.id;
+
+    switch(module.id) {
     case 'structure':
-        return new StructureTree({writer: writer, parentId: domId});
+        return new StructureTree(config);
         break;
     case 'entities':
-        return new EntitiesList({writer: writer, parentId: domId});
+        return new EntitiesList(config);
         break;
     case 'relations':
-        return new Relations({writer: writer, parentId: domId});
+        return new Relations(config);
         break;
     case 'validation':
-        return new Validation({writer: writer, parentId: domId});
+        return new Validation(config);
         break;
     case 'selection':
-        return new Selection({writer: writer, parentId: domId});
+        return new Selection(config);
         break;
     case 'imageViewer':
-        return new ImageViewer({writer: writer, parentId: domId});
+        return new ImageViewer(config);
         break;
     case 'nerve':
-        return new Nerve({writer: writer, parentId: domId});
+        return new Nerve(config);
         break;
     }
     

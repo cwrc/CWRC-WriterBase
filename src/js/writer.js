@@ -24,7 +24,6 @@ var TinymceWrapper = require('./tinymceWrapper.js');
  * @param {Object} config.schemas
  * @param {Object} config.modules
  * @param {String} [config.cwrcRootUrl]
- * @param {String} [config.validationUrl]
  * @param {Boolean} [config.readonly]
  * @param {Boolean} [config.annotator]
  * @param {String} [config.mode]
@@ -57,7 +56,6 @@ function CWRCWriter(config) {
     w.triples = []; // triples store
 
     w.cwrcRootUrl = config.cwrcRootUrl; // the url which points to the root of the cwrcwriter location
-    w.validationUrl = config.validationUrl || 'https://validator.services.cwrc.ca/validator/validate.html';// url for the xml validation
     if (w.cwrcRootUrl == null || w.cwrcRootUrl == '') {
         w.cwrcRootUrl = window.location.protocol + '//' + window.location.host + '/' + window.location.pathname.split('/')[1] + '/';
         console.info('using default cwrcRootUrl', w.cwrcRootUrl);
@@ -195,41 +193,9 @@ function CWRCWriter(config) {
     w.exit = function() {
     };
 
-    w.validate = function(callback) {
-        var docText = w.converter.getDocumentContent(false);
-        var schemaUrl = w.schemaManager.schemas[w.schemaManager.schemaId].url;
-
-        w.event('validationInitiated').publish();
-
-        $.ajax({
-            url: w.validationUrl,
-            type: 'POST',
-            dataType: 'xml',
-            data: {
-                sch: schemaUrl,
-                type: 'RNG_XML',
-                content: docText
-            },
-            success: function(data, status, xhr) {
-                var valid = $('status', data).text() == 'pass';
-                w.event('documentValidated').publish(valid, data, docText);
-                if (callback) {
-                    callback.call(w, valid);
-                }
-            },
-            error: function() {
-                if (callback) {
-                    callback.call(w, null);
-                } else {
-                    w.dialogManager.show('message', {
-                        title: 'Error',
-                        msg: 'An error occurred while trying to validate the document.',
-                        type: 'error'
-                    });
-                }
-            }
-        });
-    };
+    w.validate = function() {
+        w.event('validationRequested').publish();
+    }
 
     /**
      * Get the current document from the editor

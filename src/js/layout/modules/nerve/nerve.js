@@ -13,13 +13,17 @@ var DialogForm = require('dialogForm');
  * @param {Object} config
  * @param {Writer} config.writer
  * @param {String} config.parentId
+ * @param {String} config.nerveUrl
  */
 function Nerve(config) {
     var w = config.writer;
     
     var id = config.parentId;
 
-    var nerveUrl = 'https://nerve.services.cwrc.ca/';
+    var nerveUrl = config.nerveUrl;
+    if (nerveUrl === undefined) {
+        console.error('Nerve: no nerveUrl specified!');
+    }
 
     /**
      * Tracks the merged entities.
@@ -187,7 +191,7 @@ function Nerve(config) {
         
         $.when(
             $.ajax({
-                url: nerveUrl + 'ner',
+                url: nerveUrl + '/ner',
                 method: 'POST',
                 data: JSON.stringify({"document": document})
             })

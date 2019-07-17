@@ -59,8 +59,8 @@ function getConfigForTestingConstructor() {
     config.entityLookupDialogs = entityDialogs;
     config.container = 'cwrcWriterContainer';
     config.modules = {
-        west: [ 'structure', 'entities' ], // TODO entities selectmenu is messing up ui-layout panel heights
-        south: [ 'selection', 'validation' ]
+        west: [ {id: 'structure'}, {id: 'entities'} ], // TODO entities selectmenu is messing up ui-layout panel heights
+        south: [ {id: 'selection'}, {id: 'validation', config: {"validationUrl": "https://validator.services.cwrc.ca/validator/validate.html"}} ]
     };
     return config;
 }
