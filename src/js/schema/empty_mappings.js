@@ -3,6 +3,8 @@ var Mapper = require('./mapper.js');
 
 module.exports = {
 
+// The namespace for documents using this schema
+namespace: '',
 // The name of the ID attribute
 id: '',
 // The XPath selector for the parent of the RDF data, e.g. /TEI/teiHeader/fileDesc/following-sibling::xenoData

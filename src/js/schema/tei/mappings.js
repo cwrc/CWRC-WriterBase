@@ -24,6 +24,7 @@ function handleGraphics($tag) {
 
 module.exports = {
 
+namespace: 'http://www.tei-c.org/ns/1.0',
 id: 'xml:id',
 rdfParentSelector: '/TEI/teiHeader/fileDesc/following-sibling::xenoData',
 header: 'teiHeader',

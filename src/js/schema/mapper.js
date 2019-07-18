@@ -601,6 +601,14 @@ Mapper.prototype = {
     },
 
     /**
+     * Returns the namespace for the current schema.
+     * @returns {String}
+     */
+    getNamespace: function() {
+        return this.getMappings().namespace;
+    },
+
+    /**
      * Returns the name for the ID attribute for the current schema.
      * @returns {String}
      */

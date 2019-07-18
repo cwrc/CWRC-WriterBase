@@ -48,8 +48,11 @@ function CWRC2XML(writer) {
                 delete rootAttributes[attributeName];
             }
         };
-        if (root === 'TEI') { // TODO hardcoded
-            rootAttributes['xmlns'] = 'http://www.tei-c.org/ns/1.0';
+        
+        // namespaces
+        var schemaNamespace = w.schemaManager.mapper.getNamespace();
+        if (schemaNamespace !== undefined) {
+            rootAttributes['xmlns'] = schemaNamespace;
         }
         if (includeRDF) {
             rootAttributes['xmlns:rdf'] = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
