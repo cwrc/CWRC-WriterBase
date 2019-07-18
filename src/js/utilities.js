@@ -32,6 +32,7 @@ function Utilities(writer) {
         var doc = (new DOMParser()).parseFromString(string, "text/xml");
         var parsererror = doc.querySelector('parsererror');
         if (parsererror !== null) {
+            console.error('utilities.stringToXML parse error:',parsererror.innerText);
             return null;
         }
         return doc;
@@ -53,12 +54,16 @@ function Utilities(writer) {
     /**
      * Converts HTML entities to unicode, while preserving those that must be escaped as entities.
      * @param {String} text The text to convert
+     * @param {Boolean} [isAttributeValue] Is this an attribute value? Defaults to false
      * @returns {String} The converted text
      */
-    u.convertTextForExport = function(text) {
+    u.convertTextForExport = function(text, isAttributeValue) {
+        isAttributeValue = isAttributeValue === undefined ? false : isAttributeValue;
+
         if ($entitiesConverter === undefined) {
             $entitiesConverter = $('<div style="display: none;"></div>').appendTo(w.layoutManager.getContainer());
         }
+
         var newText = text;
         if (newText != null) {
             if (newText.match(/&.+?;/gim)) { // match all entities
@@ -66,8 +71,12 @@ function Utilities(writer) {
                 newText = $entitiesConverter[0].innerText || $entitiesConverter[0].firstChild.nodeValue;
             }
             // the following characters must be escaped
-            newText = newText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            newText = newText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            if (isAttributeValue) {
+                newText = newText.replace(/"/g, '&quot;');
+            }
         }
+
         return newText;
     }
     

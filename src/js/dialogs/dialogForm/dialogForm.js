@@ -240,9 +240,26 @@ DialogForm.prototype = {
         } else if (this.mode === DialogForm.EDIT) {
             this.currentId = config.entry.getId();
             
-            var data = config.entry.getAttributes();
-            
-            var customValues = config.entry.getCustomValues();
+            // clone attributes and custom values, then unescaping the values
+            var data = Object.assign({}, config.entry.getAttributes());
+            for (var key in data) {
+                data[key] = this.w.utilities.unescapeHTMLString(data[key]);
+            }
+            var customValues = JSON.parse(JSON.stringify(config.entry.getCustomValues()));
+            for (var key in customValues) {
+                var val = customValues[key];
+                if ($.isArray(val)) {
+                    for (var i = 0; i < val.length; i++) {
+                        customValues[key][i] = this.w.utilities.unescapeHTMLString(val[i]);
+                    }
+                } else if ($.isPlainObject(val)) {
+                    for (var subkey in val) {
+                        customValues[key][subkey] = this.w.utilities.unescapeHTMLString(val[subkey]);
+                    }
+                } else {
+                    customValues[key] = this.w.utilities.unescapeHTMLString(val);
+                }
+            }
             
             if (config.entry.getURI() !== undefined) {
                 var uriMapping = this.w.schemaManager.mapper.getAttributeForProperty(config.entry.getType(), 'uri');

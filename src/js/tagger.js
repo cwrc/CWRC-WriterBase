@@ -505,20 +505,21 @@ function Tagger(writer) {
     /**
      * Converts string values of this object into valid XML strings
      * @param {Object} obj The object of strings/arrays/objects
+     * @param {Boolean} isAttributes Are these attributes?
      */
-    var sanitizeObject = function(obj) {
+    var sanitizeObject = function(obj, isAttributes) {
         for (var key in obj) {
             var val = obj[key];
             if ($.isArray(val)) {
                 for (var i = 0; i < val.length; i++) {
-                    obj[key][i] = w.utilities.convertTextForExport(val[i]);
+                    obj[key][i] = w.utilities.convertTextForExport(val[i], isAttributes);
                 }
             } else if ($.isPlainObject(val)) {
                 for (var subkey in val) {
-                    obj[key][subkey] = w.utilities.convertTextForExport(val[subkey]);
+                    obj[key][subkey] = w.utilities.convertTextForExport(val[subkey], isAttributes);
                 }
             } else {
-                obj[key] = w.utilities.convertTextForExport(val);
+                obj[key] = w.utilities.convertTextForExport(val, isAttributes);
             }
         }
     }
@@ -533,8 +534,8 @@ function Tagger(writer) {
         var isNamedEntity = w.schemaManager.mapper.isNamedEntity(type);
         var tagName = w.schemaManager.mapper.getParentTag(type);
 
-        sanitizeObject(info.attributes);
-        sanitizeObject(info.customValues);
+        sanitizeObject(info.attributes, true);
+        sanitizeObject(info.customValues, false);
 
         if (!isNamedEntity || (isNamedEntity && info.properties.uri)) {
             var config = {
@@ -582,9 +583,8 @@ function Tagger(writer) {
      * @param {Object} info.customValues Any additional custom values
      */
     tagger.editEntity = function(id, info) {
-        // TODO review if this is necessary
-        sanitizeObject(info.attributes);
-        sanitizeObject(info.customValues);
+        sanitizeObject(info.attributes, true);
+        sanitizeObject(info.customValues, false);
 
         var entity = w.entitiesManager.getEntity(id);
 
@@ -628,7 +628,7 @@ function Tagger(writer) {
         for (var key in info.attributes) {
             if (w.converter.reservedAttributes[key] !== true) {
                 var val = info.attributes[key];
-                $tag.attr(key, w.utilities.escapeHTMLString(val));
+                $tag.attr(key, val);
             }
         }
         
@@ -718,7 +718,7 @@ function Tagger(writer) {
         var tagAttributes = {};
         for (var key in entity.attributes) {
             if (w.converter.reservedAttributes[key] !== true) {
-                tagAttributes[key] = w.utilities.escapeHTMLString(entity.attributes[key]);
+                tagAttributes[key] = entity.attributes[key];
             }
         }
 
@@ -914,7 +914,7 @@ function Tagger(writer) {
      * @returns {Element} The new tag
      */
     tagger.addStructureTag = function(tagName, attributes, bookmark, action) {        
-        sanitizeObject(attributes);
+        sanitizeObject(attributes, true);
 
         var id = w.getUniqueId('dom_');
         
@@ -1031,7 +1031,7 @@ function Tagger(writer) {
      * @param [tagName] {String} A new tag name for this tag (optional)
      */
     tagger.editStructureTag = function(tag, attributes, tagName) {
-        sanitizeObject(attributes);
+        sanitizeObject(attributes, true);
         
         var id = tag.attr('id');
         

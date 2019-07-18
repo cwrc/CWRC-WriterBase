@@ -45,8 +45,6 @@ module.exports = function(writer, parentEl) {
     dialog.$el.on('beforeSave', function(e, dialog) {
         var sicText = dialog.currentData.customValues.sicText;
         var corrText = dialog.currentData.customValues.corrText;
-        // TODO need to handle conversion back and forth
-        dialog.currentData.customValues.corrText = w.utilities.convertTextForExport(corrText);
         
         if (dialog.mode === DialogForm.EDIT) {
             if (sicText == undefined) {
