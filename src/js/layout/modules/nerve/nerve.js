@@ -196,7 +196,8 @@ function Nerve(config) {
                 data: JSON.stringify({"document": document})
             })
         ).then(function(response) {
-            li.hide();
+            w.tree.disable();
+            w.entitiesList.disable();
 
             var doc = w.utilities.stringToXML(response.document);
             if (doc === null) {
@@ -219,7 +220,12 @@ function Nerve(config) {
 
             w.tagger.addNoteWrappersForEntities();
 
+            li.hide();
+
             renderEntitiesList();
+
+            w.tree.enable();
+            w.entitiesList.enable();
 
             w.editor.setMode('readonly');
             $parent.find('button.run').hide();
@@ -742,6 +748,9 @@ function Nerve(config) {
     }
 
     var acceptAll = function() {
+        w.tree.disable();
+        w.entitiesList.disable();
+        
         var filter = getFilter();
 
         for (var key in mergedEntities) {
@@ -761,7 +770,8 @@ function Nerve(config) {
 
         renderEntitiesList();
 
-        w.entitiesList.update();
+        w.tree.enable();
+        w.entitiesList.enable();
     }
 
     var rejectEntity = function(entityId) {
@@ -782,6 +792,9 @@ function Nerve(config) {
     }
 
     var rejectAll = function(isDone) {
+        w.tree.disable();
+        w.entitiesList.disable();
+
         var filter = getFilter();
 
         for (var key in mergedEntities) {
@@ -800,6 +813,9 @@ function Nerve(config) {
         setFilter('all');
 
         renderEntitiesList();
+
+        w.tree.enable();
+        w.entitiesList.enable();
     }
 
     var editEntity = function(entityId) {

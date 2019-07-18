@@ -33,12 +33,14 @@ function StructureTree(config) {
     var $tree; // tree reference
     var initialized = false; // has $tree been initialized
     var updatePending = false;
+
+    var enabled = true; // enabled means we update based on events
     
     /**
      * Updates the tree to reflect the document structure.
      */
     tree.update = function() {
-        if (initialized) {
+        if (initialized && enabled) {
             var treeRef = $.jstree.reference('#'+id);
             // store open nodes to re-open after updating
             var openNodes = [];
@@ -75,6 +77,17 @@ function StructureTree(config) {
         var treeRef = $.jstree.reference('#'+id);
         treeRef.delete_node('#cwrc_tree_root');
     };
+
+    tree.enable = function(forceUpdate) {
+        enabled = true;
+        if (forceUpdate || updatePending) {
+            tree.update();
+            updatePending = false;
+        }
+    }
+    tree.disable = function() {
+        enabled = false;
+    }
     
     tree.destroy = function() {
         $(document).off('dnd_start.vakata', handleDnDStart);
@@ -543,9 +556,10 @@ function StructureTree(config) {
     
     w.event('loadingDocument').subscribe(function() {
         tree.clear();
+        tree.disable();
     });
     w.event('documentLoaded').subscribe(function() {
-        tree.update();
+        tree.enable(true);
     });
     w.event('nodeChanged').subscribe(function(currentNode) {
         if (!ignoreSelect) {

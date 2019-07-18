@@ -18,6 +18,9 @@ function EntitiesList(config) {
     var w = config.writer;
     var id = config.parentId;
 
+    var enabled = true; // enabled means we update based on events
+    var updatePending = false;
+
     var isConvert = false; // are we in convert mode
 
     var $entities = $('#'+id);
@@ -130,83 +133,87 @@ function EntitiesList(config) {
     var pm = {};
 
     pm.update = function() {
-        clear();
+        if (enabled) {
+            clear();
 
-        var entities = w.entitiesManager.getEntitiesArray(getSorting());
+            var entities = w.entitiesManager.getEntitiesArray(getSorting());
 
-        entities = entities.filter(function(entry) {
-            return entry.getCustomValue('nerve') !== 'true';
-        });
-
-        var filter = getFilter();
-        if (filter !== 'all') {
             entities = entities.filter(function(entry) {
-                return entry.getType() === filter;
+                return entry.getCustomValue('nerve') !== 'true';
             });
-        }
 
-        var entitiesString = '';
-        entities.forEach(function(entry) {
-            entitiesString += getEntityView(entry);
-        });
+            var filter = getFilter();
+            if (filter !== 'all') {
+                entities = entities.filter(function(entry) {
+                    return entry.getType() === filter;
+                });
+            }
 
-        if (isConvert) {
-            $entities.find('ul.entitiesList').addClass('candidates');
+            var entitiesString = '';
+            entities.forEach(function(entry) {
+                entitiesString += getEntityView(entry);
+            });
+
+            if (isConvert) {
+                $entities.find('ul.entitiesList').addClass('candidates');
+            } else {
+                $entities.find('ul.entitiesList').removeClass('candidates');
+            }
+            
+            $entities.find('ul.entitiesList').html(entitiesString);
+            $entities.find('ul.entitiesList > li > div').on('click', function(event) {
+                $(this).parent().toggleClass('expanded');
+                var id = $(this).parent().data('id');
+                w.entitiesManager.highlightEntity(id, null, true);
+            }).find('.actions > span').hover(function() {
+                $(this).removeClass('ui-state-default');
+                $(this).addClass('ui-state-active');
+            }, function() {
+                $(this).addClass('ui-state-default');
+                $(this).removeClass('ui-state-active');
+            }).on('click', function(event) {
+                event.stopPropagation();
+                var action = $(this).data('action');
+                var id = $(this).parents('li').data('id');
+                switch (action) {
+                    case 'edit':
+                        w.tagger.editTagDialog(id);
+                        break;
+                    case 'accept':
+                        acceptEntity(id);
+                        pm.update();
+                        break;
+                    case 'reject':
+                        rejectEntity(id);
+                        pm.update();
+                        break;
+                    case 'remove':
+                        w.tagger.removeEntity(id);
+                        break;
+                    case 'acceptmatching':
+                        acceptMatching(id);
+                        pm.update();
+                        break;
+                    case 'rejectmatching':
+                        rejectMatching(id);
+                        pm.update();
+                        break;
+                }
+            });
+
+            $entities.find('.actions').tooltip({
+                show: false,
+                hide: false,
+                classes: {
+                    'ui-tooltip': 'cwrc-tooltip'
+                }
+            });
+            
+            if (w.entitiesManager.getCurrentEntity()) {
+                $entities.find('ul.entitiesList  > li[data-id="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('expanded').find('div[class="info"]').show();
+            }
         } else {
-            $entities.find('ul.entitiesList').removeClass('candidates');
-        }
-        
-        $entities.find('ul.entitiesList').html(entitiesString);
-        $entities.find('ul.entitiesList > li > div').on('click', function(event) {
-            $(this).parent().toggleClass('expanded');
-            var id = $(this).parent().data('id');
-            w.entitiesManager.highlightEntity(id, null, true);
-        }).find('.actions > span').hover(function() {
-            $(this).removeClass('ui-state-default');
-            $(this).addClass('ui-state-active');
-        }, function() {
-            $(this).addClass('ui-state-default');
-            $(this).removeClass('ui-state-active');
-        }).on('click', function(event) {
-            event.stopPropagation();
-            var action = $(this).data('action');
-            var id = $(this).parents('li').data('id');
-            switch (action) {
-                case 'edit':
-                    w.tagger.editTagDialog(id);
-                    break;
-                case 'accept':
-                    acceptEntity(id);
-                    pm.update();
-                    break;
-                case 'reject':
-                    rejectEntity(id);
-                    pm.update();
-                    break;
-                case 'remove':
-                    w.tagger.removeEntity(id);
-                    break;
-                case 'acceptmatching':
-                    acceptMatching(id);
-                    pm.update();
-                    break;
-                case 'rejectmatching':
-                    rejectMatching(id);
-                    pm.update();
-                    break;
-            }
-        });
-
-        $entities.find('.actions').tooltip({
-            show: false,
-            hide: false,
-            classes: {
-                'ui-tooltip': 'cwrc-tooltip'
-            }
-        });
-        
-        if (w.entitiesManager.getCurrentEntity()) {
-            $entities.find('ul.entitiesList  > li[data-id="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('expanded').find('div[class="info"]').show();
+            updatePending = true;
         }
     };
 
@@ -256,6 +263,18 @@ function EntitiesList(config) {
             </div>
         </li>`;
     }
+
+    pm.enable = function(forceUpdate) {
+        enabled = true;
+        if (forceUpdate || updatePending) {
+            pm.update();
+            updatePending = false;
+        }
+    }
+
+    pm.disable = function() {
+        enabled = false;
+    }
     
     pm.destroy = function() {
         $entities.find('button').button('destroy');
@@ -295,6 +314,9 @@ function EntitiesList(config) {
             li.setText('Converting Entities');
             li.show();
 
+            w.tree.disable();
+            pm.disable();
+
             w.utilities.processArray(potentialEntities, function(el) {
                 var entity = w.schemaManager.mapper.convertTagToEntity(el);
                 if (entity !== null) {
@@ -304,6 +326,9 @@ function EntitiesList(config) {
             }).then(function() {
                 li.hide();
                 w.event('contentChanged').publish();
+
+                w.tree.enable();
+                pm.enable();
             });
         } else {
             w.dialogManager.show('message', {
@@ -379,6 +404,9 @@ function EntitiesList(config) {
     }
 
     var rejectAll = function() {
+        w.tree.disable();
+        pm.disable();
+
         var filter = getFilter();
         w.entitiesManager.eachEntity(function(i, entity) {
             if (entity.getAttribute('_candidate') === 'true' && entity.getCustomValue('nerve') !== 'true') {
@@ -388,6 +416,9 @@ function EntitiesList(config) {
             }
         });
         setFilter('all');
+
+        w.tree.enable();
+        pm.enable();
     }
 
     var handleDone = function() {
@@ -401,9 +432,10 @@ function EntitiesList(config) {
     w.event('loadingDocument').subscribe(function() {
         clear();
         handleDone();
+        pm.disable();
     });
     w.event('documentLoaded').subscribe(function() {
-        pm.update();
+        pm.enable(true);
     });
     w.event('schemaLoaded').subscribe(function() {
         pm.update();
