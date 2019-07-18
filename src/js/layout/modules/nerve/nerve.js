@@ -371,10 +371,8 @@ function Nerve(config) {
             }
         });
 
-        if (isMerge === false) {
-            for (var key in mergedEntities) {
-                entityHtml += getMergedEntityView(key);
-            }
+        for (var key in mergedEntities) {
+            entityHtml += getMergedEntityView(key, isMerge);
         }
 
         $parent.find('ul.entitiesList').html(entityHtml);
@@ -508,15 +506,17 @@ function Nerve(config) {
         return html;
     }
 
-    var getMergedEntityView = function(id) {
+    var getMergedEntityView = function(id, merge) {
         var entry = mergedEntities[id];
         var html = ''+
         '<li class="'+entry.type+' merged" data-type="'+entry.type+'" data-id="'+id+'">'+
+            (merge === true ? '<input type="checkbox" />' : '')+
             '<div>'+
                 '<div class="header">'+
                     '<span class="icon" style="margin-right: -4px;"/><span class="icon"/>'+
                     '<span class="entityTitle">'+entry.lemma+'</span>'+
                     '<div class="actions">'+
+                        (merge === true ? '' :
                         '<div class="nav">'+
                             '<span data-action="previous" class="ui-state-default" title="Previous Entity"><span class="ui-icon ui-icon-circle-arrow-w"></span></span>'+
                             '<span data-action="next" class="ui-state-default" title="Next Entity"><span class="ui-icon ui-icon-circle-arrow-e"></span></span>'+
@@ -524,7 +524,7 @@ function Nerve(config) {
                         '<span data-action="unmerge" class="ui-state-default" title="Unmerge"><span class="ui-icon ui-icon-scissors"></span></span>'+
                         '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"></span></span>'+
                         '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"></span></span>'+
-                        '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"></span></span>'+
+                        '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"></span></span>')+
                     '</div>'+
                 '</div>'+
                 '<div class="info">'+
@@ -847,7 +847,14 @@ function Nerve(config) {
                 if (mergeEntry != null) {
                     mergeEntry.lemma = lemma;
                     mergeEntry.uri = uri;
-                    renderEntitiesList();
+                    if (isMerge) {
+                        // new entities have been added to the merge
+                        mergeEntry.entityIds = entities.map((ent) => ent.getId());
+                        setMergeMode(false);
+                    } else {
+                        // we just edited the merged entry
+                        renderEntitiesList();
+                    }
                 } else {
                     var ids = entities.map(function(ent) {
                         return ent.getId();
@@ -877,7 +884,17 @@ function Nerve(config) {
             getCheckedEntities().each(function(index, el) {
                 var entityId = $(el).data('id');
                 var entity = w.entitiesManager.getEntity(entityId);
-                entities.push(entity);
+                if (entity === undefined) {
+                    // merged entity
+                    entry = mergedEntities[entityId];
+                    if (entry) {
+                        entry.entityIds.forEach(function(entId) {
+                            entities.push(w.entitiesManager.getEntity(entId));
+                        });
+                    }
+                } else {
+                    entities.push(entity);
+                }
             });
         }
 
