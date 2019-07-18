@@ -353,6 +353,9 @@ TinymceWrapper.init = function(config) {
     w.event('documentLoaded').subscribe(function() {
         w.editor.undoManager.clear();
         w.editor.isNotDirty = true;
+        // need to explicitly set focus
+        // otherwise w.editor.selection.getBookmark doesn't work until the user clicks inside the editor
+        w.editor.getBody().focus();
     });
     w.event('documentSaved').subscribe(function() {
         w.editor.isNotDirty = true;
