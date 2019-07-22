@@ -71,17 +71,15 @@ function Tagger(writer) {
      */
     tagger.setAttributesForTag = function(tag, attributes) {
         // remove previous attributes
-        var attrsToRemove = [];
-        for (var i = 0; i < tag.attributes.length; i++) {
-            var attr = tag.attributes[i];
+        var currAttributes = tag.attributes;
+        for (var i = currAttributes.length-1; i >=0; i--) {
+            var attr = currAttributes[i];
             if (w.converter.reservedAttributes[attr.name] !== true) {
-                attrsToRemove.push(attr.name);
+                tag.removeAttribute(attr.name);
             }
         }
-        attrsToRemove.forEach(function(name) {
-            tag.removeAttribute(name);
-        });
 
+        // set non-reserved attributes directly on the tag
         for (var attName in attributes) {
             if (w.converter.reservedAttributes[attName] === true) {
                 continue;
@@ -89,6 +87,7 @@ function Tagger(writer) {
             tag.setAttribute(attName, attributes[attName]);
         }
 
+        // set all attributes in the _attributes holder
         var jsonAttrsString = JSON.stringify(attributes).replace(/"/g, '&quot;');
         tag.setAttribute('_attributes', jsonAttrsString);
     }
@@ -196,7 +195,7 @@ function Tagger(writer) {
                 var attributes = tagger.getAttributesForTag(tag[0]);
                 w.dialogManager.getDialog('attributesEditor').show(tagName, tagPath, attributes, function(newAttributes) {
                     if (newAttributes !== null) {
-                        tagger.editStructureTag(tag, newAttributes, tagName);
+                        tagger.editStructureTag(tag, newAttributes);
                     }
                 });
             }
@@ -588,59 +587,48 @@ function Tagger(writer) {
 
         var entity = w.entitiesManager.getEntity(id);
 
+        var $tag = $('[name='+id+']', w.editor.getBody());
+
         // set attributes
         entity.setAttributes(info.attributes);
-        
-        // set properties
-        if (info.properties !== undefined) {
-            for (var key in info.properties) {
-                entity.setProperty(key, info.properties[key]);
+        tagger.setAttributesForTag($tag[0], info.attributes);
+
+        // named entity check
+        var isNamedEntity = w.schemaManager.mapper.isNamedEntity(entity.getType());
+        var uriAttribute = w.schemaManager.mapper.getAttributeForProperty(entity.getType(), 'uri');
+        var removeEntity = isNamedEntity && info.attributes[uriAttribute] === undefined;
+
+        if (removeEntity) {
+            tagger.removeEntity(id);
+        } else {
+            // set properties
+            if (info.properties !== undefined) {
+                for (var key in info.properties) {
+                    entity.setProperty(key, info.properties[key]);
+                }
             }
-        }
 
-        w.schemaManager.mapper.updatePropertiesFromAttributes(entity);
-        
-        // set custom values
-        for (var key in info.customValues) {
-            entity.setCustomValue(key, info.customValues[key]);
-        }
-
-        // reset tag attributes
-        // TODO overlapping entities support
-
-        var $tag = $('[name='+id+']', w.editor.getBody());
-        var tagEl = $tag[0];
-
-        // remove previous attributes
-        var currAttributes = tagEl.attributes;
-        for (var i = currAttributes.length-1; i >=0; i--) {
-            var attr = currAttributes[i];
-            if (w.converter.reservedAttributes[attr.name] !== true) {
-                tagEl.removeAttribute(attr.name);
+            w.schemaManager.mapper.updatePropertiesFromAttributes(entity);
+            
+            // set custom values
+            for (var key in info.customValues) {
+                entity.setCustomValue(key, info.customValues[key]);
             }
+
+            $tag.attr('_tag', entity.getTag());
+            $tag.attr('_type', entity.getType());
+            $tag.attr('class', 'entity start end '+entity.getType());
+            
+            // TODO rework the use of textTag so that this actually works
+            // if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
+            //     if (entity.isNote()) {
+            //         var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
+            //         $tag.find('[_tag='+textTag+']').text(info.properties.content);
+            //     }
+            // }
+
+            w.event('entityEdited').publish(id);
         }
-
-        $tag.attr('_tag', entity.getTag());
-        $tag.attr('_type', entity.getType());
-        $tag.attr('class', 'entity start end '+entity.getType());
-
-        // set new attribute values
-        for (var key in info.attributes) {
-            if (w.converter.reservedAttributes[key] !== true) {
-                var val = info.attributes[key];
-                $tag.attr(key, val);
-            }
-        }
-        
-        // TODO rework the use of textTag so that this actually works
-        // if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
-        //     if (entity.isNote()) {
-        //         var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
-        //         $tag.find('[_tag='+textTag+']').text(info.properties.content);
-        //     }
-        // }
-
-        w.event('entityEdited').publish(id);
     };
     
     /**
@@ -722,6 +710,9 @@ function Tagger(writer) {
             }
         }
 
+        var jsonAttrsString = JSON.stringify(tagAttributes);
+        jsonAttrsString = jsonAttrsString.replace(/"/g, '&quot;');
+
         if (entity.isNote()) {
             var noteContent = w.utilities.convertTextForExport(entity.getNoteContent());
 
@@ -734,7 +725,7 @@ function Tagger(writer) {
             var tag = w.editor.dom.create(
                 'span',
                 $.extend(tagAttributes, {
-                    '_entity': true, '_note': true, '_tag': parentTag, '_type': type, 'class': 'entity '+type+' start end', 'name': id, 'id': id
+                    '_entity': true, '_note': true, '_tag': parentTag, '_type': type, 'class': 'entity '+type+' start end', 'name': id, 'id': id, '_attributes': jsonAttrsString
                 }),
                 noteContent
             );
@@ -757,7 +748,7 @@ function Tagger(writer) {
                 var startRange = range.cloneRange();
                 startRange.setEnd(range.startContainer, range.startContainer.length);
                 var start = w.editor.dom.create('span', {
-                    '_entity': true, '_type': type, 'class': 'entity '+type+' start', 'name': id
+                    '_entity': true, '_type': type, 'class': 'entity '+type+' start', 'name': id, '_attributes': jsonAttrsString
                 }, '');
                 startRange.surroundContents(start);
                 
@@ -775,7 +766,7 @@ function Tagger(writer) {
                 var start = w.editor.dom.create(
                     'span',
                     $.extend(tagAttributes, {
-                        '_entity': true, '_tag': parentTag, '_type': type, 'class': 'entity '+type+' start end', 'name': id, 'id': id
+                        '_entity': true, '_tag': parentTag, '_type': type, 'class': 'entity '+type+' start end', 'name': id, 'id': id, '_attributes': jsonAttrsString
                     }),
                     ''
                 );
@@ -1035,7 +1026,7 @@ function Tagger(writer) {
         
         var id = tag.attr('id');
         
-        if (tagName !== undefined) {
+        if (tagName !== undefined && tagName !== tag.attr('_tag')) {
             // change the tag
             var editorTagName;
             if (tag.parent().is('span')) {
@@ -1048,23 +1039,6 @@ function Tagger(writer) {
             tag.contents().unwrap().wrapAll('<'+editorTagName+' id="'+id+'" _tag="'+tagName+'"/>');
             
             tag = $('#'+id, w.editor.getBody());
-            for (var key in attributes) {
-                if (key.match(/^_/) != null || w.converter.reservedAttributes[key] !== true) {
-                    tag.attr(key, attributes[key]);
-                }
-            }
-        } else {
-            $.each($(tag[0].attributes), function(index, att) {
-                if (w.converter.reservedAttributes[att.name] !== true) {
-                    tag.removeAttr(att.name);
-                }
-            });
-            
-            for (var key in attributes) {
-                if (w.converter.reservedAttributes[key] !== true) {
-                    tag.attr(key, attributes[key]);
-                }
-            }
         }
 
         tagger.setAttributesForTag(tag[0], attributes);
