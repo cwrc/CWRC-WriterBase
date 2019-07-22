@@ -104,7 +104,7 @@ AttributeWidget.prototype = {
                 }
                 var display = 'block';
                 var requiredClass = isRequired ? ' required' : '';
-                if (this.mode == AttributeWidget.EDIT && previousVals[att.name]) {
+                if (this.mode == AttributeWidget.EDIT && previousVals[att.name] && previousVals[att.name] !== undefined) {
                     display = 'block';
                     attributeSelector += '<li data-name="'+att.name+'" class="selected'+requiredClass+'">'+displayName+'</li>';
                 } else {
@@ -193,15 +193,17 @@ AttributeWidget.prototype = {
         
         for (var key in data) {
             var val = data[key];
-            var li = $('.attributeSelector li[data-name="'+key+'"]', this.$el);
-            if (li.length === 1) {
-                li.addClass('selected');
-                var div = $('[data-name="form_'+key+'"]', this.$el);
-                $('input, select', div).val(val);
-                div.show();
-                wasDataSet = true;
-            } else {
-                console.warn('attributeWidget: no attribute for',key);
+            if (val !== undefined) {
+                var li = $('.attributeSelector li[data-name="'+key+'"]', this.$el);
+                if (li.length === 1) {
+                    li.addClass('selected');
+                    var div = $('[data-name="form_'+key+'"]', this.$el);
+                    $('input, select', div).val(val);
+                    div.show();
+                    wasDataSet = true;
+                } else {
+                    console.warn('attributeWidget: no attribute for',key);
+                }
             }
         }
         

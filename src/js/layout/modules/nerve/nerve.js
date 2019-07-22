@@ -934,9 +934,8 @@ function Nerve(config) {
     var acceptMerged = function(mergeId) {
         var entry = mergedEntities[mergeId];
         entry.entityIds.forEach(function(entId) {
-            var entity = w.entitiesManager.getEntity(entId);
-            entity.setLemma(entry.lemma);
-            entity.setURI(entry.uri);
+            w.entitiesManager.setLemmaForEntity(entId, entry.lemma);
+            w.entitiesManager.setURIForEntity(entId, entry.uri);
             acceptEntity(entId);
         });
         delete mergedEntities[mergeId];

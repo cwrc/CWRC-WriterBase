@@ -265,24 +265,33 @@ Entity.prototype = {
     getURI: function() {
         return this.uri;
     },
+    /**
+     * Don't call directly. Use setURIForEntity through the EntitiesManager.
+     * @param {String} uri 
+     */
     setURI: function(uri) {
-        // TODO also set corresponding attribute?
         this.uri = uri;
     },
 
     getLemma: function() {
         return this.lemma;
     },
+    /**
+     * Don't call directly. Use setLemmaForEntity through the EntitiesManager.
+     * @param {String} lemma 
+     */
     setLemma: function(lemma) {
-        // TODO also set corresponding attribute?
         this.lemma = lemma;
     },
 
     getCertainty: function() {
         return this.certainty;
     },
+    /**
+     * Don't call directly. Use setCertaintyForEntity through the EntitiesManager.
+     * @param {String} certainty 
+     */
     setCertainty: function(certainty) {
-        // TODO also set corresponding attribute?
         this.certainty = certainty;
     },
     

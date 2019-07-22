@@ -233,6 +233,7 @@ DialogForm.prototype = {
                     data[lemmaMapping] = this.currentData.properties.lemma;
                 }
             }
+            
             var showWidget = this.attributesWidget.setData(data);
             if (showWidget) {
                 this.attributesWidget.expand();
@@ -258,20 +259,6 @@ DialogForm.prototype = {
                     }
                 } else {
                     customValues[key] = this.w.utilities.unescapeHTMLString(val);
-                }
-            }
-            
-            if (config.entry.getURI() !== undefined) {
-                var uriMapping = this.w.schemaManager.mapper.getAttributeForProperty(config.entry.getType(), 'uri');
-                if (uriMapping !== undefined) {
-                    data[uriMapping] = config.entry.getURI();
-                }
-            }
-            if (config.entry.getLemma() !== undefined) {
-                $('[data-type="tagAs"]', this.$el).html(config.entry.getLemma());
-                var lemmaMapping = this.w.schemaManager.mapper.getAttributeForProperty(config.entry.getType(), 'lemma');
-                if (lemmaMapping !== undefined) {
-                    data[lemmaMapping] = config.entry.getLemma();
                 }
             }
             

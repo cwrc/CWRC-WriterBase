@@ -206,6 +206,48 @@ EntitiesManager.prototype = {
         return entityTextContent;
     },
 
+    /**
+     * Sets the URI property and corresponding attribute
+     * @param {String} entityId
+     * @param {String} uri
+     */
+    setURIForEntity: function(entityId, uri) {
+        var entity = this.getEntity(entityId);
+        entity.setURI(uri);
+        var uriMapping = this.w.schemaManager.mapper.getAttributeForProperty(entity.getType(), 'uri');
+        if (uriMapping) {
+            entity.setAttribute(uriMapping, uri);
+        }
+    },
+
+    /**
+     * Sets the lemma property and corresponding attribute
+     * @param {String} entityId
+     * @param {String} lemma
+     */
+    setLemmaForEntity: function(entityId, lemma) {
+        var entity = this.getEntity(entityId);
+        entity.setLemma(lemma);
+        var lemmaMapping = this.w.schemaManager.mapper.getAttributeForProperty(entity.getType(), 'lemma');
+        if (lemmaMapping) {
+            entity.setAttribute(lemmaMapping, lemma);
+        }
+    },
+
+    /**
+     * Sets the certainty property and corresponding attribute
+     * @param {String} entityId
+     * @param {String} certainty
+     */
+    setCertaintyForEntity: function(entityId, certainty) {
+        var entity = this.getEntity(entityId);
+        entity.setCertainty(certainty);
+        var certaintyMapping = this.w.schemaManager.mapper.getAttributeForProperty(entity.getType(), 'certainty');
+        if (certaintyMapping) {
+            entity.setAttribute(certaintyMapping, certainty);
+        }
+    },
+
     removeHighlights: function() {
         var prevHighlight = $('.entityHighlight', this.w.editor.getBody());
         if (prevHighlight.length !== 0) {
