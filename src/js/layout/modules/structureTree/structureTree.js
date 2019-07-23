@@ -97,13 +97,19 @@ function StructureTree(config) {
     };
     
     /**
-     * Expands the parents of a particular node
-     * @param {element} node A node that exists in the editor
+     * Expands the parents of a particular node. Returns the ID of the header if the node was inside the document header.
+     * @param {Element} node A node that exists in the editor
+     * @returns {String} The header ID if the node was inside of it
      */
     function _expandParentsForNode(node) {
+        var headerId = undefined;
+
         // get the actual parent nodes in the editor
         var parents = [];
         $(node).parentsUntil('#tinymce').each(function(index, el) {
+            if (el.getAttribute('_tag') === w.schemaManager.getHeader()) {
+                headerId = el.id;
+            }
             parents.push(el.id);
         });
         parents.reverse();
@@ -119,11 +125,13 @@ function StructureTree(config) {
                 $tree.jstree('open_node', parentNode, null, false);
             }
         }
+
+        return headerId;
     }
     
     /**
      * Displays (if collapsed) and highlights a node in the tree based on a node in the editor
-     * @param {element} node A node that exists in the editor
+     * @param {Element} node A node that exists in the editor
      */
     tree.highlightNode = function(node) {
         if (node) {
@@ -133,8 +141,12 @@ function StructureTree(config) {
                     ignoreSelect = true;
                     var treeNode = $('[name="'+id+'"]', $tree);
                     if (treeNode.length === 0) {
-                        _expandParentsForNode(node);
-                        treeNode = $('[name="'+id+'"]', $tree);
+                        var headerId = _expandParentsForNode(node);
+                        if (headerId) {
+                            treeNode = $('[name="'+headerId+'"]', $tree);
+                        } else {
+                            treeNode = $('[name="'+id+'"]', $tree);
+                        }
                     }
                     $tree.jstree('deselect_all');
                     _onNodeDeselect(); // manually trigger deselect behaviour, primarily to clear currentlySelectedNodes
@@ -184,8 +196,13 @@ function StructureTree(config) {
         if (id) {
             var treeNode = $('[name="'+id+'"]', $tree);
             if (treeNode.length === 0) {
-                _expandParentsForNode($('#'+id, w.editor.getBody()));
-                treeNode = $('[name="'+id+'"]', $tree);
+                var $node = $('#'+id, w.editor.getBody());
+                var headerId = _expandParentsForNode($node);
+                if (headerId) {
+                    treeNode = $('[name="'+headerId+'"]', $tree);
+                } else {
+                    treeNode = $('[name="'+id+'"]', $tree);
+                }
             }
             
             selectNode(treeNode, selectContents, false, true);
