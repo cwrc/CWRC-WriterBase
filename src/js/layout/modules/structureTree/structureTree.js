@@ -466,7 +466,12 @@ function StructureTree(config) {
         plugins: plugins,
         core: {
             worker: false, // transpiler messing up web worker so set this false, see: https://github.com/vakata/jstree/issues/1717
-            check_callback: true, // enable tree modifications
+            check_callback: function (operation, node, node_parent, node_position, more) {
+                if (w.editor.readonly && (operation === 'move_node' || operation === 'copy_node')) {
+                    return false; // prevent drag n drop when editor is readonly (such as during nerve vetting)
+                }
+                return true;
+            },
             animation: false,
             themes: {
                 icons: false,
