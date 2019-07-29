@@ -12,7 +12,7 @@
 CWRC-Writer-Base
 ================
 
-The [Canadian Writing Research Collaboratory (CWRC)](https://cwrc.ca/) has developed an in-browser text markup editor (CWRC-Writer) for use by individual scholars and collaborative scholarly editing projects that require a light-weight online editing environment. This package is the base code that builds on the TinyMCE editor, and is meant to be bundled together with two other packages that provide document storage and entity lookup.  A default version of the CWRC-Writer that uses GitHub for storage is available for anyone's use at: [https://cwrc-writer.cwrc.ca/](https://cwrc-writer.cwrc.ca/)
+The [Canadian Writing Research Collaboratory (CWRC)](https://cwrc.ca/) has developed an in-browser text markup editor (CWRC-Writer) for use by individual scholars and collaborative scholarly editing projects that require a light-weight online editing environment. This package is the base code that builds on the TinyMCE editor, and is meant to be bundled together with two other packages that provide document storage and entity lookup.  A default version of the CWRC-Writer that uses GitHub for storage is available for anyone's use at [https://cwrc-writer.cwrc.ca/](https://cwrc-writer.cwrc.ca/).
 
 ## Table of Contents
 
@@ -26,34 +26,14 @@ The [Canadian Writing Research Collaboratory (CWRC)](https://cwrc.ca/) has devel
 ## Overview
 
 CWRC-Writer is a WYSIWYG text editor for in-browser XML editing and stand-off RDF annotation.  
-It is built around a heavily customized version of the [TinyMCE](https://www.tiny.cloud/) editor.
+It is built around a heavily customized version of the [TinyMCE](https://www.tiny.cloud/) editor, and includes a CWRC-hosted XML validation service.
 
 A CWRC-Writer installation is a bundling of the main CWRC-WriterBase (the code in this repository) with  
-a few other NPM packages that handle interaction with server-side services for:
+a few other NPM packages that handle interaction with server-side services for document storage and named entity lookup.
 
-* document storage
-* named entity lookup 
-
-The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/cwrc/cwrc-gitwriter) which uses 
-GitHub to store documents, and uses [VIAF](https://viaf.org), [WikiData](https://www.wikidata.org), [DBpedia](http://wiki.dbpedia.org), 
-[Getty](http://vocab.getty.edu) and [GeoNames](https://www.geonames.org/) for named entity (people, places) lookup.  
-
-The dialogs to interact with GitHub and the named entity lookups are in the following NPM packages:
- 
-* [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs)
-* [cwrc-public-entity-dialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs)
-
-The CWRC-PublicEntityDialogs package in turn uses:
-
-* [getty-entity-lookup](https://github.com/cwrc/getty-entity-lookup)
-* [wikidata-entity-lookup](https://github.com/cwrc/wikidata-entity-lookup)
-* [dbpedia-entity-lookup](https://github.com/cwrc/dbpedia-entity-lookup)
-* [viaf-entity-lookup](https://github.com/cwrc/viaf-entity-lookup)
-* [geonames-entity-lookup](https://github.com/cwrc/geonames-entity-lookup)
-
-The CWRC-GitWriter (the default CWRC-Writer) bundles those NPM packages together with the CWRC-WriterBase package. 
-
-The CWRC-WriterBase itself also provides a module for interaction with a server-side XML validation service. By default a CWRC hosted XML validation service is used. You may substitute your own, but the CWRC-WriterBase expects validation and error messages in a specific format.
+The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/cwrc/cwrc-gitwriter). It uses 
+GitHub to store documents via the [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs) package. Entity lookups for [VIAF](https://viaf.org), [WikiData](https://www.wikidata.org), [DBpedia](http://wiki.dbpedia.org), 
+[Getty](http://vocab.getty.edu) and [GeoNames](https://www.geonames.org/) are provided via [CWRC-PublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) and related [lookup packages](https://github.com/cwrc?q=entity-lookup).
 
 ## Storage and Entity Lookup
 
@@ -137,7 +117,7 @@ Options that can be set on the configuration object:
   * `cssUrl`: String. An URL that links to the CSS associated with this schema.
   * `schemaMappingsId`: String. The directory name in the [schema directory](src/js/schema) from which to load mapping and dialogs files for the schema.
   * `altUrl`: String. Optional. An alternative URL that links to the schema file. This can be used in the rare case that you want to match against a particular schema URL, but load the schema from another location (e.g. to avoid CORS errors).
-* `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of plugins to set in the CWRC-Writer toolbars. Possible values: `schematags, addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, toggletags, viewmarkup, editsource, validate, savebutton, loadbutton, logoutbutton, fullscreen`.
+* `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of buttons to display in the CWRC-Writer toolbars. Possible values: `schematags, addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, toggletags, viewmarkup, editsource, validate, savebutton, loadbutton, logoutbutton, fullscreen`.
 
 ### Writer object
 
@@ -149,9 +129,13 @@ The object returned by the constructor is defined here: [writer.js](src/js/write
 boolean    
  *Has the editor been initialized.* 
 
-###### isReadOnly  
+###### isDocLoaded
+boolean    
+ *Is there a document loaded in the editor.* 
+ 
+###### isReadOnly
 boolean     
- *Is the editor in readonly mode.*  
+ *Is the editor in `readonly` mode.*  
   
 ###### isAnnotator
 boolean  
@@ -160,25 +144,29 @@ boolean
 #### Methods
 
 ###### loadDocumentURL(docUrl)
-*Loads an XML document from an URL into the editor*
+*Loads an XML document from a URL into the editor.*
 
 ###### loadDocumentXML(docXml)
-*Loads an XML document (either a [XML Document](https://developer.mozilla.org/en-US/docs/Web/API/XMLDocument) or a stringified version of such) into the editor*
+*Loads an XML document (either a [XML Document](https://developer.mozilla.org/en-US/docs/Web/API/XMLDocument) or a stringified version of such) into the editor.*
 
-###### getDocument()
-*Returns the parsed XML document from the editor*
+###### setDocument(docUrl|docXml)
+*A convenience method which calls either `loadDocumentURL` or `loadDocumentXML` based on the parameter provided.*
+
+###### getDocument(asString)
+*Returns the parsed XML document from the editor. If `asString` is true, then a stringified version of the document is returned.*
 
 ###### getDocRawContent()
-*Returns the raw content (HTML) from the editor*
+*Returns the raw, un-parsed HTML content from the editor.*
 
 ###### showLoadDialog()
-*Convenience method to call the load() method of the object set in the storageDialogs property of the config object passed to the writer.*
+*Convenience method to call the `load` method of the object set in the `storageDialogs` property of the config object passed to the writer.*
 
 ###### showSaveDialog()
-*Convenience method to call the save() method of the object set in the storageDialogs property of the config object passed to the writer.*
+*Convenience method to call the `save` method of the object set in the `storageDialogs` property of the config object passed to the writer.*
 
-###### validate (callback)
+###### validate(callback)
 *Validates the current document*
+
 callback(w, valid): function where w is the writer and valid is true/false.
 Fires a `documentValidated` event if validation is successful.
 
@@ -186,65 +174,83 @@ Fires a `documentValidated` event if validation is successful.
 
 Tasks within CWRC-Writer are handled by specific managers.
 
-### [AnnotationsManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/annotationsManager.js)
+### [AnnotationsManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/entities/annotationsManager.js)
 
 Handles conversion of entities to annotations and vice-versa.
-
-### [DialogManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/dialogManager.js)
-
-Handles the initialization and display of dialogs.
-
-### [EntitiesManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/entitiesManager.js)
-
-Handles the creation and modification of [entities](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/entity.js). Stores the list of entities in the current document.
-
-### [EventManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js)
-
-Handles the dissemination of events through the CWRC-Writer using a publication-subscribe pattern. See the [code](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js) for the full list of events.
 
 ### [SchemaManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/schema/schemaManager.js)
 
 Handles schema loading and schema CSS processing. Stores the list of available schemas, as well as the current schema. Handles the creation of schema-appropriate entities, via the [Mapper](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/schema/mapper.js).
 
+### [EntitiesManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/entities/entitiesManager.js)
+
+Handles the creation and modification of [entities](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/entities/entity.js). Stores the list of entities in the current document.
+
+### [EventManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js)
+
+Handles the dissemination of events through the CWRC-Writer using a publication-subscribe pattern. See the [code](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/eventManager.js) for the full list of events.
+
+### [LayoutManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/layoutManager.js)
+
+Handles the initialization and display of the modules specified in the `modules` property of the config object. Also handles browser resizing and fullscreen functionality.
+
+### [DialogManager](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/dialogManager.js)
+
+Handles the initialization and display of dialogs.
+
 ## Modules
 
 Modules are self-contained components that add extra functionality to CWRC-Writer. These can be specified in the configuration object using the proper module ID.
 
-### [EntitiesList](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/entitiesList.js)
+### [StructureTree](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/structureTree/structureTree.js)
+
+Module ID: `structure`
+
+Displays the markup of the current document in a tree format. Useful for navigating and modifying the document.
+
+### [EntitiesList](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/entitiesList/entitiesList.js)
 
 Module ID: `entities`
 
-Displays the list of entities in the current document. Allows for modifying, copying, and deleting of entities.
+Displays the list of entities in the current document. Allows for modifying, copying, scraping, and deleting of entities.
 
-### [ImageViewer](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/imageViewer.js)
-
-Module ID: `imageViewer`
-
-Displays images linked from within the current document. Useful for OCR'd documents.
-
-### [Relations](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/relations.js)
-
-Module ID: `relations`
-
-Displays the list of entity relationships (i.e. RDF triples) in the current document. Uses [triple](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/dialogs/triple.js) to add new relationships.
-
-### [Selection](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/selection.js)
+### [Selection](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/selection/selection.js)
 
 Module ID: `selection`
 
 Displays the markup of the text that's selected in the current document.
 
-### [StructureTree](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/structureTree.js)
-
-Module ID: `structure`
-
-Displays the markup of the current document in a tree/outline. Useful for navigating and modifying the document.
-
-### [Validation](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/validation.js)
+### [Validation](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/validation/validation.js)
 
 Module ID: `validation`
 
+Configuration:
+
+* `validationUrl`: The URL for the validation service endpoint. The CWRC-hosted service is at https://validator.services.cwrc.ca/validator/validate.html.
+
 Requests and displays the results of document validation. See [validate](#validate-callback).
+
+### [NERVE](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/nerve/nerve.js)
+
+Module ID: `nerve`
+
+Configuration:
+
+* `nerveUrl`: The URL for the NERVE service endpoint. The CWRC-hosted service is at https://nerve.services.cwrc.ca/ner.
+
+Sends the document for named entity recognition and adds the results as entities to the document.
+
+### [ImageViewer](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/imageViewer/imageViewer.js)
+
+Module ID: `imageViewer`
+
+Displays images linked from within the current document. Useful for OCR'd documents.
+
+### [Relations](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/layout/modules/relations/relations.js)
+
+Module ID: `relations`
+
+Displays the list of entity relationships (i.e. RDF triples) in the current document. Uses [triple](https://github.com/cwrc/CWRC-WriterBase/blob/master/src/js/dialogs/triple.js) to add new relationships.
 
 ## Development
 
