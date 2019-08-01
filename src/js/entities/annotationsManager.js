@@ -52,7 +52,7 @@ AnnotationsManager.prototype = {
         var range = entity.getRange();
         var annoIdDateString = moment(entity.getDateCreated()).format('YYYYMMDDHHmmss');
         var annotationId = range.startXPath+'_'+annoIdDateString; // github doc + xpath + datestring
-        return annotationId;
+        return encodeURI(annotationId);
     },
     
     /**
