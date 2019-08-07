@@ -50,6 +50,8 @@
     "tinymce": "4.7.2"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^3.0.4",
+    "@semantic-release/git": "^7.0.16",
     "babel-core": "^6.26.3",
     "babel-plugin-istanbul": "^4.1.6",
     "babel-preset-env": "^1.7.0",
@@ -138,7 +140,11 @@
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
       "@semantic-release/npm",
-      "@semantic-release/github"
+      "@semantic-release/github",
+      ["@semantic-release/git", {
+        "assets": ["package.json"],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }]
     ]
   }
 }
