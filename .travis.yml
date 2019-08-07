@@ -11,7 +11,6 @@ script:
   - npm run check-coverage
 after_success:
   - npm run report-coverage
-  - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
 deploy:
   - provider: script
     script: npx semantic-release -r
