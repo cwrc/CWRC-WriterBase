@@ -1,7 +1,5 @@
 language: node_js
-cache:
-  directories:
-    - ~/.npm
+cache: npm
 notifications:
   email: false
 node_js:
@@ -13,10 +11,18 @@ script:
   - npm run check-coverage
 after_success:
   - npm run report-coverage
-  - npm run travis-deploy-once "npm run semantic-release"
+  - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+deploy:
+  - provider: script
+    script: npx semantic-release -r
+      https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git
+    skip_cleanup: true
+    keep_history: true
+    on:
+      branch: master
 branches:
-  except:
-    - /^v\d+\.\d+\.\d+$/
+  only:
+  - master
 addons:
   apt:
     packages:
