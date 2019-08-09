@@ -49,9 +49,8 @@ AnnotationsManager.prototype = {
     constructor: AnnotationsManager,
 
     getAnnotationURIForEntity: function(entity) {
-        var range = entity.getRange();
         var annoIdDateString = moment(entity.getDateCreated()).format('YYYYMMDDHHmmss');
-        var annotationId = range.startXPath+'_'+annoIdDateString; // github doc + xpath + datestring
+        var annotationId = entity.getType()+'_annotation_'+annoIdDateString; // github doc + entity type + datestring
         return encodeURI(annotationId);
     },
     
@@ -182,11 +181,11 @@ AnnotationsManager.prototype = {
 
             if (entityId && entityType !== 'citation') {
                 annotation["oa:hasBody"]["@id"] = entityId;
-                annotation["oa:hasBody"]["dc:format"] = "text/html";
+                annotation["oa:hasBody"]["dc:format"] = "text/plain";
             } else if (entity.isNote()) {
                 var noteEl = $('#'+entity.getId(), this.w.editor.getBody());
                 var noteContent = noteEl[0].textContent;
-                annotation["oa:hasBody"]["dc:format"] = "text/html";
+                annotation["oa:hasBody"]["dc:format"] = "text/plain";
                 annotation["oa:hasBody"]["rdf:value"] = noteContent;
             }
 

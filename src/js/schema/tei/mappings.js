@@ -261,6 +261,7 @@ citation: {
                 {
                     "@id": anno["@id"]+'#Cites',
                     "@type": "cito:Citation",
+                    "cito:hasCitingEntity": anno["@id"],
                     "cito:hasCitedEntity": entity.getURI(),
                     "cito:hasCitationEvent": "cito:cites"
                 }
