@@ -57,9 +57,8 @@ LayoutManager.prototype = {
         */
         
         var version = pkg.version;
-        var majorVersion = version.split('.')[0];//.slice(0,2).join('.');
 
-        var name = 'CWRC-Writer '+majorVersion;
+        var name = 'CWRC-Writer';
         var editorId = config.editorId;
         
         var loadingMaskHtml = `<div class="cwrc cwrcLoadingMask" style="width: 100%; height: 100%; background-color: #DDD; position: absolute; z-index: 1000;"><div>Loading ${name}</div></div>`;
