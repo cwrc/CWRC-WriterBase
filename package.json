@@ -1,6 +1,6 @@
 {
   "name": "cwrc-writer-base",
-  "version": "2.47.14",
+  "version": "2.48.0",
   "description": "intuitive document editing with xml and rdf",
   "main": "src/js/writer.js",
   "repository": {
