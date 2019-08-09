@@ -221,18 +221,47 @@ function EntitiesList(config) {
         var isCandidate = entity.getAttribute('_candidate') === 'true';
 
         var infoString = '<ul>';
+
+        // named entity values
+        var nevAdded = false;
+        var lemma = entity.getLemma();
+        if (lemma !== undefined) {
+            infoString += '<li><strong>Standard</strong>: '+lemma+'</li>';
+            nevAdded = true;
+        }
+        var uri = entity.getURI()
+        if (uri !== undefined) {
+            infoString += '<li><strong>URI</strong>: <a href="'+uri+'" target="_blank" rel="noopener">'+uri+'</a></li>';
+            nevAdded = true;
+        }
+
+        // attribute values
+        var attAdded = false;
         var entityAttributes = entity.getAttributes()
         var urlAttributes = w.schemaManager.mapper.getUrlAttributes();
         for (var name in entityAttributes) {
             if (w.converter.reservedAttributes[name] !== true) {
                 var value = entityAttributes[name];
                 if (urlAttributes.indexOf(name) !== -1 || value.indexOf('http') === 0) {
-                    infoString += '<li><strong>'+name+'</strong>: <a href="'+value+'" target="_blank" rel="noopener">'+value+'</a></li>';
+                    if (value !== uri) { // don't duplicate uri
+                        if (!attAdded && nevAdded) {
+                            infoString += '<li><hr /></li>';
+                        }
+                        infoString += '<li><strong>'+name+'</strong>: <a href="'+value+'" target="_blank" rel="noopener">'+value+'</a></li>';
+                        attAdded = true;
+                    }
                 } else {
-                    infoString += '<li><strong>'+name+'</strong>: '+value+'</li>';
+                    if (value !== lemma) { // don't duplicate lemma
+                        if (!attAdded && nevAdded) {
+                            infoString += '<li><hr /></li>';
+                        }
+                        infoString += '<li><strong>'+name+'</strong>: '+value+'</li>';
+                        attAdded = true;
+                    }
                 }
             }
         }
+
         infoString += '</ul>';
 
         var actions = '';
