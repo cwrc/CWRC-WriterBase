@@ -185,7 +185,7 @@ function Nerve(config) {
         }
         
         var li = w.dialogManager.getDialog('loadingindicator');
-        li.setText('NERVE Processing');
+        li.setText('Contacting NERVE');
         li.setValue(false);
         li.show();
         
@@ -206,36 +206,31 @@ function Nerve(config) {
             var context = JSON.parse(response.context);
             var entities = processNerveResponse(doc, context);
 
+            li.setText('Processing Response');
+
             w.tagger.removeNoteWrappersForEntities();
+
+            w.utilities.processArray(entities, addEntityFromNerve).then(()=>{
+                w.tagger.addNoteWrappersForEntities();
+
+                li.hide();
+    
+                renderEntitiesList();
+    
+                w.tree.enable();
+                w.entitiesList.enable();
+    
+                w.editor.setMode('readonly');
+                $parent.find('button.run').hide();
+                $parent.find('button.done').show();
+    
+                $parent.find('.filters').show();
+                $parent.find('.listActions').show();
+    
+                $parent.find('select[name="processOptions"]').selectmenu('option', 'disabled', true);
+                $parent.find('button.mergeEntities').button('enable');
+            });
             
-            var index = entities.length-1;
-            while (index >= 0) {
-                var entry = entities[index];
-                var success = addEntityFromNerve(entry);
-                if (!success) {
-                    entities.splice(index, 1);
-                }
-                index--;
-            }
-
-            w.tagger.addNoteWrappersForEntities();
-
-            li.hide();
-
-            renderEntitiesList();
-
-            w.tree.enable();
-            w.entitiesList.enable();
-
-            w.editor.setMode('readonly');
-            $parent.find('button.run').hide();
-            $parent.find('button.done').show();
-
-            $parent.find('.filters').show();
-            $parent.find('.listActions').show();
-
-            $parent.find('select[name="processOptions"]').selectmenu('option', 'disabled', true);
-            $parent.find('button.mergeEntities').button('enable');
         }, function(msg) {
             console.warn('encoding failed', msg);
             li.hide();
