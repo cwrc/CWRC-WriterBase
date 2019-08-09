@@ -191,6 +191,11 @@ function CWRCWriter(config) {
     };
 
     w.exit = function() {
+        if (w.storageDialogs.logOut) {
+            w.storageDialogs.logOut();
+        } else {
+            console.warn('writer: no exit/logout method found!');
+        }
     };
 
     w.validate = function(callback) {
