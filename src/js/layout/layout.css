@@ -47,9 +47,20 @@
 
 .cwrcFooter {
     overflow: hidden !important;
-    color: #eee !important;
     background-color: #ddd !important;
     border-top: 1px solid #bbb !important;
+}
+
+.cwrcFooter a {
+    font-size: 12px;
+    color: #333 !important;
+    text-decoration: none;
+    display: block;
+    float: right;
+    margin-right: 10px;
+}
+.cwrcFooter a:hover {
+    text-decoration: underline;
 }
 
 .headerParent {

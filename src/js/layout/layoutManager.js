@@ -13,6 +13,8 @@ var Selection = require('./modules/selection/selection.js');
 var ImageViewer = require('./modules/imageViewer/imageViewer.js');
 var Nerve = require('./modules/nerve/nerve.js');
 
+var pkg = require('./../../../package.json');
+
 // track modules which cannot appear in readonly mode
 var writeOnlyModules = ['nerve'];
 
@@ -44,8 +46,20 @@ LayoutManager.prototype = {
         this.modules = [];
         
         this.$container = $('<div id="'+this.w.getUniqueId('cwrc_')+'" class="cwrc cwrcWrapper"></div>').appendTo(config.container);
+
+        /* // experimental iframe container
+        this.$iframe = $('<iframe src="about:blank" style="height: 100%; width: 100%; border: 0;"></iframe>').appendTo(config.container);
+        $('<link type="text/css" rel="stylesheet" href="' + this.w.cwrcRootUrl + 'css/cwrc-writer.css" />').appendTo(this.$iframe.contents().find('head'));
+        var containerClone = config.container.clone();
+        config.container.attr('id', 'asdf');
+        $('<div id="'+this.w.getUniqueId('cwrc_')+'" class="cwrc cwrcWrapper"></div>').appendTo(containerClone);
+        this.$container = $(containerClone).appendTo(this.$iframe.contents().find('body'));
+        */
         
-        var name = config.name;
+        var version = pkg.version;
+        var majorVersion = version.split('.')[0];//.slice(0,2).join('.');
+
+        var name = 'CWRC-Writer '+majorVersion;
         var editorId = config.editorId;
         
         var loadingMaskHtml = `<div class="cwrc cwrcLoadingMask" style="width: 100%; height: 100%; background-color: #DDD; position: absolute; z-index: 1000;"><div>Loading ${name}</div></div>`;
@@ -88,7 +102,7 @@ LayoutManager.prototype = {
 
         html += `
         <div class="cwrc cwrcFooter ui-layout-south">
-            <div></div>
+            <a title="GitHub Release Notes" target="_blank" href="https://github.com/cwrc/CWRC-WriterBase/releases/tag/v${version}">CWRC-Writer version ${version}</a>
         </div>
         `;
         
