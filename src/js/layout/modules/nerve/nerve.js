@@ -1054,9 +1054,6 @@ function NerveEditDialog(writer, parentEl) {
     dialog.$el.on('beforeSave', function(e, dialog) {
         if (forceSave) {
             dialog.isValid = true;
-            var type = dialog.currentData.properties.type;
-            var tag = w.schemaManager.mapper.getParentTag(type);
-            dialog.currentData.properties.tag = tag;
         } else {
             var uri = dialog.currentData.properties.uri;
             if (uri !== undefined && uri.search(/^https?:\/\//) !== 0) {
@@ -1078,6 +1075,21 @@ function NerveEditDialog(writer, parentEl) {
                 });
             } else {
                 dialog.isValid = true;
+            }
+        }
+
+        if (dialog.isValid) {
+            var type = dialog.currentData.properties.type;
+            var tag = w.schemaManager.mapper.getParentTag(type);
+            dialog.currentData.properties.tag = tag;
+
+            var lemmaMapping = w.schemaManager.mapper.getAttributeForProperty(type, 'lemma');
+            if (lemmaMapping) {
+                dialog.currentData.attributes[lemmaMapping] = dialog.currentData.properties.lemma
+            }
+            var uriMapping = w.schemaManager.mapper.getAttributeForProperty(type, 'uri');
+            if (uriMapping) {
+                dialog.currentData.attributes[uriMapping] = dialog.currentData.properties.uri
             }
         }
     });
