@@ -113,3 +113,7 @@
 .cwrc .context-menu-item.context-menu-icon-link {
     background-image: url(../img/link.png);
 }
+
+.cwrc .context-menu-item.context-menu-icon-rs {
+    background-image: url(../img/package_green.png);
+}

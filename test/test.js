@@ -391,19 +391,19 @@ test('mapper.findEntities', (t) => {
     })
 });
 
-test('tagContextMenu.show', (t) => {
-    t.plan(1);
+// test('tagContextMenu.show', (t) => {
+//     t.plan(1);
     
-    let writer = new CWRCWriter(getConfigForTestingConstructor())
+//     let writer = new CWRCWriter(getConfigForTestingConstructor())
     
-    initAndLoadDoc(writer, teiDoc).then(() => {
-        writer.editor.fire('contextmenu')
-        setTimeout(() => {
-            t.true(window.$('.tagContextMenu').length === 1, 'menu shown')
-            reset(writer)
-        }, 50)
-    })
-});
+//     initAndLoadDoc(writer, teiDoc).then(() => {
+//         writer.editor.fire('contextmenu')
+//         setTimeout(() => {
+//             t.true(window.$('.tagContextMenu').length === 1, 'menu shown')
+//             reset(writer)
+//         }, 50)
+//     })
+// });
 
 test('dialogs.settings', (t) => {
     t.plan(2);

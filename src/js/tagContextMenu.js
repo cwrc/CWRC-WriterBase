@@ -380,6 +380,13 @@ function addEntities(items) {
                 callback: function() {
                     this.w.tagger.addEntityDialog('link');
                 }.bind(this)
+            },
+            add_rs: {
+                name: 'Tag RS',
+                icon: 'rs',
+                callback: function() {
+                    this.w.tagger.addEntityDialog('rs');
+                }.bind(this)
             }
         }
     }
