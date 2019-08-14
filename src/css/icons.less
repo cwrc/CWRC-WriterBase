@@ -5,10 +5,10 @@
 @entity-title: rgb(224, 190, 0);
 @entity-correction: rgb(255, 51, 0);
 @entity-link: rgb(50, 101, 255);
-@entity-event: rgb(0, 204, 0);
 @entity-citation: rgb(205, 0, 116);
 @entity-note: rgb(13, 86, 166);
 @entity-keyword: rgb(0, 128, 64);
+@entity-rs: rgb(0, 204, 0);
 
 .fa, .fas {
     font-family: "Font Awesome 5 Free" !important;
@@ -96,6 +96,14 @@
 }
 .img.link:before {
     content: url(../img/link.png);
+}
+
+.fas.rs:before {
+    content: "\f49e";
+    color: @entity-rs;
+}
+.img.rs:before {
+    content: url(../img/package_green.png);
 }
 
 /* general purpose */

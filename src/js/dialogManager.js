@@ -25,6 +25,7 @@ var CwrcPlace = require('./dialogs/cwrcLookups/cwrcPlace.js');
 var CwrcOrg = require('./dialogs/cwrcLookups/cwrcOrg.js');
 var CwrcTitle = require('./dialogs/cwrcLookups/cwrcTitle.js');
 var CwrcCitation = require('./dialogs/cwrcLookups/cwrcCitation.js');
+var CwrcRS = require('./dialogs/cwrcLookups/cwrcRS.js');
 
 // TODO hardcoded schemas
 var schemaDialogsMaps = {
@@ -246,6 +247,7 @@ function DialogManager(writer) {
         title: CwrcTitle,
         citation: CwrcCitation,
         place: CwrcPlace,
+        rs: CwrcRS,
         attributesEditor: AttributesEditor
     };
     

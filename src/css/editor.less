@@ -23,8 +23,8 @@
     background-color: fade(@entity-place, 20%);
 }
 
-.entityHighlight.event {
-    background-color: fade(@entity-event, 20%);
+.entityHighlight.rs {
+    background-color: fade(@entity-rs, 20%);
 }
 
 .entityHighlight.org {
@@ -56,8 +56,8 @@
     border-color: @entity-place;
 }
 
-.showEntities .event, .ui-dialog-content .event {
-    border-color: @entity-event;
+.showEntities .rs, .ui-dialog-content .rs {
+    border-color: @entity-rs;
 }
 
 .showEntities .org, .ui-dialog-content .org {
@@ -102,6 +102,9 @@
 }
 .entity.keyword[_candidate] {
     color: @entity-keyword !important;
+}
+.entity.rs[_candidate] {
+    color: @entity-rs !important;
 }
 
 .noteWrapper::before {

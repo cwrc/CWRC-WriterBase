@@ -8,6 +8,7 @@ var org = require('./dialogs/org.js');
 var person = require('./dialogs/person.js');
 var place = require('./dialogs/place.js');
 var title = require('./dialogs/title.js');
+var rs = require('./dialogs/rs.js');
 
 module.exports = {
     citation: citation,
@@ -19,5 +20,6 @@ module.exports = {
     org: org,
     person: person,
     place: place,
-    title: title
+    title: title,
+    rs: rs
 };

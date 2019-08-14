@@ -54,6 +54,18 @@ listeners: {
 
 entities: {
     
+rs: {
+    parentTag: 'rs',
+    mapping: {
+        uri: '@ref',
+        lemma: '@key',
+        certainty: '@cert'
+    },
+    annotation: function(annotationsManager, entity, format) {
+        return annotationsManager.commonAnnotation(entity, format, 'cwrc:RS');
+    }
+},
+
 person: {
     parentTag: 'persName',
     mapping: {

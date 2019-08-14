@@ -80,7 +80,7 @@ TinymceWrapper.init = function(config) {
         valid_elements: '*[*]', // allow everything
 
         plugins: 'schematags,cwrcpath,preventdelete,paste',
-        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,logoutbutton,|,fullscreen' : config.buttons1,
+        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,addrs,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,logoutbutton,|,fullscreen' : config.buttons1,
         toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
         toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
         menubar: false,
@@ -250,6 +250,12 @@ TinymceWrapper.init = function(config) {
                 title: 'Tag Text/Title', icon: ' '+iconType+' title', entityButton: true,
                 onclick: function() {
                     w.tagger.addEntityDialog('title');
+                }
+            });
+            addButtonToEditor('addrs', {
+                title: 'Tag Referencing String', icon: ' '+iconType+' rs', entityButton: true,
+                onclick: function() {
+                    w.tagger.addEntityDialog('rs');
                 }
             });
             addButtonToEditor('editTag', {

@@ -245,3 +245,18 @@
 .entitiesList.candidates .link .icon {
     opacity: 0.5;
 }
+
+
+.entitiesList .rs .icon, .entitiesList.candidates .rs.candidate .icon {
+    background-image: url('../img/package_green.png');
+    opacity: 1;
+}
+.entitiesList .rs > div, .entitiesList.candidates .rs.candidate > div {
+    background-color: mix(desaturate(@entity-rs, 30%), #fff, 50%);
+}
+.entitiesList.candidates .rs > div {
+    background-color: mix(desaturate(@entity-rs, 60%), #fff, 25%);
+}
+.entitiesList.candidates .rs .icon {
+    opacity: 0.5;
+}
