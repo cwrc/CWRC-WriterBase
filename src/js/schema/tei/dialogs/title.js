@@ -9,7 +9,7 @@ module.exports = function(writer, parentEl) {
     '<div id="'+id+'Dialog" class="annotationDialog">'+
         '<div id="'+id+'_tagAs">'+
             '<p>Tag as:</p>'+
-            '<span class="tagAs" data-type="tagAs"></span>'+
+            '<span class="tagAs" data-type="label" data-mapping="prop.lemma"></span>'+
         '</div>'+
         '<div id="'+id+'_level" data-type="radio" data-mapping="level">'+
             '<p>This title is:</p>'+

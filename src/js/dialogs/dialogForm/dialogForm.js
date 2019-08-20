@@ -145,6 +145,65 @@ DialogForm.processForm = function(dialogInstance) {
     }
 };
 
+DialogForm.populateForm = function(dialogInstance) {
+    var data = dialogInstance.currentData;
+    $('[data-type]', dialogInstance.$el)
+        .filter(function(index, el) {
+            return $(el).parents('.cwrcWrapper').length === 1; // don't include form elements from note entity children
+        })
+        .each(function(index, el) {
+            var formEl = $(this);
+            var type = formEl.data('type');
+            if (type === 'attributes') {
+                var showWidget = dialogInstance.attributesWidget.setData(data.attributes);
+                if (showWidget) {
+                    dialogInstance.attributesWidget.expand();
+                }
+            } else {
+                var mapping = formEl.data('mapping');
+                if (mapping !== undefined) {
+                    var value;
+                    
+                    var isCustom = mapping.indexOf('custom.') === 0;
+                    var isProperty = mapping.indexOf('prop.') === 0;
+                    if (isCustom) {
+                        mapping = mapping.replace(/^custom\./, '');
+                        value = data.customValues[mapping];
+                    } else if (isProperty) {
+                        mapping = mapping.replace(/^prop\./, '');
+                        value = data.properties[mapping];
+                    } else {
+                        value = data.attributes[mapping];
+                    }
+                    
+                    if (value !== undefined) {
+                        switch (type) {
+                            case 'select':
+                                formEl.val(value);
+                                if (formEl.data('transform') === 'selectmenu') {
+                                    formEl.selectmenu('refresh');
+                                }
+                                formEl.parents('[data-transform="accordion"]').accordion('option', 'active', 0);
+                                break;
+                            case 'radio':
+                                $('input[value="'+value+'"]', formEl).prop('checked', true);
+                                if (formEl.data('transform') === 'buttonset') {
+                                    $('input', formEl).button('refresh');
+                                }
+                                break;
+                            case 'textbox':
+                                formEl.val(value);
+                                break;
+                            case 'label':
+                                formEl.html(value);
+                                break;
+                        }
+                    }
+                }
+            }
+        });
+}
+
 function initAttributeWidget(dialogInstance, config) {
     var tag;
     if (config.entry) {
@@ -189,7 +248,7 @@ DialogForm.prototype = {
                 case 'select':
                     formEl.val('');
                     break;
-                case 'tagAs':
+                case 'label':
                     formEl.empty();
                     break;
                 case 'hidden':
@@ -214,37 +273,27 @@ DialogForm.prototype = {
             properties: {},
             customValues: {}
         };
+
+        var mappedProps = this.w.schemaManager.mapper.getMappedProperties(this.type);
         
         if (this.mode === DialogForm.ADD) {
+            // copy properties over
             $.extend(this.currentData.properties, config.properties);
-
-            // if it's a named entity, try setting attributes using the property mappings
-            var data = {}
-            if (this.currentData.properties.uri !== undefined) {
-                var uriMapping = this.w.schemaManager.mapper.getAttributeForProperty(this.type, 'uri');
-                if (uriMapping !== undefined) {
-                    data[uriMapping] = this.currentData.properties.uri;
+            // map property values to attributes
+            mappedProps.forEach((propName) => {
+                var propVal = this.currentData.properties[propName];
+                var propMapping = this.w.schemaManager.mapper.getAttributeForProperty(this.type, propName);
+                if (propVal !== undefined && propMapping !== undefined) {
+                    this.currentData.attributes[propMapping] = propVal;
                 }
-            }
-            if (this.currentData.properties.lemma !== undefined) {
-                $('[data-type="tagAs"]', this.$el).html(this.currentData.properties.lemma); // also set the tagAs field
-                var lemmaMapping = this.w.schemaManager.mapper.getAttributeForProperty(this.type, 'lemma');
-                if (lemmaMapping !== undefined) {
-                    data[lemmaMapping] = this.currentData.properties.lemma;
-                }
-            }
-            
-            var showWidget = this.attributesWidget.setData(data);
-            if (showWidget) {
-                this.attributesWidget.expand();
-            }
+            });
         } else if (this.mode === DialogForm.EDIT) {
             this.currentId = config.entry.getId();
             
             // clone attributes and custom values, then unescaping the values
-            var data = Object.assign({}, config.entry.getAttributes());
-            for (var key in data) {
-                data[key] = this.w.utilities.unescapeHTMLString(data[key]);
+            var attributes = Object.assign({}, config.entry.getAttributes());
+            for (var key in attributes) {
+                attributes[key] = this.w.utilities.unescapeHTMLString(attributes[key]);
             }
             var customValues = JSON.parse(JSON.stringify(config.entry.getCustomValues()));
             for (var key in customValues) {
@@ -262,66 +311,18 @@ DialogForm.prototype = {
                 }
             }
             
+            this.currentData.attributes = attributes;
             this.currentData.customValues = customValues;
             this.currentData.properties = {
                 tag: config.entry.tag
             }
-            
-            // populate form
-            var that = this;
-            $('[data-type]', this.$el)
-                .filter(function(index, el) {
-                    return $(el).parents('.cwrcWrapper').length === 1; // don't include form elements from note entity children
-                })
-                .each(function(index, el) {
-                    var formEl = $(this);
-                    var type = formEl.data('type');
-                    if (type === 'attributes') {
-                        var showWidget = that.attributesWidget.setData(data);
-                        if (showWidget) {
-                            that.attributesWidget.expand();
-                        }
-                    } else {
-                        var mapping = formEl.data('mapping');
-                        if (mapping !== undefined) {
-                            var value;
-                            
-                            var isCustom = mapping.indexOf('custom.') === 0;
-                            var isProperty = mapping.indexOf('prop.') === 0;
-                            if (isCustom) {
-                                mapping = mapping.replace(/^custom\./, '');
-                                value = customValues[mapping];
-                            } else if (isProperty) {
-                                mapping = mapping.replace(/^prop\./, '');
-                                value = config.entry[mapping];
-                            } else {
-                                value = data[mapping];
-                            }
-                            
-                            if (value !== undefined) {
-                                switch (type) {
-                                    case 'select':
-                                        formEl.val(value);
-                                        if (formEl.data('transform') === 'selectmenu') {
-                                            formEl.selectmenu('refresh');
-                                        }
-                                        formEl.parents('[data-transform="accordion"]').accordion('option', 'active', 0);
-                                        break;
-                                    case 'radio':
-                                        $('input[value="'+value+'"]', formEl).prop('checked', true);
-                                        if (formEl.data('transform') === 'buttonset') {
-                                            $('input', formEl).button('refresh');
-                                        }
-                                        break;
-                                    case 'textbox':
-                                        formEl.val(value);
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                });
+            // copy mapped properties to currentData
+            mappedProps.forEach((propName) => {
+                this.currentData.properties[propName] = config.entry[propName];
+            });
         }
+
+        DialogForm.populateForm(this);
         
         this.$el.trigger('beforeShow', [config, this]);
         

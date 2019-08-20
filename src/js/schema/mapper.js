@@ -365,6 +365,26 @@ Mapper.prototype = {
     },
 
     /**
+     * Get all the properties for the entity type that have mappings to attributes
+     * @param {String} type The entity type
+     * @returns {Array}
+     */
+    getMappedProperties: function(type) {
+        var props = [];
+        
+        var entry = this.getMappings().entities[type];
+        if (entry.mapping) {
+            for (var key in entry.mapping) {
+                if (key !== 'customValues') {
+                    props.push(key);
+                }
+            }
+        }
+
+        return props;
+    },
+
+    /**
      * If the entity has properties that map to attributes, update the property values with those from the attributes
      * @param {Entity} entity 
      */

@@ -9,7 +9,7 @@ module.exports = function(writer, parentEl) {
     '<div class="annotationDialog">'+
         '<div>'+
             '<p>Selected source:</p>'+
-            '<span class="tagAs" data-type="tagAs"></span>'+
+            '<span class="tagAs" data-type="label" data-mapping="prop.lemma"></span>'+
         '</div>'+
         '<div>'+
             '<label for="'+id+'_noteContent">Citation text</label>'+
