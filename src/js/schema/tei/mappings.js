@@ -61,8 +61,8 @@ rs: {
         lemma: '@key',
         certainty: '@cert'
     },
-    annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'cwrc:RS');
+    annotation: function(annotationsManager, entity) {
+        return annotationsManager.commonAnnotation(entity, 'cwrc:RS');
     }
 },
 
@@ -73,7 +73,7 @@ person: {
         lemma: '@key',
         certainty: '@cert'
     },
-    annotation: function(annotationsManager, entity, format) {
+    annotation: function(annotationsManager, entity) {
         var types = '';
         var type = entity.getAttribute('type');
         switch(type) {
@@ -90,7 +90,7 @@ person: {
                 types = 'cwrc:NaturalPerson';
                 break;
         }
-        return annotationsManager.commonAnnotation(entity, format, types);
+        return annotationsManager.commonAnnotation(entity, types);
     }
 },
 
@@ -101,8 +101,8 @@ org: {
         lemma: '@key',
         certainty: '@cert'
     },
-    annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'org:Organization');
+    annotation: function(annotationsManager, entity) {
+        return annotationsManager.commonAnnotation(entity, 'org:Organization');
     }
 },
 
@@ -127,8 +127,8 @@ place: {
         certainty: '@cert',
         customValues: {precision: 'precision/@precision'}
     },
-    annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'cwrc:RealPlace');
+    annotation: function(annotationsManager, entity) {
+        var anno = annotationsManager.commonAnnotation(entity, 'cwrc:RealPlace');
         var precision = entity.getCustomValue('precision');
         if (precision) {
             anno["cwrc:hasPrecision"] = 'cwrc:'+precision+'Certainty';
@@ -144,9 +144,8 @@ title: {
         lemma: '@key',
         certainty: '@cert'
     },
-    annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'bf:Title');
-        return anno;
+    annotation: function(annotationsManager, entity) {
+        return annotationsManager.commonAnnotation(entity, 'bf:Title');
     }
 },
 
@@ -184,8 +183,8 @@ correction: {
             corrText: 'corr/text()'
         }
     },
-    annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'fabio:Correction', 'oa:editing');
+    annotation: function(annotationsManager, entity) {
+        var anno = annotationsManager.commonAnnotation(entity, 'fabio:Correction', 'oa:editing');
         anno["oa:hasBody"] = {
             "@type": "fabio:Correction",
             "dc:format": "text/xml",
@@ -197,8 +196,8 @@ correction: {
 
 link: {
     parentTag: 'ref',
-    annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText', 'oa:linking');
+    annotation: function(annotationsManager, entity) {
+        var anno = annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:linking');
         anno["oa:hasBody"] = {
             "@id": entity.getAttribute('target'),
             "@type": "cnt:ContentAsText"
@@ -209,8 +208,8 @@ link: {
 
 date: {
     parentTag: 'date',
-    annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'xsd:date');
+    annotation: function(annotationsManager, entity) {
+        var anno = annotationsManager.commonAnnotation(entity, 'xsd:date');
         var date;
         if (entity.getAttribute('when') !== undefined) {
             date = entity.getAttribute('when');
@@ -227,7 +226,7 @@ note: {
     xpathSelector: 'self::note[not(@type="citation")]',
     isNote: true,
     requiresSelection: false,
-    annotation: function(annotationsManager, entity, format) {
+    annotation: function(annotationsManager, entity) {
         var types = '';
         var type = entity.getAttribute('type');
         switch(type) {
@@ -241,7 +240,7 @@ note: {
                 types = 'oa:TextualBody'
                 break;
         }
-        return annotationsManager.commonAnnotation(entity, format, types, 'oa:describing');
+        return annotationsManager.commonAnnotation(entity, types, 'oa:describing');
     }
 },
 
@@ -265,8 +264,8 @@ citation: {
         certainty: '@cert',
         noteContent: 'bibl/text()'
     },
-    annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'cito:Citation', 'cwrc:citing');
+    annotation: function(annotationsManager, entity) {
+        var anno = annotationsManager.commonAnnotation(entity, 'cito:Citation', 'cwrc:citing');
         if (entity.getURI()) {
             anno["oa:hasBody"] = [
                 anno["oa:hasBody"],
@@ -297,7 +296,7 @@ keyword: {
     mapping: {
         noteContent: 'term/text()'
     },
-    annotation: function(annotationsManager, entity, format) {
+    annotation: function(annotationsManager, entity) {
         var types = '';
         var motivations = '';
         var ana = entity.getAttribute('ana');
@@ -310,7 +309,7 @@ keyword: {
             types = 'fabio:UncontrolledVocabulary';
             motivations = 'oa:tagging';
         }
-        var anno = annotationsManager.commonAnnotation(entity, format, types, motivations);
+        var anno = annotationsManager.commonAnnotation(entity, types, motivations);
         if (hasRef) {
             anno["oa:hasBody"] = [{
                 "@type": "fabio:ControlledVocabulary",

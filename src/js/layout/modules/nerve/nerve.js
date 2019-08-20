@@ -173,7 +173,6 @@ function Nerve(config) {
     var run = function() {
         nrv.reset();
         
-        // var document = w.converter.getDocumentContent(false);
         var document = getBasicXmlDocument();
         
         var options = $parent.find('select[name="processOptions"]').val();

@@ -85,30 +85,32 @@ function Selection(config) {
         if ($prismContainer.is(':visible') && timeDiff > 250) {
             lastUpdate = new Date().getTime();
             
-            var xmlString = '';
             if (useDoc || w.editor.selection.isCollapsed()) {
-                var includeRdf = $includeRdf.prop('checked');
-                xmlString = w.converter.getDocumentContent(includeRdf);
                 showingFullDoc = true;
+                var includeRdf = $includeRdf.prop('checked');
+                w.converter.getDocumentContent(includeRdf, _showString);
             } else {
+                showingFullDoc = false;
                 var range = w.editor.selection.getRng(true);
                 var contents = range.cloneContents();
                 $selectionContents.html(contents);
-                xmlString = w.converter.buildXMLString($selectionContents);
-                showingFullDoc = false;
+                var xmlString = w.converter.buildXMLString($selectionContents);
+                _showString(xmlString);
             }
-            
-            var escapedContents = w.utilities.escapeHTMLString(xmlString);
-            if (escapedContents.length > selectionTrimLength) {
-                escapedContents = escapedContents.substring(0, selectionTrimLength);// + '&hellip;';
-            }
-            $prismContainer.html(
-                '<pre style="width:100%;height:100%;padding:0;margin:0;border:none !important;"><code class="language-markup" style="white-space: pre-wrap;">'
-                    +escapedContents+
-                '</code></pre>'
-            );
-            Prism.highlightElement($('code', $prismContainer)[0]);
         }
+    }
+
+    var _showString = function(xmlString) {
+        var escapedContents = w.utilities.escapeHTMLString(xmlString);
+        if (escapedContents.length > selectionTrimLength) {
+            escapedContents = escapedContents.substring(0, selectionTrimLength);// + '&hellip;';
+        }
+        $prismContainer.html(
+            '<pre style="width:100%;height:100%;padding:0;margin:0;border:none !important;"><code class="language-markup" style="white-space: pre-wrap;">'
+                +escapedContents+
+            '</code></pre>'
+        );
+        Prism.highlightElement($('code', $prismContainer)[0]);
     }
 
     var clearView = function() {

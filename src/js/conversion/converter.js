@@ -71,24 +71,25 @@ function Converter(writer) {
         converter.processDocument(docXml);
     };
 
-    converter.getDocument = function(asString) {
-        var docString = converter.getDocumentContent(true);
-        if (asString === true) {
-            return docString;
-        } else {
-            var doc = null;
-            try {
-                var parser = new DOMParser();
-                doc = parser.parseFromString(docString, 'application/xml');
-            } catch (e) {
-                w.dialogManager.show('message', {
-                    title: 'Error',
-                    msg: 'There was an error getting the document:' + e,
-                    type: 'error'
-                });
+    converter.getDocument = function(asString, callback) {
+        converter.getDocumentContent(true, (docString) => {
+            if (asString === true) {
+                callback.call(this, docString);
+            } else {
+                var doc = null;
+                try {
+                    var parser = new DOMParser();
+                    doc = parser.parseFromString(docString, 'application/xml');
+                } catch (e) {
+                    w.dialogManager.show('message', {
+                        title: 'Error',
+                        msg: 'There was an error getting the document:' + e,
+                        type: 'error'
+                    });
+                }
+                callback.call(this, doc);
             }
-            return doc;
-        }
+        });
     };
 
     converter.setDocument = function(document) {

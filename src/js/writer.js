@@ -104,7 +104,7 @@ function CWRCWriter(config) {
     }
 
     // what format to produce annotations in(XML or JSON)
-    w.annotationMode = w.JSON;
+    w.annotationMode = w.XML;
 
     // can entities overlap?
     w.allowOverlap = false;
@@ -213,10 +213,10 @@ function CWRCWriter(config) {
     /**
      * Get the current document from the editor
      * @param {Boolean} [asString=false] True to return a string
-     * @returns {Document|String} The XML document
+     * @param {Function} callback
      */
-    w.getDocument = function(asString) {
-        return w.converter.getDocument(asString);
+    w.getDocument = function(asString, callback) {
+        w.converter.getDocument(asString, callback);
     };
 
     /**
