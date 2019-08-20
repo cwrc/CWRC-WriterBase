@@ -28,8 +28,15 @@ function CwrcDialogBridge(writer, config) {
                         if ($.isArray(result.name)) {
                             result.name = result.name[0];
                         }
+
+                        var lemma = result.name;
+                        // use the query string as the lemma if the user entered a custom uri
+                        if (result.repository === 'custom') {
+                            lemma = query;
+                        }
+
                         w.entitiesManager.setURIForEntity(config.entry.getId(), result.uri);
-                        w.entitiesManager.setLemmaForEntity(config.entry.getId(), result.name);
+                        w.entitiesManager.setLemmaForEntity(config.entry.getId(), lemma);
                         
                         w.dialogManager.show('schema/'+localDialog, {
                             entry: config.entry
@@ -53,11 +60,17 @@ function CwrcDialogBridge(writer, config) {
                             result.name = result.name[0];
                         }
                         
+                        var lemma = result.name;
+                        // use the query string as the lemma if the user entered a custom uri
+                        if (result.repository === 'custom') {
+                            lemma = query;
+                        }
+
                         w.dialogManager.show('schema/'+localDialog, {
                             query: query,
                             properties: {
                                 uri: result.uri,
-                                lemma: result.name
+                                lemma: lemma
                             }
                         });
                     },
