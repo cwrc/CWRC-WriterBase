@@ -247,6 +247,9 @@ DialogForm.prototype = {
                 case 'textbox':
                 case 'select':
                     formEl.val('');
+                    if (formEl.data('transform') === 'selectmenu') {
+                        formEl.selectmenu('refresh');
+                    }
                     break;
                 case 'label':
                     formEl.empty();
@@ -365,6 +368,9 @@ DialogForm.prototype = {
                     break;
                 case 'accordion':
                     formEl.accordion('destroy');
+                    break;
+                case 'selectmenu':
+                    formEl.selectmenu('destroy');
                     break;
             }
         });

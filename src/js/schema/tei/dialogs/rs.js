@@ -25,7 +25,7 @@ module.exports = function(writer, parentEl) {
         '<div>'+
             '<div class="type">'+
                 '<label>Type (optional):</label>'+
-                '<select name="type" data-mapping="type" data-type="select"></select>'+
+                '<select name="type" data-mapping="type" data-type="select" data-transform="selectmenu"></select>'+
             '</div>'+
             '<div style="margin-top: 5px;">'+
                 '<label>Other type:</label>'+
@@ -49,31 +49,35 @@ module.exports = function(writer, parentEl) {
     var typeRoot = 'http://sparql.cwrc.ca/ontology/cwrc.html#';
     var types = ["cwrc:Award", "cwrc:BirthPosition", "cwrc:Certainty", "cwrc:Credential", "cwrc:EducationalAward", "cwrc:Ethnicity", "cwrc:Gender", "cwrc:GeographicHeritage", "cwrc:NationalHeritage", "cwrc:NationalIdentity", "cwrc:NaturalPerson", "cwrc:Occupation", "cwrc:PoliticalAffiliation", "cwrc:Precision", "cwrc:RaceColour", "cwrc:Religion", "cwrc:ReproductiveHistory", "cwrc:Role", "cwrc:Sexuality", "cwrc:SocialClass", "cwrc:TextLabels"];
 
-    dialog.$el.on('beforeShow', function(e, config) {
-        var entry = config.entry;
+    // add types to select menu and add event handler
+    var typeString = '';
+    typeString += '<option value=""></option>';
+    typeString += '<option value="'+OTHER_OPTION+'">Other (specify)</option>';
+    types.forEach(function(type) {
+        typeString += '<option value="'+typeRoot+type+'">'+type+'</option>';
+    });
 
-        var typeString = '';
-        typeString += '<option value=""></option>';
-        typeString += '<option value="'+OTHER_OPTION+'">Other (specify)</option>';
-        types.forEach(function(type) {
-            typeString += '<option value="'+typeRoot+type+'">'+type+'</option>';
-        });
-    
-        $el.find('select[name=type]').html(typeString).selectmenu({
-            select: function(e, ui) {
-                if (ui.item.value === OTHER_OPTION) {
-                    $el.find('input[name=otherType]').parent().show();
-                } else {
-                    // set the other input value to that of the selection and then hide
-                    $el.find('input[name=otherType]').val(ui.item.value).parent().hide();
-                    // manually fire change event in order to update attribute widget
-                    $(this).trigger('change', {
-                        target: this
-                    });
-                }
+    $el.find('select[name=type]')
+        .html(typeString)
+        .selectmenu('refresh')
+        .on('selectmenuselect', function(e, ui) {
+            if (ui.item.value === OTHER_OPTION) {
+                $el.find('input[name=otherType]').parent().show();
+            } else {
+                // set the other input value to that of the selection and then hide
+                $el.find('input[name=otherType]').val(ui.item.value).parent().hide();
+                // manually fire change event in order to update attribute widget
+                $(this).trigger('change', {
+                    target: this
+                });
             }
-        })
-        $el.find('select[name=type]').selectmenu('menuWidget').addClass('overflow').height('300px');
+        });
+    $el.find('select[name=type]').selectmenu('menuWidget').addClass('overflow').height('300px');
+
+
+    dialog.$el.on('beforeShow', function(e, config) {
+        // handle type selection
+        var entry = config.entry;
 
         var typeValue = '';
         var otherType = false;
