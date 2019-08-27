@@ -361,17 +361,26 @@ DialogForm.prototype = {
         
         $('[data-transform]', this.$el).each(function(index, el) {
             var formEl = $(el);
-            var transform = formEl.data('transform');
-            switch (transform) {
-                case 'buttonset':
-                    formEl.controlgroup('destroy');
-                    break;
-                case 'accordion':
-                    formEl.accordion('destroy');
-                    break;
-                case 'selectmenu':
-                    formEl.selectmenu('destroy');
-                    break;
+
+            // check to see if the control has been instantiated
+            var uiInstance = Object.keys(formEl.data()).find((key) => {
+                // instance stored in key that starts with "ui"
+                return key.indexOf('ui') === 0;
+            })
+
+            if (uiInstance) {
+                var transform = formEl.data('transform');
+                switch (transform) {
+                    case 'buttonset':
+                        formEl.controlgroup('destroy');
+                        break;
+                    case 'accordion':
+                        formEl.accordion('destroy');
+                        break;
+                    case 'selectmenu':
+                        formEl.selectmenu('destroy');
+                        break;
+                }
             }
         });
         

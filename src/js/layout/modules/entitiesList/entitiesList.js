@@ -78,7 +78,7 @@ function EntitiesList(config) {
     });
 
     $entities.find('button.convert').button().click(function() {
-        convertEntities();
+        pm.convertEntities();
     });
     $entities.find('button.accept').button().click(function() {
         acceptAll();
@@ -242,22 +242,26 @@ function EntitiesList(config) {
         for (var name in entityAttributes) {
             if (w.converter.reservedAttributes[name] !== true) {
                 var value = entityAttributes[name];
-                if (urlAttributes.indexOf(name) !== -1 || value.indexOf('http') === 0) {
-                    if (value !== uri) { // don't duplicate uri
-                        if (!attAdded && nevAdded) {
-                            infoString += '<li><hr /></li>';
+                if (value !== undefined) {
+                    if (urlAttributes.indexOf(name) !== -1 || value.indexOf('http') === 0) {
+                        if (value !== uri) { // don't duplicate uri
+                            if (!attAdded && nevAdded) {
+                                infoString += '<li><hr /></li>';
+                            }
+                            infoString += '<li><strong>'+name+'</strong>: <a href="'+value+'" target="_blank" rel="noopener">'+value+'</a></li>';
+                            attAdded = true;
                         }
-                        infoString += '<li><strong>'+name+'</strong>: <a href="'+value+'" target="_blank" rel="noopener">'+value+'</a></li>';
-                        attAdded = true;
+                    } else {
+                        if (value !== lemma) { // don't duplicate lemma
+                            if (!attAdded && nevAdded) {
+                                infoString += '<li><hr /></li>';
+                            }
+                            infoString += '<li><strong>'+name+'</strong>: '+value+'</li>';
+                            attAdded = true;
+                        }
                     }
                 } else {
-                    if (value !== lemma) { // don't duplicate lemma
-                        if (!attAdded && nevAdded) {
-                            infoString += '<li><hr /></li>';
-                        }
-                        infoString += '<li><strong>'+name+'</strong>: '+value+'</li>';
-                        attAdded = true;
-                    }
+                    console.warn('entitiesList: undefined value for '+name+'in ', entity);
                 }
             }
         }
@@ -321,7 +325,7 @@ function EntitiesList(config) {
     };
 
     // CONVERSION
-    var convertEntities = function() {
+    pm.convertEntities = function() {
         var typesToFind = ['person', 'place', 'date', 'org', 'title', 'link'];
         var potentialEntitiesByType = w.schemaManager.mapper.findEntities(typesToFind);
         var potentialEntities = [];
