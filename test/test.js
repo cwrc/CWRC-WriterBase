@@ -47,7 +47,9 @@ function initAndLoadDoc(writer, doc) {
 }
 
 function getWriterInstance() {
-    return new CWRCWriter(config);
+    let w = new CWRCWriter(config);
+    w.eventManager.debug(false);
+    return w;
 }
 
 function resetWriter() {

@@ -10,6 +10,8 @@ var $ = require('jquery');
 function EventManager(writer) {
     var w = writer;
     
+    var doDebug = true;
+
     var events = {};
     
     /**
@@ -26,7 +28,9 @@ function EventManager(writer) {
             callbacks = $.Callbacks();
             event = {
                 publish: function() {
-                    console.debug('CWRC-Writer "'+this.event+'":', arguments);
+                    if (doDebug) {
+                        console.debug('CWRC-Writer "'+this.event+'":', arguments);
+                    }
                     callbacks.fire.apply(this, arguments);
                 },
                 subscribe: callbacks.add,
@@ -280,6 +284,14 @@ function EventManager(writer) {
     e.destroy = function() {
         // TODO empty callbacks
     };
+
+    /**
+     * Whether to output events to the console.
+     * @param {Boolean} doIt
+     */
+    e.debug = function(doIt) {
+        doDebug = doIt;
+    }
     
     return e;
 };
