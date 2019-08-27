@@ -22,7 +22,11 @@ deploy:
 branches:
   only:
   - master
+addons:
+  chrome: stable
 services:
   - xvfb
+before_install:
+  google-chrome-stable --headless --disable-gpu
 install:
   - npm install
