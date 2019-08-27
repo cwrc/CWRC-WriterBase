@@ -3,16 +3,16 @@
 const path = require('path');
 
 // uncomment to show ui
-const eWin = require('electron').remote.getCurrentWindow();
-eWin.setSize(900, 700);
+// const eWin = require('electron').remote.getCurrentWindow();
+// eWin.setSize(900, 700);
 // eWin.show();
 
 const WAIT_TIME = 150;
 
 // override alert function so it doesn't hold up tests
-// window.alert = function(msg) {
-//     console.warn('window.alert:',msg);
-// }
+window.alert = function(msg) {
+    console.warn('window.alert:',msg);
+}
 
 const config = require('./mocks/config.json');
 config.cwrcRootUrl = path.resolve('./build')+'\\';
