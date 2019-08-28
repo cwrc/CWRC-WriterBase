@@ -58,13 +58,14 @@ function EditSource(writer, parentEl) {
             type: 'info',
             callback: function(yes) {
                 if (yes) {
-                    var docText = w.converter.getDocumentContent(true);
-                    console.time('dialog open');
-                    $edit.dialog('open');
-                    console.timeEnd('dialog open');
-                    console.time('set doc text');
-                    $('textarea', $edit).val(docText);
-                    console.timeEnd('set doc text');
+                    w.converter.getDocumentContent(true, (docText) => {
+                        console.time('dialog open');
+                        $edit.dialog('open');
+                        console.timeEnd('dialog open');
+                        console.time('set doc text');
+                        $('textarea', $edit).val(docText);
+                        console.timeEnd('set doc text');
+                    });
                 }
             }
         });

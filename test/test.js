@@ -82,14 +82,22 @@ test('writer constructor', () => {
     })
 });
 
-test('writer.setDocument writer.getDocument', () => {
-    expect.assertions(1);
+test('writer.setDocument writer.getDocumentString writer.getDocumentXML', () => {
+    expect.assertions(2);
     
     writer = getWriterInstance();
     
-    return initAndLoadDoc(writer, teiDoc).then(() => {
-        var doc = writer.getDocument();
-        expect(doc.firstElementChild.textContent.indexOf('Sample letter content')).toBeGreaterThan(-1);
+    return new Promise((resolve, reject) => {
+        initAndLoadDoc(writer, teiDoc).then(() => {
+            writer.getDocumentXML((xmlDoc) => {
+                expect(xmlDoc.firstElementChild.textContent.indexOf('Sample letter content')).toBeGreaterThan(-1);
+
+                writer.getDocumentString((xmlString) => {
+                    expect(xmlString.indexOf('Sample letter content')).toBeGreaterThan(-1);
+                    resolve();
+                });
+            });
+        })
     })
 });
 

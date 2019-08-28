@@ -47,6 +47,7 @@
     "openseadragon": "2.3.1",
     "prism-themes": "^1.0.1",
     "prismjs": "1.6.0",
+    "rdflib": "^1.0.2",
     "tinymce": "4.7.2"
   },
   "devDependencies": {
@@ -57,7 +58,6 @@
     "@semantic-release/git": "^7.0.16",
     "@testing-library/jest-dom": "^4.1.0",
     "babel-jest": "^24.9.0",
-    "babel-preset-env": "^1.7.0",
     "babelify": "^10.0.0",
     "browserify": "^16.2.3",
     "codecov": "^3.3.0",
@@ -86,6 +86,7 @@
     "build-css": "mkdirp build/css && npm run build-scoped-css && npm run build-editor-css",
     "build-scoped-css": "lessc src/css/build.less build/css/cwrc-writer.css --global-var=\"parentId=#cwrcWriterContainer\"",
     "build-editor-css": "lessc src/css/editor.less build/css/editor.css",
+    "build-rdflib": "babel node_modules/rdflib/dist/rdflib.min.js -o src/lib/rdflib/rdflib-dist.js --presets=es2015",
     "copy-files-to-build": "npm run copy-tinymce && npm run copy-jqueryui-images && npm run copy-bootstrap-fonts && npm run copy-jstree-images",
     "copy-tinymce": "copyfiles -u 3 \"src/css/tinymce/**/*\" build/css/tinymce",
     "copy-jqueryui-images": "copyfiles -u 3 \"src/css/jquery-ui/jquery-ui-images/*\" build/css/",
