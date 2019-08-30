@@ -47,7 +47,7 @@
     "openseadragon": "2.3.1",
     "prism-themes": "^1.0.1",
     "prismjs": "1.6.0",
-    "rdflib": "^1.0.2",
+    "rdflib": "1.0.2",
     "tinymce": "4.7.2"
   },
   "devDependencies": {
