@@ -46,12 +46,12 @@ module.exports = function(writer, parentEl) {
         title: 'Tag Referencing String'
     });
 
-    var typeRoot = 'http://sparql.cwrc.ca/ontology/cwrc.html#';
-    var types = ["cwrc:Award", "cwrc:BirthPosition", "cwrc:Certainty", "cwrc:Credential", "cwrc:EducationalAward", "cwrc:Ethnicity", "cwrc:Gender", "cwrc:GeographicHeritage", "cwrc:NationalHeritage", "cwrc:NationalIdentity", "cwrc:NaturalPerson", "cwrc:Occupation", "cwrc:PoliticalAffiliation", "cwrc:Precision", "cwrc:RaceColour", "cwrc:Religion", "cwrc:ReproductiveHistory", "cwrc:Role", "cwrc:Sexuality", "cwrc:SocialClass", "cwrc:TextLabels"];
+    var typeRoot = 'http://sparql.cwrc.ca/ontology/cwrc#';
+    var types = ["Award", "BirthPosition", "Certainty", "Credential", "EducationalAward", "Ethnicity", "Gender", "GeographicHeritage", "NationalHeritage", "NationalIdentity", "NaturalPerson", "Occupation", "PoliticalAffiliation", "Precision", "RaceColour", "Religion", "ReproductiveHistory", "Role", "Sexuality", "SocialClass", "TextLabels"];
 
     // add types to select menu and add event handler
     var typeString = '';
-    typeString += '<option value=""></option>';
+    typeString += '<option value="">(none)</option>';
     typeString += '<option value="'+OTHER_OPTION+'">Other (specify)</option>';
     types.forEach(function(type) {
         typeString += '<option value="'+typeRoot+type+'">'+type+'</option>';

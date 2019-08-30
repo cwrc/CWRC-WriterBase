@@ -62,7 +62,12 @@ rs: {
         certainty: '@cert'
     },
     annotation: function(annotationsManager, entity) {
-        return annotationsManager.commonAnnotation(entity, 'cwrc:RS');
+        var type = entity.getAttribute('type');
+        if (type === undefined || type === '') {
+            type = 'owl:Thing';
+        }
+        type = type.replace('http://sparql.cwrc.ca/ontology/cwrc#', 'cwrc:');
+        return annotationsManager.commonAnnotation(entity, type);
     }
 },
 
