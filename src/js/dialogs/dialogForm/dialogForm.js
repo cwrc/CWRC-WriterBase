@@ -128,10 +128,7 @@ DialogForm.processForm = function(dialogInstance) {
                     case 'hidden':
                     case 'select':
                         var val = formEl.val();
-                        // only override if the value isn't blank
-                        if (val !== '') {
-                            data[dataKey][mapping] = val;
-                        }
+                        data[dataKey][mapping] = val;
                         break;
                 }
             }
