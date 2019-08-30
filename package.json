@@ -86,7 +86,6 @@
     "build-css": "mkdirp build/css && npm run build-scoped-css && npm run build-editor-css",
     "build-scoped-css": "lessc src/css/build.less build/css/cwrc-writer.css --global-var=\"parentId=#cwrcWriterContainer\"",
     "build-editor-css": "lessc src/css/editor.less build/css/editor.css",
-    "build-rdflib": "babel node_modules/rdflib/dist/rdflib.min.js -o src/lib/rdflib/rdflib-dist.js --presets=es2015",
     "copy-files-to-build": "npm run copy-tinymce && npm run copy-jqueryui-images && npm run copy-bootstrap-fonts && npm run copy-jstree-images",
     "copy-tinymce": "copyfiles -u 3 \"src/css/tinymce/**/*\" build/css/tinymce",
     "copy-jqueryui-images": "copyfiles -u 3 \"src/css/jquery-ui/jquery-ui-images/*\" build/css/",

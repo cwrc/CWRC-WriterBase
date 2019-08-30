@@ -217,7 +217,7 @@ AnnotationsManager.prototype = {
         format = format || 'json';
 
         var rdfStringArray = await Promise.all(entities.map(entity => this.getAnnotationString(entity, format)));
-        var rdfString = rdfStringArray.join();
+        var rdfString = rdfStringArray.join('');
 
         // triples
         for (var i = 0; i < this.w.triples.length; i++) {

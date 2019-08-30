@@ -20,7 +20,7 @@ function CWRC2XML(writer) {
      * @param {boolean} includeRDF True to include RDF in the header
      * @param {Function} callback Callback is called with the stringified document contents
      */
-    cwrc2xml.getDocumentContent = function(includeRDF, callback) {
+    cwrc2xml.getDocumentContent = async function(includeRDF, callback) {
         if (includeRDF && w.mode === w.XML) {
             includeRDF = false;
         }
@@ -100,79 +100,78 @@ function CWRC2XML(writer) {
                     entities.push(ent);
                 });
 
-                w.annotationsManager.getAnnotations(entities, rdfmode).then((rdfString) => {
-                    // parse the selector and find the relevant node
-                    var $docEl = $(xmlDoc.documentElement);
-                    var selector = w.schemaManager.mapper.getRdfParentSelector();
-                    var selectorTags = selector.split('/');
-                    var $currNode = $docEl;
-                    for (var i = 0; i < selectorTags.length; i++) {
-                        var tag = selectorTags[i];
-                        if (tag !== '') {
-                            if (tag.indexOf('::') === -1) {
-                                if ($currNode[0].nodeName === tag) {
-                                    continue;
+                let rdfString = await w.annotationsManager.getAnnotations(entities, rdfmode);
+                // parse the selector and find the relevant node
+                var $docEl = $(xmlDoc.documentElement);
+                var selector = w.schemaManager.mapper.getRdfParentSelector();
+                var selectorTags = selector.split('/');
+                var $currNode = $docEl;
+                for (var i = 0; i < selectorTags.length; i++) {
+                    var tag = selectorTags[i];
+                    if (tag !== '') {
+                        if (tag.indexOf('::') === -1) {
+                            if ($currNode[0].nodeName === tag) {
+                                continue;
+                            } else {
+                                var $nextNode = $currNode.children(tag).first();
+                                if ($nextNode.length === 1) {
+                                    $currNode = $nextNode;
                                 } else {
-                                    var $nextNode = $currNode.children(tag).first();
-                                    if ($nextNode.length === 1) {
-                                        $currNode = $nextNode;
+                                    // node doesn't exist so add it
+                                    var namespace = $currNode[0].namespaceURI;
+                                    var node = xmlDoc.createElementNS(namespace, tag);
+                                    var child = $currNode[0].firstElementChild;
+                                    if (child !== null) {
+                                        $currNode = $($currNode[0].insertBefore(node, child));
                                     } else {
-                                        // node doesn't exist so add it
-                                        var namespace = $currNode[0].namespaceURI;
-                                        var node = xmlDoc.createElementNS(namespace, tag);
-                                        var child = $currNode[0].firstElementChild;
-                                        if (child !== null) {
-                                            $currNode = $($currNode[0].insertBefore(node, child));
-                                        } else {
-                                            $currNode = $($currNode[0].appendChild(node));
-                                        }
+                                        $currNode = $($currNode[0].appendChild(node));
                                     }
                                 }
-                            } else {
-                                // axis handling
-                                var parts = tag.split('::');
-                                var axis = parts[0];
-                                tag = parts[1];
-                                switch(axis) {
-                                    case 'preceding-sibling':
-                                        var parent = $currNode[0].parentNode;
-                                        var namespace = parent.namespaceURI;
-                                        var node = xmlDoc.createElementNS(namespace, tag);
-                                        $currNode = $(parent.insertBefore(node, $currNode[0]));
-                                        break;
-                                    case 'following-sibling':
-                                        var parent = $currNode[0].parentNode;
-                                        var namespace = parent.namespaceURI;
-                                        var node = xmlDoc.createElementNS(namespace, tag);
-                                        var sibling = $currNode[0].nextElementSibling;
-                                        if (sibling !== null) {
-                                            $currNode = $(parent.insertBefore(node, sibling));
-                                        } else {
-                                            $currNode = $(parent.appendChild(node));
-                                        }
-                                        break;
-                                    default:
-                                        console.warn('cwrc2xml: axis',axis,'not supported');
-                                        break;
-                                }
+                            }
+                        } else {
+                            // axis handling
+                            var parts = tag.split('::');
+                            var axis = parts[0];
+                            tag = parts[1];
+                            switch(axis) {
+                                case 'preceding-sibling':
+                                    var parent = $currNode[0].parentNode;
+                                    var namespace = parent.namespaceURI;
+                                    var node = xmlDoc.createElementNS(namespace, tag);
+                                    $currNode = $(parent.insertBefore(node, $currNode[0]));
+                                    break;
+                                case 'following-sibling':
+                                    var parent = $currNode[0].parentNode;
+                                    var namespace = parent.namespaceURI;
+                                    var node = xmlDoc.createElementNS(namespace, tag);
+                                    var sibling = $currNode[0].nextElementSibling;
+                                    if (sibling !== null) {
+                                        $currNode = $(parent.insertBefore(node, sibling));
+                                    } else {
+                                        $currNode = $(parent.appendChild(node));
+                                    }
+                                    break;
+                                default:
+                                    console.warn('cwrc2xml: axis',axis,'not supported');
+                                    break;
                             }
                         }
                     }
+                }
 
-                    if ($currNode !== $docEl) {
-                        $currNode.append(rdfString);
-                    } else {
-                        console.warn('cwrc2xml: couldn\'t find rdfParent for',selector);
-                    }
-                    
-                    console.time('xmlToString');
-                    xmlString = w.utilities.xmlToString(xmlDoc);
-                    console.timeEnd('xmlToString');
+                if ($currNode !== $docEl) {
+                    $currNode.append(rdfString);
+                } else {
+                    console.warn('cwrc2xml: couldn\'t find rdfParent for',selector);
+                }
+                
+                console.time('xmlToString');
+                xmlString = w.utilities.xmlToString(xmlDoc);
+                console.timeEnd('xmlToString');
 
-                    xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
+                xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
 
-                    callback.call(this, xmlString);
-                })
+                callback.call(this, xmlString);
             }
         } else {
             xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
