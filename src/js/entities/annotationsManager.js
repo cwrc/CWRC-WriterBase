@@ -273,6 +273,12 @@ AnnotationsManager.prototype = {
                     }.bind(this));
                 } catch (err) {
                     console.warn('rdflib:', err);
+                    var message = this.w.utilities.convertTextForExport(err.message);
+                    this.w.dialogManager.show('message', {
+                        title: 'CWRC-Writer Export',
+                        msg: 'There was an error exporting your document: '+message,
+                        type: 'error'
+                    })
                 }
             } else if (format === 'json') {
                 rdfString += '\n<rdf:Description rdf:datatype="http://www.w3.org/TR/json-ld/"><![CDATA[\n';
@@ -297,15 +303,23 @@ AnnotationsManager.prototype = {
 
         return new Promise((resolve, reject) => {
             // need to use Promise because rdflib.parse uses callbacks
-            rdflib.parse(JSON.stringify(annotation), store, doc.uri, 'application/ld+json', (err, kb) => {
-                var result = rdflib.serialize(doc, kb, doc.uri, 'application/rdf+xml');
-                if (result !== undefined) {
-                    var xml = me.w.utilities.stringToXML(result);
-                    resolve(xml);
-                } else {
-                    reject(err);
-                }
-            });
+            try {
+                rdflib.parse(JSON.stringify(annotation), store, doc.uri, 'application/ld+json', (err, kb) => {
+                    try {
+                        var result = rdflib.serialize(doc, kb, doc.uri, 'application/rdf+xml');
+                        if (result !== undefined) {
+                            var xml = me.w.utilities.stringToXML(result);
+                            resolve(xml);
+                        } else {
+                            reject(err);
+                        }
+                    } catch (e2) {
+                        reject(e2);
+                    }
+                });
+            } catch (e1) {
+                reject(e1);
+            }
         });
     },
     
