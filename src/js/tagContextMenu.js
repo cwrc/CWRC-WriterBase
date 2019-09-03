@@ -170,7 +170,9 @@ function getItems() {
             tagAction: 'add',
             items: function() { return childTags; }()
         }
-        addEntities.call(this, items);
+        if (this.w.schemaManager.isSchemaCustom() === false) {
+            addEntities.call(this, items);
+        }
         items.sep0 = '---';
     }
 
@@ -390,6 +392,17 @@ function addEntities(items) {
             }
         }
     }
+
+    // filter the entities and only show those we have mappings for
+    // TODO cache so we don't do this filtering every time
+    var entityMappings = this.w.schemaManager.mapper.getMappings().entities;
+    for (var key in items.add_entity.items) {
+        var entityType = items.add_entity.items[key].icon;
+        if (entityMappings[entityType] === undefined) {
+            delete items.add_entity.items[key];
+        }
+    }
+
 }
 
 function getChildrenForTag(tag) {

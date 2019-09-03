@@ -263,45 +263,27 @@ LayoutManager.prototype = {
             }
         }
         
-        var doHandleEntityButtons = function(show) {
+        var doHandleEntityButtons = function(isCustom) {
             var controls = this.w.editor.theme.panel.rootControl.controlIdLookup;
-            var entityButtons = [];
-            var entityButtonsParent;
-            var sameParent = true;
+            var mappings = this.w.schemaManager.mapper.getMappings();
             for (var controlId in controls) {
                 var control = controls[controlId];
                 if (control.settings.entityButton === true) {
-                    entityButtons.push(control);
-                    if (entityButtonsParent === undefined) {
-                        entityButtonsParent = control.parent();
-                    } else if (sameParent && entityButtonsParent !== control.parent()) {
-                        sameParent = false;
-                    }
-                }
-            }
-            if (sameParent) {
-                if (show) {
-                    entityButtonsParent.show();
-                } else {
-                    entityButtonsParent.hide();
-                }
-            } else {
-                entityButtons.forEach(function(button) {
-                    if (show) {
-                        button.disabled(false);
+                    if (isCustom || mappings.entities[control.settings.entityType] === undefined) {
+                        control.disabled(true);
                     } else {
-                        button.disabled(true);
+                        control.disabled(false);
                     }
-                })
+                }
             }
         }.bind(this);
         
         // show/hide entity buttons based on the presence of a custom schema
         this.w.event('documentLoaded').subscribe(function(success) {
             if (!success || this.w.schemaManager.isSchemaCustom()) {
-                doHandleEntityButtons(false);
-            } else {
                 doHandleEntityButtons(true);
+            } else {
+                doHandleEntityButtons();
             }
         }.bind(this));
     },

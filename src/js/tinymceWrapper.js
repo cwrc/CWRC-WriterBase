@@ -80,7 +80,7 @@ TinymceWrapper.init = function(config) {
         valid_elements: '*[*]', // allow everything
 
         plugins: 'schematags,cwrcpath,preventdelete,paste',
-        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,adddate,addorg,addcitation,addnote,addtitle,addcorrection,addkeyword,addlink,addrs,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,logoutbutton,|,fullscreen' : config.buttons1,
+        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,addorg,addtitle,adddate,addcitation,addnote,addcorrection,addkeyword,addlink,addrs,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,logoutbutton,|,fullscreen' : config.buttons1,
         toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
         toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
         menubar: false,
@@ -193,67 +193,67 @@ TinymceWrapper.init = function(config) {
             };
 
             addButtonToEditor('addperson', {
-                title: 'Tag Person', icon: ' '+iconType+' person', entityButton: true,
+                title: 'Tag Person', icon: ' '+iconType+' person', entityButton: true, entityType: 'person',
                 onclick: function() {
                     w.tagger.addEntityDialog('person');
                 }
             });
             addButtonToEditor('addplace', {
-                title: 'Tag Place', icon: ' '+iconType+' place', entityButton: true,
+                title: 'Tag Place', icon: ' '+iconType+' place', entityButton: true, entityType: 'place',
                 onclick: function() {
                     w.tagger.addEntityDialog('place');
                 }
             });
             addButtonToEditor('adddate', {
-                title: 'Tag Date', icon: ' '+iconType+' date', entityButton: true,
+                title: 'Tag Date', icon: ' '+iconType+' date', entityButton: true, entityType: 'date',
                 onclick: function() {
                     w.tagger.addEntityDialog('date');
                 }
             });
             addButtonToEditor('addorg', {
-                title: 'Tag Organization', icon: ' '+iconType+' org', entityButton: true,
+                title: 'Tag Organization', icon: ' '+iconType+' org', entityButton: true, entityType: 'org',
                 onclick: function() {
                     w.tagger.addEntityDialog('org');
                 }
             });
             addButtonToEditor('addcitation', {
-                title: 'Tag Citation', icon: ' '+iconType+' citation', entityButton: true,
+                title: 'Tag Citation', icon: ' '+iconType+' citation', entityButton: true, entityType: 'citation',
                 onclick: function() {
                     w.tagger.addEntityDialog('citation');
                 }
             });
             addButtonToEditor('addnote', {
-                title: 'Tag Note', icon: ' '+iconType+' note', entityButton: true,
+                title: 'Tag Note', icon: ' '+iconType+' note', entityButton: true, entityType: 'note',
                 onclick: function() {
                     w.tagger.addEntityDialog('note');
                 }
             });
             addButtonToEditor('addcorrection', {
-                title: 'Tag Correction', icon: ' '+iconType+' correction', entityButton: true,
+                title: 'Tag Correction', icon: ' '+iconType+' correction', entityButton: true, entityType: 'correction',
                 onclick: function() {
                     w.tagger.addEntityDialog('correction');
                 }
             });
             addButtonToEditor('addkeyword', {
-                title: 'Tag Keyword', icon: ' '+iconType+' keyword', entityButton: true,
+                title: 'Tag Keyword', icon: ' '+iconType+' keyword', entityButton: true, entityType: 'keyword',
                 onclick: function() {
                     w.tagger.addEntityDialog('keyword');
                 }
             });
             addButtonToEditor('addlink', {
-                title: 'Tag Link', icon: ' '+iconType+' link', entityButton: true,
+                title: 'Tag Link', icon: ' '+iconType+' link', entityButton: true, entityType: 'link',
                 onclick: function() {
                     w.tagger.addEntityDialog('link');
                 }
             });
             addButtonToEditor('addtitle', {
-                title: 'Tag Text/Title', icon: ' '+iconType+' title', entityButton: true,
+                title: 'Tag Text/Title', icon: ' '+iconType+' title', entityButton: true, entityType: 'title',
                 onclick: function() {
                     w.tagger.addEntityDialog('title');
                 }
             });
             addButtonToEditor('addrs', {
-                title: 'Tag Referencing String', icon: ' '+iconType+' rs', entityButton: true,
+                title: 'Tag Referencing String', icon: ' '+iconType+' rs', entityButton: true, entityType: 'rs',
                 onclick: function() {
                     w.tagger.addEntityDialog('rs');
                 }
