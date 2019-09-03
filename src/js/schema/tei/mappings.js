@@ -282,6 +282,8 @@ citation: {
                     "cito:hasCitationEvent": "cito:cites"
                 }
             ]
+
+            anno["@context"]["cito"] = 'http://purl.org/spar/cito/';
         }
         return anno;
     }
@@ -323,6 +325,7 @@ keyword: {
                 "dc:format": "text/xml",
                 "skos:altLabel": entity.getContent()
             }]
+            anno["@context"]["skos"] = 'http://www.w3.org/2004/02/skos/';
         } else if (hasAna) {
             anno["oa:hasBody"] = [{
                 "@type": "fabio:UncontrolledVocabulary",
@@ -331,6 +334,7 @@ keyword: {
                 "dc:format": "text/xml",
                 "skos:altLabel": entity.getContent()
             }]
+            anno["@context"]["skos"] = 'http://www.w3.org/2004/02/skos/';
         } else {
             anno["oa:hasBody"] = {
                 "@type": "fabio:UncontrolledVocabulary",
