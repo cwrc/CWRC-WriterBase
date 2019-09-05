@@ -8,6 +8,13 @@ require('jquery-ui/ui/widgets/tooltip');
 
 var DialogForm = require('dialogForm');
 
+const NerveToCWRCMappings = {
+    "PERSON": "person",
+    "LOCATION": "place",
+    "ORGANIZATION": "org",
+    "TITLE": "title"
+};
+
 /**
  * @class Nerve
  * @param {Object} config
@@ -290,7 +297,8 @@ function Nerve(config) {
             var entry = context.tags[type];
             tagsContext[entry.name] = {
                 lemma: entry.lemmaAttribute,
-                uri: entry.linkAttribute
+                uri: entry.linkAttribute,
+                type: NerveToCWRCMappings[type]
             }
         }
 
@@ -315,7 +323,7 @@ function Nerve(config) {
                 var lemma = el.getAttribute(contextEntry.lemma);
                 var uri = el.getAttribute(contextEntry.uri);
                 if (lemma !== null || uri !== null) {
-                    var type = w.schemaManager.mapper.getEntityTypeForTag(tag);
+                    var type = contextEntry.type;//w.schemaManager.mapper.getEntityTypeForTag(tag);
                     if (type === undefined) {
                         console.warn('nerve: unrecognized entity type for',tag);
                     } else {
