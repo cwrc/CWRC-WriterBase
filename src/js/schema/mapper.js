@@ -12,6 +12,7 @@ function Mapper(config) {
     this.mappings = {
         empty: require('./empty_mappings.js'),
         tei: require('./tei/mappings.js'),
+        teiLite: require('./teiLite/mappings.js'),
         orlando: require('./orlando/mappings.js'),
         cwrcEntry: require('./cwrcEntry/mappings.js')
     };

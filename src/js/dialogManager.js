@@ -30,6 +30,7 @@ var CwrcRS = require('./dialogs/cwrcLookups/cwrcRS.js');
 // TODO hardcoded schemas
 var schemaDialogsMaps = {
     tei: require('./schema/tei/dialogs_map.js'),
+    teiLite: require('./schema/teiLite/dialogs_map.js'),
     orlando: require('./schema/orlando/dialogs_map.js'),
     cwrcEntry: require('./schema/cwrcEntry/dialogs_map.js')
 }

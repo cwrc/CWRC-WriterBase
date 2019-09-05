@@ -109,7 +109,8 @@
       "./src/js/**/*",
       "!**/js/tinymce_plugins/**",
       "!**/schema/cwrcEntry/**",
-      "!**/schema/orlando/**"
+      "!**/schema/orlando/**",
+      "!**/schema/teiLite/**"
     ],
     "coverageDirectory": "./coverage",
     "coverageThreshold": {
