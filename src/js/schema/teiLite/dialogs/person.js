@@ -45,10 +45,6 @@ module.exports = function(writer, parentEl) {
         rolesString += '<option value="'+role.code+'">'+role.title+'</option>';
     }
     $('#'+id+'_role select').html(rolesString);
-
-    dialog.$el.on('beforeSave', function(e, config) {
-        dialog.currentData.attributes.type = 'http://sparql.cwrc.ca/ontologies/cwrc#PersonalName';
-    });
     
     return {
         show: function(config) {

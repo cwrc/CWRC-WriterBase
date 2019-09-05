@@ -52,6 +52,11 @@ EntitiesManager.prototype = {
             
             entity = new Entity(config);
         }
+
+        var requiredAttributes = this.w.schemaManager.mapper.getRequiredAttributes(config.type);
+        for (var attName in requiredAttributes) {
+            entity.setAttribute(attName, requiredAttributes[attName]);
+        }
         
         if (entity.getContent() === undefined) {
             entity.setContent(this.getTextContentForEntity(entity.id));

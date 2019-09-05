@@ -36,9 +36,19 @@ listeners: {
  * textTag {String|Array}: used to specify the tag that contains the text content of the entity, mainly used by notes but also by more complex entity mappings
  * xpathSelector {String}: if the entity can have several different parentTags or if several entities share the same parentTag, this selector can help differentiate
  * requiresSelection {Boolean}: boolean indicating is a text selection is required to add the entity (as opposed to a point in the text) (default is true)
+ * requiredAttributes {Object}: a map of attribute names and values that will be added to every instance of this entity type
  */
 
 entities: {
+
+rs: {
+    parentTag: '',
+    mappingFunction: function(entity) {
+    },
+    mapping: {},
+    annotation: function(entity, format) {
+    }
+},
     
 person: {
     parentTag: '',

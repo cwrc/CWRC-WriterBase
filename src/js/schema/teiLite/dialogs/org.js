@@ -32,10 +32,6 @@ module.exports = function(writer, parentEl) {
         type: 'org',
         title: 'Tag Organization'
     });
-
-    dialog.$el.on('beforeSave', function(e, config) {
-        dialog.currentData.attributes.type = 'http://www.w3.org/ns/org#FormalOrganization';
-    });
     
     return {
         show: function(config) {

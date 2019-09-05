@@ -589,7 +589,7 @@ Mapper.prototype = {
 
     /**
      * Returns the parent tag for entity when converted to a particular schema.
-     * @param type The entity type.
+     * @param {String} type The entity type.
      * @returns {String}
      */
     getParentTag: function(type) {
@@ -605,12 +605,26 @@ Mapper.prototype = {
 
     /**
      * Returns the text tag (tag containing user-highlighted text) for entity when converted to a particular schema.
-     * @param type The entity type.
+     * @param {String} type The entity type.
      * @returns {String}
      */
     getTextTag: function(type) {
         var tag = this.getMappings().entities[type].textTag;
         return tag;
+    },
+
+    /**
+     * Returns the required attributes (atttribute names & values that are always added) for this entity type.
+     * @param {String} type The entity type.
+     * @returns {Object}
+     */
+    getRequiredAttributes: function(type) {
+        var requiredAttributes = this.getMappings().entities[type].requiredAttributes;
+        if (requiredAttributes === undefined) {
+            return {};
+        } else {
+            return requiredAttributes;
+        }
     },
 
     /**

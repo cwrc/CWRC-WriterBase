@@ -31,10 +31,6 @@ module.exports = function(writer, parentEl) {
         type: 'place',
         title: 'Tag Place'
     });
-    
-    dialog.$el.on('beforeSave', function(e, config) {
-        dialog.currentData.attributes.type = 'http://sparql.cwrc.ca/ontologies/cwrc#Place';
-    });
 
     return {
         show: function(config) {
