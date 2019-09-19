@@ -112,7 +112,7 @@ AttributeWidget.prototype = {
                     attributeSelector += '<li data-name="'+att.name+'" class="'+requiredClass+'">'+displayName+'</li>';
                 }
                 currAttString += '<div data-name="form_'+att.name+'" style="display:'+display+';"><label>'+displayName+'</label>';
-                if (att.documentation != '') {
+                if (typeof att.documentation === 'string' && att.documentation !== '') { // docs will be objects if the doc element was empty
                     currAttString += '<ins class="ui-icon ui-icon-help" title="'+att.documentation+'">&nbsp;</ins>';
                 }
                 currAttString += '<br/>';
@@ -188,26 +188,48 @@ AttributeWidget.prototype = {
         });
         $('.attsContainer input, .attsContainer select', this.$el).val('');
     },
+    /**
+     * Sets the attribute data for the widget.
+     * @param {Object} data A map of attribute name / value pairs
+     * @returns {Boolean} True if data was set
+     */
     setData: function(data) {
         var wasDataSet = false;
         
         for (var key in data) {
             var val = data[key];
-            if (val !== undefined) {
-                var li = $('.attributeSelector li[data-name="'+key+'"]', this.$el);
-                if (li.length === 1) {
-                    li.addClass('selected');
-                    var div = $('[data-name="form_'+key+'"]', this.$el);
-                    $('input, select', div).val(val);
-                    div.show();
-                    wasDataSet = true;
-                } else {
-                    console.warn('attributeWidget: no attribute for',key);
-                }
-            }
+            wasDataSet = this.setAttribute(key, val) || wasDataSet;
         }
         
         return wasDataSet;
+    },
+    /**
+     * Set a single attribute value for the widget.
+     * If the value is undefined or null then it is removed.
+     * @param {String} name Attribute name
+     * @param {String} value Attribute value
+     * @returns {Boolean} True if data was set
+     */
+    setAttribute: function(name, value) {
+        var li = $('.attributeSelector li[data-name="'+name+'"]', this.$el);
+        if (li.length === 1) {
+            if (value != null) {
+                li.addClass('selected');
+                var div = $('[data-name="form_'+name+'"]', this.$el);
+                $('input, select', div).val(value);
+                div.show();
+                return true;
+            } else {
+                li.removeClass('selected');
+                var div = $('[data-name="form_'+name+'"]', this.$el);
+                $('input, select', div).val('');
+                div.hide();
+                return true;
+            }
+        } else {
+            console.warn('attributeWidget: no attribute for',name);
+            return false;
+        }
     },
     
     /**
@@ -216,11 +238,14 @@ AttributeWidget.prototype = {
      */
     getData: function() {
         var attributes = {};
-        $('.attsContainer > div:visible', this.$el).children('input[type!="hidden"], select').each(function(index, el) {
-            var val = $(this).val();
-            if (val !== '') { // ignore blank values
-                attributes[$(this).attr('name')] = val;
-            }
+        $('.attributeSelector li.selected', this.$el).each((index, el) => {
+            var name = $(el).data('name');
+            $('.attsContainer > div[data-name="form_'+name+'"]', this.$el).children('input[type!="hidden"], select').each(function(index, el) {
+                var val = $(this).val();
+                if (val !== '') { // ignore blank values
+                    attributes[$(this).attr('name')] = val;
+                }
+            });
         });
         
         // validation
