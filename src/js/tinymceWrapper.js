@@ -80,7 +80,7 @@ TinymceWrapper.init = function(config) {
         valid_elements: '*[*]', // allow everything
 
         plugins: 'schematags,cwrcpath,preventdelete,paste',
-        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,addorg,addtitle,adddate,addcitation,addnote,addcorrection,addkeyword,addlink,addrs,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,logoutbutton,|,fullscreen' : config.buttons1,
+        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,addorg,addtitle,adddate,addcitation,addnote,addcorrection,addkeyword,addlink,addrs,addtranslation,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,logoutbutton,|,fullscreen' : config.buttons1,
         toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
         toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
         menubar: false,
@@ -338,6 +338,12 @@ TinymceWrapper.init = function(config) {
                 onclick: function() {
                     $('#westTabs').tabs('option', 'active', 2);
                     w.dialogManager.show('triple');
+                }
+            });
+            addButtonToEditor('addtranslation', {
+                title: 'Add Translation', icon: ' '+iconType+' translation',
+                onclick: function() {
+                    w.dialogManager.show('translation');
                 }
             });
             addButtonToEditor('fullscreen', {
