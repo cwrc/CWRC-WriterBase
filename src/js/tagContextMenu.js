@@ -297,7 +297,7 @@ function getItems() {
         }.bind(this)
     }
     items.remove_all = {
-        name: 'Remove Tag and All Content',
+        name: 'Remove All',
         icon: 'tag_remove',
         callback: function() {
             this.w.tagger.removeStructureTag(this.tagId, true);
