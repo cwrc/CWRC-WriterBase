@@ -13,18 +13,29 @@ function Translation(writer, parentEl) {
     
     var id = w.getUniqueId('translation_');
 
+    // TODO hardcoded
+    var tagName = 'div';
+    var langAttribute = 'xml:lang';
+    var respAttribute = 'resp';
+
     var $el = $(`
     <div class="annotationDialog">
         <div>
-            <label>Language:</label>
-            <select></select>
+            <label for="${id}_lang">Language:</label>
+            <select id="${id}_lang"></select>
         </div>
         <div>
-            <textarea style="height: 98%; width: 98%;" spellcheck="false"></textarea>
+            <label for="${id}_resp">Add Responsibility:</label>
+            <input id="${id}_resp" type="checkbox" />
+        </div>
+        <div>
+            <label for="${id}_trans">Translation text</label>
+            <textarea id="${id}_trans" style="width: 98%; height: 100px;" spellcheck="false"></textarea>
+            <p>You will be able to tag and edit the text in the main document.</p>
         </div>
         <div>
             <h3>Markup options</h3>
-            <div class="attributeWidget" />
+            <div id="${id}_atts" class="attributes" />
         </div>
     </div>`).appendTo(parentEl);
     
@@ -33,13 +44,15 @@ function Translation(writer, parentEl) {
         modal: true,
         resizable: true,
         closeOnEscape: true,
-        height: 480,
-        width: 640,
+        height: 500,
+        width: 600,
         autoOpen: false,
         buttons: [{
             text: 'Ok',
             role: 'ok',
             click: function() {
+                formResult();
+                $el.dialog('close');
             },
         },{
             text: 'Cancel',
@@ -51,17 +64,19 @@ function Translation(writer, parentEl) {
         open: function(e) {
         },
         close: function(e) {
-            $('textarea', $el).val('');
         }
     });
 
-    var langOptions = iso6392.map(lang => {
+    var langOptions = iso6392.reduce((result, lang) => {
         var value = lang.iso6391;//lang.iso6392T === null ? lang.iso6392B : lang.iso6392T
         var name = lang.name;
-        return {
-            name, value
+        if (value !== null) {
+            result.push({
+                name, value
+            })
         }
-    });
+        return result;
+    }, []);
     langOptions.sort((a, b) => {
         if (a.name > b.name) {
             return 1
@@ -76,9 +91,9 @@ function Translation(writer, parentEl) {
     langOptions.forEach(lang => {
         options += `<option value="${lang.value}">${lang.name}</option>`;
     })
-    $el.find('select').html(options);
+    $('#'+id+'_lang').html(options);
     
-    $el.find('.attributeWidget').parent().accordion({
+    $('#'+id+'_atts').parent().accordion({
         heightStyle: 'content',
         animate: false,
         collapsible: true,
@@ -88,22 +103,49 @@ function Translation(writer, parentEl) {
     var attributesWidget = new AttributeWidget({
         writer: w,
         $parent: $el,
-        $el: $el.find('.attributeWidget'),
+        $el: $('#'+id+'_atts'),
         showSchemaHelp: true
     });
 
+    $('#'+id+'_lang').on('change', event => {
+        attributesWidget.setAttribute(langAttribute, event.target.value);
+    });
+
+    $('#'+id+'_resp').on('change', event => {
+        if (event.target.checked) {
+            attributesWidget.setAttribute(respAttribute, w.getUserInfo().nick);
+        } else {
+            attributesWidget.setAttribute(respAttribute, undefined);
+        }
+    });
+
+    var formResult = function() {
+        var lang = $('#'+id+'_lang').val();
+        var translation = $('#'+id+'_trans').val();
+        var addResp = $('#'+id+'_resp').prop('checked');
+        var attributes = attributesWidget.getData();
+
+        var newTag = w.tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, w.tagger.AFTER);
+        $(newTag).html(translation);
+    };
 
     return {
         show: function(config) {
+            var firstLang = $('#'+id+'_lang > option:eq(0)').val();
+            $('#'+id+'_lang').val(firstLang);
+            $('#'+id+'_resp').prop('checked', false);
+            $('#'+id+'_trans').val('');
+
             attributesWidget.mode = AttributeWidget.ADD;
-            var tagName = 'div';
             var atts = w.schemaManager.getAttributesForTag(tagName);
             attributesWidget.buildWidget(atts, {}, tagName);
+
+            $('#'+id+'_atts').parent().accordion('option', 'active', false);
 
             $el.dialog('open');
         },
         destroy: function() {
-            $el.find('.attributeWidget').parent().accordion('destroy');
+            $('#'+id+'_atts').parent().accordion('destroy');
             $el.dialog('destroy');
         }
     };
