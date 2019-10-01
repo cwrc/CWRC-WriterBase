@@ -25,6 +25,7 @@ module.exports = {
 
 id: 'ID',
 rdfParentSelector: '/*/ORLANDOHEADER',
+root: ['EVENT', 'BIOGRAPHY', 'WRITING'],
 header: 'ORLANDOHEADER',
 blockElements: ['DIV0', 'DIV1', 'EVENT', 'ORLANDOHEADER', 'DOCAUTHOR', 'DOCEDITOR', 'DOCEXTENT', 'PUBLICATIONSTMT', 'TITLESTMT', 'PUBPLACE', 'L', 'P', 'HEADING', 'CHRONEVENT', 'CHRONSTRUCT'],
 urlAttributes: ['URL', 'REF'],

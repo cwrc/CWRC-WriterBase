@@ -7,7 +7,6 @@ function Message(writer, parentEl) {
     var w = writer;
     
     function createMessageDialog(config) {
-        
         var $message = $(`
         <div>
             <p>
@@ -38,6 +37,9 @@ function Message(writer, parentEl) {
             close: function(ev) {
                 $message.dialog('destroy');
                 $message.remove();
+                if (config.dialogType === 'message' && config.callback) {
+                    setTimeout(config.callback, 0);
+                }
             }
         });
         
@@ -58,6 +60,7 @@ function Message(writer, parentEl) {
     
     return {
         show: function(config) {
+            config.dialogType = 'message';
             var $message = createMessageDialog(config);
             $message.dialog('option', 'buttons', [{
                 text: 'Ok',
@@ -78,6 +81,7 @@ function Message(writer, parentEl) {
                 }
             }
 
+            config.dialogType = 'confirm';
             var $message = createMessageDialog(config);
             
             if (config.showConfirmKey) {

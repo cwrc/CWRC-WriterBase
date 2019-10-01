@@ -10,6 +10,8 @@ id: '',
 // The XPath selector for the parent of the RDF data, e.g. /TEI/teiHeader/fileDesc/following-sibling::xenoData
 // Currently there's only support for single separators (/ not //), and an axis on the last element
 rdfParentSelector: '',
+// The name(s) of the root tag(s)
+root: [],
 // The name of the header tag
 header: '',
 // Additional block level elements that should be added to TinyMCE

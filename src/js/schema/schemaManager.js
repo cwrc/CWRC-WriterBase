@@ -78,20 +78,6 @@ function SchemaManager(writer, config) {
     sm.getCurrentSchema = function() {
         return sm.schemas[sm.schemaId];
     };
-    
-    /**
-     * Stores the root elements of all schemas.
-     */
-    sm._roots = {};
-    function populateRoots() {
-        for (var schemaId in sm.schemas) {
-            sm.getRootForSchema(schemaId).then(function(id, root) {
-                sm._roots[id] = root;
-            }.bind(this, schemaId), function(error) {
-                console.warn(error);
-            });
-        }
-    };
 
     /**
      * Returns the schemaId associated with a specific root
@@ -99,9 +85,8 @@ function SchemaManager(writer, config) {
      * @returns {String} The schemaId (or undefined)
      */
     sm.getSchemaIdFromRoot = function(root) {
-        // TODO populateRoots on demand
-        for (var schemaId in sm._roots) {
-            if (sm._roots[schemaId] === root) {
+        for (var schemaId in sm.mapper.mappings) {
+            if (sm.mapper.mappings[schemaId].root.indexOf(root) !== -1) {
                 return schemaId;
             }
         }
@@ -320,13 +305,12 @@ function SchemaManager(writer, config) {
     /**
      * Gets the name of the root element for the schema
      * @param {String} schemaId The ID of the schema
-     * @returns {Promise} Promise object which resolves to the root name (string)
+     * @returns {Promise} Promise object which resolves to the (first) root name (string)
      */
     sm.getRootForSchema = function(schemaId) {
         return new Promise(function (resolve, reject) {
-            var root = sm._roots[schemaId];
-            if (root !== undefined) {
-                resolve(root);
+            if (sm.mapper.mappings[schemaId] !== undefined) {
+                resolve(sm.mapper.mappings[schemaId].root[0]);
             } else {
                 var url = sm.getUrlForSchema(schemaId);
                 if (url) {
@@ -547,8 +531,6 @@ function SchemaManager(writer, config) {
             w.dialogManager.show('message', {title: 'Error', msg: 'Error loading schema CSS from: '+url, type: 'error'});
         });
     };
-    
-    // populateRoots();
 
     w.event('schemaChanged').subscribe(function(schemaId) {
         sm.loadSchema(schemaId, false, true, function() {});

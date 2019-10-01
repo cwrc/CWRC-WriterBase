@@ -628,6 +628,14 @@ Mapper.prototype = {
     },
 
     /**
+     * Returns the root tags for the current schema.
+     * @returns {Array}
+     */
+    getRootTags: function() {
+        return this.getMappings().root;
+    },
+
+    /**
      * Returns the name of the header tag for the current schema.
      * @returns {String}
      */

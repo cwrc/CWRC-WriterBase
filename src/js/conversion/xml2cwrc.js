@@ -64,35 +64,43 @@ function XML2CWRC(writer) {
             }
 
             if (schemaUrl === undefined && schemaId === undefined) {
-                schemaId = w.schemaManager.getSchemaIdFromRoot(doc.firstElementChild.nodeName);
-            }
-
-            if (schemaId === undefined) {
                 w.dialogManager.confirm({
-                    title: 'Warning',
-                    msg: '<p>The document you are loading is not fully supported by CWRC-Writer. You may not be able to use the ribbon to tag named entities.</p>'+
-                    '<p>Load document anyways?</p>',
+                    title: 'Missing Schema',
+                    msg: '<p>There is no schema associated with your document. Should CWRC-Writer try to determine the schema by examining the document root?</p>',
                     type: 'error',
                     callback: function(doIt) {
                         if (doIt) {
-                            if (cssUrl !== undefined) {
-                                w.schemaManager.loadSchemaCSS(cssUrl);
-                            }
-                            if (schemaUrl !== undefined) {
-                                var customSchemaId = w.schemaManager.addSchema({
-                                    name: 'Custom Schema',
-                                    url: schemaUrl,
-                                    cssUrl: cssUrl
-                                });
-                                w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
-                                    if (success) {
-                                        doProcessing(doc);
-                                    } else {
-                                        doBasicProcessing(doc);
+                            var rootName = doc.firstElementChild.nodeName;
+                            schemaId = w.schemaManager.getSchemaIdFromRoot(rootName);
+                            if (schemaId === undefined) {
+                                w.dialogManager.show('message', {
+                                    title: 'Warning',
+                                    msg: '<p>CWRC-Writer could not determine the schema for: '+rootName+'</p>',
+                                    type: 'error',
+                                    callback: function() {
+                                        w.event('documentLoaded').publish(false, null);
+                                        w.showLoadDialog();
                                     }
                                 });
                             } else {
-                                doBasicProcessing(doc);
+                                w.dialogManager.show('message', {
+                                    title: 'Schema',
+                                    msg: '<p>CWRC-Writer determined the schema to be: '+schemaId+'</p>',
+                                    type: 'info',
+                                    callback: function() {
+                                        if (schemaId !== w.schemaManager.schemaId) {
+                                            w.schemaManager.loadSchema(schemaId, false, true, function(success) {
+                                                if (success) {
+                                                    doProcessing(doc);
+                                                } else {
+                                                    doBasicProcessing(doc);
+                                                }
+                                            });
+                                        } else {
+                                            doProcessing(doc);
+                                        }
+                                    }
+                                });
                             }
                         } else {
                             w.event('documentLoaded').publish(false, null);
@@ -100,21 +108,56 @@ function XML2CWRC(writer) {
                         }
                     }
                 });
-                
             } else {
-                if (schemaId !== w.schemaManager.schemaId) {
-                    if (cssUrl !== undefined) {
-                        w.schemaManager.loadSchemaCSS(cssUrl);
-                    }
-                    w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
-                        if (success) {
-                            doProcessing(doc);
-                        } else {
-                            doBasicProcessing(doc);
+                if (schemaId === undefined) {
+                    w.dialogManager.confirm({
+                        title: 'Warning',
+                        msg: '<p>The document you are loading is not fully supported by CWRC-Writer. You may not be able to use the ribbon to tag named entities.</p>'+
+                        '<p>Load document anyways?</p>',
+                        type: 'error',
+                        callback: function(doIt) {
+                            if (doIt) {
+                                if (cssUrl !== undefined) {
+                                    w.schemaManager.loadSchemaCSS(cssUrl);
+                                }
+                                if (schemaUrl !== undefined) {
+                                    var customSchemaId = w.schemaManager.addSchema({
+                                        name: 'Custom Schema',
+                                        url: schemaUrl,
+                                        cssUrl: cssUrl
+                                    });
+                                    w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
+                                        if (success) {
+                                            doProcessing(doc);
+                                        } else {
+                                            doBasicProcessing(doc);
+                                        }
+                                    });
+                                } else {
+                                    doBasicProcessing(doc);
+                                }
+                            } else {
+                                w.event('documentLoaded').publish(false, null);
+                                w.showLoadDialog();
+                            }
                         }
                     });
+                    
                 } else {
-                    doProcessing(doc);
+                    if (schemaId !== w.schemaManager.schemaId) {
+                        if (cssUrl !== undefined) {
+                            w.schemaManager.loadSchemaCSS(cssUrl);
+                        }
+                        w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
+                            if (success) {
+                                doProcessing(doc);
+                            } else {
+                                doBasicProcessing(doc);
+                            }
+                        });
+                    } else {
+                        doProcessing(doc);
+                    }
                 }
             }
         }, 0);

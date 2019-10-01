@@ -25,6 +25,7 @@ module.exports = {
 
 id: 'ID',
 rdfParentSelector: '/CWRC/CWRCHEADER',
+root: ['CWRC'],
 header: 'CWRCHEADER',
 blockElements: [],
 urlAttributes: ['URL', 'REF'],
