@@ -2,7 +2,6 @@
 
 // https://stackoverflow.com/questions/9856269/protect-div-element-from-being-deleted-within-tinymce
 
-var $ = require('jquery')
 var tinymce = require('tinymce')
 
 function contains(array, item) {
@@ -37,31 +36,69 @@ function isElementInline(el) {
     }
 }
 
+function deleteConfirm(editor, element) {
+    editor.writer.dialogManager.confirm({
+        title: 'Warning',
+        msg: `<p>Delete "${element.getAttribute('_tag')}" element?</p>`,
+        showConfirmKey: 'confirm-delete-tag',
+        type: 'info',
+        callback: function(doIt) {
+            if (doIt) {
+                editor.writer.tagger.removeStructureTag(element.getAttribute('id'), false);
+            }
+        }
+    })
+}
+
 tinymce.PluginManager.add('preventdelete', function(ed) {
     ed.on('keydown', function(evt) {
         if (keyWillDelete(evt)) {
             var range = ed.selection.getRng()
+
+            // deleting individual characters
             if (range.collapsed && range.commonAncestorContainer.nodeType === Node.TEXT_NODE) {
                 // backspace
                 if (evt.keyCode === 8) {
                     // start of element
                     if (range.startOffset === 0) {
+                        deleteConfirm(ed, range.commonAncestorContainer.parentElement);
                         return cancelKey(evt)
                     }
-                    if (range.startOffset === 1 && range.commonAncestorContainer.textContent.length === 1 && isElementInline(range.commonAncestorContainer.parentElement)) {
-                        // inline elements whose text contents are deleted get removed by tinymce's InlineFormatDelete
-                        // so prevent the last character from being deleted
-                        return cancelKey(evt)
+                    
+                    if (range.startOffset === 1 && range.commonAncestorContainer.textContent.length === 1) {
+                        if (range.commonAncestorContainer.textContent.charCodeAt(0) === 65279) {
+                            deleteConfirm(ed, range.commonAncestorContainer.parentElement);
+                        } else {
+                            // this keydown will delete all text content, leaving an empty tag
+                            // so insert zero-width non-breaking space (zwnb) to prevent tag deletion
+                            range.commonAncestorContainer.textContent = '\uFEFF';
+                            // set range to after the zwnb character
+                            range.setStart(range.commonAncestorContainer, 1);
+                            ed.selection.setRng(range);
+                        }
+                        return cancelKey(evt);
+                    } else if (range.startOffset === 2 && range.commonAncestorContainer.textContent.length === 2) {
+                        if (range.commonAncestorContainer.textContent.charCodeAt(0) === 65279) {
+                            // this case is when we've already inserted a zwnb character
+                            // this keydown will delete the content, and will wrap the entire thing in a <span id="_mce_caret" data-mce-bogus="1"> tag, which will then get cleaned up by tinymce
+                            range.commonAncestorContainer.textContent = '\uFEFF';
+                            range.setStart(range.commonAncestorContainer, 1);
+                            ed.selection.setRng(range);
+                            return cancelKey(evt);
+                        }
                     }
+
                 }
                 // delete
                 if (evt.keyCode === 46) {
                     // end of element
                     if (range.commonAncestorContainer.nodeType === Node.TEXT_NODE && range.endOffset === range.commonAncestorContainer.length) {
+                        deleteConfirm(ed, range.commonAncestorContainer.nextElementSibling || range.commonAncestorContainer.parentElement);
                         return cancelKey(evt)
                     }
                 }
 
+            // deleting selection
             } else {
                 if (range.startContainer !== range.endContainer) {
                     var start = range.startContainer;
@@ -80,8 +117,8 @@ tinymce.PluginManager.add('preventdelete', function(ed) {
 
                     ed.writer.dialogManager.confirm({
                         title: 'Warning',
-                        msg: '<p>The text you are trying to delete contains XML tags, do you want to proceed?</p>',
-                        showConfirmKey: 'confirm-delete-tags',
+                        msg: '<p>The text you are trying to delete contains XML elements, do you want to proceed?</p>',
+                        showConfirmKey: 'confirm-delete-tags-selection',
                         type: 'info',
                         callback: function(doIt) {
                             if (doIt) {
