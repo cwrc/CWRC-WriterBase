@@ -205,7 +205,7 @@ function getItems() {
     }
 
     items.edit_tag = {
-        name: 'Edit Tag',
+        name: 'Edit Tag/Entity',
         icon: 'tag_edit',
         callback: function() {
             this.w.tagger.editTagDialog(this.tagId);

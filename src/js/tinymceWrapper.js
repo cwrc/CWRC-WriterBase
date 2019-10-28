@@ -259,7 +259,7 @@ TinymceWrapper.init = function(config) {
                 }
             });
             addButtonToEditor('editTag', {
-                title: 'Edit Tag', icon: ' '+iconType+' tag-edit',
+                title: 'Edit Tag/Entity', icon: ' '+iconType+' tag-edit',
                 onclick: function() {
                     w.tagger.editTagDialog();
                 }
