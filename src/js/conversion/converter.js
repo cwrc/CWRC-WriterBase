@@ -62,7 +62,7 @@ function Converter(writer) {
                 w.event('documentLoaded').publish(false, null);
                 w.dialogManager.show('message', {
                     title: 'Error',
-                    msg: 'There was an error parsing the document.',
+                    msg: 'The document you are trying to upload is not well-formed. Check that it has the xml extension and that it follows <a href="https://www.w3resource.com/xml/well-formed.php" target="_blank" rel="noopener noreferrer">propper xml grammar</a>.',
                     type: 'error'
                 });
                 return false;
