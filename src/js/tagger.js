@@ -1113,12 +1113,13 @@ function Tagger(writer) {
      * @fires Writer#tagContentsRemoved
      * @param {String} [id] The tag id
      */
-    // TODO refactor this with removeStructureTag
     tagger.removeStructureTagContents = function(id) {
         var tag = tagger.getCurrentTag(id);
         tag.contents().each(function(i, el) {
             tagger.processRemovedContent(el);
         }).remove();
+
+        tag[0].textContent = '\uFEFF'; // insert zero-width non-breaking space so that empty tag isn't cleaned up by tinymce
         
         w.editor.undoManager.add();
         
