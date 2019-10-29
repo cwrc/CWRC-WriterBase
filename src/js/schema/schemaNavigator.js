@@ -67,7 +67,7 @@ function SchemaNavigator() {
     sn.getChildrenForTag = function(tag) {
         var elements = _getEntriesForTag(tag);
         if (elements.length == 0) {
-            console.warn('schemaNavigator: cannot find element for '+config.tag);
+            console.warn('schemaNavigator: cannot find element for '+tag);
             return [];
         } else {
             var children = [];
