@@ -1061,51 +1061,62 @@ function Tagger(writer) {
             }
         }
 
+        var doRemove = function() {
+            if (removeContents) {
+                if (entry && entry.isNote()) {
+                    tagger.processRemovedContent(tag.parent('.noteWrapper')[0]);
+                    tag.parent('.noteWrapper').remove();
+                } else {
+                    tagger.processRemovedContent(tag[0]);
+                    tag.remove();
+                }
+            } else {
+                tagger.processRemovedContent(tag[0], false);
+
+                var hasSelection = w.editor.selection.getRng(true).collapsed === false;
+
+                var parent = tag.parent();
+                var contents = tag.contents();
+                if (contents.length > 0) {
+                    contents.unwrap();
+                } else {
+                    tag.remove();
+                }
+
+                if (entry && entry.isNote()) {
+                    tagger.processRemovedContent(parent[0], false);
+                    contents = parent.contents();
+                    if (contents.length > 0) {
+                        contents.unwrap();
+                    } else {
+                        parent.remove();
+                    }
+                }
+
+                if (hasSelection) {
+                    _doReselect(contents);
+                }
+
+                parent[0].normalize();
+            }
+            
+            w.editor.undoManager.add();
+            
+            w.event('tagRemoved').publish(id);
+        }
+
         var tag = tagger.getCurrentTag(id);
         var entry = w.entitiesManager.getEntity(id);
         id = tag.attr('id');
 
-        if (removeContents) {
-            if (entry && entry.isNote()) {
-                tagger.processRemovedContent(tag.parent('.noteWrapper')[0]);
-                tag.parent('.noteWrapper').remove();
-            } else {
-                tagger.processRemovedContent(tag[0]);
-                tag.remove();
-            }
+        var invalidDelete = w.schemaManager.wouldDeleteInvalidate(tag[0]);
+        if (invalidDelete) {
+            showInvalidDeleteConfirm(tag[0], function(doIt) {
+                if (doIt) doRemove();
+            });
         } else {
-            tagger.processRemovedContent(tag[0], false);
-
-            var hasSelection = w.editor.selection.getRng(true).collapsed === false;
-
-            var parent = tag.parent();
-            var contents = tag.contents();
-            if (contents.length > 0) {
-                contents.unwrap();
-            } else {
-                tag.remove();
-            }
-
-            if (entry && entry.isNote()) {
-                tagger.processRemovedContent(parent[0], false);
-                contents = parent.contents();
-                if (contents.length > 0) {
-                    contents.unwrap();
-                } else {
-                    parent.remove();
-                }
-            }
-
-            if (hasSelection) {
-                _doReselect(contents);
-            }
-
-            parent[0].normalize();
+            doRemove();
         }
-        
-        w.editor.undoManager.add();
-        
-        w.event('tagRemoved').publish(id);
     };
     
     /**
@@ -1159,6 +1170,18 @@ function Tagger(writer) {
         } else {
             processRemovedNodes(domContent);
         }
+    }
+
+    var showInvalidDeleteConfirm = function(element, callback) {
+        var msg = `<p>Deleting the "${element.getAttribute('_tag')}" element will make the document invalid. Do you wish to continue?</p>`;
+        var showConfirmKey = 'confirm-delete-tag-invalidating';
+        w.dialogManager.confirm({
+            title: 'Warning',
+            msg: msg,
+            showConfirmKey: showConfirmKey,
+            type: 'info',
+            callback: callback
+        });
     }
 
     /**

@@ -121,53 +121,39 @@ function Utilities(writer) {
         }
     };
     
-    u.getPreviousTextNode = function(node) {
-        function doGet(currNode) {
-            if (currNode.nodeType == Node.DOCUMENT_NODE) {
-                return null;
-            }
-            var prevNode = currNode.previousSibling;
-            if (prevNode == null) {
-                prevNode = currNode.parentNode.previousSibling;
-                if (prevNode == null) {
-                    return doGet(currNode.parentNode);
-                } else if (prevNode.nodeType == Node.ELEMENT_NODE) {
-                    prevNode = prevNode.lastChild;
+    u.getPreviousTextNode = function(node, skipWhitespace) {
+        skipWhitespace = skipWhitespace === undefined ? false : skipWhitespace;
+        var walker = node.ownerDocument.createTreeWalker(node.ownerDocument, NodeFilter.SHOW_TEXT, {
+            acceptNode: function(node) {
+                // whitespace match does not include \uFEFF since we use that to prevent empty tags
+                if (skipWhitespace === false || skipWhitespace && node.textContent.match(/^[\f\n\r\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]*$/) === null) {
+                    return NodeFilter.FILTER_ACCEPT;
+                } else {
+                    return NodeFilter.FILTER_SKIP;
                 }
             }
-            if (prevNode.nodeType == Node.TEXT_NODE) {
-                return prevNode;
-            } else {
-                return doGet(prevNode);
-            }
-        }
-        
-        var prevTextNode = doGet(node);
+        });
+        walker.currentNode = node;
+        var prevTextNode = walker.previousNode();
+
         return prevTextNode;
     };
     
-    u.getNextTextNode = function(node) {
-        function doGet(currNode) {
-            if (currNode.nodeType == Node.DOCUMENT_NODE) {
-                return null;
-            }
-            var nextNode = currNode.nextSibling;
-            if (nextNode == null) {
-                nextNode = currNode.parentNode.nextSibling;
-                if (nextNode == null) {
-                    return doGet(currNode.parentNode);
-                } else if (nextNode.nodeType == Node.ELEMENT_NODE) {
-                    nextNode = nextNode.firstChild;
+    u.getNextTextNode = function(node, skipWhitespace) {
+        skipWhitespace = skipWhitespace === undefined ? false : skipWhitespace;
+        var walker = node.ownerDocument.createTreeWalker(node.ownerDocument, NodeFilter.SHOW_TEXT, {
+            acceptNode: function(node) {
+                // whitespace match does not include \uFEFF since we use that to prevent empty tags
+                if (skipWhitespace === false || skipWhitespace && node.textContent.match(/^[\f\n\r\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]*$/) === null) {
+                    return NodeFilter.FILTER_ACCEPT;
+                } else {
+                    return NodeFilter.FILTER_SKIP;
                 }
             }
-            if (nextNode.nodeType == Node.TEXT_NODE) {
-                return nextNode;
-            } else {
-                return doGet(nextNode);
-            }
-        }
+        });
+        walker.currentNode = node;
+        var nextTextNode = walker.nextNode();
         
-        var nextTextNode = doGet(node);
         return nextTextNode;
     };
     

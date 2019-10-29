@@ -149,17 +149,17 @@ function SchemaManager(writer, config) {
          * @param currEl The element that's currently being processed
          * @param defHits A list of define tags that have already been processed
          * @param level The level of recursion
-         * @param canContainText Whether the element can contain text
+         * @param status Keep track of status while recursing
          */
-        function checkForText(currEl, defHits, level, canContainText) {
-            if (canContainText.isTrue) {
+        function checkForText(currEl, defHits, level, status) {
+            if (status.canContainText) {
                 return false;
             }
             
             // check for the text element
             var textHits = currEl.find('text');
-            if (textHits.length > 0) {
-                canContainText.isTrue = true;
+            if (textHits.length > 0 && (level === 0 || textHits.parents('element').length === 0)) { // if we're processing a ref and the text is inside an element then it doesn't count
+                status.canContainText = true;
                 return false;
             }
             
@@ -167,12 +167,12 @@ function SchemaManager(writer, config) {
             currEl.find('ref').each(function(index, el) {
                 var name = $(el).attr('name');
                 if ($(el).parents('element').length > 0 && level > 0) {
-                    return; // don't get attributes from other elements
+                    return; // ignore other elements
                 }
                 if (!defHits[name]) {
                     defHits[name] = true;
                     var def = $('define[name="'+name+'"]', sm.schemaXML);
-                    return checkForText(def, defHits, level+1, canContainText);
+                    return checkForText(def, defHits, level+1, status);
                 }
             });
         }
@@ -186,14 +186,14 @@ function SchemaManager(writer, config) {
         var element = $('element[name="'+tag+'"]', sm.schemaXML);
         var defHits = {};
         var level = 0;
-        var canContainText = {isTrue: false}; // needs to be an object so change is visible outside of checkForText
-        checkForText(element, defHits, level, canContainText);
+        var status = {canContainText: false}; // needs to be an object so change is visible outside of checkForText
+        checkForText(element, defHits, level, status);
         
         if (useLocalStorage) {
-            localStorage['cwrc.'+tag+'.text'] = canContainText.isTrue;
+            localStorage['cwrc.'+tag+'.text'] = status.canContainText;
         }
         
-        return canContainText.isTrue;
+        return status.canContainText;
     };
 
     sm.isTagBlockLevel = function(tagName) {
@@ -256,7 +256,7 @@ function SchemaManager(writer, config) {
      * Verifies that the child has a valid parent.
      * @param {String} childName The child tag name
      * @param {String} parentName The parent tag name
-     * @return {Boolean}
+     * @returns {Boolean}
      */
     sm.isTagValidChildOfParent = function(childName, parentName) {
         var parents = sm.getParentsForTag(childName);
@@ -268,6 +268,48 @@ function SchemaManager(writer, config) {
         return false;
     };
 
+    /**
+     * Checks whether removing this node would invalidate the document.
+     * @param {Element} nodeToDelete The node to remove
+     * @returns {Boolean}
+     */
+    sm.wouldDeleteInvalidate = function(nodeToDelete) {
+        var parentEl = nodeToDelete.parentElement;
+        var parentTag = parentEl.getAttribute('_tag');
+        // handling for when we're inside entityHighlight
+        while (parentTag === null) {
+            parentEl = parentEl.parentElement;
+            parentTag = parentEl.getAttribute('_tag');
+        }
+
+        var validChildren = sm.getChildrenForTag(parentTag);
+        var validDelete = true;
+        for (var i = 0; i < nodeToDelete.children.length; i++) {
+            var child = nodeToDelete.children[i];
+            var childTag = child.getAttribute('_tag');
+            var childIsValid = validChildren.find(vc => {
+                return vc.name === childTag
+            });
+            if (!childIsValid) {
+                validDelete = false;
+                break;
+            }
+        }
+
+        if (validDelete) {
+            var hasTextNodes = false;
+            nodeToDelete.childNodes.forEach(cn => {
+                if (!hasTextNodes && cn.nodeType === Node.TEXT_NODE && cn.textContent !== '\uFEFF') {
+                    hasTextNodes = true;
+                }
+            })
+            if (hasTextNodes && sm.canTagContainText(parentTag) === false) {
+                validDelete = false;
+            }
+        }
+
+        return !validDelete;
+    }
 
 
     /**

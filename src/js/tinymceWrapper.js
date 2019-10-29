@@ -478,7 +478,7 @@ TinymceWrapper.init = function(config) {
             }
 
             // check if text is allowed in this node
-            if (w.editor.currentNode.getAttribute('_textallowed') == 'false') {
+            if (w.editor.currentNode.getAttribute('_textallowed') === 'false') {
                 if (tinymce.isMac ? evt.metaKey : evt.ctrlKey) {
                     // don't show message if we got here through undo/redo
                     var node = $('[_textallowed="true"]', w.editor.getBody()).first();
@@ -487,16 +487,19 @@ TinymceWrapper.init = function(config) {
                     rng.collapse(true);
                     w.editor.selection.setRng(rng);
                 } else {
-                    w.dialogManager.show('message', {
-                        title: 'No Text Allowed',
-                        msg: 'Text is not allowed in the current tag: ' + w.editor.currentNode.getAttribute('_tag') + '.',
-                        type: 'error'
-                    });
+                    if (w.editor.currentNode.getAttribute('_entity') !== 'true') { // exception for entities since the entity parent tag can actually encapsulate several tags
+                        w.dialogManager.show('message', {
+                            title: 'No Text Allowed',
+                            msg: 'Text is not allowed in the current tag: ' + w.editor.currentNode.getAttribute('_tag') + '.',
+                            type: 'error'
+                        });
+                    }
 
+                    // commented out, seems a bit drastic
                     // remove all text
-                    $(w.editor.currentNode).contents().filter(function() {
-                        return this.nodeType == 3;
-                    }).remove();
+                    // $(w.editor.currentNode).contents().filter(function() {
+                    //     return this.nodeType == 3;
+                    // }).remove();
                 }
             }
         }
