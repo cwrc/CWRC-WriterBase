@@ -156,6 +156,9 @@ function XML2CWRC(writer) {
                             }
                         });
                     } else {
+                        if (cssUrl !== undefined && cssUrl !== w.schemaManager.getCSS()) {
+                            w.schemaManager.loadSchemaCSS(cssUrl);
+                        }
                         doProcessing(doc);
                     }
                 }
