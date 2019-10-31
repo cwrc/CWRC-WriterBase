@@ -431,6 +431,7 @@ function Tagger(writer) {
 
             tagger.processNewContent(element);
             
+            w.editor.undoManager.add();
             w.event('contentChanged').publish(); // don't use contentPasted since we don't want to trigger copyPaste dialog
         }
     }
