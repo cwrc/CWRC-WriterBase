@@ -48,7 +48,6 @@
     "openseadragon": "2.3.1",
     "prism-themes": "^1.0.1",
     "prismjs": "1.6.0",
-    "rdflib": "1.0.2",
     "tinymce": "4.7.2"
   },
   "devDependencies": {
@@ -87,10 +86,12 @@
     "build-css": "mkdirp build/css && npm run build-scoped-css && npm run build-editor-css",
     "build-scoped-css": "lessc src/css/build.less build/css/cwrc-writer.css --global-var=\"parentId=#cwrcWriterContainer\"",
     "build-editor-css": "lessc src/css/editor.less build/css/editor.css",
-    "copy-files-to-build": "npm run copy-tinymce && npm run copy-jqueryui-images && npm run copy-jstree-images",
+    "copy-files-to-build": "npm run copy-tinymce && npm run copy-jqueryui-images && npm run copy-jstree-images && npm run copy-js",
     "copy-tinymce": "copyfiles -u 3 \"src/css/tinymce/**/*\" build/css/tinymce",
     "copy-jqueryui-images": "copyfiles -u 3 \"src/css/jquery-ui/jquery-ui-images/*\" build/css/",
-    "copy-jstree-images": "path-exists node_modules && copyfiles -f \"node_modules/jstree/dist/themes/default/*.png\" build/css/ || copyfiles -f \"../jstree/dist/themes/default/*.png\" build/css/"
+    "copy-jstree-images": "path-exists node_modules && copyfiles -f \"node_modules/jstree/dist/themes/default/*.png\" build/css/ || copyfiles -f \"../jstree/dist/themes/default/*.png\" build/css/",
+    "copy-js": "mkdirp build/js && npm run copy-rdflib",
+    "copy-rdflib": "copyfiles -f src/lib/rdflib/rdflib.min.js build/js"
   },
   "config": {
     "commitizen": {
@@ -120,6 +121,9 @@
         "lines": 50,
         "statements": 50
       }
+    },
+    "moduleNameMapper": {
+      "^rdflib$": "<rootDir>/test/mocks/rdflib.js"
     },
     "setupFiles": [
       "./test/test-env.js"
