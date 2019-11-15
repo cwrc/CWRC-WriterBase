@@ -35,8 +35,7 @@
     "entity": "./src/js/entities/entity.js"
   },
   "dependencies": {
-    "css-parse": "^2.0.0",
-    "css-stringify": "^2.0.0",
+    "css": "^2.2.4",
     "fscreen": "1.0.2",
     "iso-639-2": "^1.1.1",
     "jquery": "^3.4.1",

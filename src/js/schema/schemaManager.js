@@ -2,8 +2,7 @@
 
 var $ = require('jquery');
 var Mapper = require('./mapper.js');
-var cssParser = require('css-parse');
-var cssStringify = require('css-stringify');
+var css = require('css');
 var SchemaNavigator = require('./schemaNavigator.js');
 
 /**
@@ -546,7 +545,7 @@ function SchemaManager(writer, config) {
         $.ajax({url: url}).then(function(data) {
             sm._css = url;
             
-            var cssObj = cssParser(data);
+            var cssObj = css.parse(data);
             var rules = cssObj.stylesheet.rules;
             for (var i = 0; i < rules.length; i++) {
                 var rule = rules[i];
@@ -563,7 +562,7 @@ function SchemaManager(writer, config) {
                     rule.selectors = convertedSelectors;
                 }
             }
-            var cssString = cssStringify(cssObj);
+            var cssString = css.stringify(cssObj);
             
             $('head', w.editor.dom.doc).append('<style id="schemaRules" type="text/css" />');
             $('#schemaRules', w.editor.dom.doc).text(cssString);
