@@ -226,12 +226,12 @@ function EntitiesList(config) {
         var nevAdded = false;
         var lemma = entity.getLemma();
         if (lemma !== undefined) {
-            infoString += '<li><strong>Standard</strong>: '+lemma+'</li>';
+            infoString += `<li><strong>Standard</strong>: ${lemma}</li>`;
             nevAdded = true;
         }
         var uri = entity.getURI()
         if (uri !== undefined) {
-            infoString += '<li><strong>URI</strong>: <a href="'+uri+'" target="_blank" rel="noopener">'+uri+'</a></li>';
+            infoString += `<li><strong>URI</strong>: <a href="${uri}" target="_blank" rel="noopener">${uri}</a></li>`;
             nevAdded = true;
         }
 
@@ -248,7 +248,7 @@ function EntitiesList(config) {
                             if (!attAdded && nevAdded) {
                                 infoString += '<li><hr /></li>';
                             }
-                            infoString += '<li><strong>'+name+'</strong>: <a href="'+value+'" target="_blank" rel="noopener">'+value+'</a></li>';
+                            infoString += `<li><strong>${name}</strong>: <a href="${value}" target="_blank" rel="noopener">${value}</a></li>`;
                             attAdded = true;
                         }
                     } else {
@@ -256,7 +256,7 @@ function EntitiesList(config) {
                             if (!attAdded && nevAdded) {
                                 infoString += '<li><hr /></li>';
                             }
-                            infoString += '<li><strong>'+name+'</strong>: '+value+'</li>';
+                            infoString += `<li><strong>${name}</strong>: ${value}</li>`;
                             attAdded = true;
                         }
                     }
@@ -264,6 +264,13 @@ function EntitiesList(config) {
                     console.warn('entitiesList: undefined value for '+name+'in ', entity);
                 }
             }
+        }
+
+        // custom values
+        var customValues = entity.getCustomValues();
+        for (var name in customValues) {
+            var value = customValues[name];
+            infoString += `<li><strong>${name}</strong>: ${value}</li>`;
         }
 
         infoString += '</ul>';
