@@ -144,13 +144,33 @@ function Settings(writer, config) {
             }
         }]
     });
-    
-    function buildSchema() {
-        var schemasHTML = '';
-        for (var schema in w.schemaManager.schemas) {
-            schemasHTML += '<option value="' + schema + '">' + w.schemaManager.schemas[schema]['name'] + '</option>';
+
+    async function buildSchema() {
+
+        const testSchemaURL = async schema => {
+            
+            const response = await fetch('http://localhost:3000/schema/xml', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(schema),
+            }).catch ( (err) => {
+                // console.log(err)
+                return false;
+            });
+
+            if (response.status === 200) return true;
+            return false;
+            
+        }
+
+        let schemasHTML = '';
+        for (const schema of w.schemaManager.schemas) {
+            let disabledAttribute = '';
+            // if (!await testSchemaURL(schema)) disabledAttribute = 'disabled';
+            schemasHTML += `<option value="${schema.id}" ${disabledAttribute}>${schema.name}</option>`;
         }
         $('select[name="schema"]', $settingsDialog).html(schemasHTML);
+
     }
     
     function applySettings() {

@@ -46,7 +46,7 @@ function XML2CWRC(writer) {
         $(w.editor.getBody()).empty();
 
         // setTimeout to make sure doc clears first
-        setTimeout(function() {
+        setTimeout(async function() {
             var schemaId;
             var schemaUrl;
             var cssUrl;
@@ -87,9 +87,9 @@ function XML2CWRC(writer) {
                                     title: 'Schema',
                                     msg: '<p>CWRC-Writer determined the schema to be: '+schemaId+'</p>',
                                     type: 'info',
-                                    callback: function() {
+                                    callback: async function() {
                                         if (schemaId !== w.schemaManager.schemaId) {
-                                            w.schemaManager.loadSchema(schemaId, false, true, function(success) {
+                                            await w.schemaManager.loadSchema(schemaId, false, true, function(success) {
                                                 if (success) {
                                                     doProcessing(doc);
                                                 } else {
@@ -115,10 +115,10 @@ function XML2CWRC(writer) {
                         msg: '<p>The document you are loading is not fully supported by CWRC-Writer. You may not be able to use the ribbon to tag named entities.</p>'+
                         '<p>Load document anyways?</p>',
                         type: 'error',
-                        callback: function(doIt) {
+                        callback: async function(doIt) {
                             if (doIt) {
                                 if (cssUrl !== undefined) {
-                                    w.schemaManager.loadSchemaCSS(cssUrl);
+                                    await w.schemaManager.loadSchemaCSS(cssUrl);
                                 }
                                 if (schemaUrl !== undefined) {
                                     var customSchemaId = w.schemaManager.addSchema({
@@ -126,7 +126,7 @@ function XML2CWRC(writer) {
                                         url: schemaUrl,
                                         cssUrl: cssUrl
                                     });
-                                    w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
+                                    await w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
                                         if (success) {
                                             doProcessing(doc);
                                         } else {
@@ -146,9 +146,9 @@ function XML2CWRC(writer) {
                 } else {
                     if (schemaId !== w.schemaManager.schemaId) {
                         if (cssUrl !== undefined) {
-                            w.schemaManager.loadSchemaCSS(cssUrl);
+                            await w.schemaManager.loadSchemaCSS({cssUrl});
                         }
-                        w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
+                        await w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
                             if (success) {
                                 doProcessing(doc);
                             } else {
@@ -157,7 +157,7 @@ function XML2CWRC(writer) {
                         });
                     } else {
                         if (cssUrl !== undefined && cssUrl !== w.schemaManager.getCSS()) {
-                            w.schemaManager.loadSchemaCSS(cssUrl);
+                            await w.schemaManager.loadSchemaCSS({cssUrl});
                         }
                         doProcessing(doc);
                     }
@@ -172,46 +172,95 @@ function XML2CWRC(writer) {
      * @returns {Object} info
      */
     function getSchemaInfo(doc) {
-        var schemaId;
-        var schemaUrl;
-        var cssUrl;
+        let schemaId;
+        let schemaUrl;
+        let cssUrl;
+
         for (var i = 0; i < doc.childNodes.length; i++) {
-            var node = doc.childNodes[i];
+            const node = doc.childNodes[i];
+
             if (node.nodeName === 'xml-model') {
-                var xmlModelData = node.data;
+                const xmlModelData = node.data;
                 schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
+
                  // remove the protocol in order to disregard http/https for improved chances of matching below
-                var schemaUrlNoProtocol = schemaUrl.split(/^.*?\/\//)[1];
+                const schemaUrlNoProtocol = schemaUrl.split(/^.*?\/\//)[1];
+
                 // search the known schemas, if the url matches it must be the same one
-                $.each(w.schemaManager.schemas, function(id, schema) {
+                for (const schema of w.schemaManager.schemas)  {
                     if (schema.url.indexOf(schemaUrlNoProtocol) !== -1) {
-                        schemaId = id;
-                        return false;
+                        schemaId = schema.id;
+                        continue;
                     }
+                    
+                    // this must be some legacy - consider remove it ->
                     if (schema.aliases !== undefined) {
-                        $.each(schema.aliases, function(index, alias) {
+                        for (const alias of schema.aliases)  {
                             if (alias.indexOf(schemaUrlNoProtocol) !== -1) {
-                                schemaId = id;
-                                return false;
-                            }
-                        });
-                        if (schemaId !== undefined) {
-                            return false;
+                                schemaId = schema.id;
+                                continue;
+                            } 
                         }
+                        if (schemaId !== undefined) return false;
                     }
-                });
+                    // ---<
+                }
+
+                
             } else if (node.nodeName === 'xml-stylesheet') {
-                var xmlStylesheetData = node.data;
+                const xmlStylesheetData = node.data;
                 cssUrl = xmlStylesheetData.match(/href="([^"]*)"/)[1];
             }
         }
 
         return {
-            schemaId: schemaId,
-            schemaUrl: schemaUrl,
-            cssUrl: cssUrl
+            schemaId,
+            schemaUrl,
+            cssUrl
         }
     }
+
+    // function getSchemaInfo(doc) {
+    //     var schemaId;
+    //     var schemaUrl;
+    //     var cssUrl;
+    //     for (var i = 0; i < doc.childNodes.length; i++) {
+    //         var node = doc.childNodes[i];
+    //         if (node.nodeName === 'xml-model') {
+    //             var xmlModelData = node.data;
+    //             schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
+    //              // remove the protocol in order to disregard http/https for improved chances of matching below
+    //             var schemaUrlNoProtocol = schemaUrl.split(/^.*?\/\//)[1];
+    //             // search the known schemas, if the url matches it must be the same one
+    //             $.each(w.schemaManager.schemas, function(id, schema) {
+    //                 if (schema.url.indexOf(schemaUrlNoProtocol) !== -1) {
+    //                     schemaId = schema.id;
+    //                     return false;
+    //                 }
+    //                 if (schema.aliases !== undefined) {
+    //                     $.each(schema.aliases, function(index, alias) {
+    //                         if (alias.indexOf(schemaUrlNoProtocol) !== -1) {
+    //                             schemaId = schema.id;
+    //                             return false;
+    //                         }
+    //                     });
+    //                     if (schemaId !== undefined) {
+    //                         return false;
+    //                     }
+    //                 }
+    //             });
+    //         } else if (node.nodeName === 'xml-stylesheet') {
+    //             var xmlStylesheetData = node.data;
+    //             cssUrl = xmlStylesheetData.match(/href="([^"]*)"/)[1];
+    //         }
+    //     }
+
+    //     return {
+    //         schemaId: schemaId,
+    //         schemaUrl: schemaUrl,
+    //         cssUrl: cssUrl
+    //     }
+    // }
 
     /**
      * Check to see if the document uses the older "custom" TEI format.
