@@ -220,48 +220,6 @@ function XML2CWRC(writer) {
         }
     }
 
-    // function getSchemaInfo(doc) {
-    //     var schemaId;
-    //     var schemaUrl;
-    //     var cssUrl;
-    //     for (var i = 0; i < doc.childNodes.length; i++) {
-    //         var node = doc.childNodes[i];
-    //         if (node.nodeName === 'xml-model') {
-    //             var xmlModelData = node.data;
-    //             schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
-    //              // remove the protocol in order to disregard http/https for improved chances of matching below
-    //             var schemaUrlNoProtocol = schemaUrl.split(/^.*?\/\//)[1];
-    //             // search the known schemas, if the url matches it must be the same one
-    //             $.each(w.schemaManager.schemas, function(id, schema) {
-    //                 if (schema.url.indexOf(schemaUrlNoProtocol) !== -1) {
-    //                     schemaId = schema.id;
-    //                     return false;
-    //                 }
-    //                 if (schema.aliases !== undefined) {
-    //                     $.each(schema.aliases, function(index, alias) {
-    //                         if (alias.indexOf(schemaUrlNoProtocol) !== -1) {
-    //                             schemaId = schema.id;
-    //                             return false;
-    //                         }
-    //                     });
-    //                     if (schemaId !== undefined) {
-    //                         return false;
-    //                     }
-    //                 }
-    //             });
-    //         } else if (node.nodeName === 'xml-stylesheet') {
-    //             var xmlStylesheetData = node.data;
-    //             cssUrl = xmlStylesheetData.match(/href="([^"]*)"/)[1];
-    //         }
-    //     }
-
-    //     return {
-    //         schemaId: schemaId,
-    //         schemaUrl: schemaUrl,
-    //         cssUrl: cssUrl
-    //     }
-    // }
-
     /**
      * Check to see if the document uses the older "custom" TEI format.
      * @param {Document} doc
