@@ -1,7 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
-var rdflib = require('rdflib');
+var $rdf = require('rdflib');
 var moment = require('moment/moment');
 moment.suppressDeprecationWarnings = true;
 
@@ -298,15 +298,15 @@ AnnotationsManager.prototype = {
     convertJSONAnnotationToXML: function(annotation) {
         var me = this;
         var docId = this.w.getDocumentURI();
-        var doc = rdflib.sym(docId);
-        var store = rdflib.graph();
+        var doc = $rdf.sym(docId);
+        var store = $rdf.graph();
 
         return new Promise((resolve, reject) => {
-            // need to use Promise because rdflib.parse uses callbacks
+            // need to use Promise because $rdf.parse uses callbacks
             try {
-                rdflib.parse(JSON.stringify(annotation), store, doc.uri, 'application/ld+json', (err, kb) => {
+                $rdf.parse(JSON.stringify(annotation), store, doc.uri, 'application/ld+json', (err, kb) => {
                     try {
-                        var result = rdflib.serialize(doc, kb, doc.uri, 'application/rdf+xml');
+                        var result = $rdf.serialize(doc, kb, doc.uri, 'application/rdf+xml');
                         if (result !== undefined) {
                             var xml = me.w.utilities.stringToXML(result);
                             resolve(xml);
