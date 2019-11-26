@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const fetchMock = require('fetch-mock/cjs/server');
 
 // uncomment to show ui
 // const eWin = require('electron').remote.getCurrentWindow();
@@ -24,8 +25,13 @@ config.modules = {
     south: [ {id: 'selection'}, {id: 'validation', config: {"validationUrl": "https://validator.services.cwrc.ca/validator/validate.html"}} ]
 };
 
+const teiSchema = require('./mocks/tei-schema');
+const teiCss = require('./mocks/tei-css');
 const teiDoc = require('./mocks/tei-doc');
 const nerveMock = require('./mocks/nerve-mock');
+
+fetchMock.mock(/.*schema\/xml/, teiSchema);
+fetchMock.mock(/.*schema\/css/, teiCss);
 
 const CWRCWriter = require('../src/js/writer.js');
 let writer = undefined;
@@ -34,13 +40,14 @@ function initAndLoadDoc(writer, doc) {
     return new Promise((resolve, reject) => {
         function handleInitialized() {
             writer.layoutManager.getContainer().height(700) // need to manually set the height otherwise it's 0
+
             writer.setDocument(doc)
         }
         function handleDocLoaded(success, body) {
             dialogClickOk()
             writer.event('writerInitialized').unsubscribe(handleInitialized)
             writer.event('documentLoaded').unsubscribe(handleDocLoaded)
-            resolve(success, body)
+            resolve([success, body])
         }
         writer.event('writerInitialized').subscribe(handleInitialized)
         writer.event('documentLoaded').subscribe(() => {

@@ -64,6 +64,7 @@
     "copyfiles": "^1.2.0",
     "cz-conventional-changelog": "^2.1.0",
     "electron": "^6.0.4",
+    "fetch-mock": "^8.0.0",
     "husky": "^2.1.0",
     "jest": "^24.9.0",
     "less": "^3.8.1",
