@@ -166,7 +166,7 @@ function Settings(writer, config) {
         let schemasHTML = '';
         for (const schema of w.schemaManager.schemas) {
             let disabledAttribute = '';
-            // if (!await testSchemaURL(schema)) disabledAttribute = 'disabled';
+            if (!await testSchemaURL(schema)) disabledAttribute = 'disabled';
             schemasHTML += `<option value="${schema.id}" ${disabledAttribute}>${schema.name}</option>`;
         }
         $('select[name="schema"]', $settingsDialog).html(schemasHTML);

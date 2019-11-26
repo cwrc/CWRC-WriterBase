@@ -339,7 +339,6 @@ function SchemaManager(writer, config) {
      */
     sm.getUrlForSchema = function(schemaId) {
         const schemaEntry = sm.schemas.find( schema => schema.id === schemaId);
-        console.log(schemaEntry);
         if (schemaEntry !== undefined) return schemaEntry.url;
         return null;
     };
@@ -355,8 +354,6 @@ function SchemaManager(writer, config) {
                 resolve(sm.mapper.mappings[schemaId].root[0]);
             } else {
                 const url = sm.getUrlForSchema(schemaId);
-                console.log(schemaId)
-                console.log('->  ' + url)
                 if (url) {
                     $.when(
                         $.ajax({
@@ -379,35 +376,6 @@ function SchemaManager(writer, config) {
             }
         });
     }
-
-    // sm.getRootForSchema = function(schemaId) {
-    //     return new Promise(function (resolve, reject) {
-    //         if (sm.mapper.mappings[schemaId] !== undefined) {
-    //             resolve(sm.mapper.mappings[schemaId].root[0]);
-    //         } else {
-    //             var url = sm.getUrlForSchema(schemaId);
-    //             if (url) {
-    //                 $.when(
-    //                     $.ajax({
-    //                         url: url,
-    //                         dataType: 'xml'
-    //                     })
-    //                 ).then(function(resp) {
-    //                     var rootEl = $('start element:first', resp).attr('name');
-    //                     if (!rootEl) {
-    //                         var startName = $('start ref:first', resp).attr('name');
-    //                         rootEl = $('define[name="'+startName+'"] element', resp).attr('name');
-    //                     }
-    //                     resolve(rootEl);
-    //                 }, function(resp) {
-    //                     reject('schemaManager.getRootForSchema: could not connect to '+url);
-    //                 });
-    //             } else {
-    //                 reject('schemaManager.getRootForSchema: no url for '+schemaId);
-    //             }
-    //         }
-    //     });
-    // }
 
     /**
      * Load a new schema.
@@ -444,7 +412,6 @@ function SchemaManager(writer, config) {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(schemaEntry),
             }).catch( (err) => {
-                console.log(err);
                 sm.schemaId = null;
                 w.dialogManager.show('message',{
                     title: 'Error',
@@ -455,8 +422,9 @@ function SchemaManager(writer, config) {
                 return;
             });
         
-        const json = await response.json();
-        const data = json.body;
+        const body = await response.text();
+        const bodyXML = (new window.DOMParser()).parseFromString(body, 'text/xml');
+        const data = bodyXML;
         sm.schemaXML = data;
 
         // get root element
@@ -578,154 +546,6 @@ function SchemaManager(writer, config) {
         processSchema();
     
     };
-
-    // sm.loadSchema = function(schemaId, startText, loadCss, callback) {
-    //     var schemaEntry = sm.schemas[schemaId];
-    //     if (schemaEntry !== undefined) {
-    //         w.event('loadingSchema').publish();
-
-    //         sm.schemaId = schemaId;
-    //         var schemaUrl = schemaEntry.url;
-    //         if (schemaEntry.altUrl !== undefined) {
-    //             schemaUrl = schemaEntry.altUrl;
-    //         }
-    //         var schemaMappingsId = schemaEntry.schemaMappingsId;
-            
-    //         sm.mapper.loadMappings(schemaMappingsId);
-            
-    //         $.when(
-    //             $.ajax({
-    //                 url: schemaUrl,
-    //                 dataType: 'xml'
-    //             })
-    //         ).then(function(resp1) {
-    //             var data = resp1;
-                
-    //             sm.schemaXML = data;
-    //             // get root element
-    //             var startEl = $('start element:first', sm.schemaXML).attr('name');
-    //             if (!startEl) {
-    //                 var startName = $('start ref:first', sm.schemaXML).attr('name');
-    //                 startEl = $('define[name="'+startName+'"] element', sm.schemaXML).attr('name');
-    //             }
-                
-    //             sm._root = startEl;
-    //             sm._header = sm.mapper.getHeaderTag();
-    //             sm._idName = sm.mapper.getIdAttributeName();
-                
-    //             // TODO is this necessary
-    //             var additionalBlockElements = sm.mapper.getBlockLevelElements();
-    //             var blockElements = w.editor.schema.getBlockElements();
-    //             for (var i = 0; i < additionalBlockElements.length; i++) {
-    //                 blockElements[additionalBlockElements[i]] = {};
-    //             }
-                
-    //             function processSchema() {
-    //                 // remove old schema elements
-    //                 $('#schemaTags', w.editor.dom.doc).remove();
-                    
-    //                 var cssUrl = sm.schemas[sm.schemaId].cssUrl;
-    //                 if (cssUrl && loadCss === true) {
-    //                     sm.loadSchemaCSS(cssUrl);
-    //                 }
-                    
-    //                 // create css to display schema tags
-    //                 $('head', w.editor.getDoc()).append('<style id="schemaTags" type="text/css" />');
-                    
-    //                 var schemaTags = '';
-    //                 var elements = [];
-    //                 $('element', sm.schemaXML).each(function(index, el) {
-    //                     var tag = $(el).attr('name');
-    //                     if (tag != null && elements.indexOf(tag) == -1) {
-    //                         elements.push(tag);
-    //                         schemaTags += '.showTags *[_tag='+tag+']:before { color: #aaa !important; font-size: 13px !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "<'+tag+'>"; }';
-    //                         schemaTags += '.showTags *[_tag='+tag+']:after { color: #aaa !important; font-size: 13px !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "</'+tag+'>"; }';
-    //                     }
-    //                 });
-    //                 elements.sort();
-                    
-    //                 // hide the header
-    //                 var tagName = sm.getTagForEditor(sm._header);
-    //                 schemaTags += tagName+'[_tag='+sm._header+'] { display: none !important; }';
-                    
-    //                 $('#schemaTags', w.editor.getDoc()).text(schemaTags);
-                    
-    //                 sm.schema.elements = elements;
-    //                 sm.navigator.setSchemaElements(sm.schema.elements);
-                    
-    //                 if (callback == null) {
-    //                     var text = '';
-    //                     if (startText) text = 'Paste or type your text here.';
-    //                     var tag = sm.getTagForEditor(sm._root);
-    //                     w.editor.setContent('<'+tag+' _tag="'+sm._root+'">'+text+'</'+tag+'>');
-    //                 }
-                    
-    //                 sm.schemaJSON = w.utilities.xmlToJSON($('grammar', sm.schemaXML)[0]);
-    //                 if (sm.schemaJSON === null) {
-    //                     console.warn('schemaManager.loadSchema: schema XML could not be converted to JSON');
-    //                 }
-    //                 sm.navigator.setSchemaJSON(sm.schemaJSON);
-                    
-    //                 w.event('schemaLoaded').publish();
-                    
-    //                 if (callback) callback(true);
-    //             }
-                
-    //             // handle includes
-    //             var include = $('include:first', sm.schemaXML); // TODO add handling for multiple includes
-    //             if (include.length == 1) {
-    //                 var url = '';
-    //                 var includeHref = include.attr('href');
-    //                 var schemaFile;
-    //                 if (includeHref.indexOf('/') != -1) {
-    //                     schemaFile = includeHref.match(/(.*\/)(.*)/)[2]; // grab the filename
-    //                 } else {
-    //                     schemaFile = includeHref;
-    //                 }
-    //                 var schemaBase = schemaUrl.match(/(.*\/)(.*)/)[1];
-    //                 if (schemaBase != null) {
-    //                     url = schemaBase + schemaFile;
-    //                 } else {
-    //                     url = 'schema/'+schemaFile;
-    //                 }
-                    
-    //                 $.ajax({
-    //                     url: url,
-    //                     dataType: 'xml',
-    //                     success: function(data, status, xhr) {
-    //                         // handle redefinitions
-    //                         include.children().each(function(index, el) {
-    //                             if (el.nodeName == 'start') {
-    //                                 $('start', data).replaceWith(el);
-    //                             } else if (el.nodeName == 'define') {
-    //                                 var name = $(el).attr('name');
-    //                                 var match = $('define[name="'+name+'"]', data);
-    //                                 if (match.length == 1) {
-    //                                     match.replaceWith(el);
-    //                                 } else {
-    //                                     $('grammar', data).append(el);
-    //                                 }
-    //                             }
-    //                         });
-                            
-    //                         include.replaceWith($('grammar', data).children());
-                            
-    //                         processSchema();
-    //                     }
-    //                 });
-    //             } else {
-    //                 processSchema();
-    //             }
-    //         }, function(resp) {
-    //             sm.schemaId = null;
-    //             w.dialogManager.show('message', {title: 'Error', msg: '<p>Error loading schema from: '+schemaUrl+'.</p><p>Document editing will not work properly!</p>', type: 'error'});
-    //             if (callback) callback(false);
-    //         });
-    //     } else {
-    //         w.dialogManager.show('message', {title: 'Error', msg: 'Error loading schema. No entry found for: '+schemaId, type: 'error'});
-    //         if (callback) callback(false);
-    //     }
-    // };
     
     /**
      * Load the CSS and convert it to the internal format
@@ -740,7 +560,6 @@ function SchemaManager(writer, config) {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(schemaEntry),
             }).catch( (err) => {
-                console.log(err);
                 w.dialogManager.show('message', {
                     title: 'Error',
                     msg: `Error loading schema CSS from: ${schemaEntry.name}`,
@@ -749,8 +568,8 @@ function SchemaManager(writer, config) {
                 return;
             });
         
-        const json = await response.json();
-        const data = json.body;
+        const body = await response.text();
+        const data = body;
         
         sm._css = schemaEntry.cssUrl;
         
@@ -781,46 +600,6 @@ function SchemaManager(writer, config) {
         $('#schemaRules', w.editor.dom.doc).clone().appendTo($('head', document));
         
     };
-
-
-     /**
-     * Load the CSS and convert it to the internal format
-     * @param {String} url The URL for the CSS
-     */
-    // sm.loadSchemaCSS = function(url) {
-    //     $('#schemaRules', w.editor.dom.doc).remove();
-    //     $('#schemaRules', document).remove();
-        
-    //     $.ajax({url: url}).then(function(data) {
-    //         sm._css = url;
-            
-            // var cssObj = css.parse(data);
-            // var rules = cssObj.stylesheet.rules;
-            // for (var i = 0; i < rules.length; i++) {
-            //     var rule = rules[i];
-            //     if (rule.type === 'rule') {
-            //         var convertedSelectors = [];
-            //         for (var j = 0; j < rule.selectors.length; j++) {
-            //             var selector = rule.selectors[j];
-            //             var newSelector = selector.replace(/(^|,|\s)(#?\w+)/g, function(str, p1, p2, offset, s) {
-            //                 return p1+'*[_tag="'+p2+'"]';
-            //             });
-            //             convertedSelectors.push(newSelector);
-                        
-            //         }
-            //         rule.selectors = convertedSelectors;
-            //     }
-            // }
-            // var cssString = css.stringify(cssObj);
-            
-    //         $('head', w.editor.dom.doc).append('<style id="schemaRules" type="text/css" />');
-    //         $('#schemaRules', w.editor.dom.doc).text(cssString);
-    //         // we need to also append to document in order for note popups to be styled
-    //         $('#schemaRules', w.editor.dom.doc).clone().appendTo($('head', document));
-    //     }, function(err) {
-    //         w.dialogManager.show('message', {title: 'Error', msg: 'Error loading schema CSS from: '+url, type: 'error'});
-    //     });
-    // };
 
     w.event('schemaChanged').subscribe(function(schemaId) {
         sm.loadSchema(schemaId, false, true, function() {});
