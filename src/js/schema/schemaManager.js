@@ -423,7 +423,7 @@ function SchemaManager(writer, config) {
             });
         
         const body = await response.text();
-        const bodyXML = (new window.DOMParser()).parseFromString(body, 'text/xml');
+        const bodyXML = w.utilities.stringToXML(body);
         const data = bodyXML;
         sm.schemaXML = data;
 
@@ -522,24 +522,24 @@ function SchemaManager(writer, config) {
                 return;
             });
 
-            const incJson = await incResponse.json();
-            const data = incJson.body;
+            const body = await incResponse.text();
+            const bodyXML = w.utilities.stringToXML(body);
             
             include.children().each( (index, el) => {
                 if (el.nodeName == 'start') {
-                    $('start', data).replaceWith(el);
+                    $('start', bodyXML).replaceWith(el);
                 } else if (el.nodeName == 'define') {
                     const name = $(el).attr('name');
-                    let match = $(`define[name="${name}"]`, data);
+                    let match = $(`define[name="${name}"]`, bodyXML);
                     if (match.length == 1) {
                         match.replaceWith(el);
                     } else {
-                        $('grammar', data).append(el);
+                        $('grammar', bodyXML).append(el);
                     }
                 }
             });
             
-            include.replaceWith($('grammar', data).children());
+            include.replaceWith($('grammar', bodyXML).children());
             
         }
 
