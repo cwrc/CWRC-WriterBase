@@ -60,10 +60,11 @@
     "babelify": "^10.0.0",
     "browserify": "^16.2.3",
     "codecov": "^3.3.0",
-    "commitizen": "^3.1.1",
+    "commitizen": "^3.1.2",
     "copyfiles": "^1.2.0",
     "cz-conventional-changelog": "^2.1.0",
     "electron": "^6.0.4",
+    "eslint": "^6.7.1",
     "fetch-mock": "^8.0.0",
     "husky": "^2.1.0",
     "jest": "^24.9.0",
@@ -98,7 +99,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run test"
+      "pre-commit": ""
     }
   },
   "jest": {
