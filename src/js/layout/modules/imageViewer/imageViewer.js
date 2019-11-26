@@ -93,22 +93,16 @@ function ImageViewer(config) {
         if ($pageBreaks.length === 0) {
             hideViewer();
         } else {
-            $pageBreaks.each(function(i, el) {
-                if (i == 0) $(el).hide();
-                else $(el).show();
-            });
-            
-            var bogusUrls = 0;
             var tileSources = [];
             $pageBreaks.each(function(index, el) {
                 var url = $(el).attr(attrName);
                 if (url === undefined || url === '') {
-                    bogusUrls++;
+                } else {
+                    tileSources.push({
+                        type: 'image',
+                        url: url
+                    });
                 }
-                tileSources.push({
-                    type: 'image',
-                    url: url
-                });
             });
             
             var needUpdate = docLoaded || tileSources.length !== osd.tileSources.length;
@@ -124,7 +118,7 @@ function ImageViewer(config) {
             if (needUpdate) {
                 osd.open(tileSources);
                 
-                if (bogusUrls === tileSources.length) {
+                if (tileSources.length === 0) {
                     w.layoutManager.hideModule('imageViewer');
                 } else {
                     w.layoutManager.showModule('imageViewer');
