@@ -144,13 +144,56 @@ function Settings(writer, config) {
             }
         }]
     });
-    
-    function buildSchema() {
-        var schemasHTML = '';
-        for (var schema in w.schemaManager.schemas) {
-            schemasHTML += '<option value="' + schema + '">' + w.schemaManager.schemas[schema]['name'] + '</option>';
+
+
+     /**
+     * Loops through the list of a Schema's URLs to check availability
+     * @param {*} param0 
+     */
+    async function testSchemaURL ({url,altUrl}) {
+
+        let schemaAvailable = false;
+
+        //Make an array of urls. Remove when modifiy the config to list urls as
+        // an array instead of properties.
+        const resourceURLs = [];
+        if (url) resourceURLs.push(url);
+        if (altUrl) resourceURLs.push(altUrl);
+
+        for (let url of resourceURLs) {
+
+            //use the proxy if available.
+            if (w.schemaManager.schemaProxyUrl) {
+                url = `${w.schemaManager.schemaProxyUrl}/schema/xml?url=${url}`;
+            }
+
+            const response = await fetch(url)
+                .catch( () => {
+                    // console.log(err);
+                });
+        
+            if (response &&  response.status === 200) {
+                schemaAvailable = true;
+                break;
+            }
+        }
+
+        return schemaAvailable;
+        
+    }
+
+    async function buildSchema() {
+
+        let schemasHTML = '';
+        for (const schema of w.schemaManager.schemas) {
+            //if schema is not accessible, list as
+            let disabledAttribute = '';
+            if (!await testSchemaURL(schema)) disabledAttribute = 'disabled';
+
+            schemasHTML += `<option value="${schema.id}" ${disabledAttribute}>${schema.name}</option>`;
         }
         $('select[name="schema"]', $settingsDialog).html(schemasHTML);
+
     }
     
     function applySettings() {

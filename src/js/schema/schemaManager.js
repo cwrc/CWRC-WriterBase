@@ -9,7 +9,7 @@ var SchemaNavigator = require('./schemaNavigator.js');
  * @class SchemaManager
  * @param {Writer} writer
  * @param {Object} config
- * @param {Object} config.schemas
+ * @param {Array} config.schemas
  */
 function SchemaManager(writer, config) {
     var w = writer;
@@ -37,15 +37,26 @@ function SchemaManager(writer, config) {
     sm.getAttributesForPath = sm.navigator.getAttributesForPath;
     sm.getParentsForTag = sm.navigator.getParentsForTag;
     sm.getParentsForPath = sm.navigator.getParentsForPath;
+
+    /**
+     * The proxy URL through which the schema XML and CSS
+     * are loaeed, according to config.schemaProxyUrl
+     * @member {String}
+     */ 
+    sm.schemaProxyUrl = config.schemaProxyUrl;
     
     /**
-     * A map of schema objects. The key represents the schema ID, the "value" should have the following properties:
-     * @member {Object}
+     * An array of schema objects. Each object should have the following properties:
+     * @member {Array} of {Objects}
+     * @property {String} id A id for the schema
      * @property {String} name A name/label for the schema
      * @property {String} url The URL where the schema is located
+     * @property {String} altUrl (Optional) The alternative URL where the schema is located
      * @property {string} cssUrl The URL where the schema's CSS is located
+     * @property {string} altCssUrl (Optional) The alternative URL where the schema's CSS is located
+     * 
      */
-    sm.schemas = config.schemas || {};
+    sm.schemas = config.schemas || [];
     
     /**
      * The ID of the current validation schema, according to config.schemas
@@ -75,7 +86,7 @@ function SchemaManager(writer, config) {
      * @returns {Object}
      */
     sm.getCurrentSchema = function() {
-        return sm.schemas[sm.schemaId];
+        return sm.schemas.find( schema => schema.id === sm.schemaId);
     };
 
     /**
@@ -84,7 +95,7 @@ function SchemaManager(writer, config) {
      * @returns {String} The schemaId (or undefined)
      */
     sm.getSchemaIdFromRoot = function(root) {
-        for (var schemaId in sm.mapper.mappings) {
+        for (const schemaId in sm.mapper.mappings) {
             if (sm.mapper.mappings[schemaId].root.indexOf(root) !== -1) {
                 return schemaId;
             }
@@ -322,10 +333,10 @@ function SchemaManager(writer, config) {
      * 
      */
     sm.addSchema = function(config) {
-        var id = w.getUniqueId('schema');
-        sm.schemas[id] = config;
-        w.event('schemaAdded').publish(id);
-        return id;
+        config.id = w.getUniqueId('schema');
+        sm.schemas.push(config);
+        w.event('schemaAdded').publish(config.id);
+        return config.id;
     };
     
     /**
@@ -334,13 +345,9 @@ function SchemaManager(writer, config) {
      * @returns {String} url The url for the schema
      */
     sm.getUrlForSchema = function(schemaId) {
-        var schemaEntry = sm.schemas[schemaId];
-        if (schemaEntry !== undefined) {
-            var schemaUrl = schemaEntry.url;
-            return schemaUrl;
-        } else {
-            return null;
-        }
+        const schemaEntry = sm.schemas.find( schema => schema.id === schemaId);
+        if (schemaEntry !== undefined) return schemaEntry.url;
+        return null;
     };
 
     /**
@@ -348,33 +355,203 @@ function SchemaManager(writer, config) {
      * @param {String} schemaId The ID of the schema
      * @returns {Promise} Promise object which resolves to the (first) root name (string)
      */
-    sm.getRootForSchema = function(schemaId) {
-        return new Promise(function (resolve, reject) {
+    sm.getRootForSchema = async function(schemaId) {
+        return new Promise( async (resolve, reject) => {
             if (sm.mapper.mappings[schemaId] !== undefined) {
                 resolve(sm.mapper.mappings[schemaId].root[0]);
             } else {
-                var url = sm.getUrlForSchema(schemaId);
-                if (url) {
-                    $.when(
-                        $.ajax({
-                            url: url,
-                            dataType: 'xml'
-                        })
-                    ).then(function(resp) {
-                        var rootEl = $('start element:first', resp).attr('name');
-                        if (!rootEl) {
-                            var startName = $('start ref:first', resp).attr('name');
-                            rootEl = $('define[name="'+startName+'"] element', resp).attr('name');
-                        }
-                        resolve(rootEl);
-                    }, function(resp) {
-                        reject('schemaManager.getRootForSchema: could not connect to '+url);
-                    });
-                } else {
+                const url = sm.getUrlForSchema(schemaId);
+
+                if (!url) {
                     reject('schemaManager.getRootForSchema: no url for '+schemaId);
+                }
+
+                const response = await fetch(url)
+                    .catch( (err) => {
+                        console.log(err)
+                        reject('schemaManager.getRootForSchema: no url for '+schemaId);
+                    });
+
+                let rootEl = $('start element:first', response).attr('name');
+                if (!rootEl) {
+                    const startName = $('start ref:first', response).attr('name');
+                    rootEl = $('define[name="'+startName+'"] element', response).attr('name');
+                }
+
+                resolve(rootEl);
+                
+            }
+        });
+    }
+
+    // sm.getRootForSchema = function(schemaId) {
+    //     return new Promise(function (resolve, reject) {
+    //         if (sm.mapper.mappings[schemaId] !== undefined) {
+    //             resolve(sm.mapper.mappings[schemaId].root[0]);
+    //         } else {
+    //             const url = sm.getUrlForSchema(schemaId);
+    //             if (url) {
+    //                 $.when(
+    //                     $.ajax({
+    //                         url: url,
+    //                         dataType: 'xml'
+    //                     })
+    //                 ).then(function(resp) {
+    //                     var rootEl = $('start element:first', resp).attr('name');
+    //                     if (!rootEl) {
+    //                         var startName = $('start ref:first', resp).attr('name');
+    //                         rootEl = $('define[name="'+startName+'"] element', resp).attr('name');
+    //                     }
+    //                     resolve(rootEl);
+    //                 }, function(resp) {
+    //                     reject('schemaManager.getRootForSchema: could not connect to '+url);
+    //                 });
+    //             } else {
+    //                 reject('schemaManager.getRootForSchema: no url for '+schemaId);
+    //             }
+    //         }
+    //     });
+    // }
+
+    /*****************************
+     * LOAD SCHEMA XML
+     *****************************/
+
+    /**
+     * Load a Schema XML.
+     * @param {Object} annon An object containing url and altUrl
+     * @param {String} url The primary url source
+     * @param {String} altUrl The secondary url source
+     */
+    const loadXML = async ({url,altUrl}) => {
+
+        let xml;
+
+        //Make an array of urls. Remove when modifiy the config to list urls as
+        // an array instead of properties.
+        const resourceURLs = [];
+        if (url) resourceURLs.push(url);
+        if (altUrl) resourceURLs.push(altUrl);
+
+        for (let url of resourceURLs) {
+
+            //use the proxy if available.
+            if (sm.schemaProxyUrl) {
+                url = `${sm.schemaProxyUrl}/schema/xml?url=${url}`;
+            }
+
+            const response = await fetch(url)
+                .catch( (err) => {
+                    console.log(err)
+                });
+
+            // if loaded, converto to XML, break the loop and return
+            if (response && response.status === 200) {
+                const body = await response.text();
+                xml = w.utilities.stringToXML(body);
+                break;
+            }
+
+        }
+
+        return xml;
+         
+    }
+
+    /**
+     * Load an include schema.
+     * @param {String} schemaEntry The Schchema object, including the Schema URL 
+     * @param {String} include The schema to include
+     */
+    const loadIncludes = async (schemaEntry, include) => {
+         
+        let url = '';
+        let schemaFile;
+        const includeHref = include.attr('href');
+
+        if (includeHref.indexOf('/') != -1) {
+            schemaFile = includeHref.match(/(.*\/)(.*)/)[2]; // grab the filename
+        } else {
+            schemaFile = includeHref;
+        }
+
+        const schemaBase = schemaEntry.url.match(/(.*\/)(.*)/)[1];
+        if (schemaBase != null) {
+            url = schemaBase + schemaFile;
+        } else {
+            url = 'schema/'+schemaFile;
+        }
+
+        //load resource
+        const includesXML = await loadXML({url});
+        if (!includesXML) return null;
+        
+        include.children().each( (index, el) => {
+            if (el.nodeName == 'start') {
+                $('start', includesXML).replaceWith(el);
+            } else if (el.nodeName == 'define') {
+                const name = $(el).attr('name');
+                let match = $(`define[name="${name}"]`, includesXML);
+                if (match.length == 1) {
+                    match.replaceWith(el);
+                } else {
+                    $('grammar', includesXML).append(el);
                 }
             }
         });
+        
+        include.replaceWith($('grammar', includesXML).children());
+
+        return;
+         
+    }
+
+    /**
+     * Process a schema
+     * @param {Boolean} startText Whether to include the default starting text
+     * @param {Function} callback Callback for when the load is complete
+     */
+    const processSchema = (startText, callback) => {
+        // remove old schema elements
+        $('#schemaTags', w.editor.dom.doc).remove();
+        
+        // create css to display schema tags
+        $('head', w.editor.getDoc()).append('<style id="schemaTags" type="text/css" />');
+        
+        let schemaTags = '';
+        const elements = [];
+        $('element', sm.schemaXML).each( (index, el) => {
+            const tag = $(el).attr('name');
+            if (tag != null && elements.indexOf(tag) == -1) {
+                elements.push(tag);
+                schemaTags += `.showTags *[_tag=${tag}]:before { color: #aaa !important; font-size: 13px !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "<${tag}>"; }`;
+                schemaTags += `.showTags *[_tag=${tag}]:after { color: #aaa !important; font-size: 13px !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "</${tag}>"; }`;
+            }
+        });
+        elements.sort();
+        
+        // hide the header
+        const tagName = sm.getTagForEditor(sm._header);
+        schemaTags += tagName+`[_tag=${sm._header}] { display: none !important; }`;
+        
+        $('#schemaTags', w.editor.getDoc()).text(schemaTags);
+        
+        sm.schema.elements = elements;
+        sm.navigator.setSchemaElements(sm.schema.elements);
+        
+        if (callback === null) {
+            let text = '';
+            if (startText) text = 'Paste or type your text here.';
+            const tag = sm.getTagForEditor(sm._root);
+            w.editor.setContent(`${tag} _tag="${sm._root}">${text}</${tag}>`);
+        }
+        
+        sm.schemaJSON = w.utilities.xmlToJSON($('grammar', sm.schemaXML)[0]);
+        if (sm.schemaJSON === null) {
+            console.warn('schemaManager.loadSchema: schema XML could not be converted to JSON');
+        }
+        sm.navigator.setSchemaJSON(sm.schemaJSON);
+        
     }
 
     /**
@@ -386,198 +563,179 @@ function SchemaManager(writer, config) {
      * @param {Boolean} loadCss Whether to load the associated CSS
      * @param {Function} callback Callback for when the load is complete
      */
-    sm.loadSchema = function(schemaId, startText, loadCss, callback) {
-        var schemaEntry = sm.schemas[schemaId];
-        if (schemaEntry !== undefined) {
-            w.event('loadingSchema').publish();
+    sm.loadSchema = async function (schemaId, startText, loadCss, callback) {
 
-            sm.schemaId = schemaId;
-            var schemaUrl = schemaEntry.url;
-            if (schemaEntry.altUrl !== undefined) {
-                schemaUrl = schemaEntry.altUrl;
-            }
-            var schemaMappingsId = schemaEntry.schemaMappingsId;
-            
-            sm.mapper.loadMappings(schemaMappingsId);
-            
-            $.when(
-                $.ajax({
-                    url: schemaUrl,
-                    dataType: 'xml'
-                })
-            ).then(function(resp1) {
-                var data = resp1;
-                
-                sm.schemaXML = data;
-                // get root element
-                var startEl = $('start element:first', sm.schemaXML).attr('name');
-                if (!startEl) {
-                    var startName = $('start ref:first', sm.schemaXML).attr('name');
-                    startEl = $('define[name="'+startName+'"] element', sm.schemaXML).attr('name');
-                }
-                
-                sm._root = startEl;
-                sm._header = sm.mapper.getHeaderTag();
-                sm._idName = sm.mapper.getIdAttributeName();
-                
-                // TODO is this necessary
-                var additionalBlockElements = sm.mapper.getBlockLevelElements();
-                var blockElements = w.editor.schema.getBlockElements();
-                for (var i = 0; i < additionalBlockElements.length; i++) {
-                    blockElements[additionalBlockElements[i]] = {};
-                }
-                
-                function processSchema() {
-                    // remove old schema elements
-                    $('#schemaTags', w.editor.dom.doc).remove();
-                    
-                    var cssUrl = sm.schemas[sm.schemaId].cssUrl;
-                    if (cssUrl && loadCss === true) {
-                        sm.loadSchemaCSS(cssUrl);
-                    }
-                    
-                    // create css to display schema tags
-                    $('head', w.editor.getDoc()).append('<style id="schemaTags" type="text/css" />');
-                    
-                    var schemaTags = '';
-                    var elements = [];
-                    $('element', sm.schemaXML).each(function(index, el) {
-                        var tag = $(el).attr('name');
-                        if (tag != null && elements.indexOf(tag) == -1) {
-                            elements.push(tag);
-                            schemaTags += '.showTags *[_tag='+tag+']:before { color: #aaa !important; font-size: 13px !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "<'+tag+'>"; }';
-                            schemaTags += '.showTags *[_tag='+tag+']:after { color: #aaa !important; font-size: 13px !important; font-weight: normal !important; font-style: normal !important; font-family: monospace !important; font-variant: normal !important; content: "</'+tag+'>"; }';
-                        }
-                    });
-                    elements.sort();
-                    
-                    // hide the header
-                    var tagName = sm.getTagForEditor(sm._header);
-                    schemaTags += tagName+'[_tag='+sm._header+'] { display: none !important; }';
-                    
-                    $('#schemaTags', w.editor.getDoc()).text(schemaTags);
-                    
-                    sm.schema.elements = elements;
-                    sm.navigator.setSchemaElements(sm.schema.elements);
-                    
-                    if (callback == null) {
-                        var text = '';
-                        if (startText) text = 'Paste or type your text here.';
-                        var tag = sm.getTagForEditor(sm._root);
-                        w.editor.setContent('<'+tag+' _tag="'+sm._root+'">'+text+'</'+tag+'>');
-                    }
-                    
-                    sm.schemaJSON = w.utilities.xmlToJSON($('grammar', sm.schemaXML)[0]);
-                    if (sm.schemaJSON === null) {
-                        console.warn('schemaManager.loadSchema: schema XML could not be converted to JSON');
-                    }
-                    sm.navigator.setSchemaJSON(sm.schemaJSON);
-                    
-                    w.event('schemaLoaded').publish();
-                    
-                    if (callback) callback(true);
-                }
-                
-                // handle includes
-                var include = $('include:first', sm.schemaXML); // TODO add handling for multiple includes
-                if (include.length == 1) {
-                    var url = '';
-                    var includeHref = include.attr('href');
-                    var schemaFile;
-                    if (includeHref.indexOf('/') != -1) {
-                        schemaFile = includeHref.match(/(.*\/)(.*)/)[2]; // grab the filename
-                    } else {
-                        schemaFile = includeHref;
-                    }
-                    var schemaBase = schemaUrl.match(/(.*\/)(.*)/)[1];
-                    if (schemaBase != null) {
-                        url = schemaBase + schemaFile;
-                    } else {
-                        url = 'schema/'+schemaFile;
-                    }
-                    
-                    $.ajax({
-                        url: url,
-                        dataType: 'xml',
-                        success: function(data, status, xhr) {
-                            // handle redefinitions
-                            include.children().each(function(index, el) {
-                                if (el.nodeName == 'start') {
-                                    $('start', data).replaceWith(el);
-                                } else if (el.nodeName == 'define') {
-                                    var name = $(el).attr('name');
-                                    var match = $('define[name="'+name+'"]', data);
-                                    if (match.length == 1) {
-                                        match.replaceWith(el);
-                                    } else {
-                                        $('grammar', data).append(el);
-                                    }
-                                }
-                            });
-                            
-                            include.replaceWith($('grammar', data).children());
-                            
-                            processSchema();
-                        }
-                    });
-                } else {
-                    processSchema();
-                }
-            }, function(resp) {
-                sm.schemaId = null;
-                w.dialogManager.show('message', {title: 'Error', msg: '<p>Error loading schema from: '+schemaUrl+'.</p><p>Document editing will not work properly!</p>', type: 'error'});
-                if (callback) callback(false);
+        const schemaEntry = sm.schemas.find( schema => schema.id === schemaId);
+
+        if (schemaEntry === undefined) {
+            w.dialogManager.show('message', {
+                title: 'Error',
+                msg: `Error loading schema. No entry found for: ${schemaId}`,
+                type: 'error'
             });
-        } else {
-            w.dialogManager.show('message', {title: 'Error', msg: 'Error loading schema. No entry found for: '+schemaId, type: 'error'});
             if (callback) callback(false);
+            return;
         }
+
+        w.event('loadingSchema').publish();
+
+        sm.schemaId = schemaId;
+        const schemaMappingsId = schemaEntry.schemaMappingsId;
+        sm.mapper.loadMappings(schemaMappingsId);
+
+        //load resource
+        const schemaXML = await loadXML(schemaEntry);
+        if (!schemaXML) {
+            sm.schemaId = null;
+            w.dialogManager.show('message',{
+                title: 'Error',
+                msg: `<p>Error loading schema from: ${schemaEntry.name}.</p><p>Document editing will not work properly!</p>`,
+                type: 'error'
+            });
+            if (callback) callback(false);
+            return null;
+        }
+
+        sm.schemaXML = schemaXML;
+
+        // get root element
+        let startEl = $('start element:first', sm.schemaXML).attr('name');
+        if (!startEl) {
+            const startName = $('start ref:first', sm.schemaXML).attr('name');
+            startEl = $(`define[name="${startName}"] element`, sm.schemaXML).attr('name');
+        }
+        
+        sm._root = startEl;
+        sm._header = sm.mapper.getHeaderTag();
+        sm._idName = sm.mapper.getIdAttributeName();
+        
+        // TODO is this necessary
+        const additionalBlockElements = sm.mapper.getBlockLevelElements();
+        const blockElements = w.editor.schema.getBlockElements();
+        for (let i = 0; i < additionalBlockElements.length; i++) {
+            blockElements[additionalBlockElements[i]] = {};
+        }
+        
+        // handle includes
+        const include = $('include:first', sm.schemaXML); // TODO add handling for multiple includes
+        if (include.length == 1) {
+            await loadIncludes(schemaEntry,include); // TODO  it seems that includes goes nowhere.
+        }
+
+        //load CSS
+        if (loadCss === true) sm.loadSchemaCSS(schemaEntry);
+
+        //Process schema
+        processSchema(startText, callback);
+
+        w.event('schemaLoaded').publish();
+        
+        if (callback) callback(true);
+    
     };
+
+    /*****************************
+     * LOAD SCHEMA CSS
+     *****************************/
+
+    /**
+     * Load a Schema CSS.
+     * @param {Object} annon An object containing url and altUrl
+     * @param {String} cssUrl The primary url source
+     * @param {String} altCssUrl The secondary url source
+     */
+    const loadCSS = async ({cssUrl,altCssUrl}) => {
+
+        let css;
+
+        //Make an array of urls. Remove when modifiy the config to list urls as
+        // an array instead of properties.
+        const resourceURLs = [];
+        if (cssUrl) resourceURLs.push(cssUrl);
+        if (altCssUrl) resourceURLs.push(altCssUrl);
+
+        for (let url of resourceURLs) {
+
+            //redifine schema manager css based on the avaiable url
+            sm._css = url;
+
+            //use the proxy if available.
+            if (sm.schemaProxyUrl) {
+                url = `${sm.schemaProxyUrl}/schema/css?url=${url}`;
+            }
+
+            const response = await fetch(url)
+                .catch( (err) => {
+                    console.log(err);
+                });
+
+            //if loaded, break the loop and return
+            if (response && response.status === 200) {
+                css = await response.text();
+                break;
+            }
+
+        }
+
+        return css;
+         
+    }
     
     /**
      * Load the CSS and convert it to the internal format
-     * @param {String} url The URL for the CSS
+     * @param {Object} schemaEntry The ShemaEntry object that contains url for the CSS
      */
-    sm.loadSchemaCSS = function(url) {
+    sm.loadSchemaCSS = async function(schemaEntry) {
         $('#schemaRules', w.editor.dom.doc).remove();
         $('#schemaRules', document).remove();
+         
+        //load resource
+        const cssData = await loadCSS(schemaEntry);
+        if (!cssData) {
+            w.dialogManager.show('message', {
+                title: 'Error',
+                msg: `Error loading schema CSS from: ${schemaEntry.name}`,
+                type: 'error'
+            });
+            return null;
+        }
         
-        $.ajax({url: url}).then(function(data) {
-            sm._css = url;
-            
-            var cssObj = css.parse(data);
-            var rules = cssObj.stylesheet.rules;
-            for (var i = 0; i < rules.length; i++) {
-                var rule = rules[i];
-                if (rule.type === 'rule') {
-                    var convertedSelectors = [];
-                    for (var j = 0; j < rule.selectors.length; j++) {
-                        var selector = rule.selectors[j];
-                        var newSelector = selector.replace(/(^|,|\s)(#?\w+)/g, function(str, p1, p2, offset, s) {
-                            return p1+'*[_tag="'+p2+'"]';
-                        });
-                        convertedSelectors.push(newSelector);
-                        
-                    }
-                    rule.selectors = convertedSelectors;
+        const cssObj = css.parse(cssData);
+        const rules = cssObj.stylesheet.rules;
+
+        for (let i = 0; i < rules.length; i++) {
+            const rule = rules[i];
+            if (rule.type === 'rule') {
+                const convertedSelectors = [];
+                for (let j = 0; j < rule.selectors.length; j++) {
+                    const selector = rule.selectors[j];
+                    const newSelector = selector.replace(/(^|,|\s)(#?\w+)/g, (str, p1, p2, offset, s) => {
+                        return p1+'*[_tag="'+p2+'"]';
+                    });
+                    convertedSelectors.push(newSelector);
+                    
                 }
+                rule.selectors = convertedSelectors;
             }
-            var cssString = css.stringify(cssObj);
-            
-            $('head', w.editor.dom.doc).append('<style id="schemaRules" type="text/css" />');
-            $('#schemaRules', w.editor.dom.doc).text(cssString);
-            // we need to also append to document in order for note popups to be styled
-            $('#schemaRules', w.editor.dom.doc).clone().appendTo($('head', document));
-        }, function(err) {
-            w.dialogManager.show('message', {title: 'Error', msg: 'Error loading schema CSS from: '+url, type: 'error'});
-        });
+        }
+        
+        const cssString = css.stringify(cssObj);
+        
+        $('head', w.editor.dom.doc).append('<style id="schemaRules" type="text/css" />');
+        $('#schemaRules', w.editor.dom.doc).text(cssString);
+        // we need to also append to document in order for note popups to be styled
+        $('#schemaRules', w.editor.dom.doc).clone().appendTo($('head', document));
+        
     };
 
-    w.event('schemaChanged').subscribe(function(schemaId) {
+
+    //TODO - where this schemaId comes from?
+    w.event('schemaChanged').subscribe( (schemaId) =>  {
         sm.loadSchema(schemaId, false, true, function() {});
     });
     
     return sm;
-};
+}
+
 
 module.exports = SchemaManager;
