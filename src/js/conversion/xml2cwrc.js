@@ -118,7 +118,7 @@ function XML2CWRC(writer) {
                         callback: async function(doIt) {
                             if (doIt) {
                                 if (cssUrl !== undefined) {
-                                    await w.schemaManager.loadSchemaCSS(cssUrl);
+                                    await w.schemaManager.loadSchemaCSS({cssUrl});
                                 }
                                 if (schemaUrl !== undefined) {
                                     var customSchemaId = w.schemaManager.addSchema({
