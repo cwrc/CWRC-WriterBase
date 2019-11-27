@@ -348,7 +348,7 @@ function CWRCWriter(config) {
         container: $('#' + w.containerId)
     });
 
-    w.schemaManager = new SchemaManager(w, { schemas: config.schemas });
+    w.schemaManager = new SchemaManager(w, config.schema);
     w.entitiesManager = new EntitiesManager(w);
     w.dialogManager = new DialogManager(w); // needs to load before SettingsDialog
     w.tagger = new Tagger(w);
