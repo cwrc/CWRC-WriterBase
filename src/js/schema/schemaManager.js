@@ -50,10 +50,8 @@ function SchemaManager(writer, config) {
      * @member {Array} of {Objects}
      * @property {String} id A id for the schema
      * @property {String} name A name/label for the schema
-     * @property {String} url The URL where the schema is located
-     * @property {String} altUrl (Optional) The alternative URL where the schema is located
-     * @property {string} cssUrl The URL where the schema's CSS is located
-     * @property {string} altCssUrl (Optional) The alternative URL where the schema's CSS is located
+     * @property {Array} xmlUrl Collection of URLs where the schema is located
+     * @property {string} cssUrl Collection of URLs where the schema's CSS is located
      * 
      */
     sm.schemas = config.schemas || [];
@@ -69,6 +67,15 @@ function SchemaManager(writer, config) {
      * @member {Document}
      */
     sm.schemaXML = null;
+    
+    sm._xmlUrl = null;
+    /**
+     * Get the URL for the XML for the current schema.
+     * @returns {String}
+     */
+    sm.getXMLUrl = function() {
+        return sm._xmlUrl;
+    };
     /**
      * A JSON version of the schema
      * @member {Object}
@@ -130,13 +137,13 @@ function SchemaManager(writer, config) {
         return sm._idName;
     };
     
-    sm._css = null;
+    sm._cssUrl = null;
     /**
      * Get the URL for the CSS for the current schema.
      * @returns {String}
      */
-    sm.getCSS = function() {
-        return sm._css;
+    sm.getCSSUrl = function() {
+        return sm._cssUrl;
     };
 
     /**
@@ -326,9 +333,7 @@ function SchemaManager(writer, config) {
      * Add a schema to the list.
      * @fires Writer#schemaAdded
      * @param {Object} config The config object
-     * @param {String} config.name The name for the schema
-     * @param {String} config.url The url to the schema
-     * @param {String} config.cssUrl The url to the css
+     * @param {String} config.id The id for the schema
      * @returns {String} id The id for the schema
      * 
      */
@@ -342,46 +347,43 @@ function SchemaManager(writer, config) {
     /**
      * Gets the url associated with the schema
      * @param {String} schemaId The ID of the schema
-     * @returns {String} url The url for the schema
+     * @returns {Array} Collection of urls for the schema
      */
     sm.getUrlForSchema = function(schemaId) {
         const schemaEntry = sm.schemas.find( schema => schema.id === schemaId);
-        if (schemaEntry !== undefined) return schemaEntry.url;
+        if (schemaEntry !== undefined) return schemaEntry.xmlUrl;
         return null;
     };
 
     /**
      * Gets the name of the root element for the schema
      * @param {String} schemaId The ID of the schema
-     * @returns {Promise} Promise object which resolves to the (first) root name (string)
+     * @returns {String} The (first) root name
      */
     sm.getRootForSchema = async function(schemaId) {
-        return new Promise( async (resolve, reject) => {
-            if (sm.mapper.mappings[schemaId] !== undefined) {
-                resolve(sm.mapper.mappings[schemaId].root[0]);
-            } else {
-                const url = sm.getUrlForSchema(schemaId);
+        
+        if (sm.mapper.mappings[schemaId] !== undefined) {
+            return sm.mapper.mappings[schemaId].root[0];
+        } 
 
-                if (!url) {
-                    reject('schemaManager.getRootForSchema: no url for '+schemaId);
-                }
+        const xmlUrl = sm.getUrlForSchema(schemaId);
 
-                const response = await fetch(url)
-                    .catch( (err) => {
-                        console.log(err)
-                        reject('schemaManager.getRootForSchema: no url for '+schemaId);
-                    });
+        if (!xmlUrl) {
+            throw 'schemaManager.getRootForSchema: no url for '+schemaId;
+        }
 
-                let rootEl = $('start element:first', response).attr('name');
-                if (!rootEl) {
-                    const startName = $('start ref:first', response).attr('name');
-                    rootEl = $('define[name="'+startName+'"] element', response).attr('name');
-                }
+        //load resource
+        const schemaXML = await loadXMLFile([xmlUrl]);
+        if (!schemaXML) throw `schemaManager.getRootForSchema: could not connect to ${schemaId}`;
 
-                resolve(rootEl);
-                
-            }
-        });
+        let rootEl = $('start element:first', schemaXML).attr('name');
+        if (!rootEl) {
+            const startName = $('start ref:first', schemaXML).attr('name');
+            rootEl = $('define[name="'+startName+'"] element', schemaXML).attr('name');
+        }
+
+        return rootEl;
+    
     }
 
     /*****************************
@@ -390,21 +392,14 @@ function SchemaManager(writer, config) {
 
     /**
      * Load a Schema XML.
-     * @param {Object} annon An object containing url and altUrl
-     * @param {String} url The primary url source
-     * @param {String} altUrl The secondary url source
+     * @param {Array} xmlUrl Collection of url sources
      */
-    const loadXML = async ({url,altUrl}) => {
+    const loadXMLFile = async (xmlUrl) => {
 
         let xml;
 
-        //Make an array of urls. Remove when modifiy the config to list urls as
-        // an array instead of properties.
-        const resourceURLs = [];
-        if (url) resourceURLs.push(url);
-        if (altUrl) resourceURLs.push(altUrl);
-
-        for (let url of resourceURLs) {
+        //loop through URL collection
+        for (let url of xmlUrl) {
 
             //use the proxy if available.
             if (sm.schemaProxyUrl) {
@@ -420,6 +415,7 @@ function SchemaManager(writer, config) {
             if (response && response.status === 200) {
                 const body = await response.text();
                 xml = w.utilities.stringToXML(body);
+                sm._xmlUrl = url;
                 break;
             }
 
@@ -454,7 +450,7 @@ function SchemaManager(writer, config) {
         }
 
         //load resource
-        const includesXML = await loadXML({url});
+        const includesXML = await loadXMLFile([url]);
         if (!includesXML) return null;
         
         include.children().each( (index, el) => {
@@ -555,12 +551,13 @@ function SchemaManager(writer, config) {
         sm.mapper.loadMappings(schemaMappingsId);
 
         //load resource
-        const schemaXML = await loadXML(schemaEntry);
+        const schemaXML = await loadXMLFile(schemaEntry.xmlUrl);
         if (!schemaXML) {
             sm.schemaId = null;
             w.dialogManager.show('message',{
                 title: 'Error',
-                msg: `<p>Error loading schema from: ${schemaEntry.name}.</p><p>Document editing will not work properly!</p>`,
+                msg: `<p>Error loading schema from: ${schemaEntry.name}.</p>
+                      <p>Document editing will not work properly!</p>`,
                 type: 'error'
             });
             if (callback) callback(false);
@@ -594,7 +591,7 @@ function SchemaManager(writer, config) {
         }
 
         //load CSS
-        if (loadCss === true) sm.loadSchemaCSS(schemaEntry);
+        if (loadCss === true) sm.loadSchemaCSS(schemaEntry.cssUrl);
 
         //Process schema
         processSchema(startText, callback);
@@ -602,7 +599,7 @@ function SchemaManager(writer, config) {
         w.event('schemaLoaded').publish();
         
         if (callback) callback(true);
-    
+        
     };
 
     /*****************************
@@ -611,24 +608,14 @@ function SchemaManager(writer, config) {
 
     /**
      * Load a Schema CSS.
-     * @param {Object} annon An object containing url and altUrl
-     * @param {String} cssUrl The primary url source
-     * @param {String} altCssUrl The secondary url source
+     * @param {Array} cssUrl Collection of url sources
      */
-    const loadCSS = async ({cssUrl,altCssUrl}) => {
+    const loadCSSFile = async (cssUrl) => {
 
         let css;
 
-        //Make an array of urls. Remove when modifiy the config to list urls as
-        // an array instead of properties.
-        const resourceURLs = [];
-        if (cssUrl) resourceURLs.push(cssUrl);
-        if (altCssUrl) resourceURLs.push(altCssUrl);
-
-        for (let url of resourceURLs) {
-
-            //redifine schema manager css based on the avaiable url
-            sm._css = url;
+        //loop through URL collection
+        for (let url of cssUrl) {
 
             //use the proxy if available.
             if (sm.schemaProxyUrl) {
@@ -643,6 +630,7 @@ function SchemaManager(writer, config) {
             //if loaded, break the loop and return
             if (response && response.status === 200) {
                 css = await response.text();
+                sm._cssUrl = url; //redifine schema manager css based on the avaiable url
                 break;
             }
 
@@ -654,18 +642,18 @@ function SchemaManager(writer, config) {
     
     /**
      * Load the CSS and convert it to the internal format
-     * @param {Object} schemaEntry The ShemaEntry object that contains url for the CSS
+     * @param {Array} cssURL Collection of url sources
      */
-    sm.loadSchemaCSS = async function(schemaEntry) {
+    sm.loadSchemaCSS = async function(cssURL) {
         $('#schemaRules', w.editor.dom.doc).remove();
         $('#schemaRules', document).remove();
          
         //load resource
-        const cssData = await loadCSS(schemaEntry);
+        const cssData = await loadCSSFile(cssURL);
         if (!cssData) {
             w.dialogManager.show('message', {
                 title: 'Error',
-                msg: `Error loading schema CSS from: ${schemaEntry.name}`,
+                msg: 'No CSS could be loaded to this schema.',
                 type: 'error'
             });
             return null;
@@ -700,7 +688,6 @@ function SchemaManager(writer, config) {
     };
 
 
-    //TODO - where this schemaId comes from?
     w.event('schemaChanged').subscribe( (schemaId) =>  {
         sm.loadSchema(schemaId, false, true, function() {});
     });

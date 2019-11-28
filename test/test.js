@@ -367,11 +367,10 @@ test('schemaManager.getRootForSchema', () => {
     writer = getWriterInstance()
     
     return new Promise((resolve, reject) => {
-        initAndLoadDoc(writer, teiDoc).then(() => {
-            writer.schemaManager.getRootForSchema('tei').then((result) => {
-                expect(result).toBe('TEI');
-                resolve();
-            });
+        initAndLoadDoc(writer, teiDoc).then( async () => {
+            const result = await writer.schemaManager.getRootForSchema('tei');
+            expect(result).toBe('TEI');
+            resolve();
         })
     })
 });

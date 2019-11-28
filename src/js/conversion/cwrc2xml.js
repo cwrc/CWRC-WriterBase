@@ -60,8 +60,8 @@ function CWRC2XML(writer) {
         w.tagger.setAttributesForTag($rootEl[0], rootAttributes);
 
         var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
-        xmlString += '<?xml-model href="'+w.schemaManager.getCurrentSchema().url+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
-        var currentCSS = w.schemaManager.getCSS() || w.schemaManager.getCurrentSchema().cssUrl;
+        xmlString += '<?xml-model href="'+w.schemaManager.getXMLUrl()+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
+        var currentCSS = w.schemaManager.getCSSUrl();
         xmlString += '<?xml-stylesheet type="text/css" href="'+currentCSS+'"?>\n';
 
         console.time('buildXMLString');
