@@ -333,21 +333,29 @@ function SchemaManager(writer, config) {
      * Add a schema to the list.
      * @fires Writer#schemaAdded
      * @param {Object} config The config object
-     * @param {String} config.id The id for the schema
+     * @param {String} config.name A name for the schema
+     * @param {Array} config.xmlUrl The xml url(s) for the schema
+     * @param {Array} config.cssUrl The css url(s) for the schema
      * @returns {String} id The id for the schema
      * 
      */
     sm.addSchema = function(config) {
         config.id = w.getUniqueId('schema');
+        if (config.xmlUrl && typeof config.xmlUrl === 'string') {
+            config.xmlUrl = [config.xmlUrl]
+        }
+        if (config.cssUrl && typeof config.cssUrl === 'string') {
+            config.cssUrl = [config.cssUrl]
+        }
         sm.schemas.push(config);
         w.event('schemaAdded').publish(config.id);
         return config.id;
     };
     
     /**
-     * Gets the url associated with the schema
+     * Gets the url(s) associated with the schema
      * @param {String} schemaId The ID of the schema
-     * @returns {Array} Collection of urls for the schema
+     * @returns {Array|null} Collection of urls for the schema
      */
     sm.getUrlForSchema = function(schemaId) {
         const schemaEntry = sm.schemas.find( schema => schema.id === schemaId);
@@ -373,7 +381,7 @@ function SchemaManager(writer, config) {
         }
 
         //load resource
-        const schemaXML = await loadXMLFile([xmlUrl]);
+        const schemaXML = await loadXMLFile(xmlUrl);
         if (!schemaXML) throw `schemaManager.getRootForSchema: could not connect to ${schemaId}`;
 
         let rootEl = $('start element:first', schemaXML).attr('name');
@@ -630,7 +638,7 @@ function SchemaManager(writer, config) {
             //if loaded, break the loop and return
             if (response && response.status === 200) {
                 css = await response.text();
-                sm._cssUrl = url; //redifine schema manager css based on the avaiable url
+                sm._cssUrl = url; // redefine schema manager css based on the avaiable url
                 break;
             }
 

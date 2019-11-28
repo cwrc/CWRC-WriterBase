@@ -148,8 +148,8 @@ function Settings(writer, config) {
 
      /**
      * Loops through the list of a Schema's URLs to check availability
-     * @param {*} Anon Object conainting an array of urls
-     * @param {Array} xxmlUrl Collection of URl source 
+     * @param {*} Anon Object containg an array of urls
+     * @param {Array} xmlUrl Collection of URL source 
      */
     async function testSchemaURL ({xmlUrl}) {
 
@@ -396,6 +396,7 @@ function Settings(writer, config) {
         $settingsDialog.dialog('option', 'height', 260);
     }
     
+    // TODO don't rebuild the whole schema list when one schema gets added
     w.event('schemaAdded').subscribe(buildSchema);
     
     if (w.isReadOnly) {
