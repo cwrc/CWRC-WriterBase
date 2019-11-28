@@ -1,9 +1,9 @@
 'use strict';
 
-var $ = require('jquery');
-var Mapper = require('./mapper.js');
-var css = require('css');
-var SchemaNavigator = require('./schemaNavigator.js');
+const $ = require('jquery');
+const Mapper = require('./mapper.js');
+const css = require('css');
+const SchemaNavigator = require('./schemaNavigator.js');
 
 /**
  * @class SchemaManager
@@ -12,15 +12,15 @@ var SchemaNavigator = require('./schemaNavigator.js');
  * @param {Array} config.schemas
  */
 function SchemaManager(writer, config) {
-    var w = writer;
+    const w = writer;
     
     /**
      * @lends SchemaManager.prototype
      */
-    var sm = {};
+    const sm = {};
 
-    var BLOCK_TAG = 'div';
-    var INLINE_TAG = 'span';
+    const BLOCK_TAG = 'div';
+    const INLINE_TAG = 'span';
     sm.getBlockTag = function() {
         return BLOCK_TAG;
     }
@@ -167,7 +167,7 @@ function SchemaManager(writer, config) {
             }
             
             // check for the text element
-            var textHits = currEl.find('text');
+            const textHits = currEl.find('text');
             if (textHits.length > 0 && (level === 0 || textHits.parents('element').length === 0)) { // if we're processing a ref and the text is inside an element then it doesn't count
                 status.canContainText = true;
                 return false;
@@ -175,28 +175,28 @@ function SchemaManager(writer, config) {
             
             // now process the references
             currEl.find('ref').each(function(index, el) {
-                var name = $(el).attr('name');
+                const name = $(el).attr('name');
                 if ($(el).parents('element').length > 0 && level > 0) {
                     return; // ignore other elements
                 }
                 if (!defHits[name]) {
                     defHits[name] = true;
-                    var def = $('define[name="'+name+'"]', sm.schemaXML);
+                    const def = $('define[name="'+name+'"]', sm.schemaXML);
                     return checkForText(def, defHits, level+1, status);
                 }
             });
         }
 
-        var useLocalStorage = false;
+        let useLocalStorage = false;
         if (useLocalStorage) {
-            var localData = localStorage['cwrc.'+tag+'.text'];
+            let localData = localStorage['cwrc.'+tag+'.text'];
             if (localData) return localData == 'true';
         }
         
-        var element = $('element[name="'+tag+'"]', sm.schemaXML);
-        var defHits = {};
-        var level = 0;
-        var status = {canContainText: false}; // needs to be an object so change is visible outside of checkForText
+        const element = $('element[name="'+tag+'"]', sm.schemaXML);
+        const defHits = {};
+        const level = 0;
+        const status = {canContainText: false}; // needs to be an object so change is visible outside of checkForText
         checkForText(element, defHits, level, status);
         
         if (useLocalStorage) {
@@ -212,7 +212,7 @@ function SchemaManager(writer, config) {
     };
     
     sm.isTagEntity = function(tagName) {
-        var type = sm.mapper.getEntityTypeForTag(tagName);
+        const type = sm.mapper.getEntityTypeForTag(tagName);
         return type !== null;
     };
     
@@ -221,16 +221,16 @@ function SchemaManager(writer, config) {
     };
 
     sm.getDocumentationForTag = function(tag) {
-        var element = $('element[name="'+tag+'"]', sm.schemaXML);
-        var doc = $('a\\:documentation, documentation', element).first().text();
+        const element = $('element[name="'+tag+'"]', sm.schemaXML);
+        const doc = $('a\\:documentation, documentation', element).first().text();
         return doc;
     };
     
     sm.getFullNameForTag = function(tag) {
-        var element = $('element[name="'+tag+'"]', sm.schemaXML);
-        var doc = $('a\\:documentation, documentation', element).first().text();
+        const element = $('element[name="'+tag+'"]', sm.schemaXML);
+        const doc = $('a\\:documentation, documentation', element).first().text();
         // if the tag name is an abbreviation, we expect the full name to be at the beginning of the doc, in parentheses
-        var hit = /^\((.*?)\)/.exec(doc);
+        const hit = /^\((.*?)\)/.exec(doc);
         if (hit !== null) {
             return hit[1];
         }
@@ -243,8 +243,8 @@ function SchemaManager(writer, config) {
      * @returns {Object}
      */
     sm.getRequiredChildrenForTag = function(tag) {
-        var tags = sm.getChildrenForTag(tag);
-        for (var i = tags.length-1; i > -1; i--) {
+        const tags = sm.getChildrenForTag(tag);
+        for (let i = tags.length-1; i > -1; i--) {
             if (tags[i].required !== true) {
                 tags.splice(i, 1);
             }
@@ -258,7 +258,7 @@ function SchemaManager(writer, config) {
      * @returns boolean
      */
     sm.canTagHaveAttributes = function(tag) {
-        var atts = sm.getAttributesForTag(tag);
+        const atts = sm.getAttributesForTag(tag);
         return atts.length !== 0;
     };
 
@@ -269,8 +269,8 @@ function SchemaManager(writer, config) {
      * @returns {Boolean}
      */
     sm.isTagValidChildOfParent = function(childName, parentName) {
-        var parents = sm.getParentsForTag(childName);
-        for (var i = 0; i < parents.length; i++) {
+        const parents = sm.getParentsForTag(childName);
+        for (let i = 0; i < parents.length; i++) {
             if (parents[i].name === parentName) {
                 return true;
             }
@@ -284,20 +284,20 @@ function SchemaManager(writer, config) {
      * @returns {Boolean}
      */
     sm.wouldDeleteInvalidate = function(nodeToDelete) {
-        var parentEl = nodeToDelete.parentElement;
-        var parentTag = parentEl.getAttribute('_tag');
+        let parentEl = nodeToDelete.parentElement;
+        let parentTag = parentEl.getAttribute('_tag');
         // handling for when we're inside entityHighlight
         while (parentTag === null) {
             parentEl = parentEl.parentElement;
             parentTag = parentEl.getAttribute('_tag');
         }
 
-        var validChildren = sm.getChildrenForTag(parentTag);
-        var validDelete = true;
-        for (var i = 0; i < nodeToDelete.children.length; i++) {
-            var child = nodeToDelete.children[i];
-            var childTag = child.getAttribute('_tag');
-            var childIsValid = validChildren.find(vc => {
+        const validChildren = sm.getChildrenForTag(parentTag);
+        let validDelete = true;
+        for (let i = 0; i < nodeToDelete.children.length; i++) {
+            const child = nodeToDelete.children[i];
+            const childTag = child.getAttribute('_tag');
+            const childIsValid = validChildren.find(vc => {
                 return vc.name === childTag
             });
             if (!childIsValid) {
@@ -307,7 +307,7 @@ function SchemaManager(writer, config) {
         }
 
         if (validDelete) {
-            var hasTextNodes = false;
+            let hasTextNodes = false;
             nodeToDelete.childNodes.forEach(cn => {
                 if (!hasTextNodes && cn.nodeType === Node.TEXT_NODE && cn.textContent !== '\uFEFF') {
                     hasTextNodes = true;
@@ -383,35 +383,6 @@ function SchemaManager(writer, config) {
             }
         });
     }
-
-    // sm.getRootForSchema = function(schemaId) {
-    //     return new Promise(function (resolve, reject) {
-    //         if (sm.mapper.mappings[schemaId] !== undefined) {
-    //             resolve(sm.mapper.mappings[schemaId].root[0]);
-    //         } else {
-    //             const url = sm.getUrlForSchema(schemaId);
-    //             if (url) {
-    //                 $.when(
-    //                     $.ajax({
-    //                         url: url,
-    //                         dataType: 'xml'
-    //                     })
-    //                 ).then(function(resp) {
-    //                     var rootEl = $('start element:first', resp).attr('name');
-    //                     if (!rootEl) {
-    //                         var startName = $('start ref:first', resp).attr('name');
-    //                         rootEl = $('define[name="'+startName+'"] element', resp).attr('name');
-    //                     }
-    //                     resolve(rootEl);
-    //                 }, function(resp) {
-    //                     reject('schemaManager.getRootForSchema: could not connect to '+url);
-    //                 });
-    //             } else {
-    //                 reject('schemaManager.getRootForSchema: no url for '+schemaId);
-    //             }
-    //         }
-    //     });
-    // }
 
     /*****************************
      * LOAD SCHEMA XML
