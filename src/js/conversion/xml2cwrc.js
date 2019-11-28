@@ -47,16 +47,16 @@ function XML2CWRC(writer) {
 
         // setTimeout to make sure doc clears first
         setTimeout(async function() {
-            var schemaId;
-            var schemaUrl;
-            var cssUrl;
-            var loadSchemaCss;
+            let schemaId;
+            let schemaUrl;
+            let cssUrl;
+            let loadSchemaCss;
 
             if (schemaIdOverride !== undefined) {
                 schemaId = schemaIdOverride;
                 loadSchemaCss = true;
             } else {
-                var info = getSchemaInfo(doc);
+                const info = getSchemaInfo(doc);
                 schemaId = info.schemaId;
                 schemaUrl = info.schemaUrl;
                 cssUrl = info.cssUrl;
@@ -118,13 +118,13 @@ function XML2CWRC(writer) {
                         callback: async function(doIt) {
                             if (doIt) {
                                 if (cssUrl !== undefined) {
-                                    await w.schemaManager.loadSchemaCSS({cssUrl});
+                                    await w.schemaManager.loadSchemaCSS([cssUrl]);
                                 }
                                 if (schemaUrl !== undefined) {
                                     var customSchemaId = w.schemaManager.addSchema({
                                         name: 'Custom Schema',
-                                        url: schemaUrl,
-                                        cssUrl: cssUrl
+                                        xmlUrl: [schemaUrl],
+                                        cssUrl: [cssUrl]
                                     });
                                     await w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
                                         if (success) {
@@ -146,7 +146,7 @@ function XML2CWRC(writer) {
                 } else {
                     if (schemaId !== w.schemaManager.schemaId) {
                         if (cssUrl !== undefined) {
-                            await w.schemaManager.loadSchemaCSS({cssUrl});
+                            await w.schemaManager.loadSchemaCSS([cssUrl]);
                         }
                         await w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
                             if (success) {
@@ -156,8 +156,12 @@ function XML2CWRC(writer) {
                             }
                         });
                     } else {
-                        if (cssUrl !== undefined && cssUrl !== w.schemaManager.getCSS()) {
-                            await w.schemaManager.loadSchemaCSS({cssUrl});
+                        if (cssUrl !== undefined && cssUrl !== w.schemaManager.getCSSUrl()) {
+                            const currentSchema = w.schemaManager.getCurrentSchema();
+                            const matchCSSUrl = currentSchema.cssUrl.find( url => url === cssUrl);
+                            if (matchCSSUrl === null) {
+                                await w.schemaManager.loadSchemaCSS([cssUrl]);
+                            } 
                         }
                         doProcessing(doc);
                     }
@@ -187,23 +191,16 @@ function XML2CWRC(writer) {
                 const schemaUrlNoProtocol = schemaUrl.split(/^.*?\/\//)[1];
 
                 // search the known schemas, if the url matches it must be the same one
-                for (const schema of w.schemaManager.schemas)  {
-                    if (schema.url.indexOf(schemaUrlNoProtocol) !== -1) {
-                        schemaId = schema.id;
-                        continue;
-                    }
-                    
-                    // this must be some legacy - consider remove it ->
-                    if (schema.aliases !== undefined) {
-                        for (const alias of schema.aliases)  {
-                            if (alias.indexOf(schemaUrlNoProtocol) !== -1) {
-                                schemaId = schema.id;
-                                continue;
-                            } 
+                const schema = w.schemaManager.schemas.find( schema => {
+                    for (const url of schema.xmlUrl) {
+                        if (url.indexOf(schemaUrlNoProtocol) !== -1) {
+                            return schema;
                         }
-                        if (schemaId !== undefined) return false;
                     }
-                    // ---<
+                });
+
+                if (schema) {
+                    schemaId = schema.id;
                 }
 
                 
@@ -215,7 +212,7 @@ function XML2CWRC(writer) {
 
         return {
             schemaId,
-            schemaUrl,
+            xmlUrl: schemaUrl,
             cssUrl
         }
     }

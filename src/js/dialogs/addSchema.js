@@ -15,7 +15,7 @@ function AddSchema(writer, parentEl) {
         '</div>'+
         '<div style="margin-top: 10px;">'+
             '<label>Schema URL</label>'+
-            '<input type="text" name="url" value=""/>'+
+            '<input type="text" name="xmlUrl" value=""/>'+
         '</div>'+
         '<div style="margin-top: 10px;">'+
             '<label>Schema CSS URL</label>'+
