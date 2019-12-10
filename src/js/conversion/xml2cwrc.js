@@ -89,7 +89,7 @@ function XML2CWRC(writer) {
                                     type: 'info',
                                     callback: async function() {
                                         if (schemaId !== w.schemaManager.schemaId) {
-                                            await w.schemaManager.loadSchema(schemaId, false, true, function(success) {
+                                            await w.schemaManager.loadSchema(schemaId, true, function(success) {
                                                 if (success) {
                                                     doProcessing(doc);
                                                 } else {
@@ -126,7 +126,7 @@ function XML2CWRC(writer) {
                                         xmlUrl: [schemaUrl],
                                         cssUrl: [cssUrl]
                                     });
-                                    await w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
+                                    await w.schemaManager.loadSchema(customSchemaId, loadSchemaCss, function(success) {
                                         if (success) {
                                             doProcessing(doc);
                                         } else {
@@ -148,7 +148,7 @@ function XML2CWRC(writer) {
                         if (cssUrl !== undefined) {
                             await w.schemaManager.loadSchemaCSS([cssUrl]);
                         }
-                        await w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
+                        await w.schemaManager.loadSchema(schemaId, loadSchemaCss, function(success) {
                             if (success) {
                                 doProcessing(doc);
                             } else {

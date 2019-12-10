@@ -482,11 +482,12 @@ function SchemaManager(writer, config) {
     }
 
     /**
-     * Process a schema
-     * @param {Boolean} startText Whether to include the default starting text
-     * @param {Function} callback Callback for when the load is complete
+     * Process a schema:
+     * - Add CSS for displaying tags in the editor
+     * - Hide the header tag
+     * - Set references to the elements and the JSON version of the schema
      */
-    const processSchema = (startText, callback) => {
+    const processSchema = () => {
         // remove old schema elements
         $('#schemaTags', w.editor.dom.doc).remove();
         
@@ -514,19 +515,11 @@ function SchemaManager(writer, config) {
         sm.schema.elements = elements;
         sm.navigator.setSchemaElements(sm.schema.elements);
         
-        if (callback === null) {
-            let text = '';
-            if (startText) text = 'Paste or type your text here.';
-            const tag = sm.getTagForEditor(sm._root);
-            w.editor.setContent(`${tag} _tag="${sm._root}">${text}</${tag}>`);
-        }
-        
         sm.schemaJSON = w.utilities.xmlToJSON($('grammar', sm.schemaXML)[0]);
         if (sm.schemaJSON === null) {
             console.warn('schemaManager.loadSchema: schema XML could not be converted to JSON');
         }
         sm.navigator.setSchemaJSON(sm.schemaJSON);
-        
     }
 
     /**
@@ -534,12 +527,10 @@ function SchemaManager(writer, config) {
      * @fires Writer#loadingSchema
      * @fires Writer#schemaLoaded
      * @param {String} schemaId The ID of the schema to load (from the config)
-     * @param {Boolean} startText Whether to include the default starting text
      * @param {Boolean} loadCss Whether to load the associated CSS
-     * @param {Function} callback Callback for when the load is complete
+     * @param {Function} [callback] Callback for when the load is complete
      */
-    sm.loadSchema = async function (schemaId, startText, loadCss, callback) {
-
+    sm.loadSchema = async function (schemaId, loadCss, callback) {
         const schemaEntry = sm.schemas.find( schema => schema.id === schemaId);
 
         if (schemaEntry === undefined) {
@@ -602,12 +593,16 @@ function SchemaManager(writer, config) {
         if (loadCss === true) sm.loadSchemaCSS(schemaEntry.cssUrl);
 
         //Process schema
-        processSchema(startText, callback);
+        processSchema();
 
         w.event('schemaLoaded').publish();
         
-        if (callback) callback(true);
-        
+        if (callback) {
+            callback(true);
+        } else {
+            const tag = sm.getTagForEditor(sm._root);
+            w.editor.setContent(`${tag} _tag="${sm._root}"></${tag}>`);
+        }
     };
 
     /*****************************
