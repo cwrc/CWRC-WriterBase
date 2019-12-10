@@ -231,9 +231,6 @@ function XML2CWRC(writer) {
 
     function doBasicProcessing(doc) {
         w.event('processingDocument').publish();
-
-        w.entitiesManager.reset();
-        w.triples = [];
         
         $(doc).find('rdf\\:RDF, RDF').remove();
         var root = doc.documentElement;
@@ -245,10 +242,6 @@ function XML2CWRC(writer) {
 
     function doProcessing(doc) {
         w.event('processingDocument').publish();
-
-        // reset the stores
-        w.entitiesManager.reset();
-        w.triples = [];
 
         xml2cwrc.isLegacyDocument = isLegacyDocument(doc);
 

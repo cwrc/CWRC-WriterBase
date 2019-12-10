@@ -12,20 +12,24 @@ function EntitiesManager(writer) {
     
     this.reset();
     
-    this.w.event('entityAdded').subscribe($.proxy(function(entityId) {
+    this.w.event('processingDocument').subscribe(function() {
+        this.reset();
+    }.bind(this));
+
+    this.w.event('entityAdded').subscribe(function(entityId) {
         // don't highlight the entity because we might be doing bulk additions
         // this.highlightEntity(entityId);
-    }, this));
-    this.w.event('entityEdited').subscribe($.proxy(function(entityId) {
+    }.bind(this));
+    this.w.event('entityEdited').subscribe(function(entityId) {
         // TODO update text content for entity here?
         this.highlightEntity(entityId);
-    }, this));
-    this.w.event('entityRemoved').subscribe($.proxy(function(entityId) {
+    }.bind(this));
+    this.w.event('entityRemoved').subscribe(function(entityId) {
         this.highlightEntity();
-    }, this));
-    this.w.event('entityPasted').subscribe($.proxy(function(entityId) {
+    }.bind(this));
+    this.w.event('entityPasted').subscribe(function(entityId) {
         this.highlightEntity(entityId);
-    }, this));
+    }.bind(this));
 }
 
 EntitiesManager.prototype = {

@@ -314,6 +314,10 @@ function CWRCWriter(config) {
 
     w.eventManager = new EventManager(w);
 
+    w.event('processingDocument').subscribe(function() {
+        w.triples = [];
+    });
+
     w.event('documentLoaded').subscribe(function(success) {
         if (success) {
             w.isDocLoaded = true;
