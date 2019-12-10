@@ -99,7 +99,7 @@ function SchemaManager(writer, config) {
     /**
      * Returns the schemaId associated with a specific root
      * @param {String} root The root name
-     * @returns {String} The schemaId (or undefined)
+     * @returns {String|undefined} The schemaId
      */
     sm.getSchemaIdFromRoot = function(root) {
         for (const schemaId in sm.mapper.mappings) {
@@ -108,6 +108,31 @@ function SchemaManager(writer, config) {
             }
         }
         return undefined;
+    };
+
+    /**
+     * Returns the schemaId associated with the specified schema url.
+     * @param {String} xmlUrl The schema url
+     * @returns {String|undefined} The schemaId
+     */
+    sm.getSchemaIdFromUrl = function(xmlUrl) {
+        // remove the protocol in order to disregard http/https for improved chances of matching below
+        const xmlUrlNoProtocol = xmlUrl.split(/^.*?\/\//)[1];
+
+        // search the known schemas, if the url matches it must be the same one
+        const schema = sm.schemas.find( schema => {
+            for (const url of schema.xmlUrl) {
+                if (url.indexOf(xmlUrlNoProtocol) !== -1) {
+                    return schema;
+                }
+            }
+        });
+
+        if (schema) {
+            return schema.id;
+        } else {
+            return undefined;
+        }
     };
 
     sm._root = null;
@@ -154,6 +179,22 @@ function SchemaManager(writer, config) {
         return sm.getCurrentSchema().schemaMappingsId === undefined;
     };
     
+    sm._currentDocumentSchemaUrl = null;
+    sm.getCurrentDocumentSchemaUrl = function() {
+        return sm._currentDocumentSchemaUrl;
+    }
+    sm.setCurrentDocumentSchemaUrl = function(url) {
+        sm._currentDocumentSchemaUrl = url;
+    }
+
+    sm._currentDocumentCSSUrl = null;
+    sm.getCurrentDocumentCSSUrl = function() {
+        return sm._currentDocumentCSSUrl;
+    }
+    sm.setCurrentDocumentCSSUrl = function(url) {
+        sm._currentDocumentCSSUrl = url;
+    }
+
     /**
      * Checks to see if the tag can contain text, as specified in the schema
      * @param {string} tag The tag to check
@@ -401,6 +442,7 @@ function SchemaManager(writer, config) {
     /**
      * Load a Schema XML.
      * @param {Array} xmlUrl Collection of url sources
+     * @returns {Document} The XML
      */
     const loadXMLFile = async (xmlUrl) => {
 
@@ -408,18 +450,19 @@ function SchemaManager(writer, config) {
 
         //loop through URL collection
         for (let url of xmlUrl) {
+            let urlToFetch = url;
 
             //use the proxy if available.
             if (sm.schemaProxyUrl) {
-                url = `${sm.schemaProxyUrl}/schema/xml?url=${url}`;
+                urlToFetch = `${sm.schemaProxyUrl}/schema/xml?url=${url}`;
             }
 
-            const response = await fetch(url)
+            const response = await fetch(urlToFetch)
                 .catch( (err) => {
                     console.log(err)
                 });
 
-            // if loaded, converto to XML, break the loop and return
+            // if loaded, convert to XML, break the loop and return
             if (response && response.status === 200) {
                 const body = await response.text();
                 xml = w.utilities.stringToXML(body);
@@ -612,6 +655,7 @@ function SchemaManager(writer, config) {
     /**
      * Load a Schema CSS.
      * @param {Array} cssUrl Collection of url sources
+     * @returns {String} The CSS
      */
     const loadCSSFile = async (cssUrl) => {
 
@@ -619,13 +663,14 @@ function SchemaManager(writer, config) {
 
         //loop through URL collection
         for (let url of cssUrl) {
+            let urlToFetch = url;
 
             //use the proxy if available.
             if (sm.schemaProxyUrl) {
-                url = `${sm.schemaProxyUrl}/schema/css?url=${url}`;
+                urlToFetch = `${sm.schemaProxyUrl}/schema/css?url=${url}`;
             }
 
-            const response = await fetch(url)
+            const response = await fetch(urlToFetch)
                 .catch( (err) => {
                     console.log(err);
                 });
@@ -633,7 +678,7 @@ function SchemaManager(writer, config) {
             //if loaded, break the loop and return
             if (response && response.status === 200) {
                 css = await response.text();
-                sm._cssUrl = url; // redefine schema manager css based on the avaiable url
+                sm._cssUrl = url; // redefine schema manager css based on the available url
                 break;
             }
 
@@ -692,7 +737,13 @@ function SchemaManager(writer, config) {
 
 
     w.event('schemaChanged').subscribe( (schemaId) =>  {
-        sm.loadSchema(schemaId, false, true, function() {});
+        sm.loadSchema(schemaId, true, function(success) {
+            // this event is only fired by the settings dialog (by the user), so update the current document urls
+            if (success) {
+                sm.setCurrentDocumentSchemaUrl(sm.getXMLUrl());
+                sm.setCurrentDocumentCSSUrl(sm.getCSSUrl());
+            }
+        });
     });
     
     return sm;

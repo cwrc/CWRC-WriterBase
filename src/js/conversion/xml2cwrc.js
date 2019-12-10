@@ -48,22 +48,21 @@ function XML2CWRC(writer) {
         // setTimeout to make sure doc clears first
         setTimeout(async function() {
             let schemaId;
-            let schemaUrl;
-            let cssUrl;
             let loadSchemaCss;
+
+            let {xmlUrl, cssUrl} = getSchemaUrls(doc);
+            w.schemaManager.setCurrentDocumentSchemaUrl(xmlUrl);
+            w.schemaManager.setCurrentDocumentCSSUrl(cssUrl);
 
             if (schemaIdOverride !== undefined) {
                 schemaId = schemaIdOverride;
                 loadSchemaCss = true;
             } else {
-                const info = getSchemaInfo(doc);
-                schemaId = info.schemaId;
-                schemaUrl = info.schemaUrl;
-                cssUrl = info.cssUrl;
+                schemaId = w.schemaManager.getSchemaIdFromUrl(xmlUrl);
                 loadSchemaCss = cssUrl === undefined; // load schema css if none was found in the document
             }
 
-            if (schemaUrl === undefined && schemaId === undefined) {
+            if (xmlUrl === undefined && schemaId === undefined) {
                 w.dialogManager.confirm({
                     title: 'Missing Schema',
                     msg: '<p>There is no schema associated with your document. Should CWRC-Writer try to determine the schema by examining the document root?</p>',
@@ -120,17 +119,61 @@ function XML2CWRC(writer) {
                                 if (cssUrl !== undefined) {
                                     await w.schemaManager.loadSchemaCSS([cssUrl]);
                                 }
-                                if (schemaUrl !== undefined) {
+                                if (xmlUrl !== undefined) {
                                     var customSchemaId = w.schemaManager.addSchema({
                                         name: 'Custom Schema',
-                                        xmlUrl: [schemaUrl],
+                                        xmlUrl: [xmlUrl],
                                         cssUrl: [cssUrl]
                                     });
                                     await w.schemaManager.loadSchema(customSchemaId, loadSchemaCss, function(success) {
                                         if (success) {
                                             doProcessing(doc);
                                         } else {
-                                            doBasicProcessing(doc);
+                                            // TODO too many open dialogs at this point
+                                            w.dialogManager.confirm({
+                                                title: 'Error Loading Schema',
+                                                msg: '<p>The schema associated with your document could not be loaded. Should CWRC-Writer try to determine the schema by examining the document root?</p>',
+                                                type: 'error',
+                                                callback: function(doIt) {
+                                                    if (doIt) {
+                                                        var rootName = doc.firstElementChild.nodeName;
+                                                        schemaId = w.schemaManager.getSchemaIdFromRoot(rootName);
+                                                        if (schemaId === undefined) {
+                                                            w.dialogManager.show('message', {
+                                                                title: 'Warning',
+                                                                msg: '<p>CWRC-Writer could not determine the schema for: '+rootName+'</p>',
+                                                                type: 'error',
+                                                                callback: function() {
+                                                                    w.event('documentLoaded').publish(false, null);
+                                                                    w.showLoadDialog();
+                                                                }
+                                                            });
+                                                        } else {
+                                                            w.dialogManager.show('message', {
+                                                                title: 'Schema',
+                                                                msg: '<p>CWRC-Writer determined the schema to be: '+schemaId+'</p>',
+                                                                type: 'info',
+                                                                callback: async function() {
+                                                                    if (schemaId !== w.schemaManager.schemaId) {
+                                                                        await w.schemaManager.loadSchema(schemaId, true, function(success) {
+                                                                            if (success) {
+                                                                                doProcessing(doc);
+                                                                            } else {
+                                                                                doBasicProcessing(doc);
+                                                                            }
+                                                                        });
+                                                                    } else {
+                                                                        doProcessing(doc);
+                                                                    }
+                                                                }
+                                                            });
+                                                        }
+                                                    } else {
+                                                        w.event('documentLoaded').publish(false, null);
+                                                        w.showLoadDialog();
+                                                    }
+                                                }
+                                            });
                                         }
                                     });
                                 } else {
@@ -171,39 +214,19 @@ function XML2CWRC(writer) {
     };
 
     /**
-     * Get the schema and css from the xml-model
-     * @param {Document} doc 
-     * @returns {Object} info
+     * Get the schema URLs in the specified document.
+     * @param {Document} doc
+     * @returns {Object} urls
      */
-    function getSchemaInfo(doc) {
-        let schemaId;
-        let schemaUrl;
+    function getSchemaUrls(doc) {
+        let xmlUrl;
         let cssUrl;
-
         for (var i = 0; i < doc.childNodes.length; i++) {
             const node = doc.childNodes[i];
 
             if (node.nodeName === 'xml-model') {
                 const xmlModelData = node.data;
-                schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
-
-                 // remove the protocol in order to disregard http/https for improved chances of matching below
-                const schemaUrlNoProtocol = schemaUrl.split(/^.*?\/\//)[1];
-
-                // search the known schemas, if the url matches it must be the same one
-                const schema = w.schemaManager.schemas.find( schema => {
-                    for (const url of schema.xmlUrl) {
-                        if (url.indexOf(schemaUrlNoProtocol) !== -1) {
-                            return schema;
-                        }
-                    }
-                });
-
-                if (schema) {
-                    schemaId = schema.id;
-                }
-
-                
+                xmlUrl = xmlModelData.match(/href="([^"]*)"/)[1];
             } else if (node.nodeName === 'xml-stylesheet') {
                 const xmlStylesheetData = node.data;
                 cssUrl = xmlStylesheetData.match(/href="([^"]*)"/)[1];
@@ -211,11 +234,10 @@ function XML2CWRC(writer) {
         }
 
         return {
-            schemaId,
-            xmlUrl: schemaUrl,
+            xmlUrl,
             cssUrl
         }
-    }
+    };
 
     /**
      * Check to see if the document uses the older "custom" TEI format.
