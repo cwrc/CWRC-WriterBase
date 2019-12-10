@@ -1,11 +1,12 @@
 'use strict';
 
 var $ = require('jquery');
-
     
 function Message(writer, parentEl) {
     var w = writer;
     
+    var openDialogs = []; // track the open dialogs
+
     function createMessageDialog(config) {
         var $message = $(`
         <div>
@@ -35,6 +36,8 @@ function Message(writer, parentEl) {
             position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
             autoOpen: false,
             close: function(ev) {
+                openDialogs.splice(openDialogs.indexOf($message), 1);
+
                 $message.dialog('destroy');
                 $message.remove();
                 if (config.dialogType === 'message' && config.callback) {
@@ -54,6 +57,8 @@ function Message(writer, parentEl) {
             $message.find('p > span[class=ui-state-error]').show();
         }
         
+        openDialogs.push($message);
+
         return $message;
     }
     
@@ -125,8 +130,14 @@ function Message(writer, parentEl) {
             $message.dialog('open');
         },
         destroy: function() {
-            // TODO
-            //$message.dialog('destroy');
+            for (var d of openDialogs) {
+                d.dialog('destroy');
+                d.remove();
+            }
+            openDialogs = [];
+        },
+        getOpenDialogs: function() {
+            return openDialogs;
         }
     };
 };

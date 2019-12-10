@@ -129,7 +129,10 @@ function XML2CWRC(writer) {
                                         if (success) {
                                             doProcessing(doc);
                                         } else {
-                                            // TODO too many open dialogs at this point
+                                            // close schema error dialog
+                                            var schemaErrDialog = w.dialogManager.getDialog('message').getOpenDialogs().pop();
+                                            schemaErrDialog.dialog('close');
+
                                             w.dialogManager.confirm({
                                                 title: 'Error Loading Schema',
                                                 msg: '<p>The schema associated with your document could not be loaded. Should CWRC-Writer try to determine the schema by examining the document root?</p>',
