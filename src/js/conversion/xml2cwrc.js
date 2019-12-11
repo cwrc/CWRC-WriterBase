@@ -131,7 +131,9 @@ function XML2CWRC(writer) {
                                         } else {
                                             // close schema error dialog
                                             var schemaErrDialog = w.dialogManager.getDialog('message').getOpenDialogs().pop();
-                                            schemaErrDialog.dialog('close');
+                                            if (schemaErrDialog) {
+                                                schemaErrDialog.dialog('close');
+                                            }
 
                                             w.dialogManager.confirm({
                                                 title: 'Error Loading Schema',
