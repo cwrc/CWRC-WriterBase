@@ -708,31 +708,42 @@ function SchemaManager(writer, config) {
         }
         
         const cssObj = css.parse(cssData);
+        const popupCssObj = {
+            stylesheet: {
+                rules: []
+            }
+        };
+        
         const rules = cssObj.stylesheet.rules;
 
         for (let i = 0; i < rules.length; i++) {
             const rule = rules[i];
+            const popupRule = Object.assign({}, rule);
             if (rule.type === 'rule') {
                 const convertedSelectors = [];
+                const convertedPopupSelectors = [];
                 for (let j = 0; j < rule.selectors.length; j++) {
                     const selector = rule.selectors[j];
                     const newSelector = selector.replace(/(^|,|\s)(#?\w+)/g, (str, p1, p2, offset, s) => {
                         return p1+'*[_tag="'+p2+'"]';
                     });
+                    convertedPopupSelectors.push('.cwrc .popup '+newSelector);
                     convertedSelectors.push(newSelector);
-                    
                 }
                 rule.selectors = convertedSelectors;
+                popupRule.selectors = convertedPopupSelectors;
+                popupCssObj.stylesheet.rules.push(popupRule);
             }
         }
         
         const cssString = css.stringify(cssObj);
+        const popupCssString = css.stringify(popupCssObj);
         
         $('head', w.editor.dom.doc).append('<style id="schemaRules" type="text/css" />');
         $('#schemaRules', w.editor.dom.doc).text(cssString);
         // we need to also append to document in order for note popups to be styled
-        $('#schemaRules', w.editor.dom.doc).clone().appendTo($('head', document));
-        
+        $('head', document).append('<style id="schemaRules" type="text/css" />');
+        $('#schemaRules', document).text(popupCssString);
     };
 
 
