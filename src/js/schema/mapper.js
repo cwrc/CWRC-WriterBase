@@ -486,12 +486,9 @@ Mapper.prototype = {
             $.extend(config, mappingInfo);
 
             if (isNote) {
-                if (config.properties === undefined) {
-                    config.properties = {};
-                }
                 var $tag = $(tag);
-                config.properties.content = $tag.text();
-                config.properties.noteContent = $tag.html();
+                config.content = $tag.text();
+                config.noteContent = $tag.html();
             }
             
             var entityAttributes = {

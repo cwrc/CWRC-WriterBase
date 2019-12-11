@@ -164,7 +164,8 @@ note: {
     parentTag: ['RESEARCHNOTE', 'SCHOLARNOTE'],
     isNote: true,
     mapping: {
-        tag: 'local-name(.)'
+        tag: 'local-name(.)',
+        noteContent: '.'
     },
     annotation: function(annotationsManager, entity, format) {
         return annotationsManager.commonAnnotation(entity, format, 'bibo:Note', 'oa:commenting');

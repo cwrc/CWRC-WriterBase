@@ -232,6 +232,9 @@ note: {
     xpathSelector: 'self::note[not(@type="citation")]',
     isNote: true,
     requiresSelection: false,
+    mapping: {
+        noteContent: '.'
+    },
     annotation: function(annotationsManager, entity) {
         var types = '';
         var type = entity.getAttribute('type');
