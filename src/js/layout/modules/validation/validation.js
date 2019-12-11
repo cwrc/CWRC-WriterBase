@@ -62,10 +62,7 @@ function Validation(config) {
     
     validation.validate = function() {
         w.converter.getDocumentContent(false, (docText) => {
-            // var schemaUrl = w.schemaManager.schemas[w.schemaManager.schemaId].url;
-
-            const schemaEntry = w.schemaManager.schemas.find( schema => w.schemaManager.schemaId === schema.id);
-            const schemaUrl = schemaEntry.url;
+            const schemaUrl = w.schemaManager.getXMLUrl();
 
             $.ajax({
                 url: validationUrl,
