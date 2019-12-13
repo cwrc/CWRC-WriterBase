@@ -251,7 +251,7 @@ function Nerve(config) {
     // Converts to xml using just the _tag attribute and ignores everything else.
     // We don't want to do a full/normal conversion because of differences between entities in the editor and in the outputted xml.
     var getBasicXmlDocument = function() {
-        var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n<?xml-model href="'+w.schemaManager.getCurrentSchema().url+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
+        var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n<?xml-model href="'+w.schemaManager.getXMLUrl()+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
 
         function _nodeToStringArray(currNode) {
             var array = [];
