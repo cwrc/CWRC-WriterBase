@@ -33,7 +33,8 @@
     "layout": "./src/lib/jquery/jquery.layout_and_plugins.js",
     "dialogForm": "./src/js/dialogs/dialogForm/dialogForm.js",
     "annotationsManager": "./src/js/entities/annotationsManager.js",
-    "entity": "./src/js/entities/entity.js"
+    "entity": "./src/js/entities/entity.js",
+    "mapper": "./src/js/schema/mapper.js"
   },
   "dependencies": {
     "css": "^2.2.4",

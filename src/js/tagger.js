@@ -2,6 +2,7 @@
 
 var $ = require('jquery');
 var Entity = require('entity');
+var Mapper = require('mapper');
 
 /**
  * @class Tagger
@@ -74,14 +75,14 @@ function Tagger(writer) {
         var currAttributes = tag.attributes;
         for (var i = currAttributes.length-1; i >=0; i--) {
             var attr = currAttributes[i];
-            if (w.converter.reservedAttributes[attr.name] !== true) {
+            if (Mapper.reservedAttributes[attr.name] !== true) {
                 tag.removeAttribute(attr.name);
             }
         }
 
         // set non-reserved attributes directly on the tag
         for (var attName in attributes) {
-            if (w.converter.reservedAttributes[attName] === true) {
+            if (Mapper.reservedAttributes[attName] === true) {
                 continue;
             }
             tag.setAttribute(attName, attributes[attName]);
@@ -101,7 +102,7 @@ function Tagger(writer) {
         var currAttrs = tagger.getAttributesForTag(tag);
 
         for (var attName in attributes) {
-            if (w.converter.reservedAttributes[attName] === true) {
+            if (Mapper.reservedAttributes[attName] === true) {
                 continue;
             }
             var attValue = attributes[attName];
@@ -706,7 +707,7 @@ function Tagger(writer) {
 
         var tagAttributes = {};
         for (var key in entity.attributes) {
-            if (w.converter.reservedAttributes[key] !== true) {
+            if (Mapper.reservedAttributes[key] !== true) {
                 tagAttributes[key] = entity.attributes[key];
             }
         }
@@ -939,7 +940,7 @@ function Tagger(writer) {
 
         var jsonAttrs = {};
         for (var key in attributes) {
-            if (w.converter.reservedAttributes[key] !== true) {
+            if (Mapper.reservedAttributes[key] !== true) {
                 open_tag += ' '+key+'="'+attributes[key]+'"';
             }
             jsonAttrs[key] = attributes[key];

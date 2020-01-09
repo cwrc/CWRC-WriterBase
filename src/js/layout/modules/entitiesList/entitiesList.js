@@ -1,6 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
+var Mapper = require('mapper')
 
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/selectmenu');
@@ -240,7 +241,7 @@ function EntitiesList(config) {
         var entityAttributes = entity.getAttributes()
         var urlAttributes = w.schemaManager.mapper.getUrlAttributes();
         for (var name in entityAttributes) {
-            if (w.converter.reservedAttributes[name] !== true) {
+            if (Mapper.reservedAttributes[name] !== true) {
                 var value = entityAttributes[name];
                 if (value !== undefined) {
                     if (urlAttributes.indexOf(name) !== -1 || value.indexOf('http') === 0) {

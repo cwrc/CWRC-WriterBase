@@ -18,6 +18,21 @@ function Mapper(config) {
     };
 }
 
+// a list of reserved attribute names that are used by the editor
+Mapper.reservedAttributes = {
+    '_entity': true,
+    '_type': true,
+    '_tag': true,
+    '_textallowed': true,
+    '_note': true,
+    '_candidate': true,
+    '_attributes': true,
+    'id': true,
+    'name': true,
+    'class': true,
+    'style': true
+};
+
 Mapper.getAttributeString = function(attObj) {
     var str = '';
     for (var key in attObj) {
@@ -38,9 +53,17 @@ Mapper.getAttributeString = function(attObj) {
  */
 Mapper.getTagAndDefaultAttributes = function(entity, closeTag) {
     closeTag = closeTag === undefined ? true : closeTag;
+
+    var attributes = Object.assign({}, entity.getAttributes());
+    for (var key in attributes) {
+        if (Mapper.reservedAttributes[key]) {
+            delete attributes[key];
+        }
+    }
+
     var tag = entity.getTag();
     var xml = '<'+tag;
-    xml += Mapper.getAttributeString(entity.getAttributes());
+    xml += Mapper.getAttributeString(attributes);
     if (closeTag) {
         xml += '>';
     }

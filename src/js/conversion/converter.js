@@ -24,7 +24,6 @@ function Converter(writer) {
     var converter = {
         processDocument: xml2cwrc.processDocument,
         buildEditorString: xml2cwrc.buildEditorString,
-        reservedAttributes: xml2cwrc.reservedAttributes,
 
         getDocumentContent: cwrc2xml.getDocumentContent,
         buildXMLString: cwrc2xml.buildXMLString

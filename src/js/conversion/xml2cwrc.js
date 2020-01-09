@@ -1,7 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
-var tinymce = require('tinymce');
+var Mapper = require('mapper');
 
 /**
  * @class XML2CWRC
@@ -14,21 +14,6 @@ function XML2CWRC(writer) {
      * @lends XML2CWRC.prototype
      */
     var xml2cwrc = {};
-
-    // a list of reserved attribute names that are used by the editor
-    xml2cwrc.reservedAttributes = {
-        '_entity': true,
-        '_type': true,
-        '_tag': true,
-        '_textallowed': true,
-        '_note': true,
-        '_candidate': true,
-        '_attributes': true,
-        'id': true,
-        'name': true,
-        'class': true,
-        'style': true
-    };
 
     // tracks whether we're processing a legacy document
     xml2cwrc.isLegacyDocument = undefined;
@@ -452,7 +437,7 @@ function XML2CWRC(writer) {
 
                     jsonAttrs[attName] = attValue;
 
-                    if (xml2cwrc.reservedAttributes[attName] === true) {
+                    if (Mapper.reservedAttributes[attName] === true) {
                         continue;
                     }
 

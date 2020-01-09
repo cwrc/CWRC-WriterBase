@@ -1,6 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
+var Mapper = require('mapper');
 
 require('jquery-ui/ui/widgets/accordion');
 require('jquery-ui/ui/widgets/tooltip');
@@ -85,7 +86,7 @@ AttributeWidget.prototype = {
             return 0;
         });
 
-        var disallowedAttributes = this.w.converter.reservedAttributes;
+        var disallowedAttributes = Mapper.reservedAttributes;
         
         // build atts
         var attsString = '';
