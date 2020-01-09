@@ -314,7 +314,8 @@ DialogForm.prototype = {
             this.currentData.attributes = attributes;
             this.currentData.customValues = customValues;
             this.currentData.properties = {
-                tag: config.entry.tag
+                tag: config.entry.tag,
+                type: config.entry.type
             }
             // copy mapped properties to currentData
             mappedProps.forEach((propName) => {

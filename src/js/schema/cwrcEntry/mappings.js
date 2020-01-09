@@ -24,6 +24,7 @@ function handleGraphics($tag) {
 module.exports = {
 
 id: 'ID',
+responsibility: 'RESP',
 rdfParentSelector: '/CWRC/CWRCHEADER',
 root: ['CWRC'],
 header: 'CWRCHEADER',

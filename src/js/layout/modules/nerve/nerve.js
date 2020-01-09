@@ -181,6 +181,7 @@ function Nerve(config) {
         nrv.reset();
         
         var document = getBasicXmlDocument();
+        var nerveContext = buildContext();
         
         var options = $parent.find('select[name="processOptions"]').val();
         runOptions = ['tag', 'link'];
@@ -194,12 +195,12 @@ function Nerve(config) {
         li.setText('Contacting NERVE');
         li.setValue(false);
         li.show();
-        
+
         $.when(
             $.ajax({
                 url: nerveUrl + '/ner',
                 method: 'POST',
-                data: JSON.stringify({"document": document})
+                data: JSON.stringify({"document": document, "context": nerveContext})
             })
         ).then(function(response) {
             w.tree.disable();
@@ -208,6 +209,8 @@ function Nerve(config) {
             var doc = w.utilities.stringToXML(response.document);
             if (doc === null) {
                 console.warn('nerve.run: could not parse response from NERVE');
+                li.hide();
+                return;
             }
             var context = JSON.parse(response.context);
             var entities = processNerveResponse(doc, context);
@@ -289,6 +292,32 @@ function Nerve(config) {
         return xmlString;
     }
 
+    var buildContext = function() {
+        const sm = w.schemaManager;
+        
+        const context = {
+            name: sm.getCurrentSchema().id,
+            tags: {}
+        };
+
+        const respAttr = sm.mapper.getResponsibilityAttributeName();
+        
+        for (let nerveTypeName in NerveToCWRCMappings) {
+            const entityType = NerveToCWRCMappings[nerveTypeName];
+            context.tags[nerveTypeName] = {
+                name: sm.mapper.getParentTag(entityType),
+                lemmaAttribute: sm.mapper.getMappingForProperty(entityType, 'lemma').replace('@', ''),
+                linkAttribute: sm.mapper.getMappingForProperty(entityType, 'uri').replace('@', ''),
+                idAttribute: sm.mapper.getIdAttributeName(),
+                defaults: {}
+            }
+            context.tags[nerveTypeName].defaults[respAttr] = 'NERVE';
+            Object.assign(context.tags[nerveTypeName].defaults, sm.mapper.getRequiredAttributes(entityType));
+        }
+
+        return context;
+    }
+
     var processNerveResponse = function(document, context) {
         var entities = [];
 
@@ -320,11 +349,22 @@ function Nerve(config) {
             var tag = el.nodeName;
             var contextEntry = tagsContext[tag];
             if (contextEntry !== undefined) {
-                var lemma = el.getAttribute(contextEntry.lemma);
-                var uri = el.getAttribute(contextEntry.uri);
-                if (lemma !== null || uri !== null) {
-                    var type = contextEntry.type;//w.schemaManager.mapper.getEntityTypeForTag(tag);
-                    if (type === undefined) {
+                let lemma;
+                let uri;
+                let attributes = {};
+
+                for (let i = 0; i < el.attributes.length; i++) {
+                    const att = el.attributes[i];
+                    if (att.name === contextEntry.lemma) {
+                        lemma = att.value;
+                    } else if (att.name === contextEntry.uri) {
+                        uri = att.value;
+                    }
+                    attributes[att.name] = att.value;
+                }
+
+                if (lemma !== undefined || uri !== undefined) {
+                    if (contextEntry.type === undefined) {
                         console.warn('nerve: unrecognized entity type for',tag);
                     } else {
                         var xpath = w.utilities.getElementXPath(el.parentElement);
@@ -334,7 +374,8 @@ function Nerve(config) {
                             xpath: xpath,
                             textOffset: offset,
                             textLength: el.textContent.length,
-                            type: type
+                            type: contextEntry.type,
+                            attributes: attributes
                         }
                         if (lemma !== null) {
                             entity.lemma = lemma;
@@ -675,12 +716,15 @@ function Nerve(config) {
                     nerve: 'true'
                 }
             };
+            
             if (entry.lemma !== '') {
                 entityConfig.lemma = entry.lemma;
             }
             if (entry.uri !== '') {
                 entityConfig.uri = entry.uri;
             }
+            Object.assign(entityConfig.attributes, entry.attributes);
+
             var entity = w.entitiesManager.addEntity(entityConfig);
 
             w.tagger.addEntityTag(entity, range);
@@ -694,30 +738,21 @@ function Nerve(config) {
 
     var acceptEntity = function(entityId) {
         var entity = w.entitiesManager.getEntity(entityId);
-        var taggedByNerve = entity.getCustomValue('nerve') !== undefined;
+        var tag = $('#'+entityId, w.editor.getBody())[0];
         
-        var uri = entity.getURI();
-        var lemma = entity.getLemma();
+        const respAttr = w.schemaManager.mapper.getResponsibilityAttributeName();
+        w.tagger.removeAttributeFromTag(tag, respAttr);
 
-        if (uri !== undefined) {
-            var uriMapping = w.schemaManager.mapper.getAttributeForProperty(entity.getType(), 'uri');
-            if (uriMapping !== undefined) {
-                entity.setAttribute(uriMapping, uri);
-            }
-        }
-        if (lemma !== undefined) {
-            var lemmaMapping = w.schemaManager.mapper.getAttributeForProperty(entity.getType(), 'lemma');
-            if (lemmaMapping !== undefined) {
-                entity.setAttribute(lemmaMapping, lemma);
-            }
-        }
+        var taggedByNerve = entity.getCustomValue('nerve') !== undefined;
+        var uri = entity.getURI();
 
         if (taggedByNerve && uri === undefined) {
             w.tagger.removeEntity(entityId);
         } else {
             entity.removeCustomValue('nerve');
+            entity.removeAttribute(respAttr);
             entity.removeAttribute('_candidate');
-            $('#'+entityId, w.editor.getBody()).removeAttr('_candidate');
+            w.tagger.removeAttributeFromTag(tag, '_candidate');
         }
 
         removeEntityFromView(entityId);

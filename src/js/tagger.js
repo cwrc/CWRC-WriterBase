@@ -113,8 +113,23 @@ function Tagger(writer) {
         var jsonAttrsString = JSON.stringify(currAttrs).replace(/"/g, '&quot;');
         tag.setAttribute('_attributes', jsonAttrsString);
     }
+
+    /**
+     * Remove an attribute from the tag
+     * @param {Element} tag The tag
+     * @param {String} attribute The attribute name
+     */
+    tagger.removeAttributeFromTag = function(tag, attribute) {
+        tag.removeAttribute(attribute);
+        var currAttrs = tagger.getAttributesForTag(tag);
+
+        delete currAttrs[attribute];
+
+        var jsonAttrsString = JSON.stringify(currAttrs).replace(/"/g, '&quot;');
+        tag.setAttribute('_attributes', jsonAttrsString);
+    }
     
-/**
+    /**
      * Displays the appropriate dialog for adding a tag.
      * @param {String} tagName The tag name.
      * @param {String} action The tag insertion type to perform.

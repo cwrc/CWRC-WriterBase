@@ -680,6 +680,14 @@ Mapper.prototype = {
     },
 
     /**
+     * Returns the name for the responsibility attribute for the current schema.
+     * @returns {String}
+     */
+    getResponsibilityAttributeName: function() {
+        return this.getMappings().responsibility;
+    },
+
+    /**
      * Returns the xpath selector for the RDF parent for the current schema.
      * @returns {String}
      */

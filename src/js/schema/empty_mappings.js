@@ -7,6 +7,8 @@ module.exports = {
 namespace: '',
 // The name of the ID attribute
 id: '',
+// The name of the responsibility attribute
+responsibility: '',
 // The XPath selector for the parent of the RDF data, e.g. /TEI/teiHeader/fileDesc/following-sibling::xenoData
 // Currently there's only support for single separators (/ not //), and an axis on the last element
 rdfParentSelector: '',

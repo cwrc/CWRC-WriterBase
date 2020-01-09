@@ -26,6 +26,7 @@ module.exports = {
 
 namespace: 'http://www.tei-c.org/ns/1.0',
 id: 'xml:id',
+responsibility: 'resp',
 rdfParentSelector: '/TEI/teiHeader/fileDesc/following-sibling::xenoData',
 root: ['TEI', 'teiCorpus'],
 header: 'teiHeader',
