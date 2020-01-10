@@ -71,6 +71,7 @@ function Nerve(config) {
                             <option value="person">Person</option>
                             <option value="place">Place</option>
                             <option value="org">Organization</option>
+                            <option value="title">Title</option>
                         </select>
                     </div>
                     <div style="display: inline-block; margin: 5px;">
@@ -113,12 +114,15 @@ function Nerve(config) {
     });
     // DONE
     $parent.find('button.done').button().on('click', function() {
-        if (getNerveEntities().length > 0) {
+        const countEditedEntities = getNerveEntities(true).length;
+        const countMergedEntities = Object.keys(mergedEntities).length;
+        const totalModified = countEditedEntities + countMergedEntities;
+        if (totalModified > 0) {
             w.dialogManager.confirm({
                 title: 'Warning',
-                msg: '<p>All the remaining entities in the panel will be rejected, including any edited ones.</p>'+
-                '<p>Do you wish to proceed?</p>',
-                showConfirmKey: 'confirm-reject-nerve-entities',
+                msg: `<p>You are about to lose edits you've made to ${totalModified} Nerve-identified entit${totalModified > 1 ? 'ies' : 'y'}.</p>
+                <p>Do you wish to proceed?</p>`,
+                // showConfirmKey: 'confirm-reject-nerve-entities',
                 type: 'info',
                 callback: function(doIt) {
                     if (doIt) {
@@ -128,6 +132,7 @@ function Nerve(config) {
                 }
             });
         } else {
+            rejectAll(true);
             handleDone();
         }
     });
@@ -401,10 +406,10 @@ function Nerve(config) {
         return entities;
     }
 
-    var getNerveEntities = function() {
+    var getNerveEntities = function(onlyEdited=false) {
         var entities = w.entitiesManager.getEntitiesArray(getCurrentSorting());
         entities = entities.filter(function(entry) {
-            return entry.getCustomValue('nerve') === 'true';
+            return entry.getCustomValue('nerve') === 'true' && (onlyEdited && entry.getCustomValue('edited') === 'true' || !onlyEdited);
         });
         return entities;
     }
@@ -540,7 +545,10 @@ function Nerve(config) {
             '<div>'+
                 '<div class="header">'+
                     '<span class="icon"/>'+
-                    '<span class="entityTitle">'+entity.getContent()+'</span>'+
+                    '<span class="entityTitle">'+
+                    (entity.getCustomValue('edited') === 'true' ? '&#8226; ' : '')+
+                        entity.getContent()+
+                    '</span>'+
                     '<div class="actions">'+
                         (merge === true ? '' :
                         '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"/></span>'+
@@ -563,7 +571,7 @@ function Nerve(config) {
             '<div>'+
                 '<div class="header">'+
                     '<span class="icon" style="margin-right: -4px;"/><span class="icon"/>'+
-                    '<span class="entityTitle">'+entry.lemma+'</span>'+
+                    '<span class="entityTitle">&#8226; '+entry.lemma+'</span>'+
                     '<div class="actions">'+
                         (merge === true ? '' :
                         '<div class="nav">'+
@@ -609,7 +617,8 @@ function Nerve(config) {
         if (alreadyExpanded || expand === true) {
             view.addClass('expanded');
         }
-        view.find('.entityTitle').text(entity.getContent());
+        const title = (entity.getCustomValue('edited') === 'true' ? '&#8226; ' : '')+entity.getContent();
+        view.find('.entityTitle').html(title);
         view.find('.info').html(getEntityViewInfo(entity));
     }
 
@@ -750,6 +759,7 @@ function Nerve(config) {
             w.tagger.removeEntity(entityId);
         } else {
             entity.removeCustomValue('nerve');
+            entity.removeCustomValue('edited');
             entity.removeAttribute(respAttr);
             entity.removeAttribute('_candidate');
             w.tagger.removeAttributeFromTag(tag, '_candidate');
@@ -1093,7 +1103,7 @@ function NerveEditDialog(writer, parentEl) {
             dialog.isValid = true;
         } else {
             var uri = dialog.currentData.properties.uri;
-            if (uri !== undefined && uri.search(/^https?:\/\//) !== 0) {
+            if (uri !== '' && uri.search(/^https?:\/\//) !== 0) {
                 dialog.isValid = false;
                 w.dialogManager.confirm({
                     title: 'Warning',
@@ -1128,6 +1138,8 @@ function NerveEditDialog(writer, parentEl) {
             if (uriMapping) {
                 dialog.currentData.attributes[uriMapping] = dialog.currentData.properties.uri
             }
+
+            dialog.currentData.customValues.edited = 'true';
         }
     });
 
