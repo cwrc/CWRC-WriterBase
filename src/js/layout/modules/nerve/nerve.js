@@ -324,6 +324,8 @@ function Nerve(config) {
     }
 
     var processNerveResponse = function(document, context) {
+        const sm = w.schemaManager;
+
         var entities = [];
 
         var tagsContext = {};
@@ -350,58 +352,26 @@ function Nerve(config) {
             return offset;
         }
 
-        var getEntities = function(el) {
+        const respAttr = sm.mapper.getResponsibilityAttributeName();
+        $(document.documentElement).find('['+respAttr+'=NERVE]').each((index, el) => {
             var tag = el.nodeName;
-            var contextEntry = tagsContext[tag];
-            if (contextEntry !== undefined) {
-                let lemma;
-                let uri;
-                let attributes = {};
 
-                for (let i = 0; i < el.attributes.length; i++) {
-                    const att = el.attributes[i];
-                    if (att.name === contextEntry.lemma) {
-                        lemma = att.value;
-                    } else if (att.name === contextEntry.uri) {
-                        uri = att.value;
-                    }
-                    attributes[att.name] = att.value;
-                }
+            const mapping = sm.mapper.getReverseMapping(el, true);
+            if (mapping.type === undefined) {
+                console.warn('nerve: unrecognized entity type for',tag);
+            } else {
+                if (mapping.lemma !== undefined || mapping.uri !== undefined) {
+                    var xpath = w.utilities.getElementXPath(el.parentElement);
+                    var offset = getOffsetFromParent(el.parentElement, el);
+                    mapping.text = el.textContent;
+                    mapping.xpath = xpath;
+                    mapping.textOffset = offset;
+                    mapping.textLength = el.textContent.length;
 
-                if (lemma !== undefined || uri !== undefined) {
-                    if (contextEntry.type === undefined) {
-                        console.warn('nerve: unrecognized entity type for',tag);
-                    } else {
-                        var xpath = w.utilities.getElementXPath(el.parentElement);
-                        var offset = getOffsetFromParent(el.parentElement, el);
-                        var entity = {
-                            text: el.textContent,
-                            xpath: xpath,
-                            textOffset: offset,
-                            textLength: el.textContent.length,
-                            type: contextEntry.type,
-                            attributes: attributes
-                        }
-                        if (lemma !== null) {
-                            entity.lemma = lemma;
-                        }
-                        if (uri !== null) {
-                            entity.uri = uri;
-                        }
-                        entities.push(entity);
-                    }
+                    entities.push(mapping);
                 }
             }
-
-            for (var i = 0; i < el.children.length; i++) {
-                var child = el.children[i];
-                if (child.nodeName !== w.schemaManager.mapper.getHeaderTag()) {
-                    getEntities(child);
-                }
-            }
-        }
-        
-        getEntities(document.documentElement);
+        })
 
         return entities;
     }
@@ -722,7 +692,7 @@ function Nerve(config) {
                     _candidate: 'true'
                 },
                 customValues: {
-                    nerve: 'true'
+                    nerve: 'true' // TODO need to differentiate between entities tagged by nerve and those linked by nerve
                 }
             };
             
@@ -734,9 +704,8 @@ function Nerve(config) {
             }
             Object.assign(entityConfig.attributes, entry.attributes);
 
-            var entity = w.entitiesManager.addEntity(entityConfig);
+            var entity = w.entitiesManager.addEntity(entityConfig, range);
 
-            w.tagger.addEntityTag(entity, range);
             $('#'+entity.id, w.editor.getBody()).attr('_candidate', 'true'); // have to manually add this since addEntityTag won't (since it's reserved)
 
             range.collapse();
@@ -825,13 +794,21 @@ function Nerve(config) {
         var entry = w.entitiesManager.getEntity(entityId);
         var taggedByNerve = entry.getCustomValue('nerve') !== undefined;
         if (taggedByNerve) {
-            if (entry.getURI() === undefined) {
+            w.tagger.removeStructureTag(entityId, false);
+            /* TODO when we start using nerve for linking, we'll need to revisit taggedByNerve
+            if (entry.getURI() === undefined || entry.getURI() === '') {
                 // remove tag and entity if both added by nerve
                 w.tagger.removeStructureTag(entityId, false);
             } else {
-                // if tag already existed and nerve is just linking, then only remove the entity
+                // if tag already existed and nerve is just linking, then only remove the entity (and related nerve attributes)
+                var tag = $('#'+entityId, w.editor.getBody())[0];
+                const respAttr = w.schemaManager.mapper.getResponsibilityAttributeName();
+                w.tagger.removeAttributeFromTag(tag, respAttr);
+                w.tagger.removeAttributeFromTag(tag, '_candidate');
+
                 w.tagger.removeEntity(entityId);
             }
+            */
         } else {
             w.tagger.removeEntity(entityId);
         }

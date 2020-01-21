@@ -571,15 +571,10 @@ function Tagger(writer) {
             }
             $.extend(config, info.properties);
 
-            var entity = new Entity(config);
-
-            w.schemaManager.mapper.updatePropertiesFromAttributes(entity);
-
             w.editor.selection.moveToBookmark(w.editor.currentBookmark);
             var range = w.editor.selection.getRng(true);
-            tagger.addEntityTag(entity, range);
-
-            w.entitiesManager.addEntity(entity);
+            
+            w.entitiesManager.addEntity(config, range);
         } else {
             tagger.addStructureTag(tagName, info.attributes, w.editor.currentBookmark, tagger.ADD);
         }
@@ -603,34 +598,25 @@ function Tagger(writer) {
         sanitizeObject(info.customValues, false);
 
         var entity = w.entitiesManager.getEntity(id);
-
         var $tag = $('[name='+id+']', w.editor.getBody());
 
-        // set attributes
-        entity.setAttributes(info.attributes);
-        tagger.setAttributesForTag($tag[0], info.attributes);
+        var type = info.properties.type || entity.getType();
+        if (type !== entity.getType()) {
+            console.log('tagger.editEntity: changing entity type'); // only possible via nerve
+        }
 
         // named entity check
-        var isNamedEntity = w.schemaManager.mapper.isNamedEntity(entity.getType());
-        var uriAttribute = w.schemaManager.mapper.getAttributeForProperty(entity.getType(), 'uri');
+        var isNamedEntity = w.schemaManager.mapper.isNamedEntity(type);
+        var uriAttribute = w.schemaManager.mapper.getAttributeForProperty(type, 'uri');
         var removeEntity = isNamedEntity && info.attributes[uriAttribute] === undefined;
 
         if (removeEntity) {
+            tagger.setAttributesForTag($tag[0], info.attributes);
             tagger.removeEntity(id);
         } else {
-            // set properties
-            if (info.properties !== undefined) {
-                for (var key in info.properties) {
-                    entity.setProperty(key, info.properties[key]);
-                }
-            }
+            w.entitiesManager.editEntity(entity, info);
 
-            w.schemaManager.mapper.updatePropertiesFromAttributes(entity);
-            
-            // set custom values
-            for (var key in info.customValues) {
-                entity.setCustomValue(key, info.customValues[key]);
-            }
+            tagger.setAttributesForTag($tag[0], entity.getAttributes());
 
             $tag.attr('_tag', entity.getTag());
             $tag.attr('_type', entity.getType());

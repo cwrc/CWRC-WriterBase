@@ -189,13 +189,14 @@ Mapper.prototype = {
         };
 
         /**
-         * Removes the matched elements in the mappingInfo, then removes the match entries from the mappingInfo object.
+         * Removes the match entries from the mappingInfo object. Optionally removes the matched elements/attributes themselves.
          * @param {Element} entityElement
          * @param {Object} mappingInfo
          * @param {Boolean} isCWRC
          * @param {String|Array} textTag
+         * @param {Boolean} removeMatch
          */
-        function cleanProcessedEntity(entityElement, mappingInfo, isCWRC, textTag) {
+        function cleanupMappings(entityElement, mappingInfo, isCWRC, textTag, removeMatch) {
             function isTextTag(node) {
                 var nodeName;
                 if (isCWRC) {
@@ -209,7 +210,7 @@ Mapper.prototype = {
                     return nodeName === textTag;
                 }
             }
-            function removeMatch(match) {
+            function _removeMatch(match) {
                 switch(match.nodeType) {
                     case Node.ATTRIBUTE_NODE:
                         if (match.ownerElement !== entityElement) {
@@ -237,7 +238,7 @@ Mapper.prototype = {
                         }
                         break;
                     default:
-                        console.warn('mapper.getReverseMapping.cleanProcessedEntity: cannot remove node with unknown type', match);
+                        console.warn('mapper.getReverseMapping.cleanupMappings: cannot remove node with unknown type', match);
                 }
             }
 
@@ -245,13 +246,17 @@ Mapper.prototype = {
                 if (key !== 'attributes') {
                     var level1 = mappingInfo[key];
                     if (level1.match) {
-                        removeMatch(level1.match);
+                        if (removeMatch) {
+                            _removeMatch(level1.match);
+                        }
                         mappingInfo[key] = level1.value;
                     } else {
                         for (var key2 in level1) {
                             var level2 = level1[key2];
                             if (level2.match) {
-                                removeMatch(level2.match);
+                                if (removeMatch) {
+                                    _removeMatch(level2.match);
+                                }
                                 level1[key2] = level2.value;
                             }
                         }
@@ -306,10 +311,8 @@ Mapper.prototype = {
                     }
                 }
             }
-            if (cleanUp) {
-                var textTag = this.getTextTag(type);
-                cleanProcessedEntity(el, obj, isCWRC, textTag);
-            }
+            var textTag = this.getTextTag(type);
+            cleanupMappings(el, obj, isCWRC, textTag, cleanUp);
         }
 
         // set type after mapping and cleanup is done
@@ -340,18 +343,31 @@ Mapper.prototype = {
         }
 
         var mappings = this.getMappings();
+        
+        // put xpath mappings at beginning
+        var sortedMappings = [];
         for (var type in mappings.entities) {
-            var xpath = mappings.entities[type].xpathSelector;
+            var mapping = Object.assign({}, mappings.entities[type]);
+            mapping.type = type;
+            if (mapping.xpathSelector !== undefined) {
+                sortedMappings.splice(0, 0, mapping)
+            } else {
+                sortedMappings.push(mapping);
+            }
+        }
+        
+        for (var i = 0; i < sortedMappings.length; i++) {
+            var mapping = sortedMappings[i];
             // prioritize xpath
-            if (xpath !== undefined && isElement) {
-                var result = this.w.utilities.evaluateXPath(el, xpath);
+            if (mapping.xpathSelector !== undefined && isElement) {
+                var result = this.w.utilities.evaluateXPath(el, mapping.xpathSelector);
                 if (result !== null) {
-                    return type; 
+                    return mapping.type;
                 }
             } else {
-                var parentTag = mappings.entities[type].parentTag;
+                var parentTag = mapping.parentTag;
                 if (($.isArray(parentTag) && parentTag.indexOf(tag) !== -1) || parentTag === tag) {
-                    return type;
+                    return mapping.type;
                 }
             }
         }
