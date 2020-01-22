@@ -119,7 +119,7 @@ function SchemaManager(writer, config) {
         if (xmlUrl === undefined) {
             return undefined;
         }
-        
+
         // remove the protocol in order to disregard http/https for improved chances of matching below
         const xmlUrlNoProtocol = xmlUrl.split(/^.*?\/\//)[1];
 
@@ -561,6 +561,13 @@ function SchemaManager(writer, config) {
         
         sm.schema.elements = elements;
         sm.navigator.setSchemaElements(sm.schema.elements);
+
+        // remove any child tags in the element/attribute documentation, as they are not handled properly during xmlToJSON
+        $('a\\:documentation *', sm.schemaXML).each((index, el) => {
+            if (el.parentElement) {
+                el.parentElement.innerHTML = w.utilities.escapeHTMLString(el.parentElement.textContent);
+            }
+        });
         
         sm.schemaJSON = w.utilities.xmlToJSON($('grammar', sm.schemaXML)[0]);
         if (sm.schemaJSON === null) {
