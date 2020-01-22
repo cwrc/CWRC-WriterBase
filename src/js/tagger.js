@@ -1154,6 +1154,20 @@ function Tagger(writer) {
                     var id = currNode.getAttribute('name');
                     console.log('entity will be removed', id);
                     w.entitiesManager.removeEntity(id);
+                } else {
+                    // if node was inside a note, set note content after the node's been removed
+                    var $noteParent = $(currNode).parents('[_type=citation],[_type=note]');
+                    if ($noteParent.length > 0) {
+                        setTimeout(() => {
+                            $noteParent.each((index, el) => {
+                                var id = $(el).attr('id');
+                                var entity = w.entitiesManager.getEntity(id);
+                                if (entity) {
+                                    entity.setNoteContent($(el).html());
+                                }
+                            })
+                        }, 0);
+                    }
                 }
             }
             if (processChildren) {
