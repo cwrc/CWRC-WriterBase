@@ -143,8 +143,12 @@ function Popup(writer, parentEl) {
                 break;
             }
         }
-        
-        if (url !== null) {
+
+        showLink(url);
+    }
+
+    var showLink = function(url) {
+        if (url) {
             if (url.indexOf('http') === 0) {
                 doPopup(url, 'link');
                 $popupEl.on('click', doClick);
@@ -163,6 +167,12 @@ function Popup(writer, parentEl) {
         var content = entry.getNoteContent();
         if (content === undefined) {
             content = entry.getContent();
+        }
+        if (content === undefined || content.match(/^\s*$/) !== null) {
+            if (entry.getType() === 'citation') {
+                showLink(entry.getURI());
+            }
+            return;
         }
         doPopup(content, 'note');
     }
