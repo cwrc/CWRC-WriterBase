@@ -116,6 +116,10 @@ function SchemaManager(writer, config) {
      * @returns {String|undefined} The schemaId
      */
     sm.getSchemaIdFromUrl = function(xmlUrl) {
+        if (xmlUrl === undefined) {
+            return undefined;
+        }
+        
         // remove the protocol in order to disregard http/https for improved chances of matching below
         const xmlUrlNoProtocol = xmlUrl.split(/^.*?\/\//)[1];
 
