@@ -44,7 +44,7 @@ function deleteConfirm(editor, range, direction) {
         element = range.commonAncestorContainer.nextElementSibling || range.commonAncestorContainer.parentElement;
     }
 
-    var invalidDelete = editor.writer.schemaManager.wouldDeleteInvalidate(element);
+    var invalidDelete = editor.writer.schemaManager.wouldDeleteInvalidate(element, false);
 
     var msg = `<p>Delete "${element.getAttribute('_tag')}" element?</p>`;
     var showConfirmKey = 'confirm-delete-tag';

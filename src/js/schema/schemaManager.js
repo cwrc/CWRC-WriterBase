@@ -333,9 +333,10 @@ function SchemaManager(writer, config) {
     /**
      * Checks whether removing this node would invalidate the document.
      * @param {Element} nodeToDelete The node to remove
+     * @param {Boolean} removingContents Are the node contents also being removed?
      * @returns {Boolean}
      */
-    sm.wouldDeleteInvalidate = function(nodeToDelete) {
+    sm.wouldDeleteInvalidate = function(nodeToDelete, removingContents) {
         let parentEl = nodeToDelete.parentElement;
         let parentTag = parentEl.getAttribute('_tag');
         // handling for when we're inside entityHighlight
@@ -358,7 +359,7 @@ function SchemaManager(writer, config) {
             }
         }
 
-        if (validDelete) {
+        if (validDelete && !removingContents) {
             let hasTextNodes = false;
             nodeToDelete.childNodes.forEach(cn => {
                 if (!hasTextNodes && cn.nodeType === Node.TEXT_NODE && cn.textContent !== '\uFEFF') {
