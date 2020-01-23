@@ -355,8 +355,7 @@ function EntitiesList(config) {
             li.setText('Converting Entities');
             li.show();
 
-            w.tree.disable();
-            pm.disable();
+            w.event('massUpdateStarted').publish();
 
             w.utilities.processArray(potentialEntities, function(el) {
                 var entity = w.schemaManager.mapper.convertTagToEntity(el);
@@ -368,8 +367,7 @@ function EntitiesList(config) {
                 li.hide();
                 w.event('contentChanged').publish();
 
-                w.tree.enable();
-                pm.enable();
+                w.event('massUpdateCompleted').publish();
             });
         } else {
             w.dialogManager.show('message', {
@@ -445,8 +443,7 @@ function EntitiesList(config) {
     }
 
     var rejectAll = function() {
-        w.tree.disable();
-        pm.disable();
+        w.event('massUpdateStarted').publish();
 
         var filter = getFilter();
         w.entitiesManager.eachEntity(function(i, entity) {
@@ -458,8 +455,7 @@ function EntitiesList(config) {
         });
         setFilter('all');
 
-        w.tree.enable();
-        pm.enable();
+        w.event('massUpdateCompleted').publish();
     }
 
     var handleDone = function() {
@@ -506,6 +502,12 @@ function EntitiesList(config) {
     });
     w.event('entityPasted').subscribe(function(entityId) {
         pm.update();
+    });
+    w.event('massUpdateStarted').subscribe(function() {
+        pm.disable();
+    });
+    w.event('massUpdateCompleted').subscribe(function() {
+        pm.enable(true);
     });
 
 

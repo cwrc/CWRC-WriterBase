@@ -570,6 +570,12 @@ function StructureTree(config) {
     w.event('documentLoaded').subscribe(function() {
         tree.enable(true);
     });
+    w.event('massUpdateStarted').subscribe(function() {
+        tree.disable();
+    });
+    w.event('massUpdateCompleted').subscribe(function() {
+        tree.enable(true);
+    });
     w.event('nodeChanged').subscribe(function(currentNode) {
         if (!ignoreSelect) {
             tree.highlightNode(currentNode);

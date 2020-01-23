@@ -267,6 +267,18 @@ function EventManager(writer) {
      * @event Writer@selectionChanged
      */
     w.event('selectionChanged');
+
+    /**
+     * Numerous changes to the document are being made in succession
+     * @event Writer@massUpdateStarted
+     */
+    w.event('massUpdateStarted');
+
+    /**
+     * The numerous changes to the document are complete
+     * @event Writer@massUpdateCompleted
+     */
+    w.event('massUpdateCompleted');
     
     /**
      * @lends EventManager.prototype

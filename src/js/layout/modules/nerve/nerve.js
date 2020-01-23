@@ -208,8 +208,7 @@ function Nerve(config) {
                 data: JSON.stringify({"document": document, "context": nerveContext})
             })
         ).then(function(response) {
-            w.tree.disable();
-            w.entitiesList.disable();
+            w.event('massUpdateStarted').publish();
 
             var doc = w.utilities.stringToXML(response.document);
             if (doc === null) {
@@ -231,8 +230,7 @@ function Nerve(config) {
     
                 renderEntitiesList();
     
-                w.tree.enable();
-                w.entitiesList.enable();
+                w.event('massUpdateCompleted').publish();
     
                 w.editor.setMode('readonly');
                 $parent.find('button.run').hide();
@@ -764,8 +762,7 @@ function Nerve(config) {
     }
 
     var acceptAll = function() {
-        w.tree.disable();
-        w.entitiesList.disable();
+        w.event('massUpdateStarted').publish();
         
         var filter = getFilter();
 
@@ -786,8 +783,7 @@ function Nerve(config) {
 
         renderEntitiesList();
 
-        w.tree.enable();
-        w.entitiesList.enable();
+        w.event('massUpdateCompleted');
     }
 
     var rejectEntity = function(entityId) {
@@ -816,8 +812,7 @@ function Nerve(config) {
     }
 
     var rejectAll = function(isDone) {
-        w.tree.disable();
-        w.entitiesList.disable();
+        w.event('massUpdateStarted').publish();
 
         var filter = getFilter();
 
@@ -838,8 +833,7 @@ function Nerve(config) {
 
         renderEntitiesList();
 
-        w.tree.enable();
-        w.entitiesList.enable();
+        w.event('massUpdateCompleted');
     }
 
     var editEntity = function(entityId) {
