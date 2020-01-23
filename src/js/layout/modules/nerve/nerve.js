@@ -712,7 +712,7 @@ function Nerve(config) {
         return false;
     }
 
-    var acceptEntity = function(entityId) {
+    var acceptEntity = function(entityId, removeFromView=true) {
         var entity = w.entitiesManager.getEntity(entityId);
         var tag = $('#'+entityId, w.editor.getBody())[0];
         
@@ -732,7 +732,9 @@ function Nerve(config) {
             w.tagger.removeAttributeFromTag(tag, '_candidate');
         }
 
-        removeEntityFromView(entityId);
+        if (removeFromView) {
+            removeEntityFromView(entityId);
+        }
     }
 
     var acceptMatching = function(entityId) {
@@ -766,27 +768,37 @@ function Nerve(config) {
         
         var filter = getFilter();
 
+        var li = w.dialogManager.getDialog('loadingindicator');
+        li.setText('Accepting Entities');
+        li.show();
+
         for (var key in mergedEntities) {
             var entry = mergedEntities[key];
             if (filter === 'all' || filter === entry.type) {
-                acceptMerged(key);
+                entry.entityIds.forEach(function(entId) {
+                    w.entitiesManager.setLemmaForEntity(entId, entry.lemma);
+                    w.entitiesManager.setURIForEntity(entId, entry.uri);
+                });
+                delete mergedEntities[key];
             }
         }
 
-        getNerveEntities().forEach(function(ent, index) {
+        w.utilities.processArray(getNerveEntities(), function(ent) {
             if (filter === 'all' || filter === ent.getType()) {
-                acceptEntity(ent.getId());
+                acceptEntity(ent.getId(), false);
             }
-        });
+        }).then(() => {
+            setFilter('all');
 
-        setFilter('all');
+            renderEntitiesList();
 
-        renderEntitiesList();
-
-        w.event('massUpdateCompleted');
+            w.event('massUpdateCompleted').publish();
+        }).always(() => {
+            li.hide();
+        })
     }
 
-    var rejectEntity = function(entityId) {
+    var rejectEntity = function(entityId, removeFromView=true) {
         var entry = w.entitiesManager.getEntity(entityId);
         var taggedByNerve = entry.getCustomValue('nerve') !== undefined;
         if (taggedByNerve) {
@@ -808,7 +820,10 @@ function Nerve(config) {
         } else {
             w.tagger.removeEntity(entityId);
         }
-        removeEntityFromView(entityId);
+
+        if (removeFromView) {
+            removeEntityFromView(entityId);
+        }
     }
 
     var rejectAll = function(isDone) {
@@ -816,24 +831,30 @@ function Nerve(config) {
 
         var filter = getFilter();
 
+        var li = w.dialogManager.getDialog('loadingindicator');
+        li.setText('Rejecting Entities');
+        li.show();
+
         for (var key in mergedEntities) {
             var entry = mergedEntities[key];
-            if (isDone || filter === 'all' || filter === entry.type) {
-                rejectMerged(key);
+            if (filter === 'all' || filter === entry.type) {
+                delete mergedEntities[key];
             }
         }
 
-        getNerveEntities().forEach(function(ent, index) {
+        w.utilities.processArray(getNerveEntities(), function(ent) {
             if (isDone || filter === 'all' || filter === ent.getType()) {
-                rejectEntity(ent.getId());
+                rejectEntity(ent.getId(), false);
             }
-        });
+        }).then(() => {
+            setFilter('all');
 
-        setFilter('all');
+            renderEntitiesList();
 
-        renderEntitiesList();
-
-        w.event('massUpdateCompleted');
+            w.event('massUpdateCompleted').publish();
+        }).always(() => {
+            li.hide();
+        })
     }
 
     var editEntity = function(entityId) {
