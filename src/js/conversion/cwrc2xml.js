@@ -209,8 +209,7 @@ function CWRC2XML(writer) {
         // then remove the associated nodes
         $(overlappingEntIds).each(function(index, id) {
             var entry = w.entitiesManager.getEntity(id);
-            var range = getRangesForEntity(id);
-            $.extend(entry.getRange(), range);
+            entry.setRange(getRangesForEntity(id));
             $('[name="'+id+'"]', body).each(function(index, el) {
                 $(el).contents().unwrap();
             });
@@ -226,9 +225,9 @@ function CWRC2XML(writer) {
         w.entitiesManager.eachEntity(function(entityId, entry) {
             var entity = $('[cwrcTempId="'+entityId+'"]', doc);
             if (entity.length === 1) {
-                var range = {};
-                range.startXPath = w.utilities.getElementXPath(entity[0]);
-                $.extend(entry.getRange(), range);
+                entry.setRange({
+                    startXPath: w.utilities.getElementXPath(entity[0])
+                })
             }
         });
     }
