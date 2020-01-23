@@ -454,12 +454,21 @@ function Tagger(writer) {
 
     /**
      * Process newly added content
+     * @param {Element} domContent
      */
     tagger.processNewContent = function(domContent) {
-        var processNewNodes = function(currNode) {
+
+        var processNewNodes = function(currNode, direction) {
             if (currNode.nodeType === Node.ELEMENT_NODE) {
                 if (currNode.hasAttribute('_tag')) {
                     var oldId = currNode.getAttribute('id');
+
+                    if (oldId !== null) {
+                        var instances = currNode.ownerDocument.querySelectorAll('#'+oldId);
+                        if (instances.length === 1) {
+                            return;
+                        }
+                    }
 
                     var newId = w.getUniqueId('dom_');
                     currNode.setAttribute('id', newId);
@@ -483,12 +492,19 @@ function Tagger(writer) {
                     }
                 }
             }
-            for (var i = 0; i < currNode.childNodes.length; i++) {
-                processNewNodes(currNode.childNodes[i]);
+            if (direction === 'up') {
+                if (currNode.parentElement) {
+                    processNewNodes(currNode.parentElement, direction);
+                }
+            } else {
+                for (var i = 0; i < currNode.childNodes.length; i++) {
+                    processNewNodes(currNode.childNodes[i], direction);
+                }
             }
         }
 
-        processNewNodes(domContent);
+        processNewNodes(domContent, 'up');
+        processNewNodes(domContent, 'down');
 
         // TODO overlapping entities handling
         /*
