@@ -442,7 +442,7 @@ TinymceWrapper.init = function(config) {
                 entity.setNoteContent($('#' + entityId, w.editor.getBody()).html());
             }
             entity.setContent(content);
-            // TODO update entitiesList
+            w.event('entityEdited').publish(entityId);
         }
 
         if (w.editor.currentNode) {
