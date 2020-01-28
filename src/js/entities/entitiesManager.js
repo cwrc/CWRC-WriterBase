@@ -12,20 +12,24 @@ function EntitiesManager(writer) {
     
     this.reset();
     
-    this.w.event('entityAdded').subscribe($.proxy(function(entityId) {
+    this.w.event('processingDocument').subscribe(function() {
+        this.reset();
+    }.bind(this));
+
+    this.w.event('entityAdded').subscribe(function(entityId) {
         // don't highlight the entity because we might be doing bulk additions
         // this.highlightEntity(entityId);
-    }, this));
-    this.w.event('entityEdited').subscribe($.proxy(function(entityId) {
+    }.bind(this));
+    this.w.event('entityEdited').subscribe(function(entityId) {
         // TODO update text content for entity here?
         this.highlightEntity(entityId);
-    }, this));
-    this.w.event('entityRemoved').subscribe($.proxy(function(entityId) {
+    }.bind(this));
+    this.w.event('entityRemoved').subscribe(function(entityId) {
         this.highlightEntity();
-    }, this));
-    this.w.event('entityPasted').subscribe($.proxy(function(entityId) {
+    }.bind(this));
+    this.w.event('entityPasted').subscribe(function(entityId) {
         this.highlightEntity(entityId);
-    }, this));
+    }.bind(this));
 }
 
 EntitiesManager.prototype = {
@@ -35,9 +39,10 @@ EntitiesManager.prototype = {
      * Creates and adds an entity to the collection.
      * @fires Writer#entityAdded
      * @param {Object|Entity} config The entity config.
+     * @param {Range} [range] If a range is provided, the actual tag is also added
      * @returns {Entity} The newly created Entity
      */
-    addEntity: function(config) {
+    addEntity: function(config, range) {
         var entity;
         if (config.constructor.name === 'Entity') {
             entity = config;
@@ -57,15 +62,57 @@ EntitiesManager.prototype = {
         for (var attName in requiredAttributes) {
             entity.setAttribute(attName, requiredAttributes[attName]);
         }
-        
+
+        this.w.schemaManager.mapper.updatePropertiesFromAttributes(entity);
+
+        if (range !== undefined) {
+            this.w.tagger.addEntityTag(entity, range);
+        }
+
         if (entity.getContent() === undefined) {
             entity.setContent(this.getTextContentForEntity(entity.id));
         }
         
         this.entities[entity.id] = entity;
-        
+
         this.w.event('entityAdded').publish(entity.id);
         
+        return entity;
+    },
+
+    /**
+     * Edits the entity using the supplied info.
+     * @param {Entity} entity The entity
+     * @param {Object} info The entity info
+     * @param {Object} info.attributes Key/value pairs of attributes
+     * @param {Object} info.properties Key/value pairs of Entity properties
+     * @param {Object} info.customValues Any additional custom values
+     * @returns {Entity} The edited Entity
+     */
+    editEntity: function(entity, info) {
+        // set attributes
+        entity.setAttributes(info.attributes);
+
+        // set properties
+        if (info.properties !== undefined) {
+            for (var key in info.properties) {
+                entity.setProperty(key, info.properties[key]);
+            }
+        }
+
+        this.w.schemaManager.mapper.updatePropertiesFromAttributes(entity);
+
+        // type might have changed so need to set these
+        var requiredAttributes = this.w.schemaManager.mapper.getRequiredAttributes(entity.getType());
+        for (var attName in requiredAttributes) {
+            entity.setAttribute(attName, requiredAttributes[attName]);
+        }
+        
+        // set custom values
+        for (var key in info.customValues) {
+            entity.setCustomValue(key, info.customValues[key]);
+        }
+
         return entity;
     },
     

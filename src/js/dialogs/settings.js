@@ -1,6 +1,6 @@
 'use strict';
 
-var $ = require('jquery');
+const $ = require('jquery');
 
 require('jquery-ui/ui/widgets/button');
     
@@ -120,7 +120,7 @@ function Settings(writer, config) {
         closeOnEscape: true,
         height: 450,
         width: 450,
-        position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
+        position: { my: 'center', at: 'center', of: w.layoutManager.getContainer() },
         autoOpen: false,
         buttons: [{
             text: 'Revert to Defaults',
@@ -144,13 +144,57 @@ function Settings(writer, config) {
             }
         }]
     });
-    
-    function buildSchema() {
-        var schemasHTML = '';
-        for (var schema in w.schemaManager.schemas) {
-            schemasHTML += '<option value="' + schema + '">' + w.schemaManager.schemas[schema]['name'] + '</option>';
+
+
+     /**
+     * Loops through the list of a Schema's URLs to check availability
+     * @param {*} Anon Object containg an array of urls
+     * @param {Array} xmlUrl Collection of URL source 
+     */
+    async function testSchemaURL ({xmlUrl}) {
+
+        let schemaAvailable = false;
+
+        //Make an array of urls. Remove when modifiy the config to list urls as
+        // an array instead of properties.
+        // const resourceURLs = [];
+        // if (url) resourceURLs.push(url);
+        // if (altUrl) resourceURLs.push(altUrl);
+
+        for (let url of xmlUrl) {
+
+            //use the proxy if available.
+            if (w.schemaManager.schemaProxyUrl) {
+                url = `${w.schemaManager.schemaProxyUrl}/schema/xml?url=${url}`;
+            }
+
+            const response = await fetch(url)
+                .catch( () => {
+                    // console.log(err);
+                });
+        
+            if (response &&  response.status === 200) {
+                schemaAvailable = true;
+                break;
+            }
+        }
+
+        return schemaAvailable;
+        
+    }
+
+    async function buildSchema() {
+
+        let schemasHTML = '';
+        for (const schema of w.schemaManager.schemas) {
+            //if schema is not accessible, list as
+            let disabledAttribute = '';
+            if (!await testSchemaURL(schema)) disabledAttribute = 'disabled';
+
+            schemasHTML += `<option value="${schema.id}" ${disabledAttribute}>${schema.name}</option>`;
         }
         $('select[name="schema"]', $settingsDialog).html(schemasHTML);
+
     }
     
     function applySettings() {
@@ -218,7 +262,7 @@ function Settings(writer, config) {
             doApplySettings();
         }
         
-        function doApplySettings(editorMode) {
+        async function doApplySettings(editorMode) {
             if (editorMode !== undefined) {
                 if (editorMode === 'xml') {
                     w.mode = w.XML;
@@ -254,53 +298,60 @@ function Settings(writer, config) {
             }
             settings.showTags = $settingsDialog.find('.showtags').prop('checked');
             
-            var styles = {
+            const styles = {
                 fontSize: settings.fontSize
             };
             w.editor.dom.setStyles(w.editor.dom.getRoot(), styles);
 
-            var schemaId = $('select[name="schema"]', $settingsDialog).val();
+            const schemaId = $('select[name="schema"]', $settingsDialog).val();
+
             if (schemaId !== w.schemaManager.schemaId) {
+                
                 changeApplyButton(true);
-                w.schemaManager.getRootForSchema(schemaId).then(function(rootName) {
-                    changeApplyButton(false);
-                    var currRootName = w.utilities.getRootTag().attr('_tag');
-                    if (rootName === null) {
-                        w.dialogManager.show('message', {
-                            title: 'Error',
-                            msg: 'The root element of the schema could not be determined and so it will not be used.',
-                            type: 'error'
-                        });
-                        $settingsDialog.dialog('close');
-                    } else if (currRootName !== rootName) {
-                        w.dialogManager.confirm({
-                            title: 'Warning',
-                            msg: '<p>The root element ('+rootName+') required by the selected schema is different from the root element ('+currRootName+') of the current document.</p>'+
-                                '<p>Applying this schema change will cause a document loading error.</p><p>Continue?</p>',
-                            type: 'info',
-                            callback: function(doIt) {
-                                if (doIt) {
-                                    $settingsDialog.dialog('close');
-                                    w.event('schemaChanged').publish(schemaId);
-                                } else {
-                                    $('select[name="schema"] > option[value="'+w.schemaManager.schemaId+'"]', $settingsDialog).prop('selected', true);
-                                }
-                            }
-                        });
-                    } else {
+
+                const rootName = await w.schemaManager.getRootForSchema(schemaId)
+                    .catch( () => {
+                        console.warn('getRootSchema failed');
                         $settingsDialog.dialog('close');
                         w.event('schemaChanged').publish(schemaId);
-                    }
-                }, function() {
-                    console.warn('getRootSchema failed');
+                    });
+
+                changeApplyButton(false);
+                const currRootName = w.utilities.getRootTag().attr('_tag');
+
+                if (rootName === null) {
+                    w.dialogManager.show('message', {
+                        title: 'Error',
+                        msg: 'The root element of the schema could not be determined and so it will not be used.',
+                        type: 'error'
+                    });
+                    $settingsDialog.dialog('close');
+                } else if (currRootName !== rootName) {
+                    w.dialogManager.confirm({
+                        title: 'Warning',
+                        msg: `<p>The root element (${rootName}) required by the selected schema is different from the root element (${currRootName}) of the current document.</p>
+                              <p>Applying this schema change will cause a document loading error.</p>
+                              <p>Continue?</p>`,
+                        type: 'info',
+                        callback: function(doIt) {
+                            if (doIt) {
+                                $settingsDialog.dialog('close');
+                                w.event('schemaChanged').publish(schemaId);
+                            } else {
+                                $(`select[name="schema"] > option[value="${w.schemaManager.schemaId}"]`, $settingsDialog).prop('selected', true);
+                            }
+                        }
+                    });
+                } else {
                     $settingsDialog.dialog('close');
                     w.event('schemaChanged').publish(schemaId);
-                });
+                }
+                
             } else {
                 $settingsDialog.dialog('close');
             }
         }
-    };
+    }
     
     function changeApplyButton(isLoading) {
         var buttons = $settingsDialog.dialog('option', 'buttons')
@@ -338,13 +389,14 @@ function Settings(writer, config) {
         $('select[name="annotations"]', $settingsDialog).val(defaultSettings.annotationMode);
         
         //$('select[name="schema"]', $settingsDialog).val(defaultSettings.validationSchema);
-    };
+    }
     
     function hideAdvanced() {
         $settingsDialog.find('.settingsDialogAdvanced').hide();
         $settingsDialog.dialog('option', 'height', 260);
     }
     
+    // TODO don't rebuild the whole schema list when one schema gets added
     w.event('schemaAdded').subscribe(buildSchema);
     
     if (w.isReadOnly) {
@@ -360,6 +412,6 @@ function Settings(writer, config) {
             $settingsDialog.dialog('destroy');
         }
     };
-};
+}
 
 module.exports = Settings;

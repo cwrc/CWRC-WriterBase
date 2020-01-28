@@ -60,9 +60,8 @@ function CWRC2XML(writer) {
         w.tagger.setAttributesForTag($rootEl[0], rootAttributes);
 
         var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
-        xmlString += '<?xml-model href="'+w.schemaManager.getCurrentSchema().url+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
-        var currentCSS = w.schemaManager.getCSS() || w.schemaManager.getCurrentSchema().cssUrl;
-        xmlString += '<?xml-stylesheet type="text/css" href="'+currentCSS+'"?>\n';
+        xmlString += '<?xml-model href="'+w.schemaManager.getCurrentDocumentSchemaUrl()+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
+        xmlString += '<?xml-stylesheet type="text/css" href="'+w.schemaManager.getCurrentDocumentCSSUrl()+'"?>\n';
 
         console.time('buildXMLString');
         xmlString += cwrc2xml.buildXMLString($rootEl, includeRDF);
@@ -210,8 +209,7 @@ function CWRC2XML(writer) {
         // then remove the associated nodes
         $(overlappingEntIds).each(function(index, id) {
             var entry = w.entitiesManager.getEntity(id);
-            var range = getRangesForEntity(id);
-            $.extend(entry.getRange(), range);
+            entry.setRange(getRangesForEntity(id));
             $('[name="'+id+'"]', body).each(function(index, el) {
                 $(el).contents().unwrap();
             });
@@ -227,9 +225,9 @@ function CWRC2XML(writer) {
         w.entitiesManager.eachEntity(function(entityId, entry) {
             var entity = $('[cwrcTempId="'+entityId+'"]', doc);
             if (entity.length === 1) {
-                var range = {};
-                range.startXPath = w.utilities.getElementXPath(entity[0]);
-                $.extend(entry.getRange(), range);
+                entry.setRange({
+                    startXPath: w.utilities.getElementXPath(entity[0])
+                })
             }
         });
     }

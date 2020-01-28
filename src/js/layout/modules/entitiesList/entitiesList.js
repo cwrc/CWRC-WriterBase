@@ -1,6 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
+var Mapper = require('mapper')
 
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/selectmenu');
@@ -226,12 +227,12 @@ function EntitiesList(config) {
         var nevAdded = false;
         var lemma = entity.getLemma();
         if (lemma !== undefined) {
-            infoString += '<li><strong>Standard</strong>: '+lemma+'</li>';
+            infoString += `<li><strong>Standard</strong>: ${lemma}</li>`;
             nevAdded = true;
         }
         var uri = entity.getURI()
         if (uri !== undefined) {
-            infoString += '<li><strong>URI</strong>: <a href="'+uri+'" target="_blank" rel="noopener">'+uri+'</a></li>';
+            infoString += `<li><strong>URI</strong>: <a href="${uri}" target="_blank" rel="noopener">${uri}</a></li>`;
             nevAdded = true;
         }
 
@@ -240,7 +241,7 @@ function EntitiesList(config) {
         var entityAttributes = entity.getAttributes()
         var urlAttributes = w.schemaManager.mapper.getUrlAttributes();
         for (var name in entityAttributes) {
-            if (w.converter.reservedAttributes[name] !== true) {
+            if (Mapper.reservedAttributes[name] !== true) {
                 var value = entityAttributes[name];
                 if (value !== undefined) {
                     if (urlAttributes.indexOf(name) !== -1 || value.indexOf('http') === 0) {
@@ -248,7 +249,7 @@ function EntitiesList(config) {
                             if (!attAdded && nevAdded) {
                                 infoString += '<li><hr /></li>';
                             }
-                            infoString += '<li><strong>'+name+'</strong>: <a href="'+value+'" target="_blank" rel="noopener">'+value+'</a></li>';
+                            infoString += `<li><strong>${name}</strong>: <a href="${value}" target="_blank" rel="noopener">${value}</a></li>`;
                             attAdded = true;
                         }
                     } else {
@@ -256,7 +257,7 @@ function EntitiesList(config) {
                             if (!attAdded && nevAdded) {
                                 infoString += '<li><hr /></li>';
                             }
-                            infoString += '<li><strong>'+name+'</strong>: '+value+'</li>';
+                            infoString += `<li><strong>${name}</strong>: ${value}</li>`;
                             attAdded = true;
                         }
                     }
@@ -264,6 +265,13 @@ function EntitiesList(config) {
                     console.warn('entitiesList: undefined value for '+name+'in ', entity);
                 }
             }
+        }
+
+        // custom values
+        var customValues = entity.getCustomValues();
+        for (var name in customValues) {
+            var value = customValues[name];
+            infoString += `<li><strong>${name}</strong>: ${value}</li>`;
         }
 
         infoString += '</ul>';
@@ -347,8 +355,7 @@ function EntitiesList(config) {
             li.setText('Converting Entities');
             li.show();
 
-            w.tree.disable();
-            pm.disable();
+            w.event('massUpdateStarted').publish();
 
             w.utilities.processArray(potentialEntities, function(el) {
                 var entity = w.schemaManager.mapper.convertTagToEntity(el);
@@ -360,8 +367,7 @@ function EntitiesList(config) {
                 li.hide();
                 w.event('contentChanged').publish();
 
-                w.tree.enable();
-                pm.enable();
+                w.event('massUpdateCompleted').publish();
             });
         } else {
             w.dialogManager.show('message', {
@@ -437,8 +443,7 @@ function EntitiesList(config) {
     }
 
     var rejectAll = function() {
-        w.tree.disable();
-        pm.disable();
+        w.event('massUpdateStarted').publish();
 
         var filter = getFilter();
         w.entitiesManager.eachEntity(function(i, entity) {
@@ -450,8 +455,7 @@ function EntitiesList(config) {
         });
         setFilter('all');
 
-        w.tree.enable();
-        pm.enable();
+        w.event('massUpdateCompleted').publish();
     }
 
     var handleDone = function() {
@@ -498,6 +502,12 @@ function EntitiesList(config) {
     });
     w.event('entityPasted').subscribe(function(entityId) {
         pm.update();
+    });
+    w.event('massUpdateStarted').subscribe(function() {
+        pm.disable();
+    });
+    w.event('massUpdateCompleted').subscribe(function() {
+        pm.enable(true);
     });
 
 

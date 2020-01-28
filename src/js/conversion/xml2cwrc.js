@@ -1,7 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
-var tinymce = require('tinymce');
+var Mapper = require('mapper');
 
 /**
  * @class XML2CWRC
@@ -14,21 +14,6 @@ function XML2CWRC(writer) {
      * @lends XML2CWRC.prototype
      */
     var xml2cwrc = {};
-
-    // a list of reserved attribute names that are used by the editor
-    xml2cwrc.reservedAttributes = {
-        '_entity': true,
-        '_type': true,
-        '_tag': true,
-        '_textallowed': true,
-        '_note': true,
-        '_candidate': true,
-        '_attributes': true,
-        'id': true,
-        'name': true,
-        'class': true,
-        'style': true
-    };
 
     // tracks whether we're processing a legacy document
     xml2cwrc.isLegacyDocument = undefined;
@@ -46,24 +31,23 @@ function XML2CWRC(writer) {
         $(w.editor.getBody()).empty();
 
         // setTimeout to make sure doc clears first
-        setTimeout(function() {
-            var schemaId;
-            var schemaUrl;
-            var cssUrl;
-            var loadSchemaCss;
+        setTimeout(async function() {
+            let schemaId;
+            let loadSchemaCss;
+
+            let {xmlUrl, cssUrl} = getSchemaUrls(doc);
+            w.schemaManager.setCurrentDocumentSchemaUrl(xmlUrl);
+            w.schemaManager.setCurrentDocumentCSSUrl(cssUrl);
 
             if (schemaIdOverride !== undefined) {
                 schemaId = schemaIdOverride;
                 loadSchemaCss = true;
             } else {
-                var info = getSchemaInfo(doc);
-                schemaId = info.schemaId;
-                schemaUrl = info.schemaUrl;
-                cssUrl = info.cssUrl;
+                schemaId = w.schemaManager.getSchemaIdFromUrl(xmlUrl);
                 loadSchemaCss = cssUrl === undefined; // load schema css if none was found in the document
             }
 
-            if (schemaUrl === undefined && schemaId === undefined) {
+            if (xmlUrl === undefined && schemaId === undefined) {
                 w.dialogManager.confirm({
                     title: 'Missing Schema',
                     msg: '<p>There is no schema associated with your document. Should CWRC-Writer try to determine the schema by examining the document root?</p>',
@@ -87,9 +71,9 @@ function XML2CWRC(writer) {
                                     title: 'Schema',
                                     msg: '<p>CWRC-Writer determined the schema to be: '+schemaId+'</p>',
                                     type: 'info',
-                                    callback: function() {
+                                    callback: async function() {
                                         if (schemaId !== w.schemaManager.schemaId) {
-                                            w.schemaManager.loadSchema(schemaId, false, true, function(success) {
+                                            await w.schemaManager.loadSchema(schemaId, true, function(success) {
                                                 if (success) {
                                                     doProcessing(doc);
                                                 } else {
@@ -115,22 +99,71 @@ function XML2CWRC(writer) {
                         msg: '<p>The document you are loading is not fully supported by CWRC-Writer. You may not be able to use the ribbon to tag named entities.</p>'+
                         '<p>Load document anyways?</p>',
                         type: 'error',
-                        callback: function(doIt) {
+                        callback: async function(doIt) {
                             if (doIt) {
                                 if (cssUrl !== undefined) {
-                                    w.schemaManager.loadSchemaCSS(cssUrl);
+                                    await w.schemaManager.loadSchemaCSS([cssUrl]);
                                 }
-                                if (schemaUrl !== undefined) {
+                                if (xmlUrl !== undefined) {
                                     var customSchemaId = w.schemaManager.addSchema({
                                         name: 'Custom Schema',
-                                        url: schemaUrl,
-                                        cssUrl: cssUrl
+                                        xmlUrl: [xmlUrl],
+                                        cssUrl: [cssUrl]
                                     });
-                                    w.schemaManager.loadSchema(customSchemaId, false, loadSchemaCss, function(success) {
+                                    await w.schemaManager.loadSchema(customSchemaId, loadSchemaCss, function(success) {
                                         if (success) {
                                             doProcessing(doc);
                                         } else {
-                                            doBasicProcessing(doc);
+                                            // close schema error dialog
+                                            var schemaErrDialog = w.dialogManager.getDialog('message').getOpenDialogs().pop();
+                                            if (schemaErrDialog) {
+                                                schemaErrDialog.dialog('close');
+                                            }
+
+                                            w.dialogManager.confirm({
+                                                title: 'Error Loading Schema',
+                                                msg: '<p>The schema associated with your document could not be loaded. Should CWRC-Writer try to determine the schema by examining the document root?</p>',
+                                                type: 'error',
+                                                callback: function(doIt) {
+                                                    if (doIt) {
+                                                        var rootName = doc.firstElementChild.nodeName;
+                                                        schemaId = w.schemaManager.getSchemaIdFromRoot(rootName);
+                                                        if (schemaId === undefined) {
+                                                            w.dialogManager.show('message', {
+                                                                title: 'Warning',
+                                                                msg: '<p>CWRC-Writer could not determine the schema for: '+rootName+'</p>',
+                                                                type: 'error',
+                                                                callback: function() {
+                                                                    w.event('documentLoaded').publish(false, null);
+                                                                    w.showLoadDialog();
+                                                                }
+                                                            });
+                                                        } else {
+                                                            w.dialogManager.show('message', {
+                                                                title: 'Schema',
+                                                                msg: '<p>CWRC-Writer determined the schema to be: '+schemaId+'</p>',
+                                                                type: 'info',
+                                                                callback: async function() {
+                                                                    if (schemaId !== w.schemaManager.schemaId) {
+                                                                        await w.schemaManager.loadSchema(schemaId, true, function(success) {
+                                                                            if (success) {
+                                                                                doProcessing(doc);
+                                                                            } else {
+                                                                                doBasicProcessing(doc);
+                                                                            }
+                                                                        });
+                                                                    } else {
+                                                                        doProcessing(doc);
+                                                                    }
+                                                                }
+                                                            });
+                                                        }
+                                                    } else {
+                                                        w.event('documentLoaded').publish(false, null);
+                                                        w.showLoadDialog();
+                                                    }
+                                                }
+                                            });
                                         }
                                     });
                                 } else {
@@ -146,9 +179,9 @@ function XML2CWRC(writer) {
                 } else {
                     if (schemaId !== w.schemaManager.schemaId) {
                         if (cssUrl !== undefined) {
-                            w.schemaManager.loadSchemaCSS(cssUrl);
+                            await w.schemaManager.loadSchemaCSS([cssUrl]);
                         }
-                        w.schemaManager.loadSchema(schemaId, false, loadSchemaCss, function(success) {
+                        await w.schemaManager.loadSchema(schemaId, loadSchemaCss, function(success) {
                             if (success) {
                                 doProcessing(doc);
                             } else {
@@ -156,6 +189,13 @@ function XML2CWRC(writer) {
                             }
                         });
                     } else {
+                        if (cssUrl !== undefined && cssUrl !== w.schemaManager.getCSSUrl()) {
+                            const currentSchema = w.schemaManager.getCurrentSchema();
+                            const matchCSSUrl = currentSchema.cssUrl.find( url => url === cssUrl);
+                            if (matchCSSUrl === null) {
+                                await w.schemaManager.loadSchemaCSS([cssUrl]);
+                            } 
+                        }
                         doProcessing(doc);
                     }
                 }
@@ -164,51 +204,30 @@ function XML2CWRC(writer) {
     };
 
     /**
-     * Get the schema and css from the xml-model
-     * @param {Document} doc 
-     * @returns {Object} info
+     * Get the schema URLs in the specified document.
+     * @param {Document} doc
+     * @returns {Object} urls
      */
-    function getSchemaInfo(doc) {
-        var schemaId;
-        var schemaUrl;
-        var cssUrl;
+    function getSchemaUrls(doc) {
+        let xmlUrl;
+        let cssUrl;
         for (var i = 0; i < doc.childNodes.length; i++) {
-            var node = doc.childNodes[i];
+            const node = doc.childNodes[i];
+
             if (node.nodeName === 'xml-model') {
-                var xmlModelData = node.data;
-                schemaUrl = xmlModelData.match(/href="([^"]*)"/)[1];
-                 // remove the protocol in order to disregard http/https for improved chances of matching below
-                var schemaUrlNoProtocol = schemaUrl.split(/^.*?\/\//)[1];
-                // search the known schemas, if the url matches it must be the same one
-                $.each(w.schemaManager.schemas, function(id, schema) {
-                    if (schema.url.indexOf(schemaUrlNoProtocol) !== -1) {
-                        schemaId = id;
-                        return false;
-                    }
-                    if (schema.aliases !== undefined) {
-                        $.each(schema.aliases, function(index, alias) {
-                            if (alias.indexOf(schemaUrlNoProtocol) !== -1) {
-                                schemaId = id;
-                                return false;
-                            }
-                        });
-                        if (schemaId !== undefined) {
-                            return false;
-                        }
-                    }
-                });
+                const xmlModelData = node.data;
+                xmlUrl = xmlModelData.match(/href="([^"]*)"/)[1];
             } else if (node.nodeName === 'xml-stylesheet') {
-                var xmlStylesheetData = node.data;
+                const xmlStylesheetData = node.data;
                 cssUrl = xmlStylesheetData.match(/href="([^"]*)"/)[1];
             }
         }
 
         return {
-            schemaId: schemaId,
-            schemaUrl: schemaUrl,
-            cssUrl: cssUrl
+            xmlUrl,
+            cssUrl
         }
-    }
+    };
 
     /**
      * Check to see if the document uses the older "custom" TEI format.
@@ -224,9 +243,6 @@ function XML2CWRC(writer) {
 
     function doBasicProcessing(doc) {
         w.event('processingDocument').publish();
-
-        w.entitiesManager.reset();
-        w.triples = [];
         
         $(doc).find('rdf\\:RDF, RDF').remove();
         var root = doc.documentElement;
@@ -238,10 +254,6 @@ function XML2CWRC(writer) {
 
     function doProcessing(doc) {
         w.event('processingDocument').publish();
-
-        // reset the stores
-        w.entitiesManager.reset();
-        w.triples = [];
 
         xml2cwrc.isLegacyDocument = isLegacyDocument(doc);
 
@@ -425,7 +437,7 @@ function XML2CWRC(writer) {
 
                     jsonAttrs[attName] = attValue;
 
-                    if (xml2cwrc.reservedAttributes[attName] === true) {
+                    if (Mapper.reservedAttributes[attName] === true) {
                         continue;
                     }
 

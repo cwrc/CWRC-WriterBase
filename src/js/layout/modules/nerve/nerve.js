@@ -71,6 +71,7 @@ function Nerve(config) {
                             <option value="person">Person</option>
                             <option value="place">Place</option>
                             <option value="org">Organization</option>
+                            <option value="title">Title</option>
                         </select>
                     </div>
                     <div style="display: inline-block; margin: 5px;">
@@ -113,12 +114,15 @@ function Nerve(config) {
     });
     // DONE
     $parent.find('button.done').button().on('click', function() {
-        if (getNerveEntities().length > 0) {
+        const countEditedEntities = getNerveEntities(true).length;
+        const countMergedEntities = Object.keys(mergedEntities).length;
+        const totalModified = countEditedEntities + countMergedEntities;
+        if (totalModified > 0) {
             w.dialogManager.confirm({
                 title: 'Warning',
-                msg: '<p>All the remaining entities in the panel will be rejected, including any edited ones.</p>'+
-                '<p>Do you wish to proceed?</p>',
-                showConfirmKey: 'confirm-reject-nerve-entities',
+                msg: `<p>You are about to lose edits you've made to ${totalModified} Nerve-identified entit${totalModified > 1 ? 'ies' : 'y'}.</p>
+                <p>Do you wish to proceed?</p>`,
+                // showConfirmKey: 'confirm-reject-nerve-entities',
                 type: 'info',
                 callback: function(doIt) {
                     if (doIt) {
@@ -128,6 +132,7 @@ function Nerve(config) {
                 }
             });
         } else {
+            rejectAll(true);
             handleDone();
         }
     });
@@ -181,6 +186,7 @@ function Nerve(config) {
         nrv.reset();
         
         var document = getBasicXmlDocument();
+        var nerveContext = buildContext();
         
         var options = $parent.find('select[name="processOptions"]').val();
         runOptions = ['tag', 'link'];
@@ -194,20 +200,21 @@ function Nerve(config) {
         li.setText('Contacting NERVE');
         li.setValue(false);
         li.show();
-        
+
         $.when(
             $.ajax({
                 url: nerveUrl + '/ner',
                 method: 'POST',
-                data: JSON.stringify({"document": document})
+                data: JSON.stringify({"document": document, "context": nerveContext})
             })
         ).then(function(response) {
-            w.tree.disable();
-            w.entitiesList.disable();
+            w.event('massUpdateStarted').publish();
 
             var doc = w.utilities.stringToXML(response.document);
             if (doc === null) {
                 console.warn('nerve.run: could not parse response from NERVE');
+                li.hide();
+                return;
             }
             var context = JSON.parse(response.context);
             var entities = processNerveResponse(doc, context);
@@ -223,8 +230,7 @@ function Nerve(config) {
     
                 renderEntitiesList();
     
-                w.tree.enable();
-                w.entitiesList.enable();
+                w.event('massUpdateCompleted').publish();
     
                 w.editor.setMode('readonly');
                 $parent.find('button.run').hide();
@@ -251,7 +257,7 @@ function Nerve(config) {
     // Converts to xml using just the _tag attribute and ignores everything else.
     // We don't want to do a full/normal conversion because of differences between entities in the editor and in the outputted xml.
     var getBasicXmlDocument = function() {
-        var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n<?xml-model href="'+w.schemaManager.getCurrentSchema().url+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
+        var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n<?xml-model href="'+w.schemaManager.getXMLUrl()+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
 
         function _nodeToStringArray(currNode) {
             var array = [];
@@ -289,7 +295,35 @@ function Nerve(config) {
         return xmlString;
     }
 
+    var buildContext = function() {
+        const sm = w.schemaManager;
+        
+        const context = {
+            name: sm.getCurrentSchema().id,
+            tags: {}
+        };
+
+        const respAttr = sm.mapper.getResponsibilityAttributeName();
+        
+        for (let nerveTypeName in NerveToCWRCMappings) {
+            const entityType = NerveToCWRCMappings[nerveTypeName];
+            context.tags[nerveTypeName] = {
+                name: sm.mapper.getParentTag(entityType),
+                lemmaAttribute: sm.mapper.getMappingForProperty(entityType, 'lemma').replace('@', ''),
+                linkAttribute: sm.mapper.getMappingForProperty(entityType, 'uri').replace('@', ''),
+                idAttribute: sm.mapper.getIdAttributeName(),
+                defaults: {}
+            }
+            context.tags[nerveTypeName].defaults[respAttr] = 'NERVE';
+            Object.assign(context.tags[nerveTypeName].defaults, sm.mapper.getRequiredAttributes(entityType));
+        }
+
+        return context;
+    }
+
     var processNerveResponse = function(document, context) {
+        const sm = w.schemaManager;
+
         var entities = [];
 
         var tagsContext = {};
@@ -316,54 +350,34 @@ function Nerve(config) {
             return offset;
         }
 
-        var getEntities = function(el) {
+        const respAttr = sm.mapper.getResponsibilityAttributeName();
+        $(document.documentElement).find('['+respAttr+'=NERVE]').each((index, el) => {
             var tag = el.nodeName;
-            var contextEntry = tagsContext[tag];
-            if (contextEntry !== undefined) {
-                var lemma = el.getAttribute(contextEntry.lemma);
-                var uri = el.getAttribute(contextEntry.uri);
-                if (lemma !== null || uri !== null) {
-                    var type = contextEntry.type;//w.schemaManager.mapper.getEntityTypeForTag(tag);
-                    if (type === undefined) {
-                        console.warn('nerve: unrecognized entity type for',tag);
-                    } else {
-                        var xpath = w.utilities.getElementXPath(el.parentElement);
-                        var offset = getOffsetFromParent(el.parentElement, el);
-                        var entity = {
-                            text: el.textContent,
-                            xpath: xpath,
-                            textOffset: offset,
-                            textLength: el.textContent.length,
-                            type: type
-                        }
-                        if (lemma !== null) {
-                            entity.lemma = lemma;
-                        }
-                        if (uri !== null) {
-                            entity.uri = uri;
-                        }
-                        entities.push(entity);
-                    }
-                }
-            }
 
-            for (var i = 0; i < el.children.length; i++) {
-                var child = el.children[i];
-                if (child.nodeName !== w.schemaManager.mapper.getHeaderTag()) {
-                    getEntities(child);
+            const mapping = sm.mapper.getReverseMapping(el, true);
+            if (mapping.type === undefined) {
+                console.warn('nerve: unrecognized entity type for',tag);
+            } else {
+                if (mapping.lemma !== undefined || mapping.uri !== undefined) {
+                    var xpath = w.utilities.getElementXPath(el.parentElement);
+                    var offset = getOffsetFromParent(el.parentElement, el);
+                    mapping.text = el.textContent;
+                    mapping.xpath = xpath;
+                    mapping.textOffset = offset;
+                    mapping.textLength = el.textContent.length;
+
+                    entities.push(mapping);
                 }
             }
-        }
-        
-        getEntities(document.documentElement);
+        })
 
         return entities;
     }
 
-    var getNerveEntities = function() {
+    var getNerveEntities = function(onlyEdited=false) {
         var entities = w.entitiesManager.getEntitiesArray(getCurrentSorting());
         entities = entities.filter(function(entry) {
-            return entry.getCustomValue('nerve') === 'true';
+            return entry.getCustomValue('nerve') === 'true' && (onlyEdited && entry.getCustomValue('edited') === 'true' || !onlyEdited);
         });
         return entities;
     }
@@ -499,7 +513,10 @@ function Nerve(config) {
             '<div>'+
                 '<div class="header">'+
                     '<span class="icon"/>'+
-                    '<span class="entityTitle">'+entity.getContent()+'</span>'+
+                    '<span class="entityTitle">'+
+                    (entity.getCustomValue('edited') === 'true' ? '&#8226; ' : '')+
+                        entity.getContent()+
+                    '</span>'+
                     '<div class="actions">'+
                         (merge === true ? '' :
                         '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"/></span>'+
@@ -522,7 +539,7 @@ function Nerve(config) {
             '<div>'+
                 '<div class="header">'+
                     '<span class="icon" style="margin-right: -4px;"/><span class="icon"/>'+
-                    '<span class="entityTitle">'+entry.lemma+'</span>'+
+                    '<span class="entityTitle">&#8226; '+entry.lemma+'</span>'+
                     '<div class="actions">'+
                         (merge === true ? '' :
                         '<div class="nav">'+
@@ -568,7 +585,8 @@ function Nerve(config) {
         if (alreadyExpanded || expand === true) {
             view.addClass('expanded');
         }
-        view.find('.entityTitle').text(entity.getContent());
+        const title = (entity.getCustomValue('edited') === 'true' ? '&#8226; ' : '')+entity.getContent();
+        view.find('.entityTitle').html(title);
         view.find('.info').html(getEntityViewInfo(entity));
     }
 
@@ -672,18 +690,20 @@ function Nerve(config) {
                     _candidate: 'true'
                 },
                 customValues: {
-                    nerve: 'true'
+                    nerve: 'true' // TODO need to differentiate between entities tagged by nerve and those linked by nerve
                 }
             };
+            
             if (entry.lemma !== '') {
                 entityConfig.lemma = entry.lemma;
             }
             if (entry.uri !== '') {
                 entityConfig.uri = entry.uri;
             }
-            var entity = w.entitiesManager.addEntity(entityConfig);
+            Object.assign(entityConfig.attributes, entry.attributes);
 
-            w.tagger.addEntityTag(entity, range);
+            var entity = w.entitiesManager.addEntity(entityConfig, range);
+
             $('#'+entity.id, w.editor.getBody()).attr('_candidate', 'true'); // have to manually add this since addEntityTag won't (since it's reserved)
 
             range.collapse();
@@ -692,35 +712,29 @@ function Nerve(config) {
         return false;
     }
 
-    var acceptEntity = function(entityId) {
+    var acceptEntity = function(entityId, removeFromView=true) {
         var entity = w.entitiesManager.getEntity(entityId);
-        var taggedByNerve = entity.getCustomValue('nerve') !== undefined;
+        var tag = $('#'+entityId, w.editor.getBody())[0];
         
-        var uri = entity.getURI();
-        var lemma = entity.getLemma();
+        const respAttr = w.schemaManager.mapper.getResponsibilityAttributeName();
+        w.tagger.removeAttributeFromTag(tag, respAttr);
 
-        if (uri !== undefined) {
-            var uriMapping = w.schemaManager.mapper.getAttributeForProperty(entity.getType(), 'uri');
-            if (uriMapping !== undefined) {
-                entity.setAttribute(uriMapping, uri);
-            }
-        }
-        if (lemma !== undefined) {
-            var lemmaMapping = w.schemaManager.mapper.getAttributeForProperty(entity.getType(), 'lemma');
-            if (lemmaMapping !== undefined) {
-                entity.setAttribute(lemmaMapping, lemma);
-            }
-        }
+        var taggedByNerve = entity.getCustomValue('nerve') !== undefined;
+        var uri = entity.getURI();
 
         if (taggedByNerve && uri === undefined) {
             w.tagger.removeEntity(entityId);
         } else {
             entity.removeCustomValue('nerve');
+            entity.removeCustomValue('edited');
+            entity.removeAttribute(respAttr);
             entity.removeAttribute('_candidate');
-            $('#'+entityId, w.editor.getBody()).removeAttr('_candidate');
+            w.tagger.removeAttributeFromTag(tag, '_candidate');
         }
 
-        removeEntityFromView(entityId);
+        if (removeFromView) {
+            removeEntityFromView(entityId);
+        }
     }
 
     var acceptMatching = function(entityId) {
@@ -750,74 +764,97 @@ function Nerve(config) {
     }
 
     var acceptAll = function() {
-        w.tree.disable();
-        w.entitiesList.disable();
+        w.event('massUpdateStarted').publish();
         
         var filter = getFilter();
+
+        var li = w.dialogManager.getDialog('loadingindicator');
+        li.setText('Accepting Entities');
+        li.show();
 
         for (var key in mergedEntities) {
             var entry = mergedEntities[key];
             if (filter === 'all' || filter === entry.type) {
-                acceptMerged(key);
+                entry.entityIds.forEach(function(entId) {
+                    w.entitiesManager.setLemmaForEntity(entId, entry.lemma);
+                    w.entitiesManager.setURIForEntity(entId, entry.uri);
+                });
+                delete mergedEntities[key];
             }
         }
 
-        getNerveEntities().forEach(function(ent, index) {
+        w.utilities.processArray(getNerveEntities(), function(ent) {
             if (filter === 'all' || filter === ent.getType()) {
-                acceptEntity(ent.getId());
+                acceptEntity(ent.getId(), false);
             }
-        });
+        }).then(() => {
+            setFilter('all');
 
-        setFilter('all');
+            renderEntitiesList();
 
-        renderEntitiesList();
-
-        w.tree.enable();
-        w.entitiesList.enable();
+            w.event('massUpdateCompleted').publish();
+        }).always(() => {
+            li.hide();
+        })
     }
 
-    var rejectEntity = function(entityId) {
+    var rejectEntity = function(entityId, removeFromView=true) {
         var entry = w.entitiesManager.getEntity(entityId);
         var taggedByNerve = entry.getCustomValue('nerve') !== undefined;
         if (taggedByNerve) {
-            if (entry.getURI() === undefined) {
+            w.tagger.removeStructureTag(entityId, false);
+            /* TODO when we start using nerve for linking, we'll need to revisit taggedByNerve
+            if (entry.getURI() === undefined || entry.getURI() === '') {
                 // remove tag and entity if both added by nerve
                 w.tagger.removeStructureTag(entityId, false);
             } else {
-                // if tag already existed and nerve is just linking, then only remove the entity
+                // if tag already existed and nerve is just linking, then only remove the entity (and related nerve attributes)
+                var tag = $('#'+entityId, w.editor.getBody())[0];
+                const respAttr = w.schemaManager.mapper.getResponsibilityAttributeName();
+                w.tagger.removeAttributeFromTag(tag, respAttr);
+                w.tagger.removeAttributeFromTag(tag, '_candidate');
+
                 w.tagger.removeEntity(entityId);
             }
+            */
         } else {
             w.tagger.removeEntity(entityId);
         }
-        removeEntityFromView(entityId);
+
+        if (removeFromView) {
+            removeEntityFromView(entityId);
+        }
     }
 
     var rejectAll = function(isDone) {
-        w.tree.disable();
-        w.entitiesList.disable();
+        w.event('massUpdateStarted').publish();
 
         var filter = getFilter();
 
+        var li = w.dialogManager.getDialog('loadingindicator');
+        li.setText('Rejecting Entities');
+        li.show();
+
         for (var key in mergedEntities) {
             var entry = mergedEntities[key];
-            if (isDone || filter === 'all' || filter === entry.type) {
-                rejectMerged(key);
+            if (filter === 'all' || filter === entry.type) {
+                delete mergedEntities[key];
             }
         }
 
-        getNerveEntities().forEach(function(ent, index) {
+        w.utilities.processArray(getNerveEntities(), function(ent) {
             if (isDone || filter === 'all' || filter === ent.getType()) {
-                rejectEntity(ent.getId());
+                rejectEntity(ent.getId(), false);
             }
-        });
+        }).then(() => {
+            setFilter('all');
 
-        setFilter('all');
+            renderEntitiesList();
 
-        renderEntitiesList();
-
-        w.tree.enable();
-        w.entitiesList.enable();
+            w.event('massUpdateCompleted').publish();
+        }).always(() => {
+            li.hide();
+        })
     }
 
     var editEntity = function(entityId) {
@@ -1058,7 +1095,7 @@ function NerveEditDialog(writer, parentEl) {
             dialog.isValid = true;
         } else {
             var uri = dialog.currentData.properties.uri;
-            if (uri !== undefined && uri.search(/^https?:\/\//) !== 0) {
+            if (uri !== '' && uri.search(/^https?:\/\//) !== 0) {
                 dialog.isValid = false;
                 w.dialogManager.confirm({
                     title: 'Warning',
@@ -1093,6 +1130,8 @@ function NerveEditDialog(writer, parentEl) {
             if (uriMapping) {
                 dialog.currentData.attributes[uriMapping] = dialog.currentData.properties.uri
             }
+
+            dialog.currentData.customValues.edited = 'true';
         }
     });
 

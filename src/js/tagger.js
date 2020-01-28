@@ -2,6 +2,7 @@
 
 var $ = require('jquery');
 var Entity = require('entity');
+var Mapper = require('mapper');
 
 /**
  * @class Tagger
@@ -74,14 +75,14 @@ function Tagger(writer) {
         var currAttributes = tag.attributes;
         for (var i = currAttributes.length-1; i >=0; i--) {
             var attr = currAttributes[i];
-            if (w.converter.reservedAttributes[attr.name] !== true) {
+            if (Mapper.reservedAttributes[attr.name] !== true) {
                 tag.removeAttribute(attr.name);
             }
         }
 
         // set non-reserved attributes directly on the tag
         for (var attName in attributes) {
-            if (w.converter.reservedAttributes[attName] === true) {
+            if (Mapper.reservedAttributes[attName] === true) {
                 continue;
             }
             tag.setAttribute(attName, attributes[attName]);
@@ -101,7 +102,7 @@ function Tagger(writer) {
         var currAttrs = tagger.getAttributesForTag(tag);
 
         for (var attName in attributes) {
-            if (w.converter.reservedAttributes[attName] === true) {
+            if (Mapper.reservedAttributes[attName] === true) {
                 continue;
             }
             var attValue = attributes[attName];
@@ -112,8 +113,23 @@ function Tagger(writer) {
         var jsonAttrsString = JSON.stringify(currAttrs).replace(/"/g, '&quot;');
         tag.setAttribute('_attributes', jsonAttrsString);
     }
+
+    /**
+     * Remove an attribute from the tag
+     * @param {Element} tag The tag
+     * @param {String} attribute The attribute name
+     */
+    tagger.removeAttributeFromTag = function(tag, attribute) {
+        tag.removeAttribute(attribute);
+        var currAttrs = tagger.getAttributesForTag(tag);
+
+        delete currAttrs[attribute];
+
+        var jsonAttrsString = JSON.stringify(currAttrs).replace(/"/g, '&quot;');
+        tag.setAttribute('_attributes', jsonAttrsString);
+    }
     
-/**
+    /**
      * Displays the appropriate dialog for adding a tag.
      * @param {String} tagName The tag name.
      * @param {String} action The tag insertion type to perform.
@@ -431,18 +447,28 @@ function Tagger(writer) {
 
             tagger.processNewContent(element);
             
+            w.editor.undoManager.add();
             w.event('contentChanged').publish(); // don't use contentPasted since we don't want to trigger copyPaste dialog
         }
     }
 
     /**
      * Process newly added content
+     * @param {Element} domContent
      */
     tagger.processNewContent = function(domContent) {
-        var processNewNodes = function(currNode) {
+
+        var processNewNodes = function(currNode, direction) {
             if (currNode.nodeType === Node.ELEMENT_NODE) {
                 if (currNode.hasAttribute('_tag')) {
                     var oldId = currNode.getAttribute('id');
+
+                    if (oldId !== null) {
+                        var instances = currNode.ownerDocument.querySelectorAll('#'+oldId);
+                        if (instances.length === 1) {
+                            return;
+                        }
+                    }
 
                     var newId = w.getUniqueId('dom_');
                     currNode.setAttribute('id', newId);
@@ -466,12 +492,19 @@ function Tagger(writer) {
                     }
                 }
             }
-            for (var i = 0; i < currNode.childNodes.length; i++) {
-                processNewNodes(currNode.childNodes[i]);
+            if (direction === 'up') {
+                if (currNode.parentElement) {
+                    processNewNodes(currNode.parentElement, direction);
+                }
+            } else {
+                for (var i = 0; i < currNode.childNodes.length; i++) {
+                    processNewNodes(currNode.childNodes[i], direction);
+                }
             }
         }
 
-        processNewNodes(domContent);
+        processNewNodes(domContent, 'up');
+        processNewNodes(domContent, 'down');
 
         // TODO overlapping entities handling
         /*
@@ -554,15 +587,10 @@ function Tagger(writer) {
             }
             $.extend(config, info.properties);
 
-            var entity = new Entity(config);
-
-            w.schemaManager.mapper.updatePropertiesFromAttributes(entity);
-
             w.editor.selection.moveToBookmark(w.editor.currentBookmark);
             var range = w.editor.selection.getRng(true);
-            tagger.addEntityTag(entity, range);
-
-            w.entitiesManager.addEntity(entity);
+            
+            w.entitiesManager.addEntity(config, range);
         } else {
             tagger.addStructureTag(tagName, info.attributes, w.editor.currentBookmark, tagger.ADD);
         }
@@ -586,34 +614,25 @@ function Tagger(writer) {
         sanitizeObject(info.customValues, false);
 
         var entity = w.entitiesManager.getEntity(id);
-
         var $tag = $('[name='+id+']', w.editor.getBody());
 
-        // set attributes
-        entity.setAttributes(info.attributes);
-        tagger.setAttributesForTag($tag[0], info.attributes);
+        var type = info.properties.type || entity.getType();
+        if (type !== entity.getType()) {
+            console.log('tagger.editEntity: changing entity type'); // only possible via nerve
+        }
 
         // named entity check
-        var isNamedEntity = w.schemaManager.mapper.isNamedEntity(entity.getType());
-        var uriAttribute = w.schemaManager.mapper.getAttributeForProperty(entity.getType(), 'uri');
+        var isNamedEntity = w.schemaManager.mapper.isNamedEntity(type);
+        var uriAttribute = w.schemaManager.mapper.getAttributeForProperty(type, 'uri');
         var removeEntity = isNamedEntity && info.attributes[uriAttribute] === undefined;
 
         if (removeEntity) {
+            tagger.setAttributesForTag($tag[0], info.attributes);
             tagger.removeEntity(id);
         } else {
-            // set properties
-            if (info.properties !== undefined) {
-                for (var key in info.properties) {
-                    entity.setProperty(key, info.properties[key]);
-                }
-            }
+            w.entitiesManager.editEntity(entity, info);
 
-            w.schemaManager.mapper.updatePropertiesFromAttributes(entity);
-            
-            // set custom values
-            for (var key in info.customValues) {
-                entity.setCustomValue(key, info.customValues[key]);
-            }
+            tagger.setAttributesForTag($tag[0], entity.getAttributes());
 
             $tag.attr('_tag', entity.getTag());
             $tag.attr('_type', entity.getType());
@@ -705,7 +724,7 @@ function Tagger(writer) {
 
         var tagAttributes = {};
         for (var key in entity.attributes) {
-            if (w.converter.reservedAttributes[key] !== true) {
+            if (Mapper.reservedAttributes[key] !== true) {
                 tagAttributes[key] = entity.attributes[key];
             }
         }
@@ -938,7 +957,7 @@ function Tagger(writer) {
 
         var jsonAttrs = {};
         for (var key in attributes) {
-            if (w.converter.reservedAttributes[key] !== true) {
+            if (Mapper.reservedAttributes[key] !== true) {
                 open_tag += ' '+key+'="'+attributes[key]+'"';
             }
             jsonAttrs[key] = attributes[key];
@@ -1061,51 +1080,62 @@ function Tagger(writer) {
             }
         }
 
+        var doRemove = function() {
+            if (removeContents) {
+                if (entry && entry.isNote()) {
+                    tagger.processRemovedContent(tag.parent('.noteWrapper')[0]);
+                    tag.parent('.noteWrapper').remove();
+                } else {
+                    tagger.processRemovedContent(tag[0]);
+                    tag.remove();
+                }
+            } else {
+                tagger.processRemovedContent(tag[0], false);
+
+                var hasSelection = w.editor.selection.getRng(true).collapsed === false;
+
+                var parent = tag.parent();
+                var contents = tag.contents();
+                if (contents.length > 0) {
+                    contents.unwrap();
+                } else {
+                    tag.remove();
+                }
+
+                if (entry && entry.isNote()) {
+                    tagger.processRemovedContent(parent[0], false);
+                    contents = parent.contents();
+                    if (contents.length > 0) {
+                        contents.unwrap();
+                    } else {
+                        parent.remove();
+                    }
+                }
+
+                if (hasSelection) {
+                    _doReselect(contents);
+                }
+
+                parent[0].normalize();
+            }
+            
+            w.editor.undoManager.add();
+            
+            w.event('tagRemoved').publish(id);
+        }
+
         var tag = tagger.getCurrentTag(id);
         var entry = w.entitiesManager.getEntity(id);
         id = tag.attr('id');
 
-        if (removeContents) {
-            if (entry && entry.isNote()) {
-                tagger.processRemovedContent(tag.parent('.noteWrapper')[0]);
-                tag.parent('.noteWrapper').remove();
-            } else {
-                tagger.processRemovedContent(tag[0]);
-                tag.remove();
-            }
+        var invalidDelete = w.schemaManager.wouldDeleteInvalidate(tag[0], removeContents);
+        if (invalidDelete) {
+            showInvalidDeleteConfirm(tag[0], function(doIt) {
+                if (doIt) doRemove();
+            });
         } else {
-            tagger.processRemovedContent(tag[0], false);
-
-            var hasSelection = w.editor.selection.getRng(true).collapsed === false;
-
-            var parent = tag.parent();
-            var contents = tag.contents();
-            if (contents.length > 0) {
-                contents.unwrap();
-            } else {
-                tag.remove();
-            }
-
-            if (entry && entry.isNote()) {
-                tagger.processRemovedContent(parent[0], false);
-                contents = parent.contents();
-                if (contents.length > 0) {
-                    contents.unwrap();
-                } else {
-                    parent.remove();
-                }
-            }
-
-            if (hasSelection) {
-                _doReselect(contents);
-            }
-
-            parent[0].normalize();
+            doRemove();
         }
-        
-        w.editor.undoManager.add();
-        
-        w.event('tagRemoved').publish(id);
     };
     
     /**
@@ -1113,12 +1143,13 @@ function Tagger(writer) {
      * @fires Writer#tagContentsRemoved
      * @param {String} [id] The tag id
      */
-    // TODO refactor this with removeStructureTag
     tagger.removeStructureTagContents = function(id) {
         var tag = tagger.getCurrentTag(id);
         tag.contents().each(function(i, el) {
             tagger.processRemovedContent(el);
         }).remove();
+
+        tag[0].textContent = '\uFEFF'; // insert zero-width non-breaking space so that empty tag isn't cleaned up by tinymce
         
         w.editor.undoManager.add();
         
@@ -1134,11 +1165,26 @@ function Tagger(writer) {
         processChildren = processChildren == undefined ? true : processChildren;
 
         var processRemovedNodes = function(currNode) {
-            if (currNode.nodeType === Node.ELEMENT_NODE) {
-                if (currNode.hasAttribute('_tag') && currNode.hasAttribute('_entity')) {
-                    var id = currNode.getAttribute('name');
-                    console.log('entity will be removed', id);
-                    w.entitiesManager.removeEntity(id);
+            if (currNode.nodeType === Node.ELEMENT_NODE && currNode.hasAttribute('_tag') && currNode.hasAttribute('_entity')) {
+                var id = currNode.getAttribute('name');
+                console.log('entity will be removed', id);
+                w.entitiesManager.removeEntity(id);
+            } else {
+                // if node was inside a note, set note content after the node's been removed
+                var $noteParent = $(currNode).parents('[_type=citation],[_type=note]');
+                if ($noteParent.length > 0) {
+                    setTimeout(() => {
+                        $noteParent.each((index, el) => {
+                            var $el = $(el);
+                            var id = $el.attr('id');
+                            var entity = w.entitiesManager.getEntity(id);
+                            if (entity) {
+                                entity.setNoteContent($el.html());
+                                entity.setContent($el.text());
+                                w.event('entityEdited').publish(id);
+                            }
+                        })
+                    }, 0);
                 }
             }
             if (processChildren) {
@@ -1158,6 +1204,18 @@ function Tagger(writer) {
         } else {
             processRemovedNodes(domContent);
         }
+    }
+
+    var showInvalidDeleteConfirm = function(element, callback) {
+        var msg = `<p>Deleting the "${element.getAttribute('_tag')}" element will make the document invalid. Do you wish to continue?</p>`;
+        var showConfirmKey = 'confirm-delete-tag-invalidating';
+        w.dialogManager.confirm({
+            title: 'Warning',
+            msg: msg,
+            showConfirmKey: showConfirmKey,
+            type: 'info',
+            callback: callback
+        });
     }
 
     /**

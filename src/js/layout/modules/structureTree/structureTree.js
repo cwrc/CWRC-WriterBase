@@ -61,8 +61,6 @@ function StructureTree(config) {
                 rootData.li_attr.id = 'cwrc_tree_root';
                 _doUpdate(rootNode.children(), rootData, 0, rootData);
                 treeRef.create_node(null, rootData);
-    //            treeRef._themeroller();
-                _onNodeLoad($('#cwrc_tree_root', $tree).first());
                 
                 $.each(openNodes, function (i, val) {
                     treeRef.open_node($('li[name='+val+']', $tree), null, false); 
@@ -357,14 +355,6 @@ function StructureTree(config) {
         });
     }
     
-    function _onNodeLoad(context) {
-        $('li', context).each(function(index, el) {
-            var li = $(this);
-            var indent = (li.parents('ul').length - 1) * 16;
-            li.prepend("<span class='jstree-indent' style='width: "+indent+"px;'/>");
-        });
-    }
-    
     function _doConditionalSelect($tree, node, event) {
         if ((tinymce.isMac ? event.metaKey : event.ctrlKey) || event.shiftKey) {
             // only allow multiselect for siblings
@@ -561,9 +551,6 @@ function StructureTree(config) {
     $tree.on('move_node.jstree', function(e, data) {
         _onDragDrop(data, false);
     });
-    $tree.on('load_node.jstree', function(event, data) {
-        _onNodeLoad(data.node);
-    });
     $tree.on('keydown.jstree', function(e) {
         //console.log(e.which);
     });
@@ -581,6 +568,12 @@ function StructureTree(config) {
         tree.disable();
     });
     w.event('documentLoaded').subscribe(function() {
+        tree.enable(true);
+    });
+    w.event('massUpdateStarted').subscribe(function() {
+        tree.disable();
+    });
+    w.event('massUpdateCompleted').subscribe(function() {
         tree.enable(true);
     });
     w.event('nodeChanged').subscribe(function(currentNode) {

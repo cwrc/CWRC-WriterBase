@@ -18,7 +18,8 @@
   ],
   "author": "Andrew MacDonald",
   "contributors": [
-    "James Chartrand"
+    "James Chartrand",
+    "Luciano Frizzera"
   ],
   "license": "GPL-2.0",
   "bugs": {
@@ -32,23 +33,22 @@
     "layout": "./src/lib/jquery/jquery.layout_and_plugins.js",
     "dialogForm": "./src/js/dialogs/dialogForm/dialogForm.js",
     "annotationsManager": "./src/js/entities/annotationsManager.js",
-    "entity": "./src/js/entities/entity.js"
+    "entity": "./src/js/entities/entity.js",
+    "mapper": "./src/js/schema/mapper.js"
   },
   "dependencies": {
-    "css-parse": "^2.0.0",
-    "css-stringify": "^2.0.0",
+    "css": "^2.2.4",
     "fscreen": "1.0.2",
     "iso-639-2": "^1.1.1",
     "jquery": "^3.4.1",
     "jquery-contextmenu": "^2.8.0",
     "jquery-ui": "^1.12.1",
     "js-cookie": "^2.1.4",
-    "jstree": "3.3.3",
+    "jstree": "^3.3.8",
     "moment": "^2.22.2",
     "openseadragon": "2.3.1",
     "prism-themes": "^1.0.1",
     "prismjs": "1.6.0",
-    "rdflib": "1.0.2",
     "tinymce": "4.7.2"
   },
   "devDependencies": {
@@ -62,10 +62,12 @@
     "babelify": "^10.0.0",
     "browserify": "^16.2.3",
     "codecov": "^3.3.0",
-    "commitizen": "^3.1.1",
+    "commitizen": "^3.1.2",
     "copyfiles": "^1.2.0",
     "cz-conventional-changelog": "^2.1.0",
     "electron": "^6.0.4",
+    "eslint": "^6.7.1",
+    "fetch-mock": "^8.0.0",
     "husky": "^2.1.0",
     "jest": "^24.9.0",
     "less": "^3.8.1",
@@ -87,10 +89,9 @@
     "build-css": "mkdirp build/css && npm run build-scoped-css && npm run build-editor-css",
     "build-scoped-css": "lessc src/css/build.less build/css/cwrc-writer.css --global-var=\"parentId=#cwrcWriterContainer\"",
     "build-editor-css": "lessc src/css/editor.less build/css/editor.css",
-    "copy-files-to-build": "npm run copy-tinymce && npm run copy-jqueryui-images && npm run copy-bootstrap-fonts && npm run copy-jstree-images",
+    "copy-files-to-build": "npm run copy-tinymce && npm run copy-jqueryui-images && npm run copy-jstree-images",
     "copy-tinymce": "copyfiles -u 3 \"src/css/tinymce/**/*\" build/css/tinymce",
     "copy-jqueryui-images": "copyfiles -u 3 \"src/css/jquery-ui/jquery-ui-images/*\" build/css/",
-    "copy-bootstrap-fonts": "path-exists node_modules && copyfiles -f \"node_modules/bootstrap/fonts/*\" build/fonts/ || copyfiles -f \"../bootstrap/fonts/*\" build/fonts/",
     "copy-jstree-images": "path-exists node_modules && copyfiles -f \"node_modules/jstree/dist/themes/default/*.png\" build/css/ || copyfiles -f \"../jstree/dist/themes/default/*.png\" build/css/"
   },
   "config": {
@@ -121,6 +122,9 @@
         "lines": 50,
         "statements": 50
       }
+    },
+    "moduleNameMapper": {
+      "^rdflib$": "<rootDir>/test/mocks/rdflib.js"
     },
     "setupFiles": [
       "./test/test-env.js"

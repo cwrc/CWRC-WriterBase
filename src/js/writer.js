@@ -314,6 +314,10 @@ function CWRCWriter(config) {
 
     w.eventManager = new EventManager(w);
 
+    w.event('processingDocument').subscribe(function() {
+        w.triples = [];
+    });
+
     w.event('documentLoaded').subscribe(function(success) {
         if (success) {
             w.isDocLoaded = true;
@@ -348,7 +352,7 @@ function CWRCWriter(config) {
         container: $('#' + w.containerId)
     });
 
-    w.schemaManager = new SchemaManager(w, { schemas: config.schemas });
+    w.schemaManager = new SchemaManager(w, config.schema);
     w.entitiesManager = new EntitiesManager(w);
     w.dialogManager = new DialogManager(w); // needs to load before SettingsDialog
     w.tagger = new Tagger(w);

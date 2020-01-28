@@ -26,6 +26,7 @@ module.exports = {
 
 namespace: 'http://www.tei-c.org/ns/1.0',
 id: 'xml:id',
+responsibility: 'resp',
 rdfParentSelector: '/TEI/teiHeader/fileDesc/following-sibling::xenoData',
 root: ['TEI', 'teiCorpus'],
 header: 'teiHeader',
@@ -232,6 +233,9 @@ note: {
     xpathSelector: 'self::note[not(@type="citation")]',
     isNote: true,
     requiresSelection: false,
+    mapping: {
+        noteContent: '.'
+    },
     annotation: function(annotationsManager, entity) {
         var types = '';
         var type = entity.getAttribute('type');

@@ -16,6 +16,8 @@ function Selection(config) {
     
     var id = w.getUniqueId('selection_');
     
+    var enabled = true;
+
     var selectionTrimLength = 500000;
         
     var lastUpdate = new Date().getTime();
@@ -73,6 +75,12 @@ function Selection(config) {
     w.event('tagRemoved').subscribe(function() {
         updateView(true);
     });
+    w.event('massUpdateStarted').subscribe(function() {
+        selection.disable();
+    });
+    w.event('massUpdateCompleted').subscribe(function() {
+        selection.enable(true);
+    });
     
     /**
      * @lends Selection.prototype
@@ -80,22 +88,24 @@ function Selection(config) {
     var selection = {};
     
     var updateView = function(useDoc) {
-        var timestamp = new Date().getTime();
-        var timeDiff = timestamp - lastUpdate; // track to avoid double update on nodeChanged/tagSelected combo
-        if ($prismContainer.is(':visible') && timeDiff > 250) {
-            lastUpdate = new Date().getTime();
-            
-            if (useDoc || w.editor.selection.isCollapsed()) {
-                showingFullDoc = true;
-                var includeRdf = $includeRdf.prop('checked');
-                w.converter.getDocumentContent(includeRdf, _showString);
-            } else {
-                showingFullDoc = false;
-                var range = w.editor.selection.getRng(true);
-                var contents = range.cloneContents();
-                $selectionContents.html(contents);
-                var xmlString = w.converter.buildXMLString($selectionContents);
-                _showString(xmlString);
+        if (enabled) {
+            var timestamp = new Date().getTime();
+            var timeDiff = timestamp - lastUpdate; // track to avoid double update on nodeChanged/tagSelected combo
+            if ($prismContainer.is(':visible') && timeDiff > 250) {
+                lastUpdate = new Date().getTime();
+                
+                if (useDoc || w.editor.selection.isCollapsed()) {
+                    showingFullDoc = true;
+                    var includeRdf = $includeRdf.prop('checked');
+                    w.converter.getDocumentContent(includeRdf, _showString);
+                } else {
+                    showingFullDoc = false;
+                    var range = w.editor.selection.getRng(true);
+                    var contents = range.cloneContents();
+                    $selectionContents.html(contents);
+                    var xmlString = w.converter.buildXMLString($selectionContents);
+                    _showString(xmlString);
+                }
             }
         }
     }
@@ -115,6 +125,16 @@ function Selection(config) {
 
     var clearView = function() {
         $prismContainer.html('');
+    }
+
+    selection.enable = function(forceUpdate) {
+        enabled = true;
+        if (forceUpdate) {
+            updateView(true);
+        }
+    }
+    selection.disable = function() {
+        enabled = false;
     }
     
     selection.showSelection = function() {
