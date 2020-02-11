@@ -184,7 +184,7 @@ test('tagger.addTagDialog tagger.addStructureTag tagger.removeStructureTag', () 
                 resolve();
             });
             
-            writer.utilities.selectElementById('dom_'+(tinymce.DOM.counter-1), true);
+            writer.utilities.selectElementById('dom_'+(getLastIdCounter(tinymce)), true);
             writer.tagger.addTagDialog(tagToAdd, 'add');
             setTimeout(dialogClickOk, WAIT_TIME);
         })
@@ -206,7 +206,7 @@ test('tagger.editTagDialog tagger.editStructureTag', () => {
                 resolve();
             });
             
-            writer.utilities.selectElementById('dom_'+(tinymce.DOM.counter-1), true);
+            writer.utilities.selectElementById('dom_'+(getLastIdCounter(tinymce)), true);
             writer.tagger.editTagDialog();
             setTimeout(() => {
                 let li = window.$('.attributeSelector:visible li:eq(0)');
@@ -266,7 +266,7 @@ test('tagger.changeTagDialog', () => {
                resolve();
             });
             
-            writer.utilities.selectElementById('dom_'+(tinymce.DOM.counter-1), true);
+            writer.utilities.selectElementById('dom_'+(getLastIdCounter(tinymce)), true);
             writer.tagger.changeTagDialog(tagName);
             setTimeout(() => {
                 dialogClickOk();
@@ -294,7 +294,7 @@ test('tagger.addEntityDialog tagger.removeEntity', () => {
                 resolve();
             });
 
-            writer.utilities.selectElementById('dom_'+(tinymce.DOM.counter-1), true);
+            writer.utilities.selectElementById('dom_'+(getLastIdCounter(tinymce)), true);
             writer.tagger.addEntityDialog(entityType);
             setTimeout(() => {
                 dialogClickOk();
@@ -311,7 +311,7 @@ test('tagger.copyTag tagger.pasteTag', () => {
     const entityType = 'link';
     
     return initAndLoadDoc(writer, teiDoc).then(() => {
-        let tagId = 'dom_'+(tinymce.DOM.counter-1);
+        let tagId = 'dom_'+(getLastIdCounter(tinymce));
         let tagType = $('#'+tagId, writer.editor.getBody()).attr('_tag');
         let tagTypeCount = $('[_tag="'+tagType+'"]', writer.editor.getBody()).length;
         writer.tagger.copyTag(tagId);
@@ -566,25 +566,30 @@ test('modules.nerve', () => {
     })
 });
 
-let dialogClickOk = () => {
+const getLastIdCounter = (tinymce) => {
+    return parseInt(tinymce.DOM.uniqueId('foo').split('foo')[1])-1;
+}
+
+
+const dialogClickOk = () => {
     let ok = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="ok"]');
     if (ok.length === 0) console.warn('ok button not visible');
     ok.click();
 }
 
-let dialogClickCancel = () => {
+const dialogClickCancel = () => {
     let cancel = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="cancel"]');
     if (cancel.length === 0) console.warn('cancel button not visible');
     cancel.click();
 }
 
-let dialogClickYes = () => {
+const dialogClickYes = () => {
     let yes = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="yes"]');
     if (yes.length === 0) console.warn('yes button not visible');
     yes.click();
 }
 
-let dialogClickNo = () => {
+const dialogClickNo = () => {
     let no = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="no"]');
     if (no.length === 0) console.warn('no button not visible');
     no.click();
