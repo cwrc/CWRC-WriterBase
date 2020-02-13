@@ -21,8 +21,8 @@ function EntitiesManager(writer) {
         // this.highlightEntity(entityId);
     }.bind(this));
     this.w.event('entityEdited').subscribe(function(entityId) {
-        // TODO update text content for entity here?
-        this.highlightEntity(entityId);
+        // don't highlight the entity because it will move the cursor outside of the entity when the user is editing
+        // this.highlightEntity(entityId);
     }.bind(this));
     this.w.event('entityRemoved').subscribe(function(entityId) {
         this.highlightEntity();
