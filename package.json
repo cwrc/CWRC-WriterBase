@@ -64,7 +64,7 @@
     "moment": "^2.24.0",
     "openseadragon": "^2.4.1",
     "prism-themes": "^1.0.1",
-    "prismjs": "1.6.0",
+    "prismjs": "^1.19.0",
     "tinymce": "4.9.8"
   },
   "devDependencies": {
