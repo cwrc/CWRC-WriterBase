@@ -68,36 +68,31 @@
     "tinymce": "4.9.8"
   },
   "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "@jest-runner/electron": "^2.0.2",
-    "@semantic-release/changelog": "^3.0.4",
-    "@semantic-release/git": "^7.0.16",
-    "@testing-library/jest-dom": "^4.1.0",
-    "babel-jest": "^24.9.0",
-    "babelify": "^10.0.0",
-    "browserify": "^16.2.3",
-    "codecov": "^3.3.0",
-    "commitizen": "^3.1.2",
-    "copyfiles": "^1.2.0",
-    "cz-conventional-changelog": "^2.1.0",
-    "electron": "^6.0.4",
-    "eslint": "^6.7.1",
-    "fetch-mock": "^8.0.0",
-    "husky": "^2.1.0",
-    "jest": "^24.9.0",
-    "less": "^3.8.1",
-    "mkdirp": "^0.5.1",
-    "path-exists-cli": "^1.0.0",
-    "rimraf": "^2.6.2",
-    "semantic-release": "^15.13.19",
-    "travis-deploy-once": "^5.0.7",
-    "watchify": "^3.11.1"
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "@jest-runner/electron": "^2.0.3",
+    "@semantic-release/changelog": "^5.0.0",
+    "@semantic-release/git": "^9.0.0",
+    "@testing-library/jest-dom": "^5.1.1",
+    "babel-jest": "^25.1.0",
+    "codecov": "^3.6.5",
+    "commitizen": "^4.0.3",
+    "copyfiles": "^2.2.0",
+    "cz-conventional-changelog": "^3.1.0",
+    "electron": "^8.0.1",
+    "eslint": "^6.8.0",
+    "fetch-mock": "^8.3.2",
+    "husky": "^4.2.3",
+    "jest": "^25.1.0",
+    "less": "^3.11.1",
+    "mkdirp": "^1.0.3",
+    "rimraf": "^3.0.2",
+    "semantic-release": "^17.0.3",
+    "travis-deploy-once": "^5.0.11"
   },
-
   "config": {
     "commitizen": {
-      "path": "node_modules/cz-conventional-changelog"
+      "path": "cz-conventional-changelog"
     }
   },
   "husky": {
