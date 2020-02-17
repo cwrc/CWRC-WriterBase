@@ -463,7 +463,9 @@ function SchemaNavigator() {
             if (!defHits[name]) {
                 defHits[name] = true;
                 var def = _getDefinition(name);
-                _getChildrenJSON(def, defHits, level+1, type, children, {optional: optional});
+                if (def !== null) {
+                    _getChildrenJSON(def, defHits, level+1, type, children, {optional: optional});
+                }
             }
         }
     }
@@ -526,7 +528,9 @@ function SchemaNavigator() {
                                 if (defHits[name] === undefined) {
                                     defHits[name] = true;
                                     var def = _getDefinition(name);
-                                    doQuery(def);
+                                    if (def !== null) {
+                                        doQuery(def);
+                                    }
                                 }
                             }
                         } else {
@@ -559,6 +563,8 @@ function SchemaNavigator() {
             var d = defs[i];
             if (d['@name'] == name) return d;
         }
+        
+        console.warn('schemaNavigator: no definition found for', name);
         return null;
     }
 
