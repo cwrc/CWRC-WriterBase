@@ -1,7 +1,7 @@
 'use strict';
 
-var $ = require('jquery');
-var Mapper = require('mapper')
+const $ = require('jquery');
+const Mapper = require('mapper')
 
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/selectmenu');
@@ -10,21 +10,21 @@ require('jquery-ui/ui/widgets/tooltip');
 /**
  * @class EntitiesList
  * @fires Writer#entitiesListInitialized
- * @param {Object} config
+ * @param {Object} config destructured
  * @param {Writer} config.writer
  * @param {String} config.parentId
  */
-function EntitiesList(config) {
+function EntitiesList({writer,parentId}) {
     
-    var w = config.writer;
-    var id = config.parentId;
+    const w = writer;
+    const id = parentId;
 
-    var enabled = true; // enabled means we update based on events
-    var updatePending = false;
+    let enabled = true; // enabled means we update based on events
+    let updatePending = false;
 
-    var isConvert = false; // are we in convert mode
+    let isConvert = false; // are we in convert mode
 
-    var $entities = $('#'+id);
+    const $entities = $('#'+id);
     $entities.append(
         `<div class="moduleParent entitiesPanel">
             <div class="moduleHeader">
@@ -73,7 +73,7 @@ function EntitiesList(config) {
     $entities.find('select').selectmenu({
         appendTo: w.layoutManager.getContainer(),
         position: {
-            my: "left bottom", at: "left top", collision: "flipfit"
+            my: 'left bottom', at: 'left top', collision: 'flipfit'
         },
         width: 90
     });
@@ -113,13 +113,13 @@ function EntitiesList(config) {
         $entities.find('.moduleHeader').hide();
     }
 
-    var getFilter = function() {
+    const getFilter = function() {
         return $entities.find('select[name="filter"]').val();
     }
-    var setFilter = function(value) {
+    const setFilter = function(value) {
         $entities.find('select[name="filter"]').val(value).selectmenu('refresh');
     }
-    var getSorting = function() {
+    const getSorting = function() {
         return $entities.find('select[name="sorting"]').val();
     }
 
@@ -131,26 +131,26 @@ function EntitiesList(config) {
     /**
      * @lends EntitiesList.prototype
      */
-    var pm = {};
+    const pm = {};
 
     pm.update = function() {
         if (enabled) {
             clear();
 
-            var entities = w.entitiesManager.getEntitiesArray(getSorting());
+            let entities = w.entitiesManager.getEntitiesArray(getSorting());
 
             entities = entities.filter(function(entry) {
                 return entry.getCustomValue('nerve') !== 'true';
             });
 
-            var filter = getFilter();
+            const filter = getFilter();
             if (filter !== 'all') {
                 entities = entities.filter(function(entry) {
                     return entry.getType() === filter;
                 });
             }
 
-            var entitiesString = '';
+            let entitiesString = '';
             entities.forEach(function(entry) {
                 entitiesString += getEntityView(entry);
             });
@@ -164,7 +164,7 @@ function EntitiesList(config) {
             $entities.find('ul.entitiesList').html(entitiesString);
             $entities.find('ul.entitiesList > li > div').on('click', function(event) {
                 $(this).parent().toggleClass('expanded');
-                var id = $(this).parent().data('id');
+                const id = $(this).parent().data('id');
                 w.entitiesManager.highlightEntity(id, null, true);
             }).find('.actions > span').hover(function() {
                 $(this).removeClass('ui-state-default');
@@ -174,8 +174,8 @@ function EntitiesList(config) {
                 $(this).removeClass('ui-state-active');
             }).on('click', function(event) {
                 event.stopPropagation();
-                var action = $(this).data('action');
-                var id = $(this).parents('li').data('id');
+                const action = $(this).data('action');
+                const id = $(this).parents('li').data('id');
                 switch (action) {
                     case 'edit':
                         w.tagger.editTagDialog(id);
@@ -218,31 +218,31 @@ function EntitiesList(config) {
         }
     };
 
-    var getEntityView = function(entity) {
-        var isCandidate = entity.getAttribute('_candidate') === 'true';
+    const getEntityView = function(entity) {
+        const isCandidate = entity.getAttribute('_candidate') === 'true';
 
-        var infoString = '<ul>';
+        let infoString = '<ul>';
 
         // named entity values
-        var nevAdded = false;
-        var lemma = entity.getLemma();
+        let nevAdded = false;
+        const lemma = entity.getLemma();
         if (lemma !== undefined) {
             infoString += `<li><strong>Standard</strong>: ${lemma}</li>`;
             nevAdded = true;
         }
-        var uri = entity.getURI()
+        const uri = entity.getURI()
         if (uri !== undefined) {
             infoString += `<li><strong>URI</strong>: <a href="${uri}" target="_blank" rel="noopener">${uri}</a></li>`;
             nevAdded = true;
         }
 
         // attribute values
-        var attAdded = false;
-        var entityAttributes = entity.getAttributes()
-        var urlAttributes = w.schemaManager.mapper.getUrlAttributes();
-        for (var name in entityAttributes) {
+        let attAdded = false;
+        const entityAttributes = entity.getAttributes()
+        const urlAttributes = w.schemaManager.mapper.getUrlAttributes();
+        for (const name in entityAttributes) {
             if (Mapper.reservedAttributes[name] !== true) {
-                var value = entityAttributes[name];
+                const value = entityAttributes[name];
                 if (value !== undefined) {
                     if (urlAttributes.indexOf(name) !== -1 || value.indexOf('http') === 0) {
                         if (value !== uri) { // don't duplicate uri
@@ -268,20 +268,20 @@ function EntitiesList(config) {
         }
 
         // custom values
-        var customValues = entity.getCustomValues();
-        for (var name in customValues) {
-            var value = customValues[name];
+        const customValues = entity.getCustomValues();
+        for (const name in customValues) {
+            const value = customValues[name];
             infoString += `<li><strong>${name}</strong>: ${value}</li>`;
         }
 
         infoString += '</ul>';
 
-        var actions = '';
+        let actions = '';
         if (w.isReadOnly === false) {
             if (isConvert && isCandidate) {
                 actions = '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"/></span>'+
                 '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"/></span>';
-                var hasMatching = getMatchesForEntity(entity.getId()).length > 0;
+                const hasMatching = getMatchesForEntity(entity.getId()).length > 0;
                 if (hasMatching) {
                     actions += '<span data-action="acceptmatching" class="ui-state-default" title="Accept All Matching"><span class="ui-icon ui-icon-circle-check"/></span>';
                     actions += '<span data-action="rejectmatching" class="ui-state-default" title="Reject All Matching"><span class="ui-icon ui-icon-circle-close"/></span>';
@@ -324,20 +324,20 @@ function EntitiesList(config) {
         $entities.remove();
     };
 
-    var clear = function() {
+    const clear = function() {
         $entities.find('ul').empty();
     };
     
-    var remove = function(id) {
+    const remove = function(id) {
         $entities.find('li[data-id="'+id+'"]').remove();
     };
 
     // CONVERSION
     pm.convertEntities = function() {
-        var typesToFind = ['person', 'place', 'date', 'org', 'title', 'link'];
-        var potentialEntitiesByType = w.schemaManager.mapper.findEntities(typesToFind);
-        var potentialEntities = [];
-        for (var type in potentialEntitiesByType) {
+        const typesToFind = ['person', 'place', 'date', 'org', 'title', 'link'];
+        const potentialEntitiesByType = w.schemaManager.mapper.findEntities(typesToFind);
+        let potentialEntities = [];
+        for (const type in potentialEntitiesByType) {
             potentialEntities = potentialEntities.concat(potentialEntitiesByType[type]);
         }
 
@@ -351,14 +351,14 @@ function EntitiesList(config) {
             $entities.find('.convertActions').show();
             $entities.find('button.convert').hide().button('option', 'disabled', true).next('span').show();
 
-            var li = w.dialogManager.getDialog('loadingindicator');
+            const li = w.dialogManager.getDialog('loadingindicator');
             li.setText('Converting Entities');
             li.show();
 
             w.event('massUpdateStarted').publish();
 
             w.utilities.processArray(potentialEntities, function(el) {
-                var entity = w.schemaManager.mapper.convertTagToEntity(el);
+                const entity = w.schemaManager.mapper.convertTagToEntity(el);
                 if (entity !== null) {
                     entity.setAttribute('_candidate', 'true');
                     $('#'+entity.id, w.editor.getBody()).attr('_candidate', 'true');
@@ -378,17 +378,17 @@ function EntitiesList(config) {
         }
     }
 
-    var getCandidates = function() {
-        var entities = w.entitiesManager.getEntitiesArray();
+    const getCandidates = function() {
+        let entities = w.entitiesManager.getEntitiesArray();
         entities = entities.filter(function(entry) {
             return entry.getAttribute('_candidate') === 'true' && entry.getCustomValue('nerve') !== 'true';
         });
         return entities;
     }
 
-    var getMatchesForEntity = function(entityId) {
-        var matches = [];
-        var match = w.entitiesManager.getEntity(entityId);
+    const getMatchesForEntity = function(entityId) {
+        const matches = [];
+        const match = w.entitiesManager.getEntity(entityId);
         w.entitiesManager.eachEntity(function(i, ent) {
             if (ent.getId() !== match.getId()) {
                 if (JSON.stringify(ent.getAttributes()) === JSON.stringify(match.getAttributes()) &&
@@ -402,18 +402,18 @@ function EntitiesList(config) {
         return matches;
     }
 
-    var acceptEntity = function(entityId) {
-        var entity = w.entitiesManager.getEntity(entityId);
+    const acceptEntity = function(entityId) {
+        const entity = w.entitiesManager.getEntity(entityId);
         entity.removeAttribute('_candidate');
         $('#'+entity.id, w.editor.getBody()).removeAttr('_candidate');
     }
 
-    var rejectEntity = function(entityId) {
+    const rejectEntity = function(entityId) {
         w.tagger.removeEntity(entityId);
     }
 
-    var acceptMatching = function(entityId) {
-        var matches = getMatchesForEntity(entityId);
+    const acceptMatching = function(entityId) {
+        const matches = getMatchesForEntity(entityId);
         
         acceptEntity(entityId);
         matches.forEach(function(entId) {
@@ -421,8 +421,8 @@ function EntitiesList(config) {
         });
     }
 
-    var rejectMatching = function(entityId) {
-        var matches = getMatchesForEntity(entityId);
+    const rejectMatching = function(entityId) {
+        const matches = getMatchesForEntity(entityId);
         
         rejectEntity(entityId);
         matches.forEach(function(entId) {
@@ -430,8 +430,8 @@ function EntitiesList(config) {
         });
     }
 
-    var acceptAll = function() {
-        var filter = getFilter();
+    const acceptAll = function() {
+        const filter = getFilter();
         w.entitiesManager.eachEntity(function(i, entity) {
             if (entity.getAttribute('_candidate') === 'true' && entity.getCustomValue('nerve') !== 'true') {
                 if (filter === 'all' || filter === entity.getType()) {
@@ -442,10 +442,10 @@ function EntitiesList(config) {
         setFilter('all');
     }
 
-    var rejectAll = function() {
+    const rejectAll = function() {
         w.event('massUpdateStarted').publish();
 
-        var filter = getFilter();
+        const filter = getFilter();
         w.entitiesManager.eachEntity(function(i, entity) {
             if (entity.getAttribute('_candidate') === 'true' && entity.getCustomValue('nerve') !== 'true') {
                 if (filter === 'all' || filter === entity.getType()) {
@@ -458,7 +458,7 @@ function EntitiesList(config) {
         w.event('massUpdateCompleted').publish();
     }
 
-    var handleDone = function() {
+    const handleDone = function() {
         isConvert = false;
         $entities.find('.convertActions').hide();
         $entities.find('button.convert').show().button('option', 'disabled', false).next('span').hide();
@@ -517,6 +517,6 @@ function EntitiesList(config) {
     w.event('entitiesListInitialized').publish(pm);
     
     return pm;
-};
+}
 
 module.exports = EntitiesList;
