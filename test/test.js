@@ -1,7 +1,8 @@
 'use strict';
 
-const path = require('path');
-const fetchMock = require('fetch-mock/cjs/server');
+import $ from 'jquery';
+import path from 'path';
+import fetchMock from 'fetch-mock/cjs/server';
 import CWRCWriter from '../src/js/writer.js';
 
 // uncomment to show ui
@@ -38,7 +39,7 @@ fetchMock.mock(/.*schema\/css/, teiCss);
 let writer = undefined;
 
 const initAndLoadDoc = (writer, doc) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
 
         const handleInitialized = () => {
             writer.layoutManager.getContainer().height(700) // need to manually set the height otherwise it's 0
@@ -79,12 +80,12 @@ beforeEach(() => {
     resetWriter();
 })
 
-test('writer constructor', async() => {
+test('writer constructor', () => {
     expect.assertions(1);
 
     writer = getWriterInstance();
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         writer.event('writerInitialized').subscribe(() => {
             expect(writer.isInitialized).toBe(true);
             resolve(true);
@@ -97,7 +98,7 @@ test('writer.setDocument writer.getDocumentString writer.getDocumentXML', () => 
 
     writer = getWriterInstance();
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.getDocumentXML((xmlDoc) => {
                 expect(xmlDoc.firstElementChild.textContent.indexOf('Sample letter content')).toBeGreaterThan(-1);
@@ -116,7 +117,7 @@ test('writer.setDocument convertEntities', () => {
 
     writer = getWriterInstance()
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
 
             writer.event('contentChanged').subscribe(() => {
@@ -179,7 +180,7 @@ test('tagger.addTagDialog tagger.addStructureTag tagger.removeStructureTag', () 
 
     const tagToAdd = 'label';
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.event('tagAdded').subscribe((tag) => {
                 expect(tag.getAttribute('_tag')).toBe(tagToAdd);
@@ -206,7 +207,7 @@ test('tagger.editTagDialog tagger.editStructureTag', () => {
     let attributeName;
     const attributeValue = 'test';
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.event('tagEdited').subscribe((tag) => {
                 expect(tag.getAttribute(attributeName)).toBe(attributeValue);
@@ -235,7 +236,7 @@ test('tagger.editEntity', () => {
     let attributeName;
     const attributeValue = 'test';
 
-    return new Promise((resolve, rejct) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.event('entityEdited').subscribe((entityId) => {
                 let entry = writer.entitiesManager.getEntity(entityId);
@@ -268,7 +269,7 @@ test('tagger.changeTagDialog', () => {
 
     const tagName = 'name';
 
-    return new Promise((resolve, rejct) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.event('tagEdited').subscribe((tag) => {
                 expect(tag.getAttribute('_tag')).toBe(tagName);
@@ -291,7 +292,7 @@ test('tagger.addEntityDialog tagger.removeEntity', () => {
 
     const entityType = 'link';
 
-    return new Promise((resolve, rejct) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.event('entityAdded').subscribe((entityId) => {
                 expect(window.$('#' + entityId, writer.editor.getBody()).attr('_type')).toBe(entityType);
@@ -317,7 +318,7 @@ test('tagger.copyTag tagger.pasteTag', () => {
 
     writer = getWriterInstance()
 
-    const entityType = 'link';
+    // const entityType = 'link';
 
     return initAndLoadDoc(writer, teiDoc).then(() => {
         let tagId = 'dom_' + (getLastIdCounter(tinymce));
@@ -375,7 +376,7 @@ test('schemaManager.getRootForSchema', () => {
 
     writer = getWriterInstance()
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(async () => {
             const result = await writer.schemaManager.getRootForSchema('tei');
             expect(result).toBe('TEI');
@@ -416,7 +417,7 @@ test('tagContextMenu.show', () => {
 
     writer = getWriterInstance()
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.editor.fire('contextmenu')
             setTimeout(() => {
@@ -432,7 +433,7 @@ test('dialogs.settings', () => {
 
     writer = getWriterInstance()
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             let initShowTagSetting = writer.settings.getSettings().showTags;
 
@@ -457,7 +458,7 @@ test('dialogs.header', () => {
 
     writer = getWriterInstance()
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             window.$('.editHeader', writer.layoutManager.getHeaderButtonsParent()).click();
 
@@ -480,7 +481,7 @@ test('dialogs.message confirm', () => {
 
     writer = getWriterInstance()
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.dialogManager.confirm({
                 title: 'Confirm Test',
@@ -504,7 +505,7 @@ test('dialogs.editSource', () => {
 
     writer = getWriterInstance()
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.dialogManager.show('editSource');
             dialogClickYes();
@@ -530,7 +531,7 @@ test('dialogs.popup', () => {
 
     writer = getWriterInstance()
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             window.$('[_tag="ref"][_type="link"]', writer.editor.getBody()).trigger('mouseover');
 
@@ -548,7 +549,7 @@ test('modules.nerve', () => {
 
     writer = getWriterInstance()
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.event('entityAdded').subscribe((entityId, data) => {
                 expect(writer.entitiesManager.getEntity(entityId)).toBeDefined();
@@ -563,9 +564,7 @@ test('modules.nerve', () => {
                 resolve();
             });
 
-            jest.spyOn(window.$, 'ajax').mockImplementation(({
-                success
-            }) => {
+            jest.spyOn(window.$, 'ajax').mockImplementation(({success}) => {
                 let dfd = $.Deferred();
                 dfd.resolve(nerveMock);
                 return dfd.promise();
