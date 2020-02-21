@@ -2,6 +2,7 @@
 
 const path = require('path');
 const fetchMock = require('fetch-mock/cjs/server');
+import CWRCWriter from '../src/js/writer.js';
 
 // uncomment to show ui
 // const eWin = require('electron').remote.getCurrentWindow();
@@ -11,7 +12,7 @@ const fetchMock = require('fetch-mock/cjs/server');
 const WAIT_TIME = 150;
 
 // override alert function so it doesn't hold up tests
-window.alert = function(msg) {
+window.alert = (msg) => {
     console.warn('window.alert:',msg);
 }
 
@@ -22,7 +23,7 @@ config.entityLookupDialogs = require('./mocks/entity-dialogs-mock');
 config.container = 'cwrcWriterContainer';
 config.modules = {
     west: [ {id: 'structure'}, {id: 'entities'}, {id: 'nerve', config: {nerveUrl: ''}} ], // TODO entities selectmenu is messing up ui-layout panel heights
-    south: [ {id: 'selection'}, {id: 'validation', config: {"validationUrl": "https://validator.services.cwrc.ca/validator/validate.html"}} ]
+    south: [ {id: 'selection'}, {id: 'validation', config: {'validationUrl': 'https://localhost/validator/validate.html'}} ]
 };
 
 const teiSchema = require('./mocks/tei-schema');
@@ -33,22 +34,24 @@ const nerveMock = require('./mocks/nerve-mock');
 fetchMock.mock(/.*schema\/xml/, teiSchema);
 fetchMock.mock(/.*schema\/css/, teiCss);
 
-const CWRCWriter = require('../src/js/writer.js');
+
 let writer = undefined;
 
-function initAndLoadDoc(writer, doc) {
+const initAndLoadDoc = (writer, doc) => {
     return new Promise((resolve, reject) => {
-        function handleInitialized() {
-            writer.layoutManager.getContainer().height(700) // need to manually set the height otherwise it's 0
 
+        const handleInitialized = () => {
+            writer.layoutManager.getContainer().height(700) // need to manually set the height otherwise it's 0
             writer.setDocument(doc)
         }
-        function handleDocLoaded(success, body) {
+
+        const handleDocLoaded = (success, body) => {
             dialogClickOk()
             writer.event('writerInitialized').unsubscribe(handleInitialized)
             writer.event('documentLoaded').unsubscribe(handleDocLoaded)
             resolve([success, body])
         }
+
         writer.event('writerInitialized').subscribe(handleInitialized)
         writer.event('documentLoaded').subscribe(() => {
             setTimeout(handleDocLoaded, 50) // wait for doc load message to be shown
@@ -56,13 +59,13 @@ function initAndLoadDoc(writer, doc) {
     })
 }
 
-function getWriterInstance() {
-    let w = new CWRCWriter(config);
+const getWriterInstance = () => {
+    const w = new CWRCWriter(config);
     w.eventManager.debug(false);
     return w;
 }
 
-function resetWriter() {
+const resetWriter = () => {
     if (writer) {
         writer.destroy();
         writer = undefined;
@@ -82,7 +85,7 @@ test('writer constructor', () => {
     writer = getWriterInstance();
     
     return new Promise((resolve, reject) => {
-        writer.event('writerInitialized').subscribe(function() {
+        writer.event('writerInitialized').subscribe(() => {
             expect(writer.isInitialized).toBe(true);
             resolve(true);
         })
@@ -133,7 +136,7 @@ test('writer.validate pass', () => {
     writer = getWriterInstance();
 
     return initAndLoadDoc(writer, teiDoc).then(() => {
-        writer.event('documentValidated').subscribe(function(valid, data) {
+        writer.event('documentValidated').subscribe((valid, data) => {
             jest.restoreAllMocks();
             expect(valid).toBe(true);
         });
@@ -152,7 +155,7 @@ test('writer.validate fail', () => {
     writer = getWriterInstance()
 
     return initAndLoadDoc(writer, teiDoc).then(() => {
-        writer.event('documentValidated').subscribe(function(valid, data) {
+        writer.event('documentValidated').subscribe((valid, data) => {
             jest.restoreAllMocks();
             expect(valid).toBe(false);
         });
@@ -174,12 +177,12 @@ test('tagger.addTagDialog tagger.addStructureTag tagger.removeStructureTag', () 
     
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
-            writer.event('tagAdded').subscribe(function(tag) {
+            writer.event('tagAdded').subscribe((tag) => {
                 expect(tag.getAttribute('_tag')).toBe(tagToAdd);
                 writer.tagger.removeStructureTag(tag.getAttribute('id'));
             });
         
-            writer.event('tagRemoved').subscribe(function(tagId) {
+            writer.event('tagRemoved').subscribe((tagId) => {
                 expect(window.$('#'+tagId, writer.editor.getBody()).length).toBe(0);
                 resolve();
             });
@@ -201,7 +204,7 @@ test('tagger.editTagDialog tagger.editStructureTag', () => {
 
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
-            writer.event('tagEdited').subscribe(function(tag) {
+            writer.event('tagEdited').subscribe((tag) => {
                 expect(tag.getAttribute(attributeName)).toBe(attributeValue);
                 resolve();
             });
@@ -230,7 +233,7 @@ test('tagger.editEntity', () => {
     
     return new Promise((resolve, rejct) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
-            writer.event('entityEdited').subscribe(function(entityId) {
+            writer.event('entityEdited').subscribe((entityId) => {
                 let entry = writer.entitiesManager.getEntity(entityId);
                 expect(entry.getAttribute(attributeName)).toBe(attributeValue);
                 resolve();
@@ -261,7 +264,7 @@ test('tagger.changeTagDialog', () => {
     
     return new Promise((resolve, rejct) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
-            writer.event('tagEdited').subscribe(function(tag) {
+            writer.event('tagEdited').subscribe((tag) => {
                expect(tag.getAttribute('_tag')).toBe(tagName);
                resolve();
             });
@@ -284,12 +287,12 @@ test('tagger.addEntityDialog tagger.removeEntity', () => {
     
     return new Promise((resolve, rejct) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
-            writer.event('entityAdded').subscribe(function(entityId) {
+            writer.event('entityAdded').subscribe((entityId) => {
                 expect(window.$('#'+entityId, writer.editor.getBody()).attr('_type')).toBe(entityType);
                 writer.tagger.removeEntity(entityId);
             });
         
-            writer.event('entityRemoved').subscribe(function(entityId) {
+            writer.event('entityRemoved').subscribe((entityId) => {
                 expect(window.$('#'+entityId, writer.editor.getBody()).length).toBe(0);
                 resolve();
             });
@@ -330,7 +333,7 @@ test('tagger.splitTag tagger.mergeTags', () => {
     let pTagCount;
     let textNode;
 
-    let splitHandler = function() {
+    let splitHandler = () => {
         expect(window.$('[_tag="body"] [_tag="p"]', writer.editor.getBody()).length).toBe(pTagCount+1);
 
         let tag1 = textNode.parentElement;
@@ -342,7 +345,7 @@ test('tagger.splitTag tagger.mergeTags', () => {
         writer.tagger.mergeTags([tag1, tag2]);
     }
 
-    let mergeHandler = function() {
+    let mergeHandler = () => {
         expect(window.$('[_tag="body"] [_tag="p"]', writer.editor.getBody()).length).toBe(pTagCount);
         writer.event('contentChanged').unsubscribe(mergeHandler);
     }
@@ -541,7 +544,7 @@ test('modules.nerve', () => {
 
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
-            writer.event('entityAdded').subscribe(function(entityId, data) {
+            writer.event('entityAdded').subscribe((entityId, data) => {
                 expect(writer.entitiesManager.getEntity(entityId)).toBeDefined();
                 jest.restoreAllMocks();
                 setTimeout(() => {
@@ -549,7 +552,7 @@ test('modules.nerve', () => {
                 }, 50);
             });
 
-            writer.event('tagAdded').subscribe(function(tag, data) {
+            writer.event('tagAdded').subscribe((tag, data) => {
                 expect($(tag, writer.editor.getBody())).toBeDefined();
                 resolve();
             });
