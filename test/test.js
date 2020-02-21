@@ -13,17 +13,17 @@ const WAIT_TIME = 150;
 
 // override alert function so it doesn't hold up tests
 window.alert = (msg) => {
-    console.warn('window.alert:',msg);
+    console.warn('window.alert:', msg);
 }
 
 const config = require('./mocks/config.json');
-config.cwrcRootUrl = path.resolve('./build')+'\\';
+config.cwrcRootUrl = path.resolve('./build') + '\\';
 config.storageDialogs = require('./mocks/storage-dialogs-mock');
 config.entityLookupDialogs = require('./mocks/entity-dialogs-mock');
 config.container = 'cwrcWriterContainer';
 config.modules = {
-    west: [ {id: 'structure'}, {id: 'entities'}, {id: 'nerve', config: {nerveUrl: ''}} ], // TODO entities selectmenu is messing up ui-layout panel heights
-    south: [ {id: 'selection'}, {id: 'validation', config: {'validationUrl': 'https://localhost/validator/validate.html'}} ]
+    west: [{id: 'structure'}, {id: 'entities'}, {id: 'nerve', config: {nerveUrl: ''}}], // TODO entities selectmenu is messing up ui-layout panel heights
+    south: [{id: 'selection'}, {id: 'validation',config: {'validationUrl': 'https://localhost/validator/validate.html'}}]
 };
 
 const teiSchema = require('./mocks/tei-schema');
@@ -79,11 +79,11 @@ beforeEach(() => {
     resetWriter();
 })
 
-test('writer constructor', () => {
+test('writer constructor', async() => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance();
-    
+
     return new Promise((resolve, reject) => {
         writer.event('writerInitialized').subscribe(() => {
             expect(writer.isInitialized).toBe(true);
@@ -94,9 +94,9 @@ test('writer constructor', () => {
 
 test('writer.setDocument writer.getDocumentString writer.getDocumentXML', () => {
     expect.assertions(2);
-    
+
     writer = getWriterInstance();
-    
+
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.getDocumentXML((xmlDoc) => {
@@ -113,9 +113,9 @@ test('writer.setDocument writer.getDocumentString writer.getDocumentXML', () => 
 
 test('writer.setDocument convertEntities', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance()
-    
+
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
 
@@ -132,7 +132,7 @@ test('writer.setDocument convertEntities', () => {
 
 test('writer.validate pass', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance();
 
     return initAndLoadDoc(writer, teiDoc).then(() => {
@@ -140,8 +140,10 @@ test('writer.validate pass', () => {
             jest.restoreAllMocks();
             expect(valid).toBe(true);
         });
-        
-        jest.spyOn(window.$, 'ajax').mockImplementation(({success}) => {
+
+        jest.spyOn(window.$, 'ajax').mockImplementation(({
+            success
+        }) => {
             success('<?xml version="1.0" encoding="UTF-8"?><validation-result><status>pass</status></validation-result>');
         });
 
@@ -151,7 +153,7 @@ test('writer.validate pass', () => {
 
 test('writer.validate fail', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance()
 
     return initAndLoadDoc(writer, teiDoc).then(() => {
@@ -159,8 +161,10 @@ test('writer.validate fail', () => {
             jest.restoreAllMocks();
             expect(valid).toBe(false);
         });
-        
-        jest.spyOn(window.$, 'ajax').mockImplementation(({success}) => {
+
+        jest.spyOn(window.$, 'ajax').mockImplementation(({
+            success
+        }) => {
             success('<?xml version="1.0" encoding="UTF-8"?><validation-result><status>fail</status><warning><line>19</line><column>15</column><message></message><element>title</element><path>/TEI/text[1]/body[1]/div[1]</path></warning></validation-result>');
         });
 
@@ -170,24 +174,24 @@ test('writer.validate fail', () => {
 
 test('tagger.addTagDialog tagger.addStructureTag tagger.removeStructureTag', () => {
     expect.assertions(2);
-    
+
     writer = getWriterInstance()
-    
+
     const tagToAdd = 'label';
-    
+
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.event('tagAdded').subscribe((tag) => {
                 expect(tag.getAttribute('_tag')).toBe(tagToAdd);
                 writer.tagger.removeStructureTag(tag.getAttribute('id'));
             });
-        
+
             writer.event('tagRemoved').subscribe((tagId) => {
-                expect(window.$('#'+tagId, writer.editor.getBody()).length).toBe(0);
+                expect(window.$('#' + tagId, writer.editor.getBody()).length).toBe(0);
                 resolve();
             });
-            
-            writer.utilities.selectElementById('dom_'+(getLastIdCounter(tinymce)), true);
+
+            writer.utilities.selectElementById('dom_' + (getLastIdCounter(tinymce)), true);
             writer.tagger.addTagDialog(tagToAdd, 'add');
             setTimeout(dialogClickOk, WAIT_TIME);
         })
@@ -196,9 +200,9 @@ test('tagger.addTagDialog tagger.addStructureTag tagger.removeStructureTag', () 
 
 test('tagger.editTagDialog tagger.editStructureTag', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance()
-    
+
     let attributeName;
     const attributeValue = 'test';
 
@@ -208,14 +212,14 @@ test('tagger.editTagDialog tagger.editStructureTag', () => {
                 expect(tag.getAttribute(attributeName)).toBe(attributeValue);
                 resolve();
             });
-            
-            writer.utilities.selectElementById('dom_'+(getLastIdCounter(tinymce)), true);
+
+            writer.utilities.selectElementById('dom_' + (getLastIdCounter(tinymce)), true);
             writer.tagger.editTagDialog();
             setTimeout(() => {
                 let li = window.$('.attributeSelector:visible li:eq(0)');
                 attributeName = li.attr('data-name');
                 li.click();
-                let input = window.$('.attsContainer:visible input[name="'+attributeName+'"]');
+                let input = window.$('.attsContainer:visible input[name="' + attributeName + '"]');
                 input.val(attributeValue);
                 dialogClickOk();
             }, WAIT_TIME);
@@ -225,12 +229,12 @@ test('tagger.editTagDialog tagger.editStructureTag', () => {
 
 test('tagger.editEntity', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance()
-    
+
     let attributeName;
     const attributeValue = 'test';
-    
+
     return new Promise((resolve, rejct) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.event('entityEdited').subscribe((entityId) => {
@@ -238,16 +242,18 @@ test('tagger.editEntity', () => {
                 expect(entry.getAttribute(attributeName)).toBe(attributeValue);
                 resolve();
             });
-            
+
             let entityEl = window.$('[_entity]', writer.editor.getBody()).first();
             let entry = writer.entitiesManager.getEntity(entityEl.attr('id'));
-            writer.dialogManager.show('schema/'+entry.getType(), {entry: entry})
-            
+            writer.dialogManager.show('schema/' + entry.getType(), {
+                entry: entry
+            })
+
             setTimeout(() => {
                 let li = window.$('.attributeSelector:visible li:eq(0)');
                 attributeName = li.attr('data-name');
                 li.click();
-                let input = window.$('.attsContainer:visible input[name="'+attributeName+'"]');
+                let input = window.$('.attsContainer:visible input[name="' + attributeName + '"]');
                 input.val(attributeValue);
                 dialogClickOk();
             }, WAIT_TIME);
@@ -257,19 +263,19 @@ test('tagger.editEntity', () => {
 
 test('tagger.changeTagDialog', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance()
-    
+
     const tagName = 'name';
-    
+
     return new Promise((resolve, rejct) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.event('tagEdited').subscribe((tag) => {
-               expect(tag.getAttribute('_tag')).toBe(tagName);
-               resolve();
+                expect(tag.getAttribute('_tag')).toBe(tagName);
+                resolve();
             });
-            
-            writer.utilities.selectElementById('dom_'+(getLastIdCounter(tinymce)), true);
+
+            writer.utilities.selectElementById('dom_' + (getLastIdCounter(tinymce)), true);
             writer.tagger.changeTagDialog(tagName);
             setTimeout(() => {
                 dialogClickOk();
@@ -280,24 +286,24 @@ test('tagger.changeTagDialog', () => {
 
 test('tagger.addEntityDialog tagger.removeEntity', () => {
     expect.assertions(2);
-    
+
     writer = getWriterInstance()
 
     const entityType = 'link';
-    
+
     return new Promise((resolve, rejct) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.event('entityAdded').subscribe((entityId) => {
-                expect(window.$('#'+entityId, writer.editor.getBody()).attr('_type')).toBe(entityType);
+                expect(window.$('#' + entityId, writer.editor.getBody()).attr('_type')).toBe(entityType);
                 writer.tagger.removeEntity(entityId);
             });
-        
+
             writer.event('entityRemoved').subscribe((entityId) => {
-                expect(window.$('#'+entityId, writer.editor.getBody()).length).toBe(0);
+                expect(window.$('#' + entityId, writer.editor.getBody()).length).toBe(0);
                 resolve();
             });
 
-            writer.utilities.selectElementById('dom_'+(getLastIdCounter(tinymce)), true);
+            writer.utilities.selectElementById('dom_' + (getLastIdCounter(tinymce)), true);
             writer.tagger.addEntityDialog(entityType);
             setTimeout(() => {
                 dialogClickOk();
@@ -308,33 +314,33 @@ test('tagger.addEntityDialog tagger.removeEntity', () => {
 
 test('tagger.copyTag tagger.pasteTag', () => {
     expect.assertions(2);
-    
+
     writer = getWriterInstance()
 
     const entityType = 'link';
-    
+
     return initAndLoadDoc(writer, teiDoc).then(() => {
-        let tagId = 'dom_'+(getLastIdCounter(tinymce));
-        let tagType = $('#'+tagId, writer.editor.getBody()).attr('_tag');
-        let tagTypeCount = $('[_tag="'+tagType+'"]', writer.editor.getBody()).length;
+        let tagId = 'dom_' + (getLastIdCounter(tinymce));
+        let tagType = $('#' + tagId, writer.editor.getBody()).attr('_tag');
+        let tagTypeCount = $('[_tag="' + tagType + '"]', writer.editor.getBody()).length;
         writer.tagger.copyTag(tagId);
         expect(writer.editor.copiedElement.element).not.toBeNull();
 
         writer.tagger.pasteTag();
-        expect($('[_tag="'+tagType+'"]', writer.editor.getBody()).length).toBe(tagTypeCount+1);
+        expect($('[_tag="' + tagType + '"]', writer.editor.getBody()).length).toBe(tagTypeCount + 1);
     })
 });
 
 test('tagger.splitTag tagger.mergeTags', () => {
     expect.assertions(2);
-    
+
     writer = getWriterInstance()
 
     let pTagCount;
     let textNode;
 
     let splitHandler = () => {
-        expect(window.$('[_tag="body"] [_tag="p"]', writer.editor.getBody()).length).toBe(pTagCount+1);
+        expect(window.$('[_tag="body"] [_tag="p"]', writer.editor.getBody()).length).toBe(pTagCount + 1);
 
         let tag1 = textNode.parentElement;
         let tag2 = tag1.nextElementSibling;
@@ -355,7 +361,7 @@ test('tagger.splitTag tagger.mergeTags', () => {
         textNode = window.$('[_tag="body"] [_tag="p"]', writer.editor.getBody())[0].firstChild;
 
         writer.event('contentChanged').subscribe(splitHandler);
-        
+
         let range = writer.editor.selection.getRng(1);
         range.setStart(textNode, 3);
         range.setEnd(textNode, 3);
@@ -366,11 +372,11 @@ test('tagger.splitTag tagger.mergeTags', () => {
 
 test('schemaManager.getRootForSchema', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance()
-    
+
     return new Promise((resolve, reject) => {
-        initAndLoadDoc(writer, teiDoc).then( async () => {
+        initAndLoadDoc(writer, teiDoc).then(async () => {
             const result = await writer.schemaManager.getRootForSchema('tei');
             expect(result).toBe('TEI');
             resolve();
@@ -380,12 +386,12 @@ test('schemaManager.getRootForSchema', () => {
 
 test('mapper.convertTagToEntity', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance()
-    
+
     return initAndLoadDoc(writer, teiDoc).then(() => {
         writer.event('entityAdded').subscribe((entityId) => {
-            let tag = window.$('#'+entityId, writer.editor.getBody());
+            let tag = window.$('#' + entityId, writer.editor.getBody());
             expect(tag.attr('_type')).toBe('person');
         });
 
@@ -396,9 +402,9 @@ test('mapper.convertTagToEntity', () => {
 
 test('mapper.findEntities', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance()
-    
+
     return initAndLoadDoc(writer, teiDoc).then(() => {
         let entities = writer.schemaManager.mapper.findEntities();
         expect(entities.person.length).toBe(1);
@@ -407,9 +413,9 @@ test('mapper.findEntities', () => {
 
 test('tagContextMenu.show', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance()
-    
+
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.editor.fire('contextmenu')
@@ -423,18 +429,18 @@ test('tagContextMenu.show', () => {
 
 test('dialogs.settings', () => {
     expect.assertions(2);
-    
+
     writer = getWriterInstance()
-    
+
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             let initShowTagSetting = writer.settings.getSettings().showTags;
 
             window.$('.settingsLink', writer.layoutManager.getHeaderButtonsParent()).click();
-            
+
             let settingsDialog = window.$('.cwrcDialogWrapper .ui-dialog:visible');
             expect(settingsDialog.find('.ui-dialog-title').text()).toBe('Settings');
-            
+
             settingsDialog.find('.showtags').prop('checked', !initShowTagSetting);
 
             dialogClickOk();
@@ -448,16 +454,16 @@ test('dialogs.settings', () => {
 
 test('dialogs.header', () => {
     expect.assertions(2);
-    
+
     writer = getWriterInstance()
-    
+
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             window.$('.editHeader', writer.layoutManager.getHeaderButtonsParent()).click();
-            
+
             let headerDialog = window.$('.cwrcDialogWrapper .ui-dialog:visible');
             expect(headerDialog.find('.ui-dialog-title').text()).toBe('Edit Header');
-            
+
             headerDialog.find('textarea').val('<test>Test Header</test>');
 
             dialogClickOk();
@@ -471,9 +477,9 @@ test('dialogs.header', () => {
 
 test('dialogs.message confirm', () => {
     expect.assertions(2);
-    
+
     writer = getWriterInstance()
-    
+
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.dialogManager.confirm({
@@ -495,9 +501,9 @@ test('dialogs.message confirm', () => {
 
 test('dialogs.editSource', () => {
     expect.assertions(2);
-    
+
     writer = getWriterInstance()
-    
+
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             writer.dialogManager.show('editSource');
@@ -521,9 +527,9 @@ test('dialogs.editSource', () => {
 
 test('dialogs.popup', () => {
     expect.assertions(1);
-    
+
     writer = getWriterInstance()
-    
+
     return new Promise((resolve, reject) => {
         initAndLoadDoc(writer, teiDoc).then(() => {
             window.$('[_tag="ref"][_type="link"]', writer.editor.getBody()).trigger('mouseover');
@@ -539,7 +545,7 @@ test('dialogs.popup', () => {
 
 test('modules.nerve', () => {
     expect.assertions(2);
-    
+
     writer = getWriterInstance()
 
     return new Promise((resolve, reject) => {
@@ -556,8 +562,10 @@ test('modules.nerve', () => {
                 expect($(tag, writer.editor.getBody())).toBeDefined();
                 resolve();
             });
-            
-            jest.spyOn(window.$, 'ajax').mockImplementation(({success}) => {
+
+            jest.spyOn(window.$, 'ajax').mockImplementation(({
+                success
+            }) => {
                 let dfd = $.Deferred();
                 dfd.resolve(nerveMock);
                 return dfd.promise();
@@ -570,7 +578,7 @@ test('modules.nerve', () => {
 });
 
 const getLastIdCounter = (tinymce) => {
-    return parseInt(tinymce.DOM.uniqueId('foo').split('foo')[1])-1;
+    return parseInt(tinymce.DOM.uniqueId('foo').split('foo')[1]) - 1;
 }
 
 
