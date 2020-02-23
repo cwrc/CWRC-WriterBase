@@ -1,11 +1,9 @@
-'use strict';
+import $ from 'jquery';
+import Mapper from 'mapper';
 
-const $ = require('jquery');
-const Mapper = require('mapper')
-
-require('jquery-ui/ui/widgets/button');
-require('jquery-ui/ui/widgets/selectmenu');
-require('jquery-ui/ui/widgets/tooltip');
+import 'jquery-ui/ui/widgets/button';
+import 'jquery-ui/ui/widgets/selectmenu';
+import 'jquery-ui/ui/widgets/tooltip';
 
 /**
  * @class EntitiesList
@@ -14,8 +12,7 @@ require('jquery-ui/ui/widgets/tooltip');
  * @param {Writer} config.writer
  * @param {String} config.parentId
  */
-function EntitiesList({writer,parentId}) {
-    
+export function EntitiesList({writer,parentId}) {
     const w = writer;
     const id = parentId;
 
@@ -24,24 +21,10 @@ function EntitiesList({writer,parentId}) {
 
     let isConvert = false; // are we in convert mode
 
-    const $entities = $('#'+id);
+    const $entities = $('#' + id);
     $entities.append(
         `<div class="moduleParent entitiesPanel">
             <div class="moduleHeader">
-                <div>
-                    <button type="button" class="convert">Scrape Candidate Entities</button>
-                    <span style="display: none;">Candidate Entities</span>
-                </div>
-                <div class="convertActions" style="display: none;">
-                    <button type="button" class="accept">Accept All</button>
-                    <button type="button" class="reject">Reject All</button>
-                    <button type="button" class="done">Done</button>
-                </div>
-            </div>
-            <div class="moduleContent">
-                <ul class="entitiesList"></ul>
-            </div>
-            <div class="moduleFooter">
                 <div style="display: inline-block;">
                     <label for="filter" title="Filter" class="fas fa-filter"></label>
                     <select name="filter">
@@ -65,114 +48,130 @@ function EntitiesList({writer,parentId}) {
                         <option value="alpha">Alphabetical</option>
                         <option value="cat">Categorical</option>
                     </select>
+                </div>    
+            </div>
+            <div class="subheader" style="display: none;">
+                <span>Candidate Entities</span>
+            </div>
+            <div class="moduleContent">
+                <ul class="entitiesList"></ul>
+            </div>
+            <div class="moduleFooter" style="display: flex;">
+                <div class="actionOptions">
+                    <button type="button" class="convert">Scrape Candidates</button>
+                    <!--<span style="display: none;">Candidate Entities</span>-->
+                </div>
+                <div class="convertActions" style="display: flex; width: 100%; justify-content: felx-end;">
+                    <button type="button" class="accept fa fa-check-circle" style="flex: 1;"></button>
+                    <button type="button" class="reject fa fa-times-circle" style="flex: 1;"></button>
+                    <!--<button type="button" class="reject fa fa-times-circle" style="flex: 1;"><i class="fa fa-times-circle"></i></button>-->
+                    <button type="button" class="done" style="flex: 2;">Done</button>
                 </div>
             </div>
         </div>`
     );
 
+    if (w.isReadOnly) $entities.find('.moduleHeader').hide();
+
     $entities.find('select').selectmenu({
         appendTo: w.layoutManager.getContainer(),
         position: {
-            my: 'left bottom', at: 'left top', collision: 'flipfit'
+            my: 'left bottom',
+            at: 'left top',
+            collision: 'flipfit'
         },
         width: 90
     });
 
-    $entities.find('button.convert').button().click(function() {
+    $entities.find('button.convert').button().click(() => {
         pm.convertEntities();
     });
-    $entities.find('button.accept').button().click(function() {
+    $entities.find('button.accept').button().click(() => {
         acceptAll();
         pm.update();
     });
-    $entities.find('button.reject').button().click(function() {
+    $entities.find('button.reject').button().click(() => {
         rejectAll();
         pm.update();
     });
-    $entities.find('button.done').button().click(function() {
-        if (getCandidates().length > 0) {
-            w.dialogManager.confirm({
-                title: 'Warning',
-                msg: '<p>All the remaining entities in the panel will be rejected.</p>'+
-                '<p>Do you wish to proceed?</p>',
-                showConfirmKey: 'confirm-reject-candidate-entities',
-                type: 'info',
-                callback: function(doIt) {
-                    if (doIt) {
-                        rejectAll();
-                        handleDone();
-                    }
-                }
-            });
-        } else {
+    $entities.find('button.done').button().click(() => {
+        if (getCandidates().length <= 0) {
             handleDone();
+            return;
         }
+
+        w.dialogManager.confirm({
+            title: 'Warning',
+            msg: `
+                <p>All the remaining entities in the panel will be rejected.</p>
+                <p>Do you wish to proceed?</p>`,
+            showConfirmKey: 'confirm-reject-candidate-entities',
+            type: 'info',
+            callback: (doIt) => {
+                if (doIt) {
+                    rejectAll();
+                    handleDone();
+                }
+            }
+        });
+
     });
 
-    if (w.isReadOnly) {
-        $entities.find('.moduleHeader').hide();
-    }
+    const getFilter = () => $entities.find('select[name="filter"]').val();
+    const setFilter = (value) => $entities.find('select[name="filter"]').val(value).selectmenu('refresh');
+    const getSorting = () => $entities.find('select[name="sorting"]').val();
 
-    const getFilter = function() {
-        return $entities.find('select[name="filter"]').val();
-    }
-    const setFilter = function(value) {
-        $entities.find('select[name="filter"]').val(value).selectmenu('refresh');
-    }
-    const getSorting = function() {
-        return $entities.find('select[name="sorting"]').val();
-    }
-
-    $entities.find('select[name="filter"]').on('selectmenuchange', function() { pm.update() });
-    $entities.find('select[name="sorting"]').on('selectmenuchange', function() { pm.update() });
-    // $entities.find('select[name="filter"]').on('change', function() { pm.update() });
-    // $entities.find('select[name="sorting"]').on('change', function() { pm.update() });
+    $entities.find('select[name="filter"]').on('selectmenuchange', () => pm.update());
+    $entities.find('select[name="sorting"]').on('selectmenuchange', () => pm.update());
+    // $entities.find('select[name="filter"]').on('change', () => pm.update() );
+    // $entities.find('select[name="sorting"]').on('change', () => { pm.update() );
 
     /**
      * @lends EntitiesList.prototype
      */
     const pm = {};
 
-    pm.update = function() {
-        if (enabled) {
-            clear();
+    pm.update = () => {
+        if (!enabled) {
+            updatePending = true;
+            return;
+        }
 
-            let entities = w.entitiesManager.getEntitiesArray(getSorting());
+        clear();
 
-            entities = entities.filter(function(entry) {
-                return entry.getCustomValue('nerve') !== 'true';
-            });
+        let entities = w.entitiesManager.getEntitiesArray(getSorting());
 
-            const filter = getFilter();
-            if (filter !== 'all') {
-                entities = entities.filter(function(entry) {
-                    return entry.getType() === filter;
-                });
-            }
+        entities = entities.filter((entry) => entry.getCustomValue('nerve') !== 'true');
 
-            let entitiesString = '';
-            entities.forEach(function(entry) {
-                entitiesString += getEntityView(entry);
-            });
+        const filter = getFilter();
+        if (filter !== 'all') {
+            entities = entities.filter((entry) => entry.getType() === filter);
+        }
 
-            if (isConvert) {
-                $entities.find('ul.entitiesList').addClass('candidates');
-            } else {
-                $entities.find('ul.entitiesList').removeClass('candidates');
-            }
-            
-            $entities.find('ul.entitiesList').html(entitiesString);
-            $entities.find('ul.entitiesList > li > div').on('click', function(event) {
+        let entitiesString = '';
+        entities.forEach((entry) => entitiesString += getEntityView(entry));
+
+        if (isConvert) {
+            $entities.find('ul.entitiesList').addClass('candidates');
+        } else {
+            $entities.find('ul.entitiesList').removeClass('candidates');
+        }
+
+        $entities.find('ul.entitiesList').html(entitiesString);
+        $entities.find('ul.entitiesList > li > div')
+            .on('click', function () {
                 $(this).parent().toggleClass('expanded');
                 const id = $(this).parent().data('id');
                 w.entitiesManager.highlightEntity(id, null, true);
-            }).find('.actions > span').hover(function() {
+            })
+            .find('.actions > span').hover(function () {
                 $(this).removeClass('ui-state-default');
                 $(this).addClass('ui-state-active');
-            }, function() {
+            }, function () {
                 $(this).addClass('ui-state-default');
                 $(this).removeClass('ui-state-active');
-            }).on('click', function(event) {
+            })
+            .on('click', function (event) {
                 event.stopPropagation();
                 const action = $(this).data('action');
                 const id = $(this).parents('li').data('id');
@@ -202,23 +201,20 @@ function EntitiesList({writer,parentId}) {
                 }
             });
 
-            $entities.find('.actions').tooltip({
-                show: false,
-                hide: false,
-                classes: {
-                    'ui-tooltip': 'cwrc-tooltip'
-                }
-            });
-            
-            if (w.entitiesManager.getCurrentEntity()) {
-                $entities.find('ul.entitiesList  > li[data-id="'+w.entitiesManager.getCurrentEntity()+'"]').addClass('expanded').find('div[class="info"]').show();
+        $entities.find('.actions').tooltip({
+            show: false,
+            hide: false,
+            classes: {
+                'ui-tooltip': 'cwrc-tooltip'
             }
-        } else {
-            updatePending = true;
+        });
+
+        if (w.entitiesManager.getCurrentEntity()) {
+            $entities.find('ul.entitiesList > li[data-id="' + w.entitiesManager.getCurrentEntity() + '"]').addClass('expanded').find('div[class="info"]').show();
         }
     };
 
-    const getEntityView = function(entity) {
+    const getEntityView = (entity) => {
         const isCandidate = entity.getAttribute('_candidate') === 'true';
 
         let infoString = '<ul>';
@@ -243,27 +239,27 @@ function EntitiesList({writer,parentId}) {
         for (const name in entityAttributes) {
             if (Mapper.reservedAttributes[name] !== true) {
                 const value = entityAttributes[name];
-                if (value !== undefined) {
-                    if (urlAttributes.indexOf(name) !== -1 || value.indexOf('http') === 0) {
-                        if (value !== uri) { // don't duplicate uri
-                            if (!attAdded && nevAdded) {
-                                infoString += '<li><hr /></li>';
-                            }
-                            infoString += `<li><strong>${name}</strong>: <a href="${value}" target="_blank" rel="noopener">${value}</a></li>`;
-                            attAdded = true;
-                        }
-                    } else {
-                        if (value !== lemma) { // don't duplicate lemma
-                            if (!attAdded && nevAdded) {
-                                infoString += '<li><hr /></li>';
-                            }
-                            infoString += `<li><strong>${name}</strong>: ${value}</li>`;
-                            attAdded = true;
-                        }
-                    }
-                } else {
-                    console.warn('entitiesList: undefined value for '+name+'in ', entity);
+
+                if (value === undefined) {
+                    console.warn('entitiesList: undefined value for ' + name + 'in ', entity);
+                    continue;
                 }
+
+                if (urlAttributes.indexOf(name) !== -1 || value.indexOf('http') === 0) {
+                    if (value === uri) continue; // don't duplicate uri
+
+                    if (!attAdded && nevAdded) infoString += '<li><hr /></li>';
+                    infoString += `<li><strong>${name}</strong>: <a href="${value}" target="_blank" rel="noopener">${value}</a></li>`;
+                    attAdded = true;
+
+                } else {
+                    if (value === lemma) continue; // don't duplicate lemma
+
+                    if (!attAdded && nevAdded) infoString += '<li><hr /></li>';
+                    infoString += `<li><strong>${name}</strong>: ${value}</li>`;
+                    attAdded = true;
+                }
+
             }
         }
 
@@ -279,16 +275,16 @@ function EntitiesList({writer,parentId}) {
         let actions = '';
         if (w.isReadOnly === false) {
             if (isConvert && isCandidate) {
-                actions = '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"/></span>'+
-                '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"/></span>';
+                actions = '<span data-action="accept" class="ui-state-default" title="Accept"><span class="ui-icon ui-icon-check"/></span>' +
+                    '<span data-action="reject" class="ui-state-default" title="Reject"><span class="ui-icon ui-icon-close"/></span>';
                 const hasMatching = getMatchesForEntity(entity.getId()).length > 0;
                 if (hasMatching) {
                     actions += '<span data-action="acceptmatching" class="ui-state-default" title="Accept All Matching"><span class="ui-icon ui-icon-circle-check"/></span>';
                     actions += '<span data-action="rejectmatching" class="ui-state-default" title="Reject All Matching"><span class="ui-icon ui-icon-circle-close"/></span>';
                 }
             } else {
-                actions = '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"/></span>'+
-                '<span data-action="remove" class="ui-state-default" title="Remove"><span class="ui-icon ui-icon-close"/></span>';
+                actions = '<span data-action="edit" class="ui-state-default" title="Edit"><span class="ui-icon ui-icon-pencil"/></span>' +
+                    '<span data-action="remove" class="ui-state-default" title="Remove"><span class="ui-icon ui-icon-close"/></span>';
             }
         }
 
@@ -305,7 +301,7 @@ function EntitiesList({writer,parentId}) {
         </li>`;
     }
 
-    pm.enable = function(forceUpdate) {
+    pm.enable = (forceUpdate) => {
         enabled = true;
         if (forceUpdate || updatePending) {
             pm.update();
@@ -313,27 +309,21 @@ function EntitiesList({writer,parentId}) {
         }
     }
 
-    pm.disable = function() {
-        enabled = false;
-    }
-    
-    pm.destroy = function() {
+    pm.disable = () => enabled = false;
+
+    pm.destroy = () => {
         $entities.find('button').button('destroy');
         $entities.find('select').selectmenu('destroy');
         $entities.find('.actions').tooltip('destroy');
         $entities.remove();
     };
 
-    const clear = function() {
-        $entities.find('ul').empty();
-    };
-    
-    const remove = function(id) {
-        $entities.find('li[data-id="'+id+'"]').remove();
-    };
+    const clear = () => $entities.find('ul').empty();
+
+    const remove = (id) => $entities.find('li[data-id="' + id + '"]').remove();
 
     // CONVERSION
-    pm.convertEntities = function() {
+    pm.convertEntities = () => {
         const typesToFind = ['person', 'place', 'date', 'org', 'title', 'link'];
         const potentialEntitiesByType = w.schemaManager.mapper.findEntities(typesToFind);
         let potentialEntities = [];
@@ -342,54 +332,57 @@ function EntitiesList({writer,parentId}) {
         }
 
         // filter out duplicates
-        potentialEntities = potentialEntities.filter(function(value, index, array) {
+        potentialEntities = potentialEntities.filter((value, index, array) => {
             return array.indexOf(value) === index;
         });
 
-        if (potentialEntities.length > 0) {
-            isConvert = true;
-            $entities.find('.convertActions').show();
-            $entities.find('button.convert').hide().button('option', 'disabled', true).next('span').show();
-
-            const li = w.dialogManager.getDialog('loadingindicator');
-            li.setText('Converting Entities');
-            li.show();
-
-            w.event('massUpdateStarted').publish();
-
-            w.utilities.processArray(potentialEntities, function(el) {
-                const entity = w.schemaManager.mapper.convertTagToEntity(el);
-                if (entity !== null) {
-                    entity.setAttribute('_candidate', 'true');
-                    $('#'+entity.id, w.editor.getBody()).attr('_candidate', 'true');
-                }
-            }).then(function() {
-                li.hide();
-                w.event('contentChanged').publish();
-
-                w.event('massUpdateCompleted').publish();
-            });
-        } else {
+        if (potentialEntities.length <= 0) {
             w.dialogManager.show('message', {
                 title: 'Entities',
                 msg: 'No candidate entities were found.',
                 type: 'info'
             });
+            return;
         }
+
+        isConvert = true;
+        $entities.find('.convertActions').show();
+        $entities.find('.subheader').show();
+        $entities.find('.actionOptions').hide()
+        $entities.find('button.convert').button('option', 'disabled', true) //.next('span').show();
+
+        const li = w.dialogManager.getDialog('loadingindicator');
+        li.setText('Converting Entities');
+        li.show();
+
+        w.event('massUpdateStarted').publish();
+
+        w.utilities.processArray(potentialEntities, (el) => {
+            const entity = w.schemaManager.mapper.convertTagToEntity(el);
+            if (entity !== null) {
+                entity.setAttribute('_candidate', 'true');
+                $('#' + entity.id, w.editor.getBody()).attr('_candidate', 'true');
+            }
+        }).then(function () {
+            li.hide();
+            w.event('contentChanged').publish();
+            w.event('massUpdateCompleted').publish();
+        });
+
     }
 
-    const getCandidates = function() {
+    const getCandidates = () => {
         let entities = w.entitiesManager.getEntitiesArray();
-        entities = entities.filter(function(entry) {
+        entities = entities.filter((entry) => {
             return entry.getAttribute('_candidate') === 'true' && entry.getCustomValue('nerve') !== 'true';
         });
         return entities;
     }
 
-    const getMatchesForEntity = function(entityId) {
+    const getMatchesForEntity = (entityId) => {
         const matches = [];
         const match = w.entitiesManager.getEntity(entityId);
-        w.entitiesManager.eachEntity(function(i, ent) {
+        w.entitiesManager.eachEntity((i, ent) => {
             if (ent.getId() !== match.getId()) {
                 if (JSON.stringify(ent.getAttributes()) === JSON.stringify(match.getAttributes()) &&
                     JSON.stringify(ent.getCustomValues()) === JSON.stringify(match.getCustomValues()) &&
@@ -402,37 +395,31 @@ function EntitiesList({writer,parentId}) {
         return matches;
     }
 
-    const acceptEntity = function(entityId) {
+    const acceptEntity = (entityId) => {
         const entity = w.entitiesManager.getEntity(entityId);
         entity.removeAttribute('_candidate');
-        $('#'+entity.id, w.editor.getBody()).removeAttr('_candidate');
+        $('#' + entity.id, w.editor.getBody()).removeAttr('_candidate');
     }
 
-    const rejectEntity = function(entityId) {
-        w.tagger.removeEntity(entityId);
-    }
+    const rejectEntity = (entityId) => w.tagger.removeEntity(entityId);
 
-    const acceptMatching = function(entityId) {
+    const acceptMatching = (entityId) => {
         const matches = getMatchesForEntity(entityId);
-        
+
         acceptEntity(entityId);
-        matches.forEach(function(entId) {
-            acceptEntity(entId);
-        });
+        matches.forEach((entId) => acceptEntity(entId));
     }
 
-    const rejectMatching = function(entityId) {
+    const rejectMatching = (entityId) => {
         const matches = getMatchesForEntity(entityId);
-        
+
         rejectEntity(entityId);
-        matches.forEach(function(entId) {
-            rejectEntity(entId);
-        });
+        matches.forEach((entId) => rejectEntity(entId));
     }
 
-    const acceptAll = function() {
+    const acceptAll = () => {
         const filter = getFilter();
-        w.entitiesManager.eachEntity(function(i, entity) {
+        w.entitiesManager.eachEntity((i, entity) => {
             if (entity.getAttribute('_candidate') === 'true' && entity.getCustomValue('nerve') !== 'true') {
                 if (filter === 'all' || filter === entity.getType()) {
                     acceptEntity(entity.getId());
@@ -442,11 +429,11 @@ function EntitiesList({writer,parentId}) {
         setFilter('all');
     }
 
-    const rejectAll = function() {
+    const rejectAll = () => {
         w.event('massUpdateStarted').publish();
 
         const filter = getFilter();
-        w.entitiesManager.eachEntity(function(i, entity) {
+        w.entitiesManager.eachEntity((i, entity) => {
             if (entity.getAttribute('_candidate') === 'true' && entity.getCustomValue('nerve') !== 'true') {
                 if (filter === 'all' || filter === entity.getType()) {
                     rejectEntity(entity.getId());
@@ -458,65 +445,44 @@ function EntitiesList({writer,parentId}) {
         w.event('massUpdateCompleted').publish();
     }
 
-    const handleDone = function() {
+    const handleDone = () => {
         isConvert = false;
         $entities.find('.convertActions').hide();
-        $entities.find('button.convert').show().button('option', 'disabled', false).next('span').hide();
+        $entities.find('.subheader').hide();
+        $entities.find('.actionOptions').show()
+        $entities.find('button.convert').button('option', 'disabled', false) //.next('span').hide();
         pm.update();
     }
     // CONVERSION END
-    
-    w.event('loadingDocument').subscribe(function() {
+
+    w.event('loadingDocument').subscribe(() => {
         clear();
         handleDone();
         pm.disable();
     });
-    w.event('documentLoaded').subscribe(function() {
-        pm.enable(true);
+    w.event('documentLoaded').subscribe(() => pm.enable(true));
+    w.event('schemaLoaded').subscribe(() => pm.update());
+    w.event('contentChanged').subscribe(() => pm.update());
+    w.event('contentPasted').subscribe(() => pm.update());
+    w.event('entityAdded').subscribe(() => pm.update());
+    w.event('entityEdited').subscribe(() => pm.update());
+    w.event('entityRemoved').subscribe((entityId) => remove(entityId));
+    w.event('entityFocused').subscribe((entityId) => {
+        $entities.find('ul.entitiesList > li[data-id="' + entityId + '"]').addClass('expanded');
     });
-    w.event('schemaLoaded').subscribe(function() {
-        pm.update();
-    });
-    w.event('contentChanged').subscribe(function() {
-        pm.update();
-    });
-    w.event('contentPasted').subscribe(function() {
-        pm.update();
-    });
-    w.event('entityAdded').subscribe(function(entityId) {
-        pm.update();
-    });
-    w.event('entityEdited').subscribe(function(entityId) {
-        pm.update();
-    });
-    w.event('entityRemoved').subscribe(function(entityId) {
-        remove(entityId);
-    });
-    w.event('entityFocused').subscribe(function(entityId) {
-        $entities.find('ul.entitiesList > li[data-id="'+entityId+'"]').addClass('expanded');
-    });
-    w.event('entityUnfocused').subscribe(function(entityId) {
-        $entities.find('ul.entitiesList > li').each(function(index, el) {
+    w.event('entityUnfocused').subscribe(() => {
+        $entities.find('ul.entitiesList > li').each(function (index, el) {
             $(this).removeClass('expanded');
         });
     });
-    w.event('entityPasted').subscribe(function(entityId) {
-        pm.update();
-    });
-    w.event('massUpdateStarted').subscribe(function() {
-        pm.disable();
-    });
-    w.event('massUpdateCompleted').subscribe(function() {
-        pm.enable(true);
-    });
-
+    w.event('entityPasted').subscribe(() => pm.update());
+    w.event('massUpdateStarted').subscribe(() => pm.disable());
+    w.event('massUpdateCompleted').subscribe(() => pm.enable(true));
 
     // add to writer
     w.entitiesList = pm;
-    
+
     w.event('entitiesListInitialized').publish(pm);
-    
+
     return pm;
 }
-
-module.exports = EntitiesList;
