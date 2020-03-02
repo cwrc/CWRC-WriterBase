@@ -25,6 +25,20 @@ export function EntitiesList({writer,parentId}) {
     $entities.append(
         `<div class="moduleParent entitiesPanel">
             <div class="moduleHeader">
+                <div>
+                    <button type="button" class="convert">Scrape Candidate Entities</button>
+                    <span style="display: none;">Candidate Entities</span>
+                </div>
+                <div class="convertActions" style="display: none;">
+                    <button type="button" class="accept">Accept All</button>
+                    <button type="button" class="reject">Reject All</button>
+                    <button type="button" class="done">Done</button>
+                </div>
+            </div>
+            <div class="moduleContent">
+                <ul class="entitiesList"></ul>
+            </div>
+            <div class="moduleFooter">
                 <div style="display: inline-block;">
                     <label for="filter" title="Filter" class="fas fa-filter"></label>
                     <select name="filter">
@@ -48,24 +62,6 @@ export function EntitiesList({writer,parentId}) {
                         <option value="alpha">Alphabetical</option>
                         <option value="cat">Categorical</option>
                     </select>
-                </div>    
-            </div>
-            <div class="subheader" style="display: none;">
-                <span>Candidate Entities</span>
-            </div>
-            <div class="moduleContent">
-                <ul class="entitiesList"></ul>
-            </div>
-            <div class="moduleFooter" style="display: flex;">
-                <div class="actionOptions">
-                    <button type="button" class="convert">Scrape Candidates</button>
-                    <!--<span style="display: none;">Candidate Entities</span>-->
-                </div>
-                <div class="convertActions" style="display: flex; width: 100%; justify-content: felx-end;">
-                    <button type="button" class="accept fa fa-check-circle" style="flex: 1;"></button>
-                    <button type="button" class="reject fa fa-times-circle" style="flex: 1;"></button>
-                    <!--<button type="button" class="reject fa fa-times-circle" style="flex: 1;"><i class="fa fa-times-circle"></i></button>-->
-                    <button type="button" class="done" style="flex: 2;">Done</button>
                 </div>
             </div>
         </div>`
@@ -102,8 +98,7 @@ export function EntitiesList({writer,parentId}) {
 
         w.dialogManager.confirm({
             title: 'Warning',
-            msg: `
-                <p>All the remaining entities in the panel will be rejected.</p>
+            msg: `<p>All the remaining entities in the panel will be rejected.</p>
                 <p>Do you wish to proceed?</p>`,
             showConfirmKey: 'confirm-reject-candidate-entities',
             type: 'info',
