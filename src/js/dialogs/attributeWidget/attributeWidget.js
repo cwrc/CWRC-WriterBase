@@ -64,8 +64,8 @@ AttributeWidget.EDIT = 1;
 AttributeWidget.prototype = {
     constructor: AttributeWidget,
     
-    buildWidget: function(atts, previousVals, tag) {
-        previousVals = previousVals || {};
+    buildWidget: function(atts, initialVals, tag) {
+        initialVals = initialVals || {};
         
         $('.attributeSelector ul, .attsContainer, .schemaHelp', this.$el).empty();
         this.isDirty = false;
@@ -103,11 +103,13 @@ AttributeWidget.prototype = {
                 if (att.fullName !== '') {
                     displayName += ' ('+att.fullName+')';
                 }
+                att.defaultValue = '';
                 var display = 'block';
                 var requiredClass = isRequired ? ' required' : '';
-                if (this.mode == AttributeWidget.EDIT && previousVals[att.name] && previousVals[att.name] !== undefined) {
+                if (initialVals[att.name] && initialVals[att.name] !== undefined) {
                     display = 'block';
                     attributeSelector += '<li data-name="'+att.name+'" class="selected'+requiredClass+'">'+displayName+'</li>';
+                    att.defaultValue = initialVals[att.name];
                 } else {
                     display = 'none';
                     attributeSelector += '<li data-name="'+att.name+'" class="'+requiredClass+'">'+displayName+'</li>';
@@ -117,7 +119,6 @@ AttributeWidget.prototype = {
                     currAttString += '<ins class="ui-icon ui-icon-help" title="'+att.documentation+'">&nbsp;</ins>';
                 }
                 currAttString += '<br/>';
-                if (this.mode == AttributeWidget.EDIT) att.defaultValue = previousVals[att.name] || '';
                 // TODO add list support
 //                if ($('list', attDef).length > 0) {
 //                    currAttString += '<input type="text" name="'+att.name+'" value="'+att.defaultValue+'"/>';

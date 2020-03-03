@@ -146,7 +146,9 @@ function Translation(writer, parentEl) {
 
             attributesWidget.mode = AttributeWidget.ADD;
             var atts = w.schemaManager.getAttributesForTag(tagName);
-            attributesWidget.buildWidget(atts, {}, tagName);
+            var initVals = {};
+            initVals[langAttribute] = firstLang;
+            attributesWidget.buildWidget(atts, initVals, tagName);
 
             $('#'+id+'_atts').parent().accordion('option', 'active', false);
 
