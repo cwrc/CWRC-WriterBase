@@ -24,7 +24,7 @@ export function EntitiesList({writer,parentId}) {
     const $entities = $('#' + id);
     $entities.append(
         `<div class="moduleParent entitiesPanel">
-            <div class="moduleHeader">
+                <div class="moduleHeader">
                 <div>
                     <button type="button" class="convert">Scrape Candidate Entities</button>
                     <span style="display: none;">Candidate Entities</span>
@@ -35,34 +35,37 @@ export function EntitiesList({writer,parentId}) {
                     <button type="button" class="done">Done</button>
                 </div>
             </div>
+            <div class="subheader" style="display: none;">
+                <span>Candidate Entities</span>
+            </div>
             <div class="moduleContent">
                 <ul class="entitiesList"></ul>
             </div>
-            <div class="moduleFooter">
-                <div style="display: inline-block;">
-                    <label for="filter" title="Filter" class="fas fa-filter"></label>
-                    <select name="filter">
-                        <option value="all" selected="selected">All</option>
-                        <option value="person">Person</option>
-                        <option value="place">Place</option>
-                        <option value="date">Date</option>
-                        <option value="org">Organization</option>
-                        <option value="citation">Citation</option>
-                        <option value="note">Note</option>
-                        <option value="title">Title</option>
-                        <option value="correction">Correction</option>
-                        <option value="keyword">Keyword</option>
-                        <option value="link">Link</option>
-                    </select>
-                </div>
-                <div style="display: inline-block;">
-                    <label for="sorting" title="Sorting" class="fas fa-sort"></label>
-                    <select name="sorting">
-                        <option value="seq" selected="selected">Sequential</option>
-                        <option value="alpha">Alphabetical</option>
-                        <option value="cat">Categorical</option>
-                    </select>
-                </div>
+            <div class="moduleFooter" style="display: flex;">
+            <div style="display: inline-block;">
+            <label for="filter" title="Filter" class="fas fa-filter"></label>
+            <select name="filter">
+                <option value="all" selected="selected">All</option>
+                <option value="person">Person</option>
+                <option value="place">Place</option>
+                <option value="date">Date</option>
+                <option value="org">Organization</option>
+                <option value="citation">Citation</option>
+                <option value="note">Note</option>
+                <option value="title">Title</option>
+                <option value="correction">Correction</option>
+                <option value="keyword">Keyword</option>
+                <option value="link">Link</option>
+            </select>
+        </div>
+        <div style="display: inline-block;">
+            <label for="sorting" title="Sorting" class="fas fa-sort"></label>
+            <select name="sorting">
+                <option value="seq" selected="selected">Sequential</option>
+                <option value="alpha">Alphabetical</option>
+                <option value="cat">Categorical</option>
+            </select>
+        </div> 
             </div>
         </div>`
     );
@@ -342,9 +345,7 @@ export function EntitiesList({writer,parentId}) {
 
         isConvert = true;
         $entities.find('.convertActions').show();
-        $entities.find('.subheader').show();
-        $entities.find('.actionOptions').hide()
-        $entities.find('button.convert').button('option', 'disabled', true) //.next('span').show();
+        $entities.find('button.convert').hide().button('option', 'disabled', true).next('span').show();
 
         const li = w.dialogManager.getDialog('loadingindicator');
         li.setText('Converting Entities');
@@ -443,9 +444,7 @@ export function EntitiesList({writer,parentId}) {
     const handleDone = () => {
         isConvert = false;
         $entities.find('.convertActions').hide();
-        $entities.find('.subheader').hide();
-        $entities.find('.actionOptions').show()
-        $entities.find('button.convert').button('option', 'disabled', false) //.next('span').hide();
+        $entities.find('button.convert').show().button('option', 'disabled', false).next('span').hide();
         pm.update();
     }
     // CONVERSION END
