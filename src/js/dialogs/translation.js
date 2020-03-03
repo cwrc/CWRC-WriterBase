@@ -68,9 +68,9 @@ function Translation(writer, parentEl) {
     });
 
     var langOptions = iso6392.reduce((result, lang) => {
-        var value = lang.iso6391;//lang.iso6392T === null ? lang.iso6392B : lang.iso6392T
+        var value = lang.iso6391;//lang.iso6392T === undefined ? lang.iso6392B : lang.iso6392T
         var name = lang.name;
-        if (value !== null) {
+        if (value !== undefined) {
             result.push({
                 name, value
             })
