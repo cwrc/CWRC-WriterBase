@@ -131,9 +131,17 @@ function Translation(writer, parentEl) {
 
     return {
         show: function(config) {
+            var $resp = $('#'+id+'_resp');
+            var hasResp = w.schemaManager.isAttributeValidForTag(respAttribute, tagName)
+            if (!hasResp) {
+                $resp.parent().hide()
+            } else {
+                $resp.parent().show()
+            }
+            $resp.prop('checked', false);
+
             var firstLang = $('#'+id+'_lang > option:eq(0)').val();
             $('#'+id+'_lang').val(firstLang);
-            $('#'+id+'_resp').prop('checked', false);
             $('#'+id+'_trans').val('');
 
             attributesWidget.mode = AttributeWidget.ADD;

@@ -331,6 +331,22 @@ function SchemaManager(writer, config) {
     };
 
     /**
+     * Verifies that the attribute is valid for the tag
+     * @param {String} attributeName The attribute name
+     * @param {String} tagName The tag name
+     * @returns {Boolean}
+     */
+    sm.isAttributeValidForTag = function(attributeName, tagName) {
+        const atts = sm.getAttributesForTag(tagName);
+        for (let i = 0; i < atts.length; i++) {
+            if (atts[i].name === attributeName) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    /**
      * Checks whether removing this node would invalidate the document.
      * @param {Element} nodeToDelete The node to remove
      * @param {Boolean} removingContents Are the node contents also being removed?
