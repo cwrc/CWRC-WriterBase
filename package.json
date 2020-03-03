@@ -40,7 +40,7 @@
     "copy-files-to-build": "npm run copy-tinymce && npm run copy-jqueryui-images && npm run copy-jstree-images",
     "copy-tinymce": "copyfiles -u 3 \"src/css/tinymce/**/*\" build/css/tinymce",
     "copy-jqueryui-images": "copyfiles -u 3 \"src/css/jquery-ui/jquery-ui-images/*\" build/css/",
-    "copy-jstree-images": "copyfiles -f \"node_modules/jstree/dist/themes/default/*.png\" build/css/ || copyfiles -f \"../jstree/dist/themes/default/*.png\" build/css/"
+    "copy-jstree-images": "path-exists node_modules && copyfiles -f \"node_modules/jstree/dist/themes/default/*.png\" build/css/ || copyfiles -f \"../jstree/dist/themes/default/*.png\" build/css/"
   },
   "browser": {
     "objtree": "./src/lib/objtree/ObjTree.js",
@@ -86,6 +86,7 @@
     "jest": "^25.1.0",
     "less": "^3.11.1",
     "mkdirp": "^1.0.3",
+    "path-exists-cli": "^1.0.0",
     "rimraf": "^3.0.2",
     "semantic-release": "^17.0.4",
     "travis-deploy-once": "^5.0.11"
