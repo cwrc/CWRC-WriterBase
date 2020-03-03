@@ -157,7 +157,9 @@ function Translation(writer, parentEl) {
 
             attributesWidget.mode = AttributeWidget.ADD;
             var atts = w.schemaManager.getAttributesForTag(tagName);
-            var initVals = {};
+            var initVals = {
+                type: 'translation' // TODO hardcoded
+            };
             initVals[langAttribute] = firstLang;
             attributesWidget.buildWidget(atts, initVals, tagName);
 
