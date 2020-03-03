@@ -124,13 +124,24 @@ function Translation(writer, parentEl) {
         var translation = $('#'+id+'_trans').val();
         var attributes = attributesWidget.getData();
 
-        var newTag = w.tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, w.tagger.AFTER);
+        var currTagId = w.tagger.getCurrentTag().attr('id')
+        var newTag = w.tagger.addStructureTag(tagName, attributes, {tagId: currTagId}, w.tagger.AFTER);
         var textTag = w.tagger.addStructureTag(textParentTagName, {}, {tagId: newTag.id}, w.tagger.INSIDE);
         $(textTag).html(translation);
     };
 
     return {
         show: function(config) {
+            var currTag = w.tagger.getCurrentTag().attr('_tag');
+            if (currTag !== tagName) {
+                w.dialogManager.show('message', {
+                    title: 'Translation',
+                    msg: `Please select a ${tagName} tag to translate.`,
+                    type: 'info'
+                });
+                return;
+            }
+
             var $resp = $('#'+id+'_resp');
             var hasResp = w.schemaManager.isAttributeValidForTag(respAttribute, tagName)
             if (!hasResp) {
