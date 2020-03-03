@@ -930,7 +930,7 @@ function Tagger(writer) {
         
         var $node;
         if (bookmark.tagId) {
-            // this is used when adding tags through the structure tree
+            // this is used when adding tags through the context menu, or the translation dialog
             if ($.isArray(bookmark.tagId)) {
                 $node = $('#'+bookmark.tagId.join(',#'), w.editor.getBody());
             } else {

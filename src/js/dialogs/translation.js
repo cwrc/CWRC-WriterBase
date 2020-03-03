@@ -15,6 +15,7 @@ function Translation(writer, parentEl) {
 
     // TODO hardcoded
     var tagName = 'div';
+    var textParentTagName = 'p';
     var langAttribute = 'xml:lang';
     var respAttribute = 'resp';
 
@@ -120,13 +121,12 @@ function Translation(writer, parentEl) {
     });
 
     var formResult = function() {
-        var lang = $('#'+id+'_lang').val();
         var translation = $('#'+id+'_trans').val();
-        var addResp = $('#'+id+'_resp').prop('checked');
         var attributes = attributesWidget.getData();
 
         var newTag = w.tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, w.tagger.AFTER);
-        $(newTag).html(translation);
+        var textTag = w.tagger.addStructureTag(textParentTagName, {}, {tagId: newTag.id}, w.tagger.INSIDE);
+        $(textTag).html(translation);
     };
 
     return {
