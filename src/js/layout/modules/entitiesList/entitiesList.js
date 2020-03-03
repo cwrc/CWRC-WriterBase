@@ -1,9 +1,9 @@
 import $ from 'jquery';
 import Mapper from 'mapper';
 
-import 'jquery-ui/ui/widgets/button';
-import 'jquery-ui/ui/widgets/selectmenu';
-import 'jquery-ui/ui/widgets/tooltip';
+require('jquery-ui/ui/widgets/button');
+require('jquery-ui/ui/widgets/selectmenu');
+require('jquery-ui/ui/widgets/tooltip');
 
 /**
  * @class EntitiesList
