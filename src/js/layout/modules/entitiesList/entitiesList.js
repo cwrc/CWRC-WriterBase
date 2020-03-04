@@ -1,5 +1,7 @@
-import $ from 'jquery';
-import Mapper from 'mapper';
+'use strict';
+
+const $ = require('jquery');
+const Mapper = require('mapper')
 
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/selectmenu');
@@ -12,7 +14,7 @@ require('jquery-ui/ui/widgets/tooltip');
  * @param {Writer} config.writer
  * @param {String} config.parentId
  */
-export function EntitiesList({writer,parentId}) {
+function EntitiesList({writer,parentId}) {
     const w = writer;
     const id = parentId;
 
@@ -480,3 +482,5 @@ export function EntitiesList({writer,parentId}) {
 
     return pm;
 }
+
+module.exports = EntitiesList;

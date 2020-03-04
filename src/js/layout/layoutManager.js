@@ -6,7 +6,7 @@ require('jquery-ui/ui/widgets/tabs');
 var fscreen = require('fscreen')['default'];
 
 var StructureTree = require('./modules/structureTree/structureTree.js');
-import {EntitiesList} from './modules/entitiesList/entitiesList.js';
+var EntitiesList = require('./modules/entitiesList/entitiesList.js')
 var Validation = require('./modules/validation/validation.js');
 var Relations = require('./modules/relations/relations.js');
 var Selection = require('./modules/selection/selection.js');
@@ -526,4 +526,4 @@ function initModule(idPrefix, writer, module) {
     return null;
 }
 
-export default LayoutManager;
+module.exports = LayoutManager;

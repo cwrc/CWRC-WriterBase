@@ -11,7 +11,7 @@ var Tagger = require('./tagger.js');
 var Converter = require('./conversion/converter.js');
 var AnnotationsManager = require('annotationsManager');
 var SettingsDialog = require('./dialogs/settings.js');
-import LayoutManager from './layout/layoutManager.js';
+var LayoutManager = require('./layout/layoutManager.js');
 var TagContextMenu = require('./tagContextMenu.js');
 var TinymceWrapper = require('./tinymceWrapper.js');
 
@@ -379,4 +379,4 @@ function CWRCWriter(config) {
     return w;
 };
 
-export default CWRCWriter;
+module.exports = CWRCWriter;
