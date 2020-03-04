@@ -407,22 +407,14 @@ function XML2CWRC(writer) {
                 htmlTag = w.schemaManager.getTagForEditor(nodeName);
             }
 
-            openingTagString += '<'+htmlTag+' _tag="'+nodeName+'"';
-            closingTagString = '</'+htmlTag+'>';
-            
-            if (node.childNodes.length === 0) {
-                closingTagString = '\uFEFF'+closingTagString;
-            }
-
             if (node.hasAttribute('id')) {
                 console.warn('xml2cwrc.buildEditorString: node already had an ID!', node.getAttribute('id'));
                 node.removeAttribute('id');
             }
             var id = w.getUniqueId('dom_');
-            openingTagString += ' id="'+id+'"';
-            
             var canContainText = w.schemaManager.canTagContainText(nodeName);
-            openingTagString += ' _textallowed="'+canContainText+'"';
+
+            openingTagString = '<'+htmlTag+' _tag="'+nodeName+'" id="'+id+'" _textallowed="'+canContainText+'"';
 
             if (node.hasAttributes()) {
                 var jsonAttrs = {};
@@ -448,13 +440,21 @@ function XML2CWRC(writer) {
                 jsonAttrsString = jsonAttrsString.replace(/"/g, '&quot;');
                 openingTagString += ' _attributes="'+jsonAttrsString+'"';
             }
-
-            openingTagString += '>';
+            
+            if (node.childNodes.length === 0) {
+                openingTagString += '>';
+                closingTagString = '\uFEFF</'+htmlTag+'>';
+            } else {
+                openingTagString += '>';
+                closingTagString = '</'+htmlTag+'>';
+            }
         } else if (node.nodeType === Node.TEXT_NODE) {
             var content = node.data.replace(/</g, '&lt;').replace(/>/g, '&gt;'); // prevent tags from accidentally being created
             openingTagString = content;
         } else if (node.nodeType === Node.COMMENT_NODE) {
-            // TODO handle comments
+            // preserve comment
+            openingTagString += '<!--'+node.data;
+            closingTagString = '-->';
         } else {
             console.warn('xml2cwrc.buildEditorString: unsupported node type:', node.nodeType);
         }

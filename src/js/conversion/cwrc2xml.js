@@ -270,21 +270,17 @@ function CWRC2XML(writer) {
                         array = ['', ''];
                     }
                 } else {
-                    if (tag === '#comment') {
-                        array = ['<!-- ', ' -->'];
-                    } else {
-                        var openingTag = '<'+tag;
-                        var attributes = w.tagger.getAttributesForTag(currNode[0]);
-                        for (var attName in attributes) {
-                            var attValue = attributes[attName];
-                            // attValue = w.utilities.convertTextForExport(attValue); TODO is this necessary?
-                            openingTag += ' '+attName+'="'+attValue+'"';
-                        }
-                        openingTag += '>';
-                        
-                        array.push(openingTag);
-                        array.push('</'+tag+'>');
+                    var openingTag = '<'+tag;
+                    var attributes = w.tagger.getAttributesForTag(currNode[0]);
+                    for (var attName in attributes) {
+                        var attValue = attributes[attName];
+                        // attValue = w.utilities.convertTextForExport(attValue); TODO is this necessary?
+                        openingTag += ' '+attName+'="'+attValue+'"';
                     }
+                    openingTag += '>';
+                    
+                    array.push(openingTag);
+                    array.push('</'+tag+'>');
                 }
             }
     
@@ -299,6 +295,8 @@ function CWRC2XML(writer) {
                     doBuild($(el));
                 } else if (el.nodeType == Node.TEXT_NODE) {
                     xmlString += el.data;
+                } else if (el.nodeType == Node.COMMENT_NODE) {
+                    xmlString += '<!--'+el.data+'-->';
                 }
             });
             xmlString += tags[1];
