@@ -68,10 +68,16 @@ function Nerve(config) {
                         <label for="filter" title="Filter" class="fas fa-filter"></label>
                         <select name="filter">
                             <option value="all" selected="selected">All</option>
-                            <option value="person">Person</option>
-                            <option value="place">Place</option>
-                            <option value="org">Organization</option>
-                            <option value="title">Title</option>
+                            <optgroup label="Type">
+                                <option value="type_person">Person</option>
+                                <option value="type_place">Place</option>
+                                <option value="type_org">Organization</option>
+                                <option value="type_title">Title</option>
+                            </optgroup>
+                            <optgroup label="Status">
+                                <option value="status_edited">Edited</option>
+                                <option value="status_notedited">Not Edited</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div style="display: inline-block; margin: 5px;">
@@ -123,11 +129,15 @@ function Nerve(config) {
                 msg: `<p>You are about to lose edits you've made to ${totalModified} Nerve-identified entit${totalModified > 1 ? 'ies' : 'y'}.</p>
                 <p>Do you wish to proceed?</p>`,
                 // showConfirmKey: 'confirm-reject-nerve-entities',
+                noText: 'No, review edited entities',
                 type: 'info',
                 callback: function(doIt) {
                     if (doIt) {
                         rejectAll(true);
                         handleDone();
+                    } else {
+                        setFilterValue('status_edited');
+                        filterEntityView('status_edited');
                     }
                 }
             });
@@ -138,7 +148,7 @@ function Nerve(config) {
     });
     // FILTER
     $parent.find('select[name="filter"]').on('selectmenuchange', function() {
-        filterEntityView(getFilter());
+        filterEntityView(getFilterValue());
     });
     // SORTING
     $parent.find('select[name="sorting"]').on('selectmenuchange', function() {
@@ -491,7 +501,7 @@ function Nerve(config) {
                     filterEntityView('all');
                 } else {
                     var type = checked.first().data('type');
-                    filterEntityView(type);
+                    filterEntityView('type_'+type);
                 }
             });
         }
@@ -590,20 +600,47 @@ function Nerve(config) {
         view.find('.info').html(getEntityViewInfo(entity));
     }
 
-    var filterEntityView = function(filterType) {
+    /**
+     * Filter the view based on the specified filter.
+     * Can be either a type or status filter. If not specified, assumed to be type filter.
+     * If specified, format is: filterType_filterValue. For example: status_edited, type_place
+     * @param {String} filter
+     */
+    var filterEntityView = function(filter) {
+        let filterType = 'type';
+        if (filter.indexOf('_') !== -1) {
+            const details = filter.split('_');
+            filterType = details[0];
+            filter = details[1];
+        }
         $parent.find('ul.entitiesList > li').each(function(index, el) {
-            if (filterType === 'all' || $(this).hasClass(filterType)) {
-                $(this).show();
+            const $ent = $(this)
+            if (filter === 'all') {
+                $ent.show();
             } else {
-                $(this).hide();
+                if (filterType === 'type') {
+                    if ($ent.hasClass(filter)) {
+                        $ent.show();
+                    } else {
+                        $ent.hide();
+                    }
+                } else {
+                    const entry = w.entitiesManager.getEntity($ent.data('id'))
+                    const isEdited = (entry && entry.getCustomValue('edited') === 'true') || $ent.hasClass('merged');
+                    if ((filter === 'edited' && isEdited) || (filter === 'notedited' && !isEdited)) {
+                        $ent.show();
+                    } else {
+                        $ent.hide();
+                    }
+                }
             }
         });
     }
 
-    var getFilter = function() {
+    var getFilterValue = function() {
         return $parent.find('select[name="filter"]').val();
     }
-    var setFilter = function(value) {
+    var setFilterValue = function(value) {
         $parent.find('select[name="filter"]').val(value).selectmenu('refresh');
     }
 
@@ -766,7 +803,7 @@ function Nerve(config) {
     var acceptAll = function() {
         w.event('massUpdateStarted').publish();
         
-        var filter = getFilter();
+        var filter = getFilterValue();
 
         var li = w.dialogManager.getDialog('loadingindicator');
         li.setText('Accepting Entities');
@@ -788,7 +825,7 @@ function Nerve(config) {
                 acceptEntity(ent.getId(), false);
             }
         }).then(() => {
-            setFilter('all');
+            setFilterValue('all');
 
             renderEntitiesList();
 
@@ -829,7 +866,7 @@ function Nerve(config) {
     var rejectAll = function(isDone) {
         w.event('massUpdateStarted').publish();
 
-        var filter = getFilter();
+        var filter = getFilterValue();
 
         var li = w.dialogManager.getDialog('loadingindicator');
         li.setText('Rejecting Entities');
@@ -847,7 +884,7 @@ function Nerve(config) {
                 rejectEntity(ent.getId(), false);
             }
         }).then(() => {
-            setFilter('all');
+            setFilterValue('all');
 
             renderEntitiesList();
 
@@ -865,7 +902,7 @@ function Nerve(config) {
                 var entity = w.entitiesManager.getEntity(dialog.currentId);
                 
                 updateEntityView(entity, true);
-                filterEntityView(getFilter());
+                filterEntityView(getFilterValue());
             });
         }
         editDialog.show({entry: getEntryForEntityId(entityId)});
