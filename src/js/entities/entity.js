@@ -310,6 +310,8 @@ Entity.prototype = {
                 clone[key] = prop;
             }
         }
+
+        clone.dateCreated = new Date().toISOString();
         
         return clone;
     }
