@@ -1118,15 +1118,25 @@ function NerveEditDialog(writer, parentEl) {
         }
 
         if (dialog.isValid) {
+            var sm = w.schemaManager;
+
             var type = dialog.currentData.properties.type;
-            var tag = w.schemaManager.mapper.getParentTag(type);
+            var tag = sm.mapper.getParentTag(type);
             dialog.currentData.properties.tag = tag;
 
-            var lemmaMapping = w.schemaManager.mapper.getAttributeForProperty(type, 'lemma');
+            var oldType = w.entitiesManager.getEntity(dialog.currentId).getType();
+            if (type !== oldType) {
+                var requiredAttributes = sm.mapper.getRequiredAttributes(oldType)
+                for (var attName in requiredAttributes) {
+                    delete dialog.currentData.attributes[attName];
+                }
+            }
+
+            var lemmaMapping = sm.mapper.getAttributeForProperty(type, 'lemma');
             if (lemmaMapping) {
                 dialog.currentData.attributes[lemmaMapping] = dialog.currentData.properties.lemma
             }
-            var uriMapping = w.schemaManager.mapper.getAttributeForProperty(type, 'uri');
+            var uriMapping = sm.mapper.getAttributeForProperty(type, 'uri');
             if (uriMapping) {
                 dialog.currentData.attributes[uriMapping] = dialog.currentData.properties.uri
             }

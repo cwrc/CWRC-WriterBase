@@ -90,6 +90,14 @@ EntitiesManager.prototype = {
      * @returns {Entity} The edited Entity
      */
     editEntity: function(entity, info) {
+        if (info.properties && info.properties.type && info.properties.type !== entity.getType()) {
+            // changing type, remove old requiredAttributes
+            var requiredAttributes = this.w.schemaManager.mapper.getRequiredAttributes(entity.getType());
+            for (var attName in requiredAttributes) {
+                entity.removeAttribute(attName);
+            }
+        }
+
         // set attributes
         entity.setAttributes(info.attributes);
 
