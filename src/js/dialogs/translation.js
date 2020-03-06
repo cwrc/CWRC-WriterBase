@@ -15,6 +15,7 @@ function Translation(writer, parentEl) {
 
     // TODO hardcoded
     var tagName = 'div';
+    var textParentTagName = 'p';
     var langAttribute = 'xml:lang';
     var respAttribute = 'resp';
 
@@ -68,9 +69,9 @@ function Translation(writer, parentEl) {
     });
 
     var langOptions = iso6392.reduce((result, lang) => {
-        var value = lang.iso6391;//lang.iso6392T === null ? lang.iso6392B : lang.iso6392T
+        var value = lang.iso6391;//lang.iso6392T === undefined ? lang.iso6392B : lang.iso6392T
         var name = lang.name;
-        if (value !== null) {
+        if (value !== undefined) {
             result.push({
                 name, value
             })
@@ -120,25 +121,47 @@ function Translation(writer, parentEl) {
     });
 
     var formResult = function() {
-        var lang = $('#'+id+'_lang').val();
         var translation = $('#'+id+'_trans').val();
-        var addResp = $('#'+id+'_resp').prop('checked');
         var attributes = attributesWidget.getData();
 
-        var newTag = w.tagger.addStructureTag(tagName, attributes, w.editor.currentBookmark, w.tagger.AFTER);
-        $(newTag).html(translation);
+        var currTagId = w.tagger.getCurrentTag().attr('id')
+        var newTag = w.tagger.addStructureTag(tagName, attributes, {tagId: currTagId}, w.tagger.AFTER);
+        var textTag = w.tagger.addStructureTag(textParentTagName, {}, {tagId: newTag.id}, w.tagger.INSIDE);
+        $(textTag).html(translation);
     };
 
     return {
         show: function(config) {
+            var currTag = w.tagger.getCurrentTag().attr('_tag');
+            if (currTag !== tagName) {
+                w.dialogManager.show('message', {
+                    title: 'Translation',
+                    msg: `Please select a ${tagName} tag to translate.`,
+                    type: 'info'
+                });
+                return;
+            }
+
+            var $resp = $('#'+id+'_resp');
+            var hasResp = w.schemaManager.isAttributeValidForTag(respAttribute, tagName)
+            if (!hasResp) {
+                $resp.parent().hide()
+            } else {
+                $resp.parent().show()
+            }
+            $resp.prop('checked', false);
+
             var firstLang = $('#'+id+'_lang > option:eq(0)').val();
             $('#'+id+'_lang').val(firstLang);
-            $('#'+id+'_resp').prop('checked', false);
             $('#'+id+'_trans').val('');
 
             attributesWidget.mode = AttributeWidget.ADD;
             var atts = w.schemaManager.getAttributesForTag(tagName);
-            attributesWidget.buildWidget(atts, {}, tagName);
+            var initVals = {
+                type: 'translation' // TODO hardcoded
+            };
+            initVals[langAttribute] = firstLang;
+            attributesWidget.buildWidget(atts, initVals, tagName);
 
             $('#'+id+'_atts').parent().accordion('option', 'active', false);
 

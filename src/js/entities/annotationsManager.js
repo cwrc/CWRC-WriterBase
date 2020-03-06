@@ -64,7 +64,7 @@ AnnotationsManager.prototype = {
     constructor: AnnotationsManager,
 
     getAnnotationURIForEntity: function(entity) {
-        var annoIdDateString = moment(entity.getDateCreated()).format('YYYYMMDDHHmmss');
+        var annoIdDateString = moment(entity.getDateCreated()).format('YYYYMMDDHHmmssSSS');
         var annotationId = entity.getType()+'_annotation_'+annoIdDateString; // github doc + entity type + datestring
         return encodeURI(annotationId);
     },

@@ -21,8 +21,8 @@ function EntitiesManager(writer) {
         // this.highlightEntity(entityId);
     }.bind(this));
     this.w.event('entityEdited').subscribe(function(entityId) {
-        // TODO update text content for entity here?
-        this.highlightEntity(entityId);
+        // don't highlight the entity because it will move the cursor outside of the entity when the user is editing
+        // this.highlightEntity(entityId);
     }.bind(this));
     this.w.event('entityRemoved').subscribe(function(entityId) {
         this.highlightEntity();
@@ -90,6 +90,14 @@ EntitiesManager.prototype = {
      * @returns {Entity} The edited Entity
      */
     editEntity: function(entity, info) {
+        if (info.properties && info.properties.type && info.properties.type !== entity.getType()) {
+            // changing type, remove old requiredAttributes
+            var requiredAttributes = this.w.schemaManager.mapper.getRequiredAttributes(entity.getType());
+            for (var attName in requiredAttributes) {
+                entity.removeAttribute(attName);
+            }
+        }
+
         // set attributes
         entity.setAttributes(info.attributes);
 

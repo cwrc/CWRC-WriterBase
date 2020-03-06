@@ -1,3 +1,7 @@
+# CWRC-Writer-Base
+
+================
+
 ![Picture](https://cwrc.ca/logos/CWRC_logos_2016_versions/CWRCLogo-Horz-FullColour.png)
 
 [![Travis](https://img.shields.io/travis/cwrc/CWRC-WriterBase.svg)](https://travis-ci.org/cwrc/CWRC-WriterBase)
@@ -9,10 +13,7 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
 
-CWRC-Writer-Base
-================
-
-The [Canadian Writing Research Collaboratory (CWRC)](https://cwrc.ca/) has developed an in-browser text markup editor (CWRC-Writer) for use by individual scholars and collaborative scholarly editing projects that require a light-weight online editing environment. This package is the base code that builds on the TinyMCE editor, and is meant to be bundled together with two other packages that provide document storage and entity lookup.  A default version of the CWRC-Writer that uses GitHub for storage is available for anyone's use at [https://cwrc-writer.cwrc.ca/](https://cwrc-writer.cwrc.ca/).
+The [Canadian Writing Research Collaboratory (CWRC)](https://cwrc.ca/) has developed an in-browser text markup editor (CWRC-Writer) for use by individual scholars and collaborative scholarly editing projects that require a light-weight online editing environment. This package is the base code that builds on the TinyMCE editor, and is meant to be bundled together with two other packages that provide document storage and entity lookup. A default version of the CWRC-Writer that uses GitHub for storage is available for anyone's use at [https://cwrc-writer.cwrc.ca/](https://cwrc-writer.cwrc.ca/).
 
 ## Table of Contents
 
@@ -31,26 +32,26 @@ It is built around a heavily customized version of the [TinyMCE](https://www.tin
 A CWRC-Writer installation is a bundling of the main CWRC-WriterBase (the code in this repository) with  
 a few other NPM packages that handle interaction with server-side services for document storage and named entity lookup.
 
-The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/cwrc/cwrc-gitwriter). It uses 
-GitHub to store documents via the [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs) package. Entity lookups for [VIAF](https://viaf.org), [WikiData](https://www.wikidata.org), [DBpedia](http://wiki.dbpedia.org), 
+The default implementation of the CWRC-Writer is the [CWRC-GitWriter](https://github.com/cwrc/cwrc-gitwriter). It uses
+GitHub to store documents via the [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs) package. Entity lookups for [VIAF](https://viaf.org), [WikiData](https://www.wikidata.org), [DBpedia](http://wiki.dbpedia.org),
 [Getty](http://vocab.getty.edu) and [GeoNames](https://www.geonames.org/) are provided via [CWRC-PublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) and related [lookup packages](https://github.com/cwrc?q=entity-lookup).
 
 ## Storage and Entity Lookup
 
-If you choose not to use either the default GitHub storage or named entity lookups, then most of the 
-work in setting up CWRC-Writer for your project will be in implementing the dialogs to interact with your backend storage 
-and/or named entity lookups. We have split these pieces off into their own packages in large part to make it easier to 
-substitute your own dialogs and supporting services.  
+If you choose not to use either the default GitHub storage or named entity lookups, then most of the
+work in setting up CWRC-Writer for your project will be in implementing the dialogs to interact with your backend storage
+and/or named entity lookups. We have split these pieces off into their own packages in large part to make it easier to
+substitute your own dialogs and supporting services.
 
-A good example to follow when creating a new CWRC-Writer project is our public implementation 
-[CWRC-GitWriter](https://github.com/cwrc/CWRC-GitWriter). You might also choose to use either the 
-[GitHub storage dialogs](https://github.com/cwrc/cwrc-git-dialogs) or the [named entity lookups](https://github.com/cwrc/CWRC-PublicEntityDialogs), both of which are used by the CWRC-GitWriter, 
-and replace just one of the two.  To help understand how we've developed the CWRC-Writer, you could also 
+A good example to follow when creating a new CWRC-Writer project is our public implementation
+[CWRC-GitWriter](https://github.com/cwrc/CWRC-GitWriter). You might also choose to use either the
+[GitHub storage dialogs](https://github.com/cwrc/cwrc-git-dialogs) or the [named entity lookups](https://github.com/cwrc/CWRC-PublicEntityDialogs), both of which are used by the CWRC-GitWriter,
+and replace just one of the two. To help understand how we've developed the CWRC-Writer, you could also
 look at our [development docs](https://github.com/cwrc/CWRC-Writer-Dev-Docs).
 
 To replace either of the storage and entity dialogs, you'll need to create modules with the following APIs:
 
-#### Storage Object API
+### Storage Object API
 
 To see the methods that need to be provided by your own storage implementation, you can view the [cwrc-git-dialogs API](https://github.com/cwrc/cwrc-git-dialogs#methods-used-by-cwrc-writerbase).
 
@@ -60,13 +61,13 @@ Note that because the `load(writer)` and `save(writer)` methods are passed an in
 
 You have at least two choices here:
 
-1. You can entirely implement your own dialog for entity lookup, following the model in 
-[CWRC-PublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs)
+1. You can entirely implement your own dialog for entity lookup, following the model in
+   [CWRC-PublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs)
 
-2. You can use [CWRC-PublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) and configure it with different 
-sources.  We provide five sources: VIAF, Wikidata, Getty, DBpedia, and GeoNames.
+2. You can use [CWRC-PublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) and configure it with different
+   sources. We provide five sources: VIAF, Wikidata, Getty, DBpedia, and GeoNames.
 
-You can use any of these sources, and supplement them with your own sources.  [CWRC-PublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) fully explains how to add your own sources.
+You can use any of these sources, and supplement them with your own sources. [CWRC-PublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) fully explains how to add your own sources.
 
 ## API
 
@@ -81,19 +82,20 @@ See [CWRC-GitWriter/src/js/config.js](https://github.com/cwrc/CWRC-GitWriter/blo
 
 Options that can be set on the configuration object:
 
-##### Required Options
+#### Required Options
 
-* `config.container`: String. The ID of the element that should contain the CWRC-Writer.
-* `config.storageDialogs`: Object. Storage dialogs, see [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs) for example and API definition.
-* `config.entityLookupDialogs`: Object. Entity lookup, see [cwrc-public-entity-dialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) for example and API definition.
+- `config.container`: String. The ID of the element that should contain the CWRC-Writer.
+- `config.storageDialogs`: Object. Storage dialogs, see [cwrc-git-dialogs](https://github.com/cwrc/cwrc-git-dialogs) for example and API definition.
+- `config.entityLookupDialogs`: Object. Entity lookup, see [cwrc-public-entity-dialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) for example and API definition.
 
 ##### Other Options
 
-* `config.cwrcRootUrl`: String. An absolute URL that should point to the root of the CWRC-Writer directory. If blank, the browser URL will be used.
-* `config.modules`: Object. The internal CWRC-WriterBase [modules](#modules) to load, grouped by their locations relative to the CWRC-Writer. A module ID must be provided. An optional display title can be specified. Certain modules require additional configuration.
-  
+- `config.cwrcRootUrl`: String. An absolute URL that should point to the root of the CWRC-Writer directory. If blank, the browser URL will be used.
+- `config.modules`: Object. The internal CWRC-WriterBase [modules](#modules) to load, grouped by their locations relative to the CWRC-Writer. A module ID must be provided. An optional display title can be specified. Certain modules require additional configuration.
+
   For example:
-  ```
+
+  ```js
   config.modules = {
     west: [
       {id: 'structure', title: 'Markup'},
@@ -107,17 +109,18 @@ Options that can be set on the configuration object:
     ]
   }
   ```
-* `config.annotator`: Boolean. If true, the user may only add annotations to the document.
-* `config.readonly`: Boolean. If true, the user may not edit nor annotate the document.
-* `config.mode`: String. The mode in which to start the CWRC-Writer: `xml` or `xmlrdf`.
-* `config.allowOverlap`: Boolean. Should overlapping entities be allowed initially?
-* `config.schemas`: Object. A map of schema objects that can be used in the CWRC-Writer. Each entry should contain the following:
-  * `name`: String. The schema title.
-  * `url`: String. An URL that links to the schema (RELAX NG) file.
-  * `cssUrl`: String. An URL that links to the CSS associated with this schema.
-  * `schemaMappingsId`: String. The directory name in the [schema directory](src/js/schema) from which to load mapping and dialogs files for the schema.
-  * `altUrl`: String. Optional. An alternative URL that links to the schema file. This can be used in the rare case that you want to match against a particular schema URL, but load the schema from another location (e.g. to avoid CORS errors).
-* `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of buttons to display in the CWRC-Writer toolbars. Possible values: `schematags, addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, toggletags, viewmarkup, editsource, validate, savebutton, loadbutton, logoutbutton, fullscreen`.
+
+- `config.annotator`: Boolean. If true, the user may only add annotations to the document.
+- `config.readonly`: Boolean. If true, the user may not edit nor annotate the document.
+- `config.mode`: String. The mode in which to start the CWRC-Writer: `xml` or `xmlrdf`.
+- `config.allowOverlap`: Boolean. Should overlapping entities be allowed initially?
+- `config.schemas`: Object. A map of schema objects that can be used in the CWRC-Writer. Each entry should contain the following:
+  - `name`: String. The schema title.
+  - `url`: String. An URL that links to the schema (RELAX NG) file.
+  - `cssUrl`: String. An URL that links to the CSS associated with this schema.
+  - `schemaMappingsId`: String. The directory name in the [schema directory](src/js/schema) from which to load mapping and dialogs files for the schema.
+  - `altUrl`: String. Optional. An alternative URL that links to the schema file. This can be used in the rare case that you want to match against a particular schema URL, but load the schema from another location (e.g. to avoid CORS errors).
+- `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of buttons to display in the CWRC-Writer toolbars. Possible values: `schematags, addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, toggletags, viewmarkup, editsource, validate, savebutton, loadbutton, logoutbutton, fullscreen`.
 
 ### Writer object
 
@@ -125,47 +128,59 @@ The object returned by the constructor is defined here: [writer.js](src/js/write
 
 #### Properties
 
-###### isInitialized
-boolean    
- *Has the editor been initialized.* 
+##### isInitialized
 
-###### isDocLoaded
-boolean    
- *Is there a document loaded in the editor.* 
- 
-###### isReadOnly
-boolean     
- *Is the editor in `readonly` mode.*  
-  
-###### isAnnotator
 boolean  
-*Is the editor in annotate (entities) only mode.*
+ _Has the editor been initialized._
+
+##### isDocLoaded
+
+boolean  
+ _Is there a document loaded in the editor._
+
+##### isReadOnly
+
+boolean  
+ _Is the editor in `readonly` mode._
+
+##### isAnnotator
+
+boolean  
+_Is the editor in annotate (entities) only mode._
 
 #### Methods
 
-###### loadDocumentURL(docUrl)
-*Loads an XML document from a URL into the editor.*
+##### loadDocumentURL(docUrl)
 
-###### loadDocumentXML(docXml)
-*Loads an XML document (either a [XML Document](https://developer.mozilla.org/en-US/docs/Web/API/XMLDocument) or a stringified version of such) into the editor.*
+_Loads an XML document from a URL into the editor._
 
-###### setDocument(docUrl|docXml)
-*A convenience method which calls either `loadDocumentURL` or `loadDocumentXML` based on the parameter provided.*
+##### loadDocumentXML(docXml)
 
-###### getDocument(asString)
-*Returns the parsed XML document from the editor. If `asString` is true, then a stringified version of the document is returned.*
+_Loads an XML document (either a [XML Document](https://developer.mozilla.org/en-US/docs/Web/API/XMLDocument) or a stringified version of such) into the editor._
 
-###### getDocRawContent()
-*Returns the raw, un-parsed HTML content from the editor.*
+##### setDocument(docUrl|docXml)
 
-###### showLoadDialog()
-*Convenience method to call the `load` method of the object set in the `storageDialogs` property of the config object passed to the writer.*
+_A convenience method which calls either `loadDocumentURL` or `loadDocumentXML` based on the parameter provided._
 
-###### showSaveDialog()
-*Convenience method to call the `save` method of the object set in the `storageDialogs` property of the config object passed to the writer.*
+##### getDocument(asString)
 
-###### validate(callback)
-*Validates the current document*
+_Returns the parsed XML document from the editor. If `asString` is true, then a stringified version of the document is returned._
+
+##### getDocRawContent()
+
+_Returns the raw, un-parsed HTML content from the editor._
+
+##### showLoadDialog()
+
+_Convenience method to call the `load` method of the object set in the `storageDialogs` property of the config object passed to the writer._
+
+##### showSaveDialog()
+
+_Convenience method to call the `save` method of the object set in the `storageDialogs` property of the config object passed to the writer._
+
+##### validate(callback)
+
+_Validates the current document_
 
 callback(w, valid): function where w is the writer and valid is true/false.
 Fires a `documentValidated` event if validation is successful.
@@ -226,7 +241,7 @@ Module ID: `validation`
 
 Configuration:
 
-* `validationUrl`: The URL for the validation service endpoint. The CWRC-hosted service is at https://validator.services.cwrc.ca/validator/validate.html.
+- `validationUrl`: The URL for the validation service endpoint. The CWRC-hosted service is at [https://validator.services.cwrc.ca/validator/validate.html)](https://validator.services.cwrc.ca/validator/validate.html).
 
 Requests and displays the results of document validation. See [validate](#validate-callback).
 
@@ -236,7 +251,7 @@ Module ID: `nerve`
 
 Configuration:
 
-* `nerveUrl`: The URL for the NERVE service endpoint. The CWRC-hosted service is at https://nerve.services.cwrc.ca/ner.
+- `nerveUrl`: The URL for the NERVE service endpoint. The CWRC-hosted service is at [https://nerve.services.cwrc.ca/ner](https://nerve.services.cwrc.ca/ner).
 
 Sends the document for named entity recognition and adds the results as entities to the document.
 
