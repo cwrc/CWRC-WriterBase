@@ -11,6 +11,7 @@ import CWRCWriter from '../src/js/writer.js';
 // eWin.show();
 
 const WAIT_TIME = 150;
+// jest.setTimeout(30000);
 
 // override alert function so it doesn't hold up tests
 window.alert = (msg) => {
@@ -23,17 +24,18 @@ config.storageDialogs = require('./mocks/storage-dialogs-mock');
 config.entityLookupDialogs = require('./mocks/entity-dialogs-mock');
 config.container = 'cwrcWriterContainer';
 config.modules = {
-    west: [{id: 'structure'}, {id: 'entities'}, {id: 'nerve', config: {nerveUrl: ''}}], // TODO entities selectmenu is messing up ui-layout panel heights
+    west: [{id: 'structure'}, {id: 'entities'}, {id: 'nerve', config: {nerveUrl: 'https://localhost/nerve/'}}], // TODO entities selectmenu is messing up ui-layout panel heights
     south: [{id: 'selection'}, {id: 'validation',config: {'validationUrl': 'https://localhost/validator/validate.html'}}]
 };
 
 const teiSchema = require('./mocks/tei-schema');
 const teiCss = require('./mocks/tei-css');
 const teiDoc = require('./mocks/tei-doc');
-const nerveMock = require('./mocks/nerve-mock');
+const nerveMock = require('./mocks/nerve-mock.json');
 
 fetchMock.mock(/.*schema\/xml/, teiSchema);
 fetchMock.mock(/.*schema\/css/, teiCss);
+fetchMock.mock(/.*\/ner/, nerveMock);
 
 
 let writer = undefined;
@@ -544,35 +546,28 @@ test('dialogs.popup', () => {
     });
 });
 
-test('modules.nerve', () => {
+test('modules.nerve', async () => {
     expect.assertions(2);
 
-    writer = getWriterInstance()
+    writer = getWriterInstance();
+    await initAndLoadDoc(writer, teiDoc);
 
-    return new Promise((resolve) => {
-        initAndLoadDoc(writer, teiDoc).then(() => {
-            writer.event('entityAdded').subscribe((entityId, data) => {
-                expect(writer.entitiesManager.getEntity(entityId)).toBeDefined();
-                jest.restoreAllMocks();
-                setTimeout(() => {
-                    $('.ui-layout-west .ui-layout-content > div:eq(2) button.accept').click();
-                }, 50);
-            });
+    return new Promise( (resolve) => {
+        writer.event('entityAdded').subscribe((entityId) => {
+            expect(writer.entitiesManager.getEntity(entityId)).toBeDefined();
+            jest.restoreAllMocks();
+            setTimeout(() => {
+                $('.ui-layout-west .ui-layout-content > div:eq(2) button.accept').click();
+            }, 50);
+        });
 
-            writer.event('tagAdded').subscribe((tag, data) => {
-                expect($(tag, writer.editor.getBody())).toBeDefined();
-                resolve();
-            });
+        writer.event('tagAdded').subscribe((tag) => {
+            expect($(tag, writer.editor.getBody())).toBeDefined();
+            resolve();
+        });
 
-            jest.spyOn(window.$, 'ajax').mockImplementation(({success}) => {
-                let dfd = $.Deferred();
-                dfd.resolve(nerveMock);
-                return dfd.promise();
-            });
-
-            $('.ui-layout-west ul li:eq(2) a').click();
-            $('.ui-layout-west .ui-layout-content > div:eq(2) button.run').click();
-        })
+        $('.ui-layout-west ul li:eq(2) a').click();
+        $('.ui-layout-west .ui-layout-content > div:eq(2) button.run').click();
     })
 });
 
