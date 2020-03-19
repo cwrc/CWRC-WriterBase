@@ -9,10 +9,10 @@ require('jquery-ui/ui/widgets/tooltip');
 var DialogForm = require('dialogForm');
 
 const NerveToCWRCMappings = {
-    "PERSON": "person",
-    "LOCATION": "place",
-    "ORGANIZATION": "org",
-    "TITLE": "title"
+    'PERSON': 'person',
+    'LOCATION': 'place',
+    'ORGANIZATION': 'org',
+    'TITLE': 'title'
 };
 
 /**
@@ -24,7 +24,7 @@ const NerveToCWRCMappings = {
  */
 function Nerve(config) {
     var w = config.writer;
-    
+
     var id = config.parentId;
 
     var nerveUrl = config.nerveUrl;
@@ -50,7 +50,7 @@ function Nerve(config) {
 
     var runOptions = []; // what options did the user select when running nerve
 
-    var $parent = $('#'+id);
+    var $parent = $('#' + id);
     $parent.append(`
         <div class="moduleParent nervePanel">
             <div class="moduleHeader">
@@ -215,7 +215,7 @@ function Nerve(config) {
             $.ajax({
                 url: nerveUrl + '/ner',
                 method: 'POST',
-                data: JSON.stringify({"document": document, "context": nerveContext})
+                data: JSON.stringify({'document': document, 'context': nerveContext})
             })
         ).then(function(response) {
             w.event('massUpdateStarted').publish();
@@ -473,7 +473,7 @@ function Nerve(config) {
                 if (currId == null) {
                     entityIndex = entry.entityIds.length-1;
                 } else {
-                    var idIndex = entry.entityIds.indexOf(currId);
+                    let idIndex = entry.entityIds.indexOf(currId);
                     entityIndex = idIndex - 1;
                     if (entityIndex < 0) {
                         entityIndex = entry.entityIds.length-1;
@@ -483,7 +483,7 @@ function Nerve(config) {
                 if (currId == null) {
                     entityIndex = 0;
                 } else {
-                    var idIndex = entry.entityIds.indexOf(currId);
+                    let idIndex = entry.entityIds.indexOf(currId);
                     entityIndex = idIndex + 1;
                     if (entityIndex > entry.entityIds.length-1) {
                         entityIndex = 0;
@@ -1056,7 +1056,7 @@ function Nerve(config) {
     }
 
     return nrv;
-};
+}
 
 var doLookup = function(w, query, type, callback) {
     var cD = w.initialConfig.entityLookupDialogs;
@@ -1227,7 +1227,7 @@ function MergeDialog(writer, parentEl) {
         closeOnEscape: false,
         height: 500,
         width: 400,
-        position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
+        position: { my: 'center', at: 'center', of: w.layoutManager.getContainer() },
         autoOpen: false,
         buttons: [{
             text: 'Merge',
