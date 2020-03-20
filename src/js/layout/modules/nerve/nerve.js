@@ -9,10 +9,10 @@ require('jquery-ui/ui/widgets/tooltip');
 var DialogForm = require('dialogForm');
 
 const NerveToCWRCMappings = {
-    "PERSON": "person",
-    "LOCATION": "place",
-    "ORGANIZATION": "org",
-    "TITLE": "title"
+    'PERSON': 'person',
+    'LOCATION': 'place',
+    'ORGANIZATION': 'org',
+    'TITLE': 'title'
 };
 
 /**
@@ -24,7 +24,7 @@ const NerveToCWRCMappings = {
  */
 function Nerve(config) {
     var w = config.writer;
-    
+
     var id = config.parentId;
 
     var nerveUrl = config.nerveUrl;
@@ -48,9 +48,9 @@ function Nerve(config) {
 
     var isMerge = false; // are we in merge mode
 
-    var runOptions = []; // what options did the user select when running nerve
+    let runOptions = []; // what options did the user select when running nerve
 
-    var $parent = $('#'+id);
+    var $parent = $('#' + id);
     $parent.append(`
         <div class="moduleParent nervePanel">
             <div class="moduleHeader">
@@ -191,78 +191,94 @@ function Nerve(config) {
         setMergeMode(false);
     });
 
-
-    var run = function() {
+    const run = async () => {
         nrv.reset();
         
-        var document = getBasicXmlDocument();
-        var nerveContext = buildContext();
-        
-        var options = $parent.find('select[name="processOptions"]').val();
+        const document = getBasicXmlDocument();
+        const nerveContext = buildContext();
+
+        const options = $parent.find('select[name="processOptions"]').val();
         runOptions = ['tag', 'link'];
         if (options === 'tag') {
             runOptions = ['tag'];
         } else if (options === 'link') {
             runOptions = ['link'];
         }
-        
-        var li = w.dialogManager.getDialog('loadingindicator');
+
+        const li = w.dialogManager.getDialog('loadingindicator');
         li.setText('Contacting NERVE');
         li.setValue(false);
         li.show();
 
-        $.when(
-            $.ajax({
-                url: nerveUrl + '/ner',
-                method: 'POST',
-                data: JSON.stringify({"document": document, "context": nerveContext})
+        const response = await fetch(`${nerveUrl}/ner`, {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                document,
+                context: nerveContext
             })
-        ).then(function(response) {
-            w.event('massUpdateStarted').publish();
-
-            var doc = w.utilities.stringToXML(response.document);
-            if (doc === null) {
-                console.warn('nerve.run: could not parse response from NERVE');
-                li.hide();
-                return;
-            }
-            var context = JSON.parse(response.context);
-            var entities = processNerveResponse(doc, context);
-
-            li.setText('Processing Response');
-
-            w.tagger.removeNoteWrappersForEntities();
-
-            w.utilities.processArray(entities, addEntityFromNerve).then(()=>{
-                w.tagger.addNoteWrappersForEntities();
-
-                li.hide();
-    
-                renderEntitiesList();
-    
-                w.event('massUpdateCompleted').publish();
-    
-                w.editor.setMode('readonly');
-                $parent.find('button.run').hide();
-                $parent.find('button.done').show();
-    
-                $parent.find('.filters').show();
-                $parent.find('.listActions').show();
-    
-                $parent.find('select[name="processOptions"]').selectmenu('option', 'disabled', true);
-                $parent.find('button.mergeEntities').button('enable');
-            });
-            
-        }, function(msg) {
+        }).catch( (msg) => {
             console.warn('encoding failed', msg);
             li.hide();
             w.dialogManager.show('message', {
                 title: 'Error',
-                msg: 'The NERVE server returned an error: '+msg.exception,
+                msg: `The NERVE server returned an error: ${msg.exception}`,
                 type: 'error'
             });
         });
-    }
+
+        const results = await response.json();
+        
+        // Handling bad request (possibly encode error):
+        if (results['http-response-status'] === 400) {
+            console.warn(`The NERVE server returned an error. Bad request (possibly encode error): ${results.message}`);
+            li.hide();
+            w.dialogManager.show('message', {
+                title: 'Error',
+                msg: `The NERVE server returned an error. Bad request (possibly encode error): ${results.message}`,
+                type: 'error'
+            });
+        }
+
+        w.event('massUpdateStarted').publish();
+
+        const doc = w.utilities.stringToXML(results.document);
+        if (doc === null) {
+            console.warn('nerve.run: could not parse response from NERVE');
+            li.hide();
+            return;
+        }
+
+        const context = JSON.parse(results.context);
+        const entities = processNerveResponse(doc, context);
+
+        li.setText('Processing Response');
+
+        w.tagger.removeNoteWrappersForEntities();
+
+        await w.utilities.processArray(entities, addEntityFromNerve);
+
+        w.tagger.addNoteWrappersForEntities();
+
+        li.hide();
+
+        renderEntitiesList();
+
+        w.event('massUpdateCompleted').publish();
+
+        w.editor.setMode('readonly');
+        $parent.find('button.run').hide();
+        $parent.find('button.done').show();
+
+        $parent.find('.filters').show();
+        $parent.find('.listActions').show();
+
+        $parent.find('select[name="processOptions"]').selectmenu('option', 'disabled', true);
+        $parent.find('button.mergeEntities').button('enable');
+
+    };
 
     // Converts to xml using just the _tag attribute and ignores everything else.
     // We don't want to do a full/normal conversion because of differences between entities in the editor and in the outputted xml.
@@ -473,7 +489,7 @@ function Nerve(config) {
                 if (currId == null) {
                     entityIndex = entry.entityIds.length-1;
                 } else {
-                    var idIndex = entry.entityIds.indexOf(currId);
+                    let idIndex = entry.entityIds.indexOf(currId);
                     entityIndex = idIndex - 1;
                     if (entityIndex < 0) {
                         entityIndex = entry.entityIds.length-1;
@@ -483,7 +499,7 @@ function Nerve(config) {
                 if (currId == null) {
                     entityIndex = 0;
                 } else {
-                    var idIndex = entry.entityIds.indexOf(currId);
+                    let idIndex = entry.entityIds.indexOf(currId);
                     entityIndex = idIndex + 1;
                     if (entityIndex > entry.entityIds.length-1) {
                         entityIndex = 0;
@@ -1056,7 +1072,7 @@ function Nerve(config) {
     }
 
     return nrv;
-};
+}
 
 var doLookup = function(w, query, type, callback) {
     var cD = w.initialConfig.entityLookupDialogs;
@@ -1227,7 +1243,7 @@ function MergeDialog(writer, parentEl) {
         closeOnEscape: false,
         height: 500,
         width: 400,
-        position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
+        position: { my: 'center', at: 'center', of: w.layoutManager.getContainer() },
         autoOpen: false,
         buttons: [{
             text: 'Merge',
