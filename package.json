@@ -68,8 +68,8 @@
     "tinymce": "4.9.8"
   },
   "devDependencies": {
-    "@babel/core": "^7.8.7",
-    "@babel/preset-env": "^7.8.7",
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
     "@jest-runner/electron": "^2.0.3",
     "@semantic-release/changelog": "^5.0.0",
     "@semantic-release/git": "^9.0.0",
@@ -79,9 +79,9 @@
     "commitizen": "^4.0.3",
     "copyfiles": "^2.2.0",
     "cz-conventional-changelog": "^3.1.0",
-    "electron": "^8.1.1",
+    "electron": "^8.2.0",
     "eslint": "^6.8.0",
-    "fetch-mock": "^9.2.1",
+    "fetch-mock": "^9.3.1",
     "husky": "^4.2.3",
     "jest": "^25.1.0",
     "less": "^3.11.1",
