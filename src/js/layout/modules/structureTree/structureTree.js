@@ -23,7 +23,7 @@ function StructureTree(config) {
         selectionType: null, // is the node or the just the contents of the node selected?
         NODE_SELECTED: 0,
         CONTENTS_SELECTED: 1,
-        tagFilter: ['head','heading'] // array of tag names to filter tree by
+        tagFilter: ['head','heading'] // array of tag names to filter tree by. "head" is for tei lite. "heading" is for cwrc entry.
     };
     
     // 2 uses, 1) we want to highlight a node in the tree without selecting it's counterpart in the editor
@@ -60,6 +60,20 @@ function StructureTree(config) {
             if (rootData != null) {
                 rootData.li_attr.id = 'cwrc_tree_root';
                 _doUpdate(rootNode.children(), rootData, 0, rootData);
+                
+                if (w.isReadOnly) {
+                    // clean up parent property added in doUpdate
+                    const removeParentProperty = function(nodeData) {
+                        delete nodeData.parent
+                        if (nodeData.children) {
+                            nodeData.children.forEach((child) => {
+                                removeParentProperty(child)
+                            })
+                        }
+                    }
+                    removeParentProperty(rootData)
+                }
+                
                 treeRef.create_node(null, rootData);
                 
                 $.each(openNodes, function (i, val) {
