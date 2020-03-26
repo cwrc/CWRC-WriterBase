@@ -162,16 +162,21 @@ function Popup(writer, parentEl) {
         $currentTag = $(this);
         var entity = $(this).children('[_entity]');
         var entityId = entity.attr('id');
-        
         var entry = w.entitiesManager.getEntity(entityId);
+
+        var hasTextContent = this.textContent.match(/\S+/) !== null;
+        if (!hasTextContent) {
+            if (entry.getType() === 'citation') {
+                showLink(entry.getURI());
+            }
+            return;
+        }
+
         var content = entry.getNoteContent();
         if (content === undefined) {
             content = entry.getContent();
         }
-        if (content === undefined || content.match(/^\s*$/) !== null) {
-            if (entry.getType() === 'citation') {
-                showLink(entry.getURI());
-            }
+        if (content === undefined) {
             return;
         }
         doPopup(content, 'note');
