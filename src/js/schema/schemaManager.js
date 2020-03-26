@@ -347,47 +347,82 @@ function SchemaManager(writer, config) {
     };
 
     /**
-     * Checks whether removing this node would invalidate the document.
-     * @param {Element} nodeToDelete The node to remove
-     * @param {Boolean} removingContents Are the node contents also being removed?
+     * Checks whether the node removal would invalidate the document.
+     * @param {Element} contextNode The context node for the removal
+     * @param {Boolean} removeContext Is the context node being removed
+     * @param {Boolean} removeContents Are the node contents being removed?
      * @returns {Boolean}
      */
-    sm.wouldDeleteInvalidate = function(nodeToDelete, removingContents) {
-        let parentEl = nodeToDelete.parentElement;
+    sm.wouldDeleteInvalidate = function(contextNode, removeContext, removeContents) {
+        let parentEl = contextNode.parentElement;
         let parentTag = parentEl.getAttribute('_tag');
         // handling for when we're inside entityHighlight
         while (parentTag === null) {
             parentEl = parentEl.parentElement;
+            if (parentEl === null) {
+                console.warn('schemaManager.wouldDeleteInvalidate: outside of document!');
+                return false;
+            }
             parentTag = parentEl.getAttribute('_tag');
         }
 
-        const validChildren = sm.getChildrenForTag(parentTag);
-        let validDelete = true;
-        for (let i = 0; i < nodeToDelete.children.length; i++) {
-            const child = nodeToDelete.children[i];
-            const childTag = child.getAttribute('_tag');
-            const childIsValid = validChildren.find(vc => {
-                return vc.name === childTag
+        if (removeContext) {
+            // check if parent requires context
+            const contextTag = contextNode.getAttribute('_tag');
+            const requiredChildren = sm.getRequiredChildrenForTag(parentTag);
+            const contextIsRequired = requiredChildren.find(rc => {
+                return rc.name === contextTag
             });
-            if (!childIsValid) {
-                validDelete = false;
-                break;
-            }
-        }
-
-        if (validDelete && !removingContents) {
-            let hasTextNodes = false;
-            nodeToDelete.childNodes.forEach(cn => {
-                if (!hasTextNodes && cn.nodeType === Node.TEXT_NODE && cn.textContent !== '\uFEFF') {
-                    hasTextNodes = true;
+            if (contextIsRequired) {
+                // it's required, do siblings satisfy the requirement?
+                let hasRequiredSibling = false;
+                for (let i = 0; i < parentEl.children.length; i++) {
+                    const child = contextNode.children[i];
+                    if (child !== contextNode) {
+                        const childTag = child.getAttribute('_tag');
+                        if (childTag === contextTag) {
+                            hasRequiredSibling = true;
+                            break;
+                        }
+                    }
                 }
-            })
-            if (hasTextNodes && sm.canTagContainText(parentTag) === false) {
-                validDelete = false;
+                if (!hasRequiredSibling) {
+                    return true;
+                }
+            }
+
+            if (!removeContents) {
+                // check if context children are valid for parent
+                const validChildren = sm.getChildrenForTag(parentTag);
+                for (let i = 0; i < contextNode.children.length; i++) {
+                    const child = contextNode.children[i];
+                    const childTag = child.getAttribute('_tag');
+                    const childIsValid = validChildren.find(vc => {
+                        return vc.name === childTag
+                    });
+                    if (!childIsValid) {
+                        return true;
+                    }
+                }
+    
+                // check if context has text and if parent can contain text
+                let hasTextNodes = false;
+                contextNode.childNodes.forEach(cn => {
+                    if (!hasTextNodes && cn.nodeType === Node.TEXT_NODE && cn.textContent !== '\uFEFF') {
+                        hasTextNodes = true;
+                    }
+                })
+                if (hasTextNodes && sm.canTagContainText(parentTag) === false) {
+                    return true;
+                }
+            }
+        } else {
+            if (removeContents) {
+                // TODO check if context children are required?
             }
         }
 
-        return !validDelete;
+        return false;
     }
 
 

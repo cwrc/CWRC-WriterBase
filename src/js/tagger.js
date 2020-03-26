@@ -1128,7 +1128,7 @@ function Tagger(writer) {
         var entry = w.entitiesManager.getEntity(id);
         id = tag.attr('id');
 
-        var invalidDelete = w.schemaManager.wouldDeleteInvalidate(tag[0], removeContents);
+        var invalidDelete = w.schemaManager.wouldDeleteInvalidate(tag[0], true, removeContents);
         if (invalidDelete) {
             showInvalidDeleteConfirm(tag[0], function(doIt) {
                 if (doIt) doRemove();

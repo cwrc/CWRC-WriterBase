@@ -44,7 +44,7 @@ function deleteConfirm(editor, range, direction) {
         element = range.commonAncestorContainer.nextElementSibling || range.commonAncestorContainer.parentElement;
     }
 
-    var invalidDelete = editor.writer.schemaManager.wouldDeleteInvalidate(element, false);
+    var invalidDelete = editor.writer.schemaManager.wouldDeleteInvalidate(element, true, false);
 
     var msg = `<p>Delete "${element.getAttribute('_tag')}" element?</p>`;
     var showConfirmKey = 'confirm-delete-tag';
@@ -135,7 +135,7 @@ tinymce.PluginManager.add('preventdelete', function(ed) {
     ed.on('keydown', function(evt) {
         if (keyWillDelete(evt)) {
             var range = ed.selection.getRng()
-
+            
             // console.log(range.startOffset, range.commonAncestorContainer.textContent.length);
 
             // deleting individual characters
@@ -214,21 +214,26 @@ tinymce.PluginManager.add('preventdelete', function(ed) {
 
             // deleting selection
             } else {
-                if (range.startContainer !== range.endContainer) {
-                    var start = range.startContainer;
-                    var end = range.endContainer;
-                    // get the non-inline ancestors
-                    while(start.nodeType !== Node.ELEMENT_NODE || isElementInline(start)) {
-                        start = start.parentElement;
-                    }
-                    while(end.nodeType !== Node.ELEMENT_NODE || isElementInline(end)) {
-                        end = end.parentElement;
-                    }
-                    // if they're the same ancestor then no tags will get deleted
-                    if (start === end) {
-                        return true;
-                    }
+                var willDeleteTags = false;
+                var clone = range.cloneContents();
 
+                if (clone.childNodes.length === 1 && clone.childNodes[0].nodeType === Node.ELEMENT_NODE) {
+                    willDeleteTags = true;
+                } else {
+                    for (var i = 0; i < clone.childNodes.length; i++) {
+                        var node = clone.childNodes[i];
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            var prevNode = clone.childNodes[i-1];
+                            var nextNode = clone.childNodes[i+1];
+                            if (prevNode !== undefined && nextNode !== undefined) {
+                                willDeleteTags = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (willDeleteTags) {
                     ed.writer.dialogManager.confirm({
                         title: 'Warning',
                         msg: '<p>The text you are trying to delete contains XML elements, do you want to proceed?</p>',
