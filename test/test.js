@@ -201,6 +201,25 @@ test('tagger.addTagDialog tagger.addStructureTag tagger.removeStructureTag', () 
     });
 });
 
+test('tagger.removeStructureTagContents', () => {
+    expect.assertions(1);
+
+    writer = getWriterInstance()
+
+    const tagToAdd = 'label';
+
+    return new Promise((resolve) => {
+        initAndLoadDoc(writer, teiDoc).then(() => {
+            writer.event('tagContentsRemoved').subscribe((tagId) => {
+                expect(window.$('#' + tagId, writer.editor.getBody()).contents().length).toBe(1);
+                resolve();
+            });
+
+            writer.tagger.removeStructureTagContents('dom_' + (getLastIdCounter(tinymce)))
+        })
+    });
+});
+
 test('tagger.editTagDialog tagger.editStructureTag', () => {
     expect.assertions(1);
 

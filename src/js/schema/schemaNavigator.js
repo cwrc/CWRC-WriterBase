@@ -363,7 +363,11 @@ function SchemaNavigator() {
                     if (refParentProps && refParentProps.optional != null) {
                         childObj.required = !refParentProps.optional;
                     } else {
-                        childObj.required = false;
+                        if (child.$parent.$key === 'element' || child.$parent.$key === 'oneOrMore') {
+                            childObj.required = true;
+                        } else {
+                            childObj.required = false;
+                        }
                     }
                 } else if (type == 'attribute') {
                     if (refParentProps && refParentProps.optional != null) {
@@ -448,11 +452,11 @@ function SchemaNavigator() {
             _queryUp(ref, function(item) {
                 if (item.$parent && item.$parent.$key) {
                     var parentKey = item.$parent.$key;
-                    if (parentKey == 'choice' || parentKey == 'optional' || parentKey == 'zeroOrMore') {
+                    if (parentKey === 'choice' || parentKey === 'optional' || parentKey === 'zeroOrMore') {
                         // we're taking choice to mean optional, even though it could mean a requirement to choose one or more elements
                         optional = true;
                         return false;
-                    } else if (parentKey == 'oneOrMore') {
+                    } else if (parentKey === 'oneOrMore') {
                         optional = false;
                         return false;
                     }

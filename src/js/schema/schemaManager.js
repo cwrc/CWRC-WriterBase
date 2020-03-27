@@ -418,7 +418,12 @@ function SchemaManager(writer, config) {
             }
         } else {
             if (removeContents) {
-                // TODO check if context children are required?
+                // check if context children are required
+                const contextTag = contextNode.getAttribute('_tag');
+                const requiredChildren = sm.getRequiredChildrenForTag(contextTag);
+                if (requiredChildren.length > 0) {
+                    return true;
+                }
             }
         }
 
