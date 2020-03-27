@@ -1128,9 +1128,9 @@ function Tagger(writer) {
         var entry = w.entitiesManager.getEntity(id);
         id = tag.attr('id');
 
-        var invalidDelete = w.schemaManager.wouldDeleteInvalidate(tag[0], removeContents);
+        var invalidDelete = w.schemaManager.wouldDeleteInvalidate(tag[0], true, removeContents);
         if (invalidDelete) {
-            showInvalidDeleteConfirm(tag[0], function(doIt) {
+            showInvalidDeleteConfirm(tag[0], false, function(doIt) {
                 if (doIt) doRemove();
             });
         } else {
@@ -1145,15 +1145,27 @@ function Tagger(writer) {
      */
     tagger.removeStructureTagContents = function(id) {
         var tag = tagger.getCurrentTag(id);
-        tag.contents().each(function(i, el) {
-            tagger.processRemovedContent(el);
-        }).remove();
 
-        tag[0].textContent = '\uFEFF'; // insert zero-width non-breaking space so that empty tag isn't cleaned up by tinymce
-        
-        w.editor.undoManager.add();
-        
-        w.event('tagContentsRemoved').publish(id);
+        var doRemove = function() {
+            tag.contents().each(function(i, el) {
+                tagger.processRemovedContent(el);
+            }).remove();
+    
+            tag[0].textContent = '\uFEFF'; // insert zero-width non-breaking space so that empty tag isn't cleaned up by tinymce
+            
+            w.editor.undoManager.add();
+            
+            w.event('tagContentsRemoved').publish(id);
+        }
+
+        var invalidDelete = w.schemaManager.wouldDeleteInvalidate(tag[0], false, true);
+        if (invalidDelete) {
+            showInvalidDeleteConfirm(tag[0], true, function(doIt) {
+                if (doIt) doRemove();
+            });
+        } else {
+            doRemove();
+        }
     };
 
     /**
@@ -1206,8 +1218,9 @@ function Tagger(writer) {
         }
     }
 
-    var showInvalidDeleteConfirm = function(element, callback) {
-        var msg = `<p>Deleting the "${element.getAttribute('_tag')}" element will make the document invalid. Do you wish to continue?</p>`;
+    var showInvalidDeleteConfirm = function(element, isContents, callback) {
+        var contentsMsg = isContents ? 'contents of the' : '';
+        var msg = `<p>Deleting the ${contentsMsg} "${element.getAttribute('_tag')}" element will make the document invalid. Do you wish to continue?</p>`;
         var showConfirmKey = 'confirm-delete-tag-invalidating';
         w.dialogManager.confirm({
             title: 'Warning',
