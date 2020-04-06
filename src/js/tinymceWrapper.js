@@ -68,7 +68,6 @@ TinymceWrapper.init = function(config) {
      * Init tinymce
      */
     tinymce.baseURL = w.cwrcRootUrl + '/js'; // need for skin
-    console.log(config);
     tinymce.init({
         selector: '#' + editorId,
 
