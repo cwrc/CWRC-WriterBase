@@ -114,7 +114,7 @@ title: {
             var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
             body.prepend(levelXml.firstChild);
         } else {
-            anno["oa:hasBody"]['pubType'] = entity.getAttribute('TITLETYPE');
+            anno['oa:hasBody']['pubType'] = entity.getAttribute('TITLETYPE');
         }
         
         return anno;
@@ -150,9 +150,9 @@ date: {
             body.prepend(dateXml.firstChild);
         } else {
             if (entity.getAttribute('VALUE') !== undefined) {
-                anno["oa:hasBody"]['xsd:date'] = entity.getAttribute('VALUE');
+                anno['oa:hasBody']['xsd:date'] = entity.getAttribute('VALUE');
             } else {
-                anno["oa:hasBody"]['xsd:date'] = entity.getAttribute('FROM')+'/'+entity.getAttribute('TO');
+                anno['oa:hasBody']['xsd:date'] = entity.getAttribute('FROM')+'/'+entity.getAttribute('TO');
             }
         }
         
@@ -195,7 +195,7 @@ correction: {
             var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
             body.prepend(corrXml.firstChild);
         } else {
-            anno["oa:hasBody"]['cnt:chars'] = entity.getAttribute('CORR');
+            anno['oa:hasBody']['cnt:chars'] = entity.getAttribute('CORR');
         }
 
         return anno;
@@ -214,7 +214,7 @@ keyword: {
             var keywordXml = $.parseXML('<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">'+keyword+'</cnt:chars>');
             body.prepend(keywordXml.firstChild);
         } else {
-            anno["oa:hasBody"]['cnt:chars'] = keyword;
+            anno['oa:hasBody']['cnt:chars'] = keyword;
         }
 
         return anno;
