@@ -25,7 +25,7 @@ module.exports = {
 
 id: 'ID',
 responsibility: 'RESP',
-rdfParentSelector: '/*/ORLANDOHEADER',
+rdfParentSelector: '/*/ORLANDOHEADER/FILEDESC/following-sibling::XENODATA',
 root: ['EVENT', 'BIOGRAPHY', 'WRITING'],
 header: 'ORLANDOHEADER',
 blockElements: ['DIV0', 'DIV1', 'EVENT', 'ORLANDOHEADER', 'DOCAUTHOR', 'DOCEDITOR', 'DOCEXTENT', 'PUBLICATIONSTMT', 'TITLESTMT', 'PUBPLACE', 'L', 'P', 'HEADING', 'CHRONEVENT', 'CHRONSTRUCT'],
