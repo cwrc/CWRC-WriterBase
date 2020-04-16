@@ -324,7 +324,7 @@ function EntitiesList({writer,parentId}) {
 
     // CONVERSION
     pm.convertEntities = () => {
-        const typesToFind = ['person', 'place', 'date', 'org', 'title', 'link'];
+        const typesToFind = ['person', 'place', 'date', 'org', 'title', 'link', 'rs'];
         const potentialEntitiesByType = w.schemaManager.mapper.findEntities(typesToFind);
         let potentialEntities = [];
         for (const type in potentialEntitiesByType) {
