@@ -10,7 +10,8 @@ var EntitiesManager = require('./entities/entitiesManager.js');
 var Tagger = require('./tagger.js');
 var Converter = require('./conversion/converter.js');
 var AnnotationsManager = require('annotationsManager');
-var SettingsDialog = require('./dialogs/settings.js');
+// var SettingsDialog = require('./dialogs/settings.js');
+import { settingsDialog } from './dialogs/settings';
 var LayoutManager = require('./layout/layoutManager.js');
 var TagContextMenu = require('./tagContextMenu.js');
 var TinymceWrapper = require('./tinymceWrapper.js');
@@ -358,7 +359,8 @@ function CWRCWriter(config) {
     w.tagger = new Tagger(w);
     w.converter = new Converter(w);
     w.annotationsManager = new AnnotationsManager(w);
-    w.settings = new SettingsDialog(w, {
+    // w.settings = new SettingsDialog(w, {
+    w.settings =  settingsDialog(w, {
         showEntities: true,
         showTags: false
     });
@@ -377,6 +379,7 @@ function CWRCWriter(config) {
     });
 
     return w;
-};
+}
 
-module.exports = CWRCWriter;
+// module.exports = CWRCWriter;
+export default CWRCWriter;
