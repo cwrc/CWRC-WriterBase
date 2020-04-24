@@ -650,8 +650,8 @@ function SchemaManager(writer, config) {
                 msg: `Error loading schema. No entry found for: ${schemaId}`,
                 type: 'error'
             });
-            if (callback) callback(false);
-            return;
+            if (callback) return callback(false);
+            return { success: false };
         }
 
         w.event('loadingSchema').publish();
@@ -664,14 +664,15 @@ function SchemaManager(writer, config) {
         const schemaXML = await loadXMLFile(schemaEntry.xmlUrl);
         if (!schemaXML) {
             sm.schemaId = null;
+            w.dialogManager.getDialog('loadingindicator').hide();
             w.dialogManager.show('message',{
                 title: 'Error',
-                msg: `<p>Error loading schema from: ${schemaEntry.name}.</p>
-                      <p>Document editing will not work properly!</p>`,
+                msg: `<p>Error loading schema from: ${schemaEntry.name}.</p>`,
+                    //   <p>Document editing will not work properly!</p>`,
                 type: 'error'
             });
-            if (callback) callback(false);
-            return null;
+            if (callback) return callback(false);
+            return { success: false };
         }
 
         sm.schemaXML = schemaXML;
@@ -708,12 +709,12 @@ function SchemaManager(writer, config) {
 
         w.event('schemaLoaded').publish();
         
-        if (callback) {
-            callback(true);
-        } else {
-            const tag = sm.getTagForEditor(sm._root);
-            w.editor.setContent(`${tag} _tag="${sm._root}"></${tag}>`);
-        }
+        if (callback) return callback(true);
+
+        return { success: true };
+
+
+
     };
 
     /*****************************
@@ -815,14 +816,14 @@ function SchemaManager(writer, config) {
     };
 
 
-    w.event('schemaChanged').subscribe( (schemaId) =>  {
-        sm.loadSchema(schemaId, true, function(success) {
-            // this event is only fired by the settings dialog (by the user), so update the current document urls
-            if (success) {
-                sm.setCurrentDocumentSchemaUrl(sm.getXMLUrl());
-                sm.setCurrentDocumentCSSUrl(sm.getCSSUrl());
-            }
-        });
+    w.event('schemaChanged').subscribe( async schemaId =>  {
+        // this event is only fired by the settings dialog (by the user), so update the current document urls
+        const res = await sm.loadSchema(schemaId, true);
+        if (res.success) {
+            sm.setCurrentDocumentSchemaUrl(sm.getXMLUrl());
+            sm.setCurrentDocumentCSSUrl(sm.getCSSUrl());
+        }
+
     });
     
     return sm;

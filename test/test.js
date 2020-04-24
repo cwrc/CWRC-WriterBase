@@ -449,29 +449,23 @@ test('tagContextMenu.show', () => {
     });
 });
 
-test('dialogs.settings', () => {
+test('dialogs.settings', async () => {
     expect.assertions(2);
 
     writer = getWriterInstance()
+    await initAndLoadDoc(writer, teiDoc);
 
-    return new Promise((resolve) => {
-        initAndLoadDoc(writer, teiDoc).then(() => {
-            let initShowTagSetting = writer.settings.getSettings().showTags;
+    let initShowTagSetting = writer.settings.getSettings().showTags;
 
-            window.$('.settingsLink', writer.layoutManager.getHeaderButtonsParent()).click();
+    window.$('.settingsLink', writer.layoutManager.getHeaderButtonsParent()).click();
 
-            let settingsDialog = window.$('.cwrcDialogWrapper .ui-dialog:visible');
-            expect(settingsDialog.find('.ui-dialog-title').text()).toBe('Settings');
+    let settingsDialog = window.$('.cwrcDialogWrapper .ui-dialog:visible');
+    expect(settingsDialog.find('.ui-dialog-title').text()).toBe('Settings');
 
-            settingsDialog.find('.showtags').prop('checked', !initShowTagSetting);
+    //toggle show tags
+    settingsDialog.find('.showtags').click();
 
-            dialogClickOk();
-
-            expect(writer.settings.getSettings().showTags).not.toBe(initShowTagSetting);
-
-            resolve();
-        })
-    })
+    expect(writer.settings.getSettings().showTags).not.toBe(initShowTagSetting);
 });
 
 test('dialogs.header', () => {
@@ -596,7 +590,7 @@ const getLastIdCounter = (tinymce) => {
 
 
 const dialogClickOk = () => {
-    let ok = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="ok"]');
+    const ok = window.$('.cwrcDialogWrapper .ui-dialog:visible .ui-dialog-buttonset .ui-button[role="ok"]');
     if (ok.length === 0) console.warn('ok button not visible');
     ok.click();
 }

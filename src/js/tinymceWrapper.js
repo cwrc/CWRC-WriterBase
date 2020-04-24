@@ -10,6 +10,39 @@ require('./tinymce_plugins/schematags.js');
 require('./tinymce_plugins/treepaste.js');
 require('./tinymce_plugins/prevent_delete.js');
 
+//TINYMCE TOOLBAR 1
+const buttons1 = [
+    'schematags',
+    '|','addperson',
+    'addplace',
+    'addorg',
+    'addtitle',
+    'adddate',
+    'addcitation',
+    'addnote',
+    'addcorrection',
+    'addkeyword',
+    'addlink',
+    'addrs',
+    'addtranslation',
+    '|',
+    'editTag',
+    'removeTag',
+    '|',
+    // 'addtriple',
+    // '|',
+    'toggletags',
+    'viewmarkup',
+    'editsource',
+    '|',
+    'validate',
+    'savebutton',
+    'loadbutton',
+    'logoutbutton',
+    '|',
+    'fullscreen'
+]
+
 function TinymceWrapper() {
 }
 
@@ -80,7 +113,7 @@ TinymceWrapper.init = function(config) {
         valid_elements: '*[*]', // allow everything
 
         plugins: 'schematags,cwrcpath,preventdelete,paste',
-        toolbar1: config.buttons1 == undefined ? 'schematags,|,addperson,addplace,addorg,addtitle,adddate,addcitation,addnote,addcorrection,addkeyword,addlink,addrs,addtranslation,|,editTag,removeTag,|,addtriple,|,toggletags,viewmarkup,editsource,|,validate,savebutton,loadbutton,logoutbutton,|,fullscreen' : config.buttons1,
+        toolbar1: config.buttons1 == undefined ? buttons1.join(',') : config.buttons1,
         toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
         toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
         menubar: false,
@@ -190,7 +223,7 @@ TinymceWrapper.init = function(config) {
                     tt.moveTo(position.left, position.top);
                 };
                 w.editor.addButton(buttonId, settings);
-            };
+            }
 
             addButtonToEditor('addperson', {
                 title: 'Tag Person', icon: ' '+iconType+' person', entityButton: true, entityType: 'person',
@@ -396,22 +429,22 @@ TinymceWrapper.init = function(config) {
             parents.push(n);
         });
         w.editor.fire('NodeChange', { element: nodeEl, parents: parents });
-    };
+    }
 
     function onMouseUpHandler(evt) {
         doHighlightCheck(w.editor, evt);
         w.event('selectionChanged').publish();
-    };
+    }
 
     function onUndoHandler(event) {
         console.log('undoHandler', event);
         w.event('contentChanged').publish();
-    };
+    }
 
     function onRedoHandler(event) {
         console.log('redoHandler', event);
         w.event('contentChanged').publish();
-    };
+    }
 
     function onKeyDownHandler(evt) {
         w.editor.lastKeyPress = evt.which; // store the last key press
@@ -425,7 +458,7 @@ TinymceWrapper.init = function(config) {
         }
 
         w.event('writerKeydown').publish(evt);
-    };
+    }
 
     function onKeyUpHandler(evt) {
         // nav keys and backspace check
@@ -529,12 +562,12 @@ TinymceWrapper.init = function(config) {
         }
 
         w.event('writerKeyup').publish(evt);
-    };
+    }
 
     function onChangeHandler(event) {
         $('br', w.editor.getBody()).remove(); // remove br tags that get added by shift+enter
         // w.event('contentChanged').publish();
-    };
+    }
 
     function onNodeChangeHandler(e) {
         var el = e.element;
@@ -595,7 +628,7 @@ TinymceWrapper.init = function(config) {
         w.editor.currentBookmark = w.editor.selection.getBookmark(1);
 
         w.event('nodeChanged').publish(w.editor.currentNode);
-    };
+    }
 
     function onCopyHandler(event) {
         if (w.editor.copiedElement.element != null) {
@@ -604,7 +637,7 @@ TinymceWrapper.init = function(config) {
         }
 
         w.event('contentCopied').publish();
-    };
+    }
 
     function doHighlightCheck(evt) {
         var range = w.editor.selection.getRng(true);
@@ -643,7 +676,7 @@ TinymceWrapper.init = function(config) {
         if (id === w.entitiesManager.getCurrentEntity()) return;
 
         w.entitiesManager.highlightEntity(id, w.editor.selection.getBookmark());
-    };
+    }
 }
 
 module.exports = TinymceWrapper;

@@ -1,13 +1,15 @@
 'use strict';
 
-const $ = require('jquery');
+// const $ = require('jquery');
+import $ from 'jquery';
 
-require('jquery-ui/ui/widgets/button');
+// require('jquery-ui/ui/widgets/button');zzzz
+import 'jquery-ui/ui/widgets/button';
     
-function Settings(writer, config) {
-    var w = writer;
+const settings = (writer, config) => {
+    const w = writer;
     
-    var settings = {
+    const settings = {
         fontSize: '11pt',
         showEntities: false,
         showTags: false
@@ -15,7 +17,7 @@ function Settings(writer, config) {
     
     $.extend(settings, config);
     
-    var defaultSettings = {
+    const defaultSettings = {
         mode: w.mode,
         annotationMode: w.annotationMode,
         allowOverlap: w.allowOverlap
@@ -24,18 +26,41 @@ function Settings(writer, config) {
     $.extend(defaultSettings, settings);
     
     $('<div class="helpLink"><a href="https://cwrc.ca/Documentation/CWRC-Writer" target="_blank">Help</a></div>').prependTo(w.layoutManager.getHeaderButtonsParent());
-    var $settingsLink = $('<div class="settingsLink">Settings</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
+    const $settingsLink = $('<div class="settingsLink">Settings</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
     
-    var $settingsDialog = $(`
+    const fontSizeOptions = {
+        min: 8,
+        max: 18
+    }
+
+    const fontSizeSelectOptions = () => {
+        let size = fontSizeOptions.min;
+        let htnl = '';
+        while (size <= fontSizeOptions.max) {
+            htnl += `<option value="${size}pt">${size}pt</option>\n`
+            size++;
+        }
+        return htnl;
+    }
+
+    const listSchemasHTML = () => {
+        let schemasHTML = '';
+        for (const schema of w.schemaManager.schemas) {
+            schemasHTML += `<option value="${schema.id}">${schema.name}</option>`;
+        }
+        return schemasHTML;
+    }
+
+    const $settingsDialog = $(`
     <div>
         <div>
             <label>Font Size</label>
             <select name="fontsize">
-                <option value="9pt">9pt</option>
-                <option value="10pt">10pt</option>
-                <option value="11pt">11pt</option>
-                <option value="12pt">12pt</option>
-                <option value="13pt">13pt</option>
+                ${fontSizeSelectOptions()}
+
+
+
+
             </select>
         </div>
         <div style="margin-top: 10px;">
@@ -64,6 +89,7 @@ function Settings(writer, config) {
             <div style="margin-top: 10px;">
                 <label>Schema</label>
                 <select name="schema">
+                ${listSchemasHTML()}
                 </select>
                 <br/><br/><button type="button" name="addSchemaButton">Add Schema</button>
             </div>
@@ -73,13 +99,48 @@ function Settings(writer, config) {
         </div>
     </div>
     `).appendTo(w.dialogManager.getDialogWrapper());
-    
-    buildSchema();
-    $('button[name="addSchemaButton"]', $settingsDialog).button().click(function() {
+
+    //// Actions
+
+    //// Actions: Font size
+    $('select[name="fontsize"]', $settingsDialog).change(element => {
+        const styles = { fontSize: element.currentTarget.value };
+        w.editor.dom.setStyles(w.editor.dom.getRoot(), styles);
+        settings.fontSize = styles;
+    });
+
+    //// Actions: Show Tags
+    $('.showtags').click(element => {
+        const showTags = $(element.currentTarget).is(':checked');
+        if (settings.showTags != showTags) $('body', w.editor.getDoc()).toggleClass('showTags');
+        settings.showTags = showTags;
+    });
+
+    //// Actions: Show Entities size
+    $('.showentities').click(element => {
+        const showEntities = $(element.currentTarget).is(':checked');
+        if (settings.showEntities != showEntities) $('body', w.editor.getDoc()).toggleClass('showEntities');
+        settings.showEntities = showEntities;
+    });
+
+    //// Actions: Annotation format
+    $('select[name="annotations"]', $settingsDialog).change(element => {
+        const annotationMode = element.currentTarget.value;
+        settings.annotationMode = annotationMode;
+        if (settings.annotationMode === 'xml') {
+            w.annotationMode = w.XML;
+        } else {
+            w.annotationMode = w.JSON;
+        }
+    });
+
+
+
+    $('button[name="addSchemaButton"]', $settingsDialog).button().click(() => {
         w.dialogManager.show('addschema');
     });
 
-    $('button[name="resetConfirmButton"]', $settingsDialog).button().click(function() {
+    $('button[name="resetConfirmButton"]', $settingsDialog).button().click(() => {
         w.dialogManager.clearDialogPrefs();
         w.dialogManager.show('message', {
             title: 'Settings',
@@ -88,7 +149,7 @@ function Settings(writer, config) {
         })
     });
     
-    $settingsLink.click(function() {
+    $settingsLink.click(() => {
         $('select[name="fontsize"] > option[value="'+settings.fontSize+'"]', $settingsDialog).prop('selected', true);
         $settingsDialog.find('.showentities').prop('checked', settings.showEntities);
         $settingsDialog.find('.showtags').prop('checked', settings.showTags);
@@ -145,61 +206,76 @@ function Settings(writer, config) {
         }]
     });
 
-
-     /**
-     * Loops through the list of a Schema's URLs to check availability
-     * @param {*} Anon Object containg an array of urls
-     * @param {Array} xmlUrl Collection of URL source 
-     */
-    async function testSchemaURL ({xmlUrl}) {
-
-        let schemaAvailable = false;
-
-        //Make an array of urls. Remove when modifiy the config to list urls as
-        // an array instead of properties.
-        // const resourceURLs = [];
-        // if (url) resourceURLs.push(url);
-        // if (altUrl) resourceURLs.push(altUrl);
-
-        for (let url of xmlUrl) {
-
-            //use the proxy if available.
-            if (w.schemaManager.schemaProxyUrl) {
-                url = `${w.schemaManager.schemaProxyUrl}/schema/xml?url=${url}`;
+    const doApplySettings = async editorMode => {
+        if (editorMode !== undefined) {
+            if (editorMode === 'xml') {
+                w.mode = w.XML;
+                w.allowOverlap = false;
+            } else if (editorMode === 'xmlrdf') {
+                w.mode = w.XMLRDF;
+                w.allowOverlap = false;
+            } else if (editorMode === 'xmlrdfoverlap') {
+                w.mode = w.XMLRDF;
+                w.allowOverlap = true;
+            } else if (editorMode === 'rdf') {
+                w.mode = w.RDF;
+                w.allowOverlap = true;
             }
+        }
 
-            const response = await fetch(url)
+        const schemaId = $('select[name="schema"]', $settingsDialog).val();
+
+        if (schemaId !== w.schemaManager.schemaId) {
+            
+            changeApplyButton(true);
+
+            const rootName = await w.schemaManager.getRootForSchema(schemaId)
                 .catch( () => {
-                    // console.log(err);
+                    console.warn('getRootSchema failed');
+                    $settingsDialog.dialog('close');
+                    w.event('schemaChanged').publish(schemaId);
                 });
-        
-            if (response &&  response.status === 200) {
-                schemaAvailable = true;
-                break;
+            
+            changeApplyButton(false);
+            const currRootName = w.utilities.getRootTag().attr('_tag');
+
+            if (rootName === null) {
+                w.dialogManager.show('message', {
+                    title: 'Error',
+                    msg: 'The root element of the schema could not be determined and so it will not be used.',
+                    type: 'error'
+                });
+                $settingsDialog.dialog('close');
+            } else if (currRootName !== rootName) {
+                w.dialogManager.confirm({
+                    title: 'Warning',
+                    msg: `<p>The root element (${rootName}) required by the selected schema is different from the root element (${currRootName}) of the current document.</p>
+                          <p>Applying this schema change will cause a document loading error.</p>
+                          <p>Continue?</p>`,
+                    type: 'info',
+                    callback: function(doIt) {
+                        if (doIt) {
+                            $settingsDialog.dialog('close');
+                            w.event('schemaChanged').publish(schemaId);
+                        } else {
+                            $(`select[name="schema"] > option[value="${w.schemaManager.schemaId}"]`, $settingsDialog).prop('selected', true);
+                        }
+                    }
+                });
+            } else {
+                $settingsDialog.dialog('close');
+                w.event('schemaChanged').publish(schemaId);
             }
+            
+        } else {
+            $settingsDialog.dialog('close');
         }
-
-        return schemaAvailable;
-        
-    }
-
-    async function buildSchema() {
-
-        let schemasHTML = '';
-        for (const schema of w.schemaManager.schemas) {
-            //if schema is not accessible, list as
-            let disabledAttribute = '';
-            if (!await testSchemaURL(schema)) disabledAttribute = 'disabled';
-
-            schemasHTML += `<option value="${schema.id}" ${disabledAttribute}>${schema.name}</option>`;
-        }
-        $('select[name="schema"]', $settingsDialog).html(schemasHTML);
 
     }
     
-    function applySettings() {
-        var editorMode = $('select[name="editormode"]', $settingsDialog).val();
-        var doModeChange = false;
+    const applySettings = () => {
+        let editorMode = $('select[name="editormode"]', $settingsDialog).val();
+        let doModeChange = false;
         if (editorMode === 'xml') {
             if (w.mode !== w.XML) {
                 doModeChange = true;
@@ -219,8 +295,8 @@ function Settings(writer, config) {
         }
         
         if (doModeChange) {
-            var message;
-            var existingOverlaps = w.entitiesManager.doEntitiesOverlap();
+            let message;
+            const existingOverlaps = w.entitiesManager.doEntitiesOverlap();
             // switching to xml mode from an xmlrdf mode
             if (editorMode === 'xml') {
                 message = 'If you select the XML only mode, no RDF will be created when tagging entities.<br/>Furthermore, the existing RDF annotations will be discarded.<br/><br/>Do you wish to continue?';
@@ -261,100 +337,11 @@ function Settings(writer, config) {
         } else {
             doApplySettings();
         }
-        
-        async function doApplySettings(editorMode) {
-            if (editorMode !== undefined) {
-                if (editorMode === 'xml') {
-                    w.mode = w.XML;
-                    w.allowOverlap = false;
-                } else if (editorMode === 'xmlrdf') {
-                    w.mode = w.XMLRDF;
-                    w.allowOverlap = false;
-                } else if (editorMode === 'xmlrdfoverlap') {
-                    w.mode = w.XMLRDF;
-                    w.allowOverlap = true;
-                } else if (editorMode === 'rdf') {
-                    w.mode = w.RDF;
-                    w.allowOverlap = true;
-                }
-            }
-            
-            settings.annotationMode = $('select[name="annotations"]', $settingsDialog).val();
-            if (settings.annotationMode === 'xml') {
-                w.annotationMode = w.XML;
-            } else {
-                w.annotationMode = w.JSON;
-            }
-            
-            settings.fontSize = $('select[name="fontsize"]', $settingsDialog).val();
-            
-            if (settings.showEntities != $settingsDialog.find('.showentities').prop('checked')) {
-                $('body', w.editor.getDoc()).toggleClass('showEntities');
-            }
-            settings.showEntities = $settingsDialog.find('.showentities').prop('checked');
-            
-            if (settings.showTags != $settingsDialog.find('.showtags').prop('checked')) {
-                $('body', w.editor.getDoc()).toggleClass('showTags');
-            }
-            settings.showTags = $settingsDialog.find('.showtags').prop('checked');
-            
-            const styles = {
-                fontSize: settings.fontSize
-            };
-            w.editor.dom.setStyles(w.editor.dom.getRoot(), styles);
 
-            const schemaId = $('select[name="schema"]', $settingsDialog).val();
-
-            if (schemaId !== w.schemaManager.schemaId) {
-                
-                changeApplyButton(true);
-
-                const rootName = await w.schemaManager.getRootForSchema(schemaId)
-                    .catch( () => {
-                        console.warn('getRootSchema failed');
-                        $settingsDialog.dialog('close');
-                        w.event('schemaChanged').publish(schemaId);
-                    });
-
-                changeApplyButton(false);
-                const currRootName = w.utilities.getRootTag().attr('_tag');
-
-                if (rootName === null) {
-                    w.dialogManager.show('message', {
-                        title: 'Error',
-                        msg: 'The root element of the schema could not be determined and so it will not be used.',
-                        type: 'error'
-                    });
-                    $settingsDialog.dialog('close');
-                } else if (currRootName !== rootName) {
-                    w.dialogManager.confirm({
-                        title: 'Warning',
-                        msg: `<p>The root element (${rootName}) required by the selected schema is different from the root element (${currRootName}) of the current document.</p>
-                              <p>Applying this schema change will cause a document loading error.</p>
-                              <p>Continue?</p>`,
-                        type: 'info',
-                        callback: function(doIt) {
-                            if (doIt) {
-                                $settingsDialog.dialog('close');
-                                w.event('schemaChanged').publish(schemaId);
-                            } else {
-                                $(`select[name="schema"] > option[value="${w.schemaManager.schemaId}"]`, $settingsDialog).prop('selected', true);
-                            }
-                        }
-                    });
-                } else {
-                    $settingsDialog.dialog('close');
-                    w.event('schemaChanged').publish(schemaId);
-                }
-                
-            } else {
-                $settingsDialog.dialog('close');
-            }
-        }
     }
     
-    function changeApplyButton(isLoading) {
-        var buttons = $settingsDialog.dialog('option', 'buttons')
+    const changeApplyButton = isLoading => {
+        const buttons = $settingsDialog.dialog('option', 'buttons')
         if (isLoading) {
             buttons[2].icon = 'ui-icon-clock'
             buttons[2].disabled = true
@@ -365,12 +352,12 @@ function Settings(writer, config) {
         $settingsDialog.dialog('option', 'buttons', buttons)
     }
 
-    function setDefaults() {
+    const setDefaults = () => {
         $('select[name="fontsize"]', $settingsDialog).val(defaultSettings.fontSize);
         $settingsDialog.find('.showentities').prop('checked', defaultSettings.showEntities);
         $settingsDialog.find('.showtags').prop('checked', defaultSettings.showTags);
         
-        var editorVal;
+        let editorVal;
         switch(defaultSettings.mode) {
         case w.XMLRDF:
             editorVal = 'xmlrdf';
@@ -391,13 +378,13 @@ function Settings(writer, config) {
         //$('select[name="schema"]', $settingsDialog).val(defaultSettings.validationSchema);
     }
     
-    function hideAdvanced() {
+    const hideAdvanced = () => {
         $settingsDialog.find('.settingsDialogAdvanced').hide();
         $settingsDialog.dialog('option', 'height', 260);
     }
     
     // TODO don't rebuild the whole schema list when one schema gets added
-    w.event('schemaAdded').subscribe(buildSchema);
+    // w.event('schemaAdded').subscribe(buildSchema);
     
     if (w.isReadOnly) {
         hideAdvanced();
@@ -414,4 +401,6 @@ function Settings(writer, config) {
     };
 }
 
-module.exports = Settings;
+// module.exports = settings;
+
+export {settings as settingsDialog};
