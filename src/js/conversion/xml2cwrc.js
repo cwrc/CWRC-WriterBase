@@ -221,15 +221,21 @@ function XML2CWRC(writer) {
     function getSchemaUrls(doc) {
         let xmlUrl;
         let cssUrl;
+
+        //extract url from element's attribute wrapped with double or single quote ('|")"
+        const urlRegex = /href=('|")([^('|")]*)('|")/;
+
         for (var i = 0; i < doc.childNodes.length; i++) {
             const node = doc.childNodes[i];
 
             if (node.nodeName === 'xml-model') {
                 const xmlModelData = node.data;
-                xmlUrl = xmlModelData.match(/href="([^"]*)"/)[1];
+                xmlUrl = xmlModelData.match(urlRegex);
+                xmlUrl = xmlUrl[2]
             } else if (node.nodeName === 'xml-stylesheet') {
                 const xmlStylesheetData = node.data;
-                cssUrl = xmlStylesheetData.match(/href="([^"]*)"/)[1];
+                cssUrl = xmlStylesheetData.match(urlRegex);
+                cssUrl = cssUrl[2]
             }
         }
 
