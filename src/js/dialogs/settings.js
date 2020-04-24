@@ -399,6 +399,6 @@ const settings = (writer, config) => {
     };
 }
 
-module.exports = settings;
+// module.exports = settings;
 
-// export {settings as settingsDialog};
+export {settings as settingsDialog};
