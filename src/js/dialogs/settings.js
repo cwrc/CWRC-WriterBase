@@ -204,7 +204,6 @@ const settings = (writer, config) => {
         }]
     });
 
-
     const doApplySettings = async editorMode => {
         if (editorMode !== undefined) {
             if (editorMode === 'xml') {
@@ -219,28 +218,10 @@ const settings = (writer, config) => {
             } else if (editorMode === 'rdf') {
                 w.mode = w.RDF;
                 w.allowOverlap = true;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             }
         }
 
         const schemaId = $('select[name="schema"]', $settingsDialog).val();
-
-
 
         if (schemaId !== w.schemaManager.schemaId) {
             
@@ -288,9 +269,7 @@ const settings = (writer, config) => {
             $settingsDialog.dialog('close');
         }
 
-
     }
-    
     
     const applySettings = () => {
         let editorMode = $('select[name="editormode"]', $settingsDialog).val();
@@ -356,95 +335,6 @@ const settings = (writer, config) => {
         } else {
             doApplySettings();
         }
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     }
     
@@ -509,6 +399,6 @@ const settings = (writer, config) => {
     };
 }
 
-// module.exports = Settings;
+module.exports = settings;
 
-export {settings as settingsDialog};
+// export {settings as settingsDialog};
