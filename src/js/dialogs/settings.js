@@ -1,8 +1,10 @@
 'use strict';
 
-const $ = require('jquery');
+// const $ = require('jquery');
+import $ from 'jquery';
 
-require('jquery-ui/ui/widgets/button');
+// require('jquery-ui/ui/widgets/button');zzzz
+import 'jquery-ui/ui/widgets/button';
     
 const settings = (writer, config) => {
     const w = writer;
