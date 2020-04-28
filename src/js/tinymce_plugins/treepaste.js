@@ -453,7 +453,8 @@
                         ],
 
                         // Examine all styles: delete junk, transform some, and keep the rest
-                        [/(<[a-z][^>]*)\sstyle="([^"]*)"/gi,
+                        // [/(<[a-z][^>]*)\sstyle="([^"]*)"/gi,
+                        [/(<[a-z][^>]*)\sstyle=('|")([^('|")]*)('|")/gi,
                             function(str, tag, style) {
                                 var n = [],
                                     i = 0,
