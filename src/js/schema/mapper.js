@@ -177,7 +177,15 @@ Mapper.prototype = {
                     if (innerXPath !== null) {
                         innerXPath = innerXPath[1];
                         var innerResult = getValueFromXPath.call(this, contextEl, innerXPath);
-                        result = innerResult.match;
+
+                        // hack: if innerResult return undefined, resutl is also undefined
+                        if (innerResult === undefined) {
+                            console.warn('mapper.getReverseMapping.getValueFromXPath: cannot get match for unrecognizable xpath',xpath);
+                            result = undefined;
+                        } else {
+                            result = innerResult.match;
+                        }
+                        
                     } else {
                         console.warn('mapper.getReverseMapping.getValueFromXPath: cannot get match for unrecognizable xpath',xpath);
                     }
