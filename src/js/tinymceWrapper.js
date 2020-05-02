@@ -62,7 +62,8 @@ TinymceWrapper.init = function(config) {
     var editorId = config.editorId;
     var layoutContainerId = config.layoutContainerId;
 
-    var iconType = config.iconType === undefined ? 'img' : config.iconType;
+    // var iconType = config.iconType === undefined ? 'img' : config.iconType;
+    const iconType = config.iconType === undefined ? 'fas' : config.iconType;
 
     /**
      * Init tinymce
