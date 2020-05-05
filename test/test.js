@@ -469,7 +469,7 @@ test('dialogs.settings', async () => {
     expect(settingsDialog.find('.ui-dialog-title').text()).toBe('Settings');
 
     //use react
-    const buttonShowTags = document.querySelector("[name=showTags]");
+    const buttonShowTags = document.querySelector("[name=Tags]");
     act(() => {
         buttonShowTags.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });

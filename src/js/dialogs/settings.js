@@ -1,80 +1,20 @@
 import React, {Component} from 'react'
 import ReactDOM, { createPortal } from 'react-dom';
-import Button from '@material-ui/core/Button';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Switch from '@material-ui/core/Switch';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
 import Divider from '@material-ui/core/Divider';
-import Icon from '@material-ui/core/Icon';
-import IconButton from '@material-ui/core/IconButton';
-import { makeStyles } from '@material-ui/core/styles'
 
-import grey from '@material-ui/core/colors/grey';
+import HeaderMenuOptions from './settingComponents/HeaderMenuOptions';
+import SettingGroup from './settingComponents/SettingGroup';
 
-
-const colorGrey = grey[600];
+// import grey from '@material-ui/core/colors/grey';
+// const colorGrey = grey[600];
 
 import $ from 'jquery';
-
-// import 'jquery-ui/ui/widgets/button';
     
 const settings = (writer, config) => {
 
     const w = writer;
 
-    class HeaderMenuOptions extends Component {
-
-        useStyles = makeStyles((theme) => ({
-            root: {
-                '& > *': {
-                    margin: theme.spacing(1),
-                },
-            },
-            colorPrimary: '#FFFFFF'
-        }));
-
-        openDialog = () => {
-            $settingsDialog.dialog('open');
-        }
-
-        render() {
-            return (
-                <div className={this.useStyles.root} style={{textDecoration: "none"}}>
-                    <IconButton 
-                        size="small"
-                        onClick={this.openDialog}
-                        color="inherit" 
-                        className="settingsLink"
-                        aria-label="settings">
-                        <Icon fontSize="small">settings</Icon>
-                    </IconButton>
-                    <IconButton 
-                        size="small"
-                        href="https://cwrc.ca/Documentation/CWRC-Writer"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        color="inherit" 
-                        className="helpLink"
-                        aria-label="help">
-                        <Icon fontSize="small">help</Icon>
-                    </IconButton>
-                </div>
-            )
-        }
-    }
-
-    ReactDOM.render(
-        <HeaderMenuOptions />,
-        w.layoutManager.getHeaderButtonsParent()[0]
-    );
-
-    // $('<div class="helpLink"><a href="https://cwrc.ca/Documentation/CWRC-Writer" target="_blank">Help</a></div>').prependTo(w.layoutManager.getHeaderButtonsParent());
-    // const $settingsLink = $('<div class="settingsLink">Settings</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
-    // $settingsLink.click(() => {
-    //     $settingsDialog.dialog('open');
-    // });
-
+    //SETUP JQUERY DIALOG
     const $settingsDialog = $('<div id="settingsDialogContainer"></div>').appendTo(w.dialogManager.getDialogWrapper());
 
     $settingsDialog.dialog({
@@ -96,6 +36,22 @@ const settings = (writer, config) => {
     });
 
 
+     //add HEADER OPTIONS
+     ReactDOM.render(
+        <HeaderMenuOptions 
+            dialog={$settingsDialog}
+        />,
+        w.layoutManager.getHeaderButtonsParent()[0]
+    );
+
+    // $('<div class="helpLink"><a href="https://cwrc.ca/Documentation/CWRC-Writer" target="_blank">Help</a></div>').prependTo(w.layoutManager.getHeaderButtonsParent());
+    // const $settingsLink = $('<div class="settingsLink">Settings</div>').prependTo(w.layoutManager.getHeaderButtonsParent());
+    // $settingsLink.click(() => {
+    //     $settingsDialog.dialog('open');
+    // });
+
+
+    // SEETING DIALOG
     class SettingsDialog extends Component {
 
         state = {
@@ -155,10 +111,9 @@ const settings = (writer, config) => {
             // $settingsDialog.dialog('option', 'height', height);
         }
 
-        changeFontSize = element => {
-            const newSize = element.target.value;
-            this.setState(() => ({ fontSize: newSize }));
-            const styles = { fontSize: newSize };
+        changeFontSize = size => {
+            this.setState(() => ({ fontSize: size }));
+            const styles = { fontSize: size };
             w.editor.dom.setStyles(w.editor.dom.getRoot(), styles);
         }
 
@@ -188,9 +143,7 @@ const settings = (writer, config) => {
             return mode;
         }
 
-        changeEditorMode = element => {
-
-            const editorMode = element.target.value;
+        changeEditorMode = editorMode => {
             
             let doModeChange = false;
 
@@ -295,17 +248,13 @@ const settings = (writer, config) => {
             return mode;
         }
 
-        changeAnnotationMode = element => {
-            const annotationMode = element.target.value;
+        changeAnnotationMode = annotationMode => {
             w.annotationMode = annotationMode;
             this.setState(() => ({ annotationMode: annotationMode }));
         }
 
-        changeSchema = async element => {
-            const schemaId = element.target.value;
-
-            console.log(schemaId);
-
+        changeSchema = async schemaId => {
+            
             if (schemaId === this.state.schema) {
                 this.setState((prevState) => ({ mode: prevState.schemaId }));
                 return;
@@ -370,263 +319,92 @@ const settings = (writer, config) => {
             })
         }
 
-        // resetSettings = () => {
-        //     let editorVal;
-        //     switch(defaultSettings.mode) {
-        //         case w.XMLRDF:
-        //             editorVal = 'xmlrdf';
-        //             if (defaultSettings.allowOverlap) {
-        //                 editorVal = 'xmlrdfoverlap';
-        //             }
-        //             break;
-        //         case w.XML:
-        //             editorVal = 'xml';
-        //             break;
-        //         case w.RDF:
-        //             editorVal = 'rdf';
-        //             break;
-        //     }
-        //     $('select[name="editormode"]', $settingsDialog).val(editorVal);
-        //     $('select[name="annotations"]', $settingsDialog).val(defaultSettings.annotationMode);
-            
-        //     $('select[name="schema"]', $settingsDialog).val(defaultSettings.validationSchema);
-        // }
-
         render() {
             return (
                 <div style={{marginTop: '10px'}}>
-
-                    <div id="fontSizeContainer" style={{display: 'flex', marginBottom: '20px'}}>
-                        <div style={{flex: 1, textAlignLast: 'right', paddingRight: '10px', paddingTop: '7px'}}>
-                            {/* <label><b>Font Size</b></label> */}
-                            {/* <h3>Font Size</h3> */}
-                            {/* <Typography className={classes.title} variant="h6" noWrap>
-                                Font Size
-                            </Typography> */}
-                            Font Size
-                        </div>
-                        <div style={{flex: 2}}>
-                            <Select
-                                labelId="font-size"
-                                id="dfontSize"
-                                value={this.state.fontSize}
-                                onChange={this.changeFontSize}
-                                >
-                                {this.fontSizeOptions.map(({value,label}) => (
-                                    <MenuItem key={value} value={value}>{label}</MenuItem>
-                                ))}
-                            </Select>
-                            {/* <Select
-                                label="fontsize"
-                                value={this.state.fontSize}
-                                options={this.fontSizeOptions}
-                                onChange={this.changeFontSize} /> */}
-                        </div>
-                    </div>
-
-                    <div id="showTagsContainer" style={{display: 'flex', marginBottom: '20px'}}>
-                        <div style={{flex: 1, textAlignLast: 'right', paddingRight: '10px', paddingTop: '7px'}}>
-                            <label><b>Show</b></label>
-                        </div>
-                        <div style={{flex: 2}}>
-                            <div stlye={{dispaly: 'flex', flexDirection: 'colunm'}}>
-                                <div>
-                                    <FormControlLabel
-                                        control={
-                                        <Switch
-                                            checked={this.state.showEntities}
-                                            onChange={this.toggleEntities}
-                                            name="showEntities"
-                                            color="primary"
-                                            size="small" 
-                                            inputProps={{ 'aria-label': 'show entities' }}
-                                        />
-                                        }
-                                        label="Entities"
-                                    />
-                                    {/* <FormControlLabel
-                                        control={
-                                        <Checkbox
-                                            checked={this.state.showEntities}
-                                            onChange={this.toggleEntities}
-                                            inputProps={{ 'aria-label': 'show entities' }}
-                                            name="Tags"
-                                            // color="primary"
-                                            style={{paddingTop: '0px', paddingBottom: '0px'}}
-                                        />
-                                        }
-                                        label="Entities"
-                                    /> */}
-                                </div>
-                                <div>
-                                    <FormControlLabel
-                                        control={
-                                        <Switch
-                                            checked={this.state.showTags}
-                                            onChange={this.toggleTags}
-                                            name="showTags"
-                                            color="primary"
-                                            size="small"
-                                            inputProps={{ 'aria-label': 'show tags' }}
-                                        />
-                                        }
-                                        label="Tags"
-                                    />
-                                    {/* <FormControlLabel
-                                        control={
-                                        <Checkbox
-                                            checked={this.state.showTags}
-                                            onChange={this.toggleTags}
-                                            inputProps={{ 'aria-label': 'show tags' }}
-                                            name="Tags"
-                                            color="primary"
-                                            style={{paddingTop: '0px', paddingBottom: '0px'}}
-                                        />
-                                        }
-                                        label="Tags"
-                                    /> */}
-                                </div>
-                                {/* <Checkbox
-                                    label='Entities'
-                                    isSelected={this.state.showEntities}
-                                    onCheckboxChange={this.toggleEntities}
-                                    key='Entities'
-                                />
-                                <Checkbox
-                                    label='Tags'
-                                    isSelected={this.state.showTags}
-                                    onCheckboxChange={this.toggleTags}
-                                    key='Tags'
-                                /> */}
-                            </div>
-                        </div>
-                    </div>
-
+                    <SettingGroup 
+                        label="Font Size"
+                        inputs={[{
+                                type: 'select',
+                                value: this.state.fontSize,
+                                onChange: this.changeFontSize,
+                                options: this.fontSizeOptions
+                            }
+                        ]}
+                    />
+                    <SettingGroup 
+                        label="Show"
+                        inputs={[{
+                                type: 'switch',
+                                label: "Entities",
+                                checked: this.state.showEntities,
+                                onChange: this.toggleEntities,
+                            },
+                            {
+                                type: 'switch',
+                                label: "Tags",
+                                checked: this.state.toggleTags,
+                                onChange: this.toggleTags,
+                            }
+                        ]}
+                    />
                     {this.state.isAdvanced &&
-                        <div className="settingsDialogAdvanced">
-
-                            {/* <hr style={{marginTop: '20px', borderBottom: 0, borderTop: '1px solid #aaa'}} /> */}
-                            <Divider style={{marginTop: '10px', marginBottom: '20px'}}/>
-
-                            <div id="editorModeContainer" style={{display: 'flex', marginBottom: '20px'}} >
-                                <div style={{flex: 1, textAlignLast: 'right', paddingRight: '10px', paddingTop: '7px'}}>
-                                    <label><b>Editor Mode</b></label>
-                                </div>
-                                <div style={{flex: 2}}>
-                                    <Select
-                                        labelId="editor-mode"
-                                        id="editorMode"
-                                        value={this.state.mode}
-                                        onChange={this.changeEditorMode}
-                                        >
-                                        {this.editorModes.map(({value,label}) => (
-                                            <MenuItem key={value} value={value}>{label}</MenuItem>
-                                        ))}
-                                    </Select>
-                                    {/* <Select
-                                        label="editormode"
-                                        value={this.state.mode}
-                                        options={this.editorModes}
-                                        onChange={this.changeEditorMode} /> */}
-                                </div>
-                            </div>
-
-                            <div id="annotationMode" style={{display: 'flex', marginBottom: '20px'}}>
-                                <div style={{flex: 1, textAlignLast: 'right', paddingRight: '10px', paddingTop: '7px'}}>
-                                    <label><b>Annotations Format</b></label>
-                                </div>
-                                <div style={{flex: 2}}>
-                                    <Select
-                                        labelId="annotation-mode"
-                                        id="annotationMode"
-                                        value={this.state.annotationMode}
-                                        onChange={this.changeAnnotationMode}
-                                        >
-                                        {this.annotationModes.map(({value,label}) => (
-                                            <MenuItem key={value} value={value}>{label}</MenuItem>
-                                        ))}
-                                    </Select>
-                                    {/* <Select
-                                        label="annotations"
-                                        value={this.state.annotationMode}
-                                        options={this.annotationModes}
-                                        onChange={this.changeAnnotationMode} /> */}
-                                </div>
-                            </div>
-
-                            <Divider style={{marginTop: '10px', marginBottom: '20px'}}/>
-                            {/* <hr style={{marginTop: '20px', borderBottom: 0, borderTop: '1px solid #ccc'}} /> */}
-
-                            <div id="schemaOptionContainer" style={{display: 'flex', marginBottom: '20px'}}>
-                                <div style={{flex: 1, textAlignLast: 'right', paddingRight: '10px', paddingTop: '7px'}}>
-                                    <label><b>Schema</b></label>
-                                </div>
-                                <div style={{flex: 2}}>
-                                    <div style={{display: 'flex', flexDirection: 'column'}}>
-                                        <div>
-                                            <Select
-                                                labelId="schema-id"
-                                                id="schemaId"
-                                                value={this.state.schemaId}
-                                                onChange={this.changeSchema}
-                                                >
-                                                {w.schemaManager.schemas.map(({id,name}) => (
-                                                    <MenuItem key={id} value={id}>{name}</MenuItem>
-                                                ))}
-                                            </Select>
-                                            {/* <Select
-                                                label="schema"
-                                                value={this.state.schemaId}
-                                                options={w.schemaManager.schemas.map(({id,name}) => (
-                                                    { value: id, label: name}
-                                                ))}
-                                                onChange={this.changeSchema} /> */}
-                                        </div>
-                                        <div style={{marginTop: '15px'}}>
-                                            <Button
-                                                variant="outlined"
-                                                size="small"
-                                                name="addSchemaButton"
-                                                onClick={this.handleAddSchema}>
-                                                Add
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <Divider style={{marginTop: '10px', marginBottom: '20px'}}/>
-
-                            {/* <hr style={{marginTop: '20px', borderBottom: 0, borderTop: '1px solid #ccc'}} /> */}
-
-                            <div id="dialogPrefsContainer" style={{display: 'flex', marginBottom: '20px'}}>
-                                <div style={{flex: 1, textAlignLast: 'right', paddingRight: '10px', paddingTop: '7px'}}>
-                                    <label><b>Dialog Preferences</b></label>
-                                </div>
-                                <div style={{flex: 2}}>
-                                    <Button
-                                        variant="outlined"
-                                        name="resetConfirmButton"
-                                        size="small"
-                                        onClick={this.handleResetDialogPreferences}>
-                                        Reset Confirmations
-                                    </Button>
-                                </div>
-                            </div>
-                            {/* <div id="settingsPrefsContainer" style={{display: 'flex', marginTop: '10px'}}>
-                                <div style={{flex: 1, textAlign: 'right'}}>
-                                    <label><b>Settings Preferences</b></label>
-                                </div>
-                                <div style={{flex: 2}}>
-                                    <button
-                                        type="button"
-                                        name="resetConfirmButton"
-                                        onClick={this.resetSettings}>
-                                        Revert to Default
-                                    </button>
-                                </div>
-                            </div> */}
-                        </div>
+                    <div className="settingsDialogAdvanced">
+                        <Divider style={{marginTop: '10px', marginBottom: '10px'}}/>
+                        <SettingGroup 
+                            label="Editor Mode"
+                            inputs={[{
+                                    type: 'select',
+                                    id: 'editorMode',
+                                    value: this.state.mode,
+                                    onChange: this.changeEditorMode,
+                                    options: this.editorModes
+                                }
+                            ]}
+                        />
+                        <SettingGroup 
+                            label="Annotation Mode"
+                            inputs={[{
+                                    type: 'select',
+                                    id: 'annotationMode',
+                                    value: this.state.annotationMode,
+                                    onChange: this.changeAnnotationMode,
+                                    options: this.annotationModes
+                                }
+                            ]}
+                        />
+                        <Divider style={{marginTop: '10px', marginBottom: '10px'}}/>
+                        <SettingGroup 
+                            label="Schema"
+                            inputs={[{
+                                    type: 'select',
+                                    id: 'schemaId',
+                                    value: this.state.schemaId,
+                                    onChange: this.changeSchema,
+                                    options: w.schemaManager.schemas.map(({id,name}) => (
+                                        { value: id, label: name}
+                                    ))
+                                },
+                                {
+                                    type: 'button',
+                                    id: 'addSchema',
+                                    label: 'Add',
+                                    onClick: this.handleAddSchema
+                                }
+                            ]}
+                        />
+                        <Divider style={{marginTop: '10px', marginBottom: '10px'}}/>
+                        <SettingGroup 
+                            label="Dialog Preferences"
+                            inputs={[{
+                                    type: 'button',
+                                    id: 'resetConfirmButton',
+                                    label: 'Reset Confirmations',
+                                    onClick: this.handleResetDialogPreference
+                                }
+                            ]}
+                        />
+                    </div>
                     }
                 </div>
             )
@@ -635,6 +413,7 @@ const settings = (writer, config) => {
     }
 
 
+    //
     let setingsComponents;
 
     ReactDOM.render(
@@ -643,6 +422,7 @@ const settings = (writer, config) => {
     );
     
     
+    //
     return {
         getSettings: () => {
             //convert editor mode and annotation mode back to Code Numbers
