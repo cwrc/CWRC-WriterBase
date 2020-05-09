@@ -76,7 +76,6 @@
     "babel-jest": "^25.3.0",
     "codecov": "^3.6.5",
     "commitizen": "^4.1.2",
-    "copyfiles": "^2.2.0",
     "cz-conventional-changelog": "^3.2.0",
     "electron": "^8.2.3",
     "eslint": "^7.0.0",
@@ -87,8 +86,6 @@
     "jest-transform-stub": "^2.0.0",
     "less": "^3.11.1",
     "less-watch-compiler": "^1.14.6",
-    "mkdirp": "^1.0.4",
-    "path-exists-cli": "^1.0.0",
     "semantic-release": "^17.0.7",
     "travis-deploy-once": "^5.0.11"
   },
