@@ -33,14 +33,19 @@ html, body {
     @import (less) url('../js/layout/modules/relations/relations.css');
     @import (less) url('../js/layout/modules/validation/validation.css');
     @import (less) url('../js/layout/modules/nerve/nerve.less');
-}
 
-@{parentId} {
     @import (less) url('../../node_modules/jquery-contextmenu/dist/jquery.contextMenu.css');
     @import (less) url('../../node_modules/prism-themes/themes/prism-ghcolors.css');
     @import (less) url('../../node_modules/jstree/dist/themes/default/style.css');
     @import (less) url('./jstree-overrides.css');
 }
+
+// @{parentId} {
+//     @import (less) url('../../node_modules/jquery-contextmenu/dist/jquery.contextMenu.css');
+//     @import (less) url('../../node_modules/prism-themes/themes/prism-ghcolors.css');
+//     @import (less) url('../../node_modules/jstree/dist/themes/default/style.css');
+//     @import (less) url('./jstree-overrides.css');
+// }
 
 /* can't wrap these because otherwise they're TOO specific */
 @import (less) url('./tinymce-overrides.css');

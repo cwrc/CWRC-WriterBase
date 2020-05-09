@@ -1,0 +1,135 @@
+/* This CSS gets applied to the tinymce editor */
+/* entity colours */
+.showEntities .entity,
+.ui-dialog-content .entity {
+  border-width: 1px;
+  border-bottom-style: dotted;
+}
+.showEntities .entityHighlight > .entity {
+  border-width: 2px;
+}
+.entityHighlight.person {
+  background-color: rgba(255, 0, 0, 0.2);
+}
+.entityHighlight.date {
+  background-color: rgba(255, 114, 0, 0.2);
+}
+.entityHighlight.place {
+  background-color: rgba(0, 153, 153, 0.2);
+}
+.entityHighlight.rs {
+  background-color: rgba(0, 204, 0, 0.2);
+}
+.entityHighlight.org {
+  background-color: rgba(109, 56, 214, 0.2);
+}
+.entityHighlight.title {
+  background-color: rgba(224, 190, 0, 0.2);
+}
+.entityHighlight.correction {
+  background-color: rgba(255, 51, 0, 0.2);
+}
+.entityHighlight.link {
+  background-color: rgba(50, 101, 255, 0.2);
+}
+.showEntities .person,
+.ui-dialog-content .person {
+  border-color: #ec9393;
+}
+.showEntities .date,
+.ui-dialog-content .date {
+  border-color: #ff7200;
+}
+.showEntities .place,
+.ui-dialog-content .place {
+  border-color: #009999;
+}
+.showEntities .rs,
+.ui-dialog-content .rs {
+  border-color: #00cc00;
+}
+.showEntities .org,
+.ui-dialog-content .org {
+  border-color: #6d38d6;
+}
+.showEntities .title,
+.ui-dialog-content .title {
+  border-color: #e0be00;
+}
+.showEntities .correction,
+.ui-dialog-content .correction {
+  border-color: #ff3300;
+}
+.showEntities .link,
+.ui-dialog-content .link {
+  border-color: #3265ff;
+}
+.entity[_candidate] {
+  border-width: 0px !important;
+}
+.entity.person[_candidate] {
+  color: #ff0000 !important;
+}
+.entity.place[_candidate] {
+  color: #009999 !important;
+}
+.entity.org[_candidate] {
+  color: #6d38d6 !important;
+}
+.entity.title[_candidate] {
+  color: #e0be00 !important;
+}
+.entity.date[_candidate] {
+  color: #ff7200 !important;
+}
+.entity.correction[_candidate] {
+  color: #ff3300 !important;
+}
+.entity.link[_candidate] {
+  color: #3265ff !important;
+}
+.entity.keyword[_candidate] {
+  color: #008040 !important;
+}
+.entity.rs[_candidate] {
+  color: #00cc00 !important;
+}
+.noteWrapper::before {
+  cursor: pointer;
+}
+.noteWrapper.note::before {
+  content: url(../img/note_inline_large.png);
+}
+.noteWrapper.citation::before {
+  content: url(../img/citation_inline_large.png);
+}
+.noteWrapper.keyword::before {
+  content: url(../img/keyword_inline_large.png);
+}
+.noteWrapper.note.entityHighlight::before {
+  content: url(../img/note_inline_large_highlight.png);
+}
+.noteWrapper.citation.entityHighlight::before {
+  content: url(../img/citation_inline_large_highlight.png);
+}
+.noteWrapper.keyword.entityHighlight::before {
+  content: url(../img/keyword_inline_large_highlight.png);
+}
+.noteWrapper > * {
+  display: inherit;
+}
+.noteWrapper.hide > * {
+  display: none !important;
+}
+.showEntities .citation.start,
+.showEntities .note.start,
+.showEntities .keyword.start {
+  border: none !important;
+}
+span[data-mce-bogus] {
+  height: 0px;
+  width: 0px;
+  line-height: 0px;
+  font-size: 0px;
+  display: none;
+}
