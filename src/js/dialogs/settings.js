@@ -5,30 +5,6 @@ import Divider from '@material-ui/core/Divider';
 import HeaderMenuOptions from './settingComponents/HeaderMenuOptions';
 import SettingGroup from './settingComponents/SettingGroup';
 
-    //// Actions: Show Tags
-    $('.showtags').click(element => {
-        const showTags = $(element.currentTarget).is(':checked');
-        if (settings.showTags != showTags) $('body', w.editor.getDoc()).toggleClass('showTags');
-        settings.showTags = showTags;
-    });
-
-    //// Actions: Show Entities size
-    $('.showentities').click(element => {
-        const showEntities = $(element.currentTarget).is(':checked');
-        if (settings.showEntities != showEntities) $('body', w.editor.getDoc()).toggleClass('showEntities');
-        settings.showEntities = showEntities;
-    });
-
-    //// Actions: Annotation format
-    $('select[name="annotations"]', $settingsDialog).change(element => {
-        const annotationMode = element.currentTarget.value;
-        settings.annotationMode = annotationMode;
-        if (settings.annotationMode === 'xml') {
-            w.annotationMode = w.XML;
-        } else {
-            w.annotationMode = w.JSON;
-        }
-    });
 // import grey from '@material-ui/core/colors/grey';
 // const colorGrey = grey[600];
 
@@ -163,7 +139,6 @@ const settings = (writer, config) => {
             return mode;
         }
 
-        const schemaId = $('select[name="schema"]', $settingsDialog).val();
         changeEditorMode = editorMode => {
             
             let doModeChange = false;
@@ -450,52 +425,7 @@ const settings = (writer, config) => {
         }
 
     }
-    
-    const changeApplyButton = isLoading => {
-        const buttons = $settingsDialog.dialog('option', 'buttons')
-        if (isLoading) {
-            buttons[2].icon = 'ui-icon-clock'
-            buttons[2].disabled = true
-        } else {
-            buttons[2].icon = undefined
-            buttons[2].disabled = false
-        }
-        $settingsDialog.dialog('option', 'buttons', buttons)
-    }
 
-    const setDefaults = () => {
-        $('select[name="fontsize"]', $settingsDialog).val(defaultSettings.fontSize);
-        $settingsDialog.find('.showentities').prop('checked', defaultSettings.showEntities);
-        $settingsDialog.find('.showtags').prop('checked', defaultSettings.showTags);
-        
-        let editorVal;
-        switch(defaultSettings.mode) {
-        case w.XMLRDF:
-            editorVal = 'xmlrdf';
-            if (defaultSettings.allowOverlap) {
-                editorVal = 'xmlrdfoverlap';
-            }
-            break;
-        case w.XML:
-            editorVal = 'xml';
-            break;
-        case w.RDF:
-            editorVal = 'rdf';
-            break;
-        }
-        $('select[name="editormode"]', $settingsDialog).val(editorVal);
-        $('select[name="annotations"]', $settingsDialog).val(defaultSettings.annotationMode);
-        
-        //$('select[name="schema"]', $settingsDialog).val(defaultSettings.validationSchema);
-    }
-    
-    const hideAdvanced = () => {
-        $settingsDialog.find('.settingsDialogAdvanced').hide();
-        $settingsDialog.dialog('option', 'height', 260);
-    }
-    
-    // TODO don't rebuild the whole schema list when one schema gets added
-    // w.event('schemaAdded').subscribe(buildSchema);
 
     //
     let setingsComponents;
