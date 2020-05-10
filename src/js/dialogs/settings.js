@@ -255,6 +255,8 @@ const settings = (writer, config) => {
 
         changeSchema = async schemaId => {
             
+            console.log('opa')
+
             if (schemaId === this.state.schema) {
                 this.setState((prevState) => ({ mode: prevState.schemaId }));
                 return;
@@ -274,6 +276,8 @@ const settings = (writer, config) => {
             // changeApplyButton(false);
             const currRootName = w.utilities.getRootTag().attr('_tag');
 
+            console.log(this)
+
             if (rootName === null) {
                 this.setState((prevState) => ({ schemaId: prevState.schemaId }));
                 w.dialogManager.show('message', {
@@ -290,8 +294,9 @@ const settings = (writer, config) => {
                             <p>Continue?</p>`,
                     type: 'info',
                     callback: doIt => {
+                        console.log(this)
                         if (doIt) {
-                            this.setState(() => ({ schema: schemaId }));
+                            this.setState(() => ({ schemaId: schemaId }));
                             // $settingsDialog.dialog('close');
                             w.event('schemaChanged').publish(schemaId);
                         } else {
