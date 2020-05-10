@@ -7,9 +7,9 @@
 .imageViewer .button:hover { cursor: pointer; background-color: #ccc; border: 1px solid #aaa; }
 .imageViewer .pageInfo { display: block; position: relative; float: right; margin: 5px 3px; }
 .imageViewer input.currPage { height: 16px; width: 20px; text-align: right; }
-.imageViewer .prev { background-image: url(../img/arrow_left.png) }
-.imageViewer .next { background-image: url(../img/arrow_right.png) }
-.imageViewer .zoomIn { background-image: url(../img/magnifier_zoom_in.png) }
-.imageViewer .zoomOut { background-image: url(../img/magnifier_zoom_out.png) }
-.imageViewer .home { background-image: url(../img/house.png) }
+.imageViewer .prev { background-image: url(../../../../img/arrow_left.png) }
+.imageViewer .next { background-image: url(../../../../img/arrow_right.png) }
+.imageViewer .zoomIn { background-image: url(../../../../img/magnifier_zoom_in.png) }
+.imageViewer .zoomOut { background-image: url(../../../../img/magnifier_zoom_out.png) }
+.imageViewer .home { background-image: url(../../../../img/house.png) }
 .imageViewer .openseadragon-message { white-space: pre; }

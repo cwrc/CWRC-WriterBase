@@ -26,7 +26,7 @@
 }
 
 .cwrcLoadingMask div {
-    background-image: url(../img/loading_large.gif);
+    background-image: url(../../img/loading_large.gif);
     background-repeat: no-repeat;
     background-position: left center;
     height: 32px;
@@ -94,12 +94,12 @@
     font-weight: bold;
     text-decoration: none !important;
     padding: 0 0 0 40px;
-    background-image: url(../img/cwrc_logo_small.png);
+    background-image: url(../../img/cwrc_logo_small.png);
     background-repeat: no-repeat;
     background-position: 5px center;
 }
 
-.helpLink {
+/* .helpLink {
     background: url("../img/help.png") no-repeat scroll 0 0 transparent;
     padding-left: 20px;
 }
@@ -111,24 +111,24 @@
 
 .helpLink a:hover {
     text-decoration: underline;
-}
+} */
 
 .fullscreenLink.out {
-    background: url("../img/arrow_out.png") no-repeat scroll 0 0 transparent;
+    background: url("../../img/arrow_out.png") no-repeat scroll 0 0 transparent;
     padding-left: 20px;
 }
 
 .fullscreenLink.in {
-    background: url("../img/arrow_in.png") no-repeat scroll 0 0 transparent;
+    background: url("../../img/arrow_in.png") no-repeat scroll 0 0 transparent;
     padding-left: 20px;
 }
 
 .arrowLeft {
-    background-image: url('../img/arrow_left.gif');
+    background-image: url('../../img/arrow_left.png');
 }
 
 .arrowRight {
-    background-image: url('../img/arrow_right.gif');
+    background-image: url('../../img/arrow_right.png');
 }
 
 .cwrc .moduleParent {
@@ -204,7 +204,7 @@
 
 
 .loading {
-    background-image: url('../img/loading.gif');
+    background-image: url('../../img/loading.gif');
     width: 16px;
     height: 16px;
     display: inline-block;
