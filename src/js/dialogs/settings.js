@@ -21,9 +21,7 @@ const settings = (writer, config) => {
         title: 'Settings',
         modal: true,
         resizable: false,
-        // dialogClass: 'splitButtons',
         closeOnEscape: true,
-        // height: 360,
         width: 450,
         position: { my: 'center', at: 'center', of: w.layoutManager.getContainer() },
         autoOpen: false,
@@ -57,8 +55,8 @@ const settings = (writer, config) => {
         state = {
             isAdvanced: true,
             fontSize: '11pt',
+            showEntities: true,
             showTags: false,
-            showEntities: false,
             mode: 'xmlrdfoverlap',
             annotationMode: 'json',
             allowOverlap: false,
@@ -107,8 +105,6 @@ const settings = (writer, config) => {
 
         toggleAdvanced = value => {
             this.setState(() => ({ isAdvanced: value }));
-            // const height = (value === false) ? 150 : 'auto';
-            // $settingsDialog.dialog('option', 'height', height);
         }
 
         changeFontSize = size => {
@@ -117,14 +113,14 @@ const settings = (writer, config) => {
             w.editor.dom.setStyles(w.editor.dom.getRoot(), styles);
         }
 
-        toggleTags = () => {
-            this.setState((prevState) => ({ showTags: !prevState.showTags }));
-            $('body', w.editor.getDoc()).toggleClass('showTags');
-        }
-
         toggleEntities = () => {
             this.setState((prevState) => ({ showEntities: !prevState.showEntities }));
             $('body', w.editor.getDoc()).toggleClass('showEntities');
+        }
+
+        toggleTags = () => {
+            this.setState((prevState) => ({ showTags: !prevState.showTags }));
+            $('body', w.editor.getDoc()).toggleClass('showTags');
         }
 
         getEditorMode = value => {
@@ -158,7 +154,7 @@ const settings = (writer, config) => {
             }
 
             if (!doModeChange) {
-                this.setState((prevState) => ({ mode: prevStateZ.editorMode }));
+                this.setState((prevState) => ({ mode: prevState.mode }));
                 return
             }
             
@@ -255,8 +251,6 @@ const settings = (writer, config) => {
 
         changeSchema = async schemaId => {
             
-            console.log('opa')
-
             if (schemaId === this.state.schema) {
                 this.setState((prevState) => ({ mode: prevState.schemaId }));
                 return;
@@ -276,8 +270,6 @@ const settings = (writer, config) => {
             // changeApplyButton(false);
             const currRootName = w.utilities.getRootTag().attr('_tag');
 
-            console.log(this)
-
             if (rootName === null) {
                 this.setState((prevState) => ({ schemaId: prevState.schemaId }));
                 w.dialogManager.show('message', {
@@ -294,7 +286,6 @@ const settings = (writer, config) => {
                             <p>Continue?</p>`,
                     type: 'info',
                     callback: doIt => {
-                        console.log(this)
                         if (doIt) {
                             this.setState(() => ({ schemaId: schemaId }));
                             // $settingsDialog.dialog('close');
@@ -324,6 +315,14 @@ const settings = (writer, config) => {
             })
         }
 
+        handleRevertToDefault = () => {
+            if (this.state.fontSize !== '11pt') this.changeFontSize('11pt');
+            if (this.state.showEntities === false) this.toggleEntities();
+            if (this.state.showTags === true) this.toggleTags();
+            if (this.state.mode !== 'xmlrdfoverlap') this.changeEditorMode('xmlrdf');
+            if (this.state.annotationMode !== 'json') this.changeAnnotationMode('json');
+        }
+
         render() {
             return (
                 <div style={{marginTop: '10px'}}>
@@ -348,7 +347,7 @@ const settings = (writer, config) => {
                             {
                                 type: 'switch',
                                 label: "Tags",
-                                checked: this.state.toggleTags,
+                                checked: this.state.showTags,
                                 onChange: this.toggleTags,
                             }
                         ]}
@@ -406,6 +405,16 @@ const settings = (writer, config) => {
                                     id: 'resetConfirmButton',
                                     label: 'Reset Confirmations',
                                     onClick: this.handleResetDialogPreference
+                                }
+                            ]}
+                        />
+                        <SettingGroup 
+                            label="Editor Preferences"
+                            inputs={[{
+                                    type: 'button',
+                                    id: 'revertToDefault',
+                                    label: 'Revert to Default',
+                                    onClick: this.handleRevertToDefault
                                 }
                             ]}
                         />

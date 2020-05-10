@@ -5,70 +5,68 @@ import Switch from '@material-ui/core/Switch';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 
-const getSelectComponent = input => {
+const getSelectComponent = ({label, value, options, onChange}) => {
     return (
         <Select
-            labelId={input.label}
-            id={input.label}
-            value={input.value}
-            onChange={(e) => input.onChange(e.target.value)}
+            labelId={label}
+            id={label}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
             >
-            {input.options.map(({value,label}) => (
+            {options.map(({value,label}) => (
                 <MenuItem key={value} value={value}>{label}</MenuItem>
             ))}
         </Select>
     )
 }
 
-const getSwitchComponent = input => {
+const getSwitchComponent = ({checked, label, onChange}) => {
     return (
         <FormControlLabel
             control={
             <Switch
-                checked={input.checked}
-                onChange={input.onChange}
-                name={input.label}
+                checked={checked}
+                onChange={onChange}
+                name={label}
                 color="primary"
                 size="small"
-                inputProps={{ 'aria-label': input.label }}
+                inputProps={{ 'aria-label': label }}
             />
             }
-            label={input.label}
+            label={label}
         />
     )
 }
 
-const getButtonComponent = input => {
+const getButtonComponent = ({id, label, onClick}) => {
     return (
         <Button
             variant="outlined"
             size="small"
-            name={input.id}
-            onClick={input.click}>
-            {input.label}
+            name={id}
+            onClick={onClick}>
+            {label}
         </Button>
     )
 }
 
-const SettingGroup = props => (
+const SettingGroup = ({label,inputs }) => (
     <div id="fontSizeContainer" style={{display: 'flex', marginBottom: '10px'}}>
         <div style={{flex: 1, textAlignLast: 'right', paddingRight: '10px', paddingTop: '7px'}}>
-            {props.label}
+            {label}
         </div>
         <div style={{flex: 2}}>
-        {props.inputs.length > 0 &&
-        <div stlye={{display: 'flex', flexDirection: 'colunm'}}>
-            {props.inputs.map( (input, i) => {
-                return (
-                    <div key={i} style={{marginBottom: '5px'}}>
-                        {input.type === 'select' && getSelectComponent(input)}
-                        {input.type === 'switch' && getSwitchComponent(input)}
-                        {input.type === 'button' && getButtonComponent(input)}
-                    </div>
-                )   
-            })}
-        </div>
-        }
+            {inputs.length > 0 &&
+            <div stlye={{display: 'flex', flexDirection: 'colunm'}}>
+            {inputs.map( (input, i) => (
+                <div key={i} style={{marginBottom: '5px'}}>
+                    {input.type === 'select' && getSelectComponent(input)}
+                    {input.type === 'switch' && getSwitchComponent(input)}
+                    {input.type === 'button' && getButtonComponent(input)}
+                </div>
+            ))}
+            </div>
+            }
         </div>
     </div>
 );
