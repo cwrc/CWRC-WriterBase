@@ -13,6 +13,7 @@ import $ from 'jquery';
 const settings = (writer, config) => {
 
     const w = writer;
+    let setingsComponents;
 
     //SETUP JQUERY DIALOG
     const $settingsDialog = $('<div id="settingsDialogContainer"></div>').appendTo(w.dialogManager.getDialogWrapper());
@@ -27,6 +28,7 @@ const settings = (writer, config) => {
         autoOpen: false,
         open: (event, ui) => {
             $('.ui-dialog-titlebar-close', ui.dialog).show();
+            updateSchema();
         },
         close: () => {
             $settingsDialog.dialog('close');
@@ -48,6 +50,11 @@ const settings = (writer, config) => {
     //     $settingsDialog.dialog('open');
     // });
 
+
+    //EXTERNAL FUNCION TO SELECT SCHEMA IN SETTINGG DIALOG
+    const updateSchema = () => {
+        setingsComponents.setState(() => ({ schemaId: w.schemaManager.schemaId }));
+    }
 
     // SEETING DIALOG
     class SettingsDialog extends Component {
@@ -428,7 +435,7 @@ const settings = (writer, config) => {
 
 
     //
-    let setingsComponents;
+    
 
     ReactDOM.render(
         <SettingsDialog ref={(settingsConponent) => {setingsComponents = settingsConponent}} />,
