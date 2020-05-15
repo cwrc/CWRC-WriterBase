@@ -1,17 +1,17 @@
-var $ = require('jquery');
-var Mapper = require('../mapper.js');
-var AnnotationsManager = require('annotationsManager');
+const $ = require('jquery');
+const Mapper = require('../mapper.js');
 
-function handleGraphics($tag) {
-    var url = $tag.attr('url');
+
+const handleGraphics = $tag => {
+    const url = $tag.attr('url');
     if (url !== undefined) {
-        $tag.css('backgroundImage','url('+url+')');
-        $tag.css('display','inline-block');
-        var $img = $('<img />');
+        $tag.css('backgroundImage', `url(${url})`);
+        $tag.css('display', 'inline-block');
+        const $img = $('<img />');
         $img.hide();
-        $img.on('load', function() {
-            var height = $(this).height();
-            var width = $(this).width();
+        $img.on('load', function () {
+            const height = $(this).height();
+            const width = $(this).width();
             $tag.width(width);
             $tag.height(height);
             $img.remove();
@@ -20,214 +20,214 @@ function handleGraphics($tag) {
         $img.attr('src', url);
     }
 }
-    
-module.exports = {
 
-id: 'ID',
-responsibility: 'RESP',
-rdfParentSelector: '/*/ORLANDOHEADER/FILEDESC/following-sibling::XENODATA',
-root: ['ENTRY', 'EVENT', 'BIOGRAPHY', 'WRITING'],
-header: 'ORLANDOHEADER',
-blockElements: ['DIV0', 'DIV1', 'EVENT', 'ORLANDOHEADER', 'DOCAUTHOR', 'DOCEDITOR', 'DOCEXTENT', 'PUBLICATIONSTMT', 'TITLESTMT', 'PUBPLACE', 'L', 'P', 'HEADING', 'CHRONEVENT', 'CHRONSTRUCT'],
-urlAttributes: ['URL', 'REF'],
-popupAttributes: ['PLACEHOLDER'],
-popupElements: ['RESEARCHNOTE', 'SCHOLARNOTE'],
+const mapping = {
 
-listeners: {
-    tagAdded: function(tag) {
-        var $tag = $(tag);
-        if ($tag.attr('_tag') === 'GRAPHIC') {
-            handleGraphics($tag);
+    id: 'ID',
+    responsibility: 'RESP',
+    rdfParentSelector: '/*/ORLANDOHEADER/FILEDESC/following-sibling::XENODATA',
+    root: ['ENTRY', 'EVENT', 'BIOGRAPHY', 'WRITING'],
+    header: 'ORLANDOHEADER',
+    blockElements: ['DIV0', 'DIV1', 'EVENT', 'ORLANDOHEADER', 'DOCAUTHOR', 'DOCEDITOR', 'DOCEXTENT', 'PUBLICATIONSTMT', 'TITLESTMT', 'PUBPLACE', 'L', 'P', 'HEADING', 'CHRONEVENT', 'CHRONSTRUCT'],
+    urlAttributes: ['URL', 'REF'],
+    popupAttributes: ['PLACEHOLDER'],
+    popupElements: ['RESEARCHNOTE', 'SCHOLARNOTE'],
+
+    listeners: {
+        tagAdded: tag => {
+            const $tag = $(tag);
+            if ($tag.attr('_tag') === 'GRAPHIC') handleGraphics($tag);
+        },
+        tagEdited: tag => {
+            const $tag = $(tag);
+            if ($tag.attr('_tag') === 'GRAPHIC') handleGraphics($tag);
+        },
+        documentLoaded: (success, body) => {
+            $(body).find('*[_tag="GRAPHIC"]').each((index, el) => {
+                handleGraphics($(el));
+            });
         }
     },
-    tagEdited: function(tag) {
-        var $tag = $(tag);
-        if ($tag.attr('_tag') === 'GRAPHIC') {
-            handleGraphics($tag);
-        }
-    },
-    documentLoaded: function(success, body) {
-        $(body).find('*[_tag="GRAPHIC"]').each(function(index, el) {
-            handleGraphics($(el));
-        });
-    }
-},
 
-entities: {
-    
-person: {
-    parentTag: 'NAME',
-    mapping: {
-        uri: '@REF',
-        lemma: '@STANDARD'
-    },
-    annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, 'foaf:Person');
-    }
-},
+    entities: {
 
-org: {
-    parentTag: 'ORGNAME',
-    mapping: {
-        uri: '@REF',
-        lemma: '@STANDARD'
-    },
-    annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, 'foaf:Organization');
-    }
-},
-
-place: {
-    parentTag: 'PLACE',
-    textTag: ['ADDRESS', 'AREA', 'GEOG', 'PLACENAME', 'REGION', 'SETTLEMENT'],
-    mappingFunction: function(entity) {
-        var placeType = entity.getCustomValue('placeType') || 'ADDRESS';
-
-        var startTag = Mapper.getTagAndDefaultAttributes(entity);
-        startTag += '<'+placeType+'>';
-
-        var endTag = '</'+placeType+'></'+entity.getTag()+'>';
-        
-        return [startTag, endTag];
-    },
-    mapping: {
-        uri: '@REF',
-        lemma: '@REG',
-        customValues: {placeType: 'local-name(./*)'}
-    },
-    annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, 'geo:SpatialThing');
-    }
-},
-
-title: {
-    parentTag: 'TITLE',
-    mapping: {
-        uri: '@REF',
-        lemma: '@REG'
-    },
-    annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, ['dcterms:BibliographicResource', 'dcterms:title'], 'oa:identifying');
-        
-        if (format === 'xml') {
-            var levelXml = $.parseXML('<cw:pubType xmlns:cw="http://cwrc.ca/ns/cw#">'+entity.getAttribute('TITLETYPE')+'</cw:pubType>');
-            var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
-            body.prepend(levelXml.firstChild);
-        } else {
-            anno['oa:hasBody']['pubType'] = entity.getAttribute('TITLETYPE');
-        }
-        
-        return anno;
-    }
-},
-
-date: {
-    xpathSelector: 'self::orlando:DATE|self::orlando:DATERANGE|self::orlando:DATESTRUCT',
-    parentTag: ['DATE', 'DATERANGE', 'DATESTRUCT'],
-    mapping: {
-        tag: 'local-name(.)'
-    },
-    annotation: function(annotationsManager, entity, format) {
-        var types = [];
-        if (entity.getAttribute('FROM') !== undefined) {
-            types.push('time:Interval');
-        } else {
-            types.push('time:Instant');
-        }
-        types.push('time:TemporalEntity');
-        
-        var anno = annotationsManager.commonAnnotation(entity, types);
-        
-        if (format === 'xml') {
-            var dateXml;
-            if (entity.getAttribute('VALUE') !== undefined) {
-                dateXml = $.parseXML('<xsd:date xmlns:xsd="http://www.w3.org/2001/XMLSchema#">'+entity.getAttribute('VALUE')+'</xsd:date>');
-            } else {
-                // TODO properly encode date range
-                dateXml = $.parseXML('<xsd:date xmlns:xsd="http://www.w3.org/2001/XMLSchema#">'+entity.getAttribute('FROM')+'/'+entity.getAttribute('TO')+'</xsd:date>');
+        person: {
+            parentTag: 'NAME',
+            mapping: {
+                uri: '@REF',
+                lemma: '@STANDARD'
+            },
+            annotation: (annotationsManager, entity, format) => {
+                return annotationsManager.commonAnnotation(entity, 'foaf:Person');
             }
-            var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
-            body.prepend(dateXml.firstChild);
-        } else {
-            if (entity.getAttribute('VALUE') !== undefined) {
-                anno['oa:hasBody']['xsd:date'] = entity.getAttribute('VALUE');
-            } else {
-                anno['oa:hasBody']['xsd:date'] = entity.getAttribute('FROM')+'/'+entity.getAttribute('TO');
+        },
+
+        org: {
+            parentTag: 'ORGNAME',
+            mapping: {
+                uri: '@REF',
+                lemma: '@STANDARD'
+            },
+            annotation: (annotationsManager, entity, format) => {
+                return annotationsManager.commonAnnotation(entity, 'foaf:Organization');
+            }
+        },
+
+        place: {
+            parentTag: 'PLACE',
+            textTag: ['ADDRESS', 'AREA', 'GEOG', 'PLACENAME', 'REGION', 'SETTLEMENT'],
+            mappingFunction: (entity) => {
+                const placeType = entity.getCustomValue('placeType') || 'ADDRESS';
+
+                let startTag = Mapper.getTagAndDefaultAttributes(entity);
+                startTag += `<${placeType}>`;
+
+                const endTag = `</${placeType}></${entity.getTag()}>`;
+
+                return [startTag, endTag];
+            },
+            mapping: {
+                uri: '@REF',
+                lemma: '@REG',
+                customValues: {
+                    placeType: 'local-name(./*)'
+                }
+            },
+            annotation: (annotationsManager, entity, format) => {
+                return annotationsManager.commonAnnotation(entity, 'geo:SpatialThing');
+            }
+        },
+
+        title: {
+            parentTag: 'TITLE',
+            mapping: {
+                uri: '@REF',
+                lemma: '@REG'
+            },
+            annotation: (annotationsManager, entity, format) => {
+                const anno = annotationsManager.commonAnnotation(entity, ['dcterms:BibliographicResource', 'dcterms:title'], 'oa:identifying');
+
+                if (format === 'xml') {
+                    const levelXml = $.parseXML(`<cw:pubType xmlns:cw="http://cwrc.ca/ns/cw#">${entity.getAttribute('TITLETYPE')}</cw:pubType>`);
+                    const body = $(`[rdf\\:about="${entity.getUris().entityId}"]`, anno);
+                    body.prepend(levelXml.firstChild);
+                } else {
+                    anno['oa:hasBody']['pubType'] = entity.getAttribute('TITLETYPE');
+                }
+
+                return anno;
+            }
+        },
+
+        date: {
+            xpathSelector: 'self::orlando:DATE|self::orlando:DATERANGE|self::orlando:DATESTRUCT',
+            parentTag: ['DATE', 'DATERANGE', 'DATESTRUCT'],
+            mapping: {
+                tag: 'local-name(.)'
+            },
+            annotation: (annotationsManager, entity, format) => {
+                let types = [];
+                if (entity.getAttribute('FROM') !== undefined) {
+                    types.push('time:Interval');
+                } else {
+                    types.push('time:Instant');
+                }
+                types.push('time:TemporalEntity');
+
+                const anno = annotationsManager.commonAnnotation(entity, types);
+
+                if (format === 'xml') {
+                    let dateXml;
+                    if (entity.getAttribute('VALUE') !== undefined) {
+                        dateXml = $.parseXML(`<xsd:date xmlns:xsd="http://www.w3.org/2001/XMLSchema#">${entity.getAttribute('VALUE')}</xsd:date>`);
+                    } else {
+                        // TODO properly encode date range
+                        dateXml = $.parseXML(`<xsd:date xmlns:xsd="http://www.w3.org/2001/XMLSchema#">${entity.getAttribute('FROM')}/${entity.getAttribute('TO')}</xsd:date>`);
+                    }
+                    const body = $(`[rdf\\:about="${entity.getUris().entityId}"]`, anno);
+                    body.prepend(dateXml.firstChild);
+                } else {
+                    if (entity.getAttribute('VALUE') !== undefined) {
+                        anno['oa:hasBody']['xsd:date'] = entity.getAttribute('VALUE');
+                    } else {
+                        anno['oa:hasBody']['xsd:date'] = `${entity.getAttribute('FROM')}/${entity.getAttribute('TO')}`;
+                    }
+                }
+
+                return anno;
+            }
+        },
+
+        note: {
+            xpathSelector: 'self::orlando:RESEARCHNOTE|self::orlando:SCHOLARNOTE',
+            parentTag: ['RESEARCHNOTE', 'SCHOLARNOTE'],
+            isNote: true,
+            mapping: {
+                tag: 'local-name(.)',
+                noteContent: '.'
+            },
+            annotation: (annotationsManager, entity, format) => {
+                return annotationsManager.commonAnnotation(entity, 'bibo:Note', 'oa:commenting');
+            }
+        },
+
+        citation: {
+            parentTag: 'BIBCIT',
+            isNote: true,
+            mapping: {
+                uri: '@REF',
+                noteContent: '.'
+            },
+            annotation: (annotationsManager, entity, format) => {
+                return annotationsManager.commonAnnotation(entity, 'dcterms:BibliographicResource', 'cw:citing');
+            }
+        },
+
+        correction: {
+            parentTag: 'SIC',
+            annotation: (annotationsManager, entity, format) => {
+                const anno = annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:editing');
+
+                if (format === 'xml') {
+                    const corrXml = $.parseXML(`<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">${entity.getAttribute('CORR')}</cnt:chars>`);
+                    const body = $(`[rdf\\:about="${entity.getUris().entityId}"]`, anno);
+                    body.prepend(corrXml.firstChild);
+                } else {
+                    anno['oa:hasBody']['cnt:chars'] = entity.getAttribute('CORR');
+                }
+
+                return anno;
+            }
+        },
+
+        keyword: {
+            parentTag: 'KEYWORDCLASS',
+            isNote: true,
+            annotation: (annotationsManager, entity, format) => {
+                const anno = annotationsManager.commonAnnotation(entity, ['oa:Tag', 'cnt:ContentAsText', 'skos:Concept'], 'oa:classifying');
+
+                const keyword = entity.getAttribute('KEYWORDTYPE');
+                if (format === 'xml') {
+                    const body = $(`[rdf\\:about="${entity.getUris().entityId}"]`, anno);
+                    const keywordXml = $.parseXML(`<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">${keyword}</cnt:chars>`);
+                    body.prepend(keywordXml.firstChild);
+                } else {
+                    anno['oa:hasBody']['cnt:chars'] = keyword;
+                }
+
+                return anno;
+            }
+        },
+
+        link: {
+            parentTag: 'XREF',
+            annotation: (annotationsManager, entity, format) => {
+                return annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:linking');
             }
         }
-        
-        return anno;
+
     }
-},
-
-note: {
-    xpathSelector: 'self::orlando:RESEARCHNOTE|self::orlando:SCHOLARNOTE',
-    parentTag: ['RESEARCHNOTE', 'SCHOLARNOTE'],
-    isNote: true,
-    mapping: {
-        tag: 'local-name(.)',
-        noteContent: '.'
-    },
-    annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, 'bibo:Note', 'oa:commenting');
-    }
-},
-
-citation: {
-    parentTag: 'BIBCIT',
-    isNote: true,
-    mapping: {
-        uri: '@REF',
-        noteContent: '.'
-    },
-    annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, 'dcterms:BibliographicResource', 'cw:citing');
-    }
-},
-
-correction: {
-    parentTag: 'SIC',
-    annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:editing');
-        
-        if (format === 'xml') {
-            var corrXml = $.parseXML('<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">'+entity.getAttribute('CORR')+'</cnt:chars>');
-            var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
-            body.prepend(corrXml.firstChild);
-        } else {
-            anno['oa:hasBody']['cnt:chars'] = entity.getAttribute('CORR');
-        }
-
-        return anno;
-    }
-},
-
-keyword: {
-    parentTag: 'KEYWORDCLASS',
-    isNote: true,
-    annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, ['oa:Tag', 'cnt:ContentAsText', 'skos:Concept'], 'oa:classifying');
-        
-        var keyword = entity.getAttribute('KEYWORDTYPE');
-        if (format === 'xml') {
-            var body = $('[rdf\\:about="'+entity.getUris().entityId+'"]', anno);
-            var keywordXml = $.parseXML('<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">'+keyword+'</cnt:chars>');
-            body.prepend(keywordXml.firstChild);
-        } else {
-            anno['oa:hasBody']['cnt:chars'] = keyword;
-        }
-
-        return anno;
-    }
-},
-
-link: {
-    parentTag: 'XREF',
-    annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:linking');
-    }
-}
-
-}
 
 };
+
+module.exports = mapping;

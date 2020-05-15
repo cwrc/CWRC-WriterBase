@@ -1,9 +1,6 @@
 const $ = require('jquery');
-const Mapper = require('../mapper.js');
-const AnnotationsManager = require('annotationsManager');
 
-
-const handleGraphics = ($tag) => {
+const handleGraphics = $tag => {
     const url = $tag.attr('url');
     if (url !== undefined) {
         $tag.css('backgroundImage', `url(${url})`);
@@ -138,7 +135,7 @@ const mapping = {
                     if (entity.getAttribute('VALUE') !== undefined) {
                         anno['oa:hasBody']['xsd:date'] = entity.getAttribute('VALUE');
                     } else {
-                        anno['oa:hasBody']['xsd:date'] = `${entity.getAttribute('FROM')}/${+entity.getAttribute('TO')}`;
+                        anno['oa:hasBody']['xsd:date'] = `${entity.getAttribute('FROM')}/${entity.getAttribute('TO')}`;
                     }
                 }
 
