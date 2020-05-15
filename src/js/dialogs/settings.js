@@ -1,12 +1,11 @@
 import React, {Component} from 'react'
 import ReactDOM, { createPortal } from 'react-dom';
+import Button from '@material-ui/core/Button';
 import Divider from '@material-ui/core/Divider';
 
 import HeaderMenuOptions from './settingComponents/HeaderMenuOptions';
 import SettingGroup from './settingComponents/SettingGroup';
 
-// import grey from '@material-ui/core/colors/grey';
-// const colorGrey = grey[600];
 
 import $ from 'jquery';
     
@@ -65,7 +64,7 @@ const settings = (writer, config) => {
             showEntities: true,
             showTags: false,
             mode: 'xmlrdfoverlap',
-            annotationMode: 'json',
+            annotationMode: w.JSON,
             allowOverlap: false,
             schemaId: 'tei'
         }
@@ -91,21 +90,20 @@ const settings = (writer, config) => {
         ]
 
         annotationModes = [
-            { key: w.XML, value: 'xml', label: 'RDF/XML'},
-            { key: w.JSON, value: 'json', label: 'JSON-LD'}
+            { value: w.XML, label: 'RDF/XML'},
+            { value: w.JSON, label: 'JSON-LD'}
         ]
 
         componentDidMount = () => {
             if (w.isReadOnly) this.toggleAdvanced(false);
 
             const editorMode = this.getEditorMode(w.mode);
-            const annotationMode = this.getAnnotationMode(w.annotationMode);
             
             this.setState(() => ({
                 showEntities: config.showEntities,
                 showTags: config.showTags,
                 mode: editorMode.value,
-                annotationMode: annotationMode.value,
+                annotationMode: w.annotationMode,
                 allowOverlap: w.allowOverlap
             }));
         }
@@ -327,8 +325,10 @@ const settings = (writer, config) => {
             if (this.state.showEntities === false) this.toggleEntities();
             if (this.state.showTags === true) this.toggleTags();
             if (this.state.mode !== 'xmlrdfoverlap') this.changeEditorMode('xmlrdf');
-            if (this.state.annotationMode !== 'json') this.changeAnnotationMode('json');
+            if (this.state.annotationMode !== w.JSON) this.changeAnnotationMode(w.JSON);
         }
+
+        handleClose = () => $settingsDialog.dialog('close')
 
         render() {
             return (
@@ -425,6 +425,16 @@ const settings = (writer, config) => {
                                 }
                             ]}
                         />
+                        <Divider style={{marginTop: '10px', marginBottom: '10px'}}/>
+                        <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                name="closeButton"
+                                onClick={this.handleClose}>
+                                Close
+                            </Button>
+                        </div>
                     </div>
                     }
                 </div>
@@ -435,8 +445,6 @@ const settings = (writer, config) => {
 
 
     //
-    
-
     ReactDOM.render(
         <SettingsDialog ref={(settingsConponent) => {setingsComponents = settingsConponent}} />,
         document.getElementById('settingsDialogContainer')
@@ -449,7 +457,6 @@ const settings = (writer, config) => {
             //convert editor mode and annotation mode back to Code Numbers
             const settings = {...setingsComponents.state}
             settings.mode = setingsComponents.getEditorMode(settings.mode).key;
-            settings.annotationMode = setingsComponents.getAnnotationMode(settings.annotationMode).key;
             return settings;
         },
         hideAdvanced: () => (setingsComponents.toggleAdvanced(false)),
