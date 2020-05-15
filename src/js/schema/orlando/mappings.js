@@ -62,7 +62,7 @@ person: {
         lemma: '@STANDARD'
     },
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'foaf:Person');
+        return annotationsManager.commonAnnotation(entity, 'foaf:Person');
     }
 },
 
@@ -73,7 +73,7 @@ org: {
         lemma: '@STANDARD'
     },
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'foaf:Organization');
+        return annotationsManager.commonAnnotation(entity, 'foaf:Organization');
     }
 },
 
@@ -96,7 +96,7 @@ place: {
         customValues: {placeType: 'local-name(./*)'}
     },
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'geo:SpatialThing');
+        return annotationsManager.commonAnnotation(entity, 'geo:SpatialThing');
     }
 },
 
@@ -107,7 +107,7 @@ title: {
         lemma: '@REG'
     },
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, ['dcterms:BibliographicResource', 'dcterms:title'], 'oa:identifying');
+        var anno = annotationsManager.commonAnnotation(entity, ['dcterms:BibliographicResource', 'dcterms:title'], 'oa:identifying');
         
         if (format === 'xml') {
             var levelXml = $.parseXML('<cw:pubType xmlns:cw="http://cwrc.ca/ns/cw#">'+entity.getAttribute('TITLETYPE')+'</cw:pubType>');
@@ -136,7 +136,7 @@ date: {
         }
         types.push('time:TemporalEntity');
         
-        var anno = annotationsManager.commonAnnotation(entity, format, types);
+        var anno = annotationsManager.commonAnnotation(entity, types);
         
         if (format === 'xml') {
             var dateXml;
@@ -169,7 +169,7 @@ note: {
         noteContent: '.'
     },
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'bibo:Note', 'oa:commenting');
+        return annotationsManager.commonAnnotation(entity, 'bibo:Note', 'oa:commenting');
     }
 },
 
@@ -181,14 +181,14 @@ citation: {
         noteContent: '.'
     },
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'dcterms:BibliographicResource', 'cw:citing');
+        return annotationsManager.commonAnnotation(entity, 'dcterms:BibliographicResource', 'cw:citing');
     }
 },
 
 correction: {
     parentTag: 'SIC',
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText', 'oa:editing');
+        var anno = annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:editing');
         
         if (format === 'xml') {
             var corrXml = $.parseXML('<cnt:chars xmlns:cnt="http://www.w3.org/2011/content#">'+entity.getAttribute('CORR')+'</cnt:chars>');
@@ -206,7 +206,7 @@ keyword: {
     parentTag: 'KEYWORDCLASS',
     isNote: true,
     annotation: function(annotationsManager, entity, format) {
-        var anno = annotationsManager.commonAnnotation(entity, format, ['oa:Tag', 'cnt:ContentAsText', 'skos:Concept'], 'oa:classifying');
+        var anno = annotationsManager.commonAnnotation(entity, ['oa:Tag', 'cnt:ContentAsText', 'skos:Concept'], 'oa:classifying');
         
         var keyword = entity.getAttribute('KEYWORDTYPE');
         if (format === 'xml') {
@@ -224,7 +224,7 @@ keyword: {
 link: {
     parentTag: 'XREF',
     annotation: function(annotationsManager, entity, format) {
-        return annotationsManager.commonAnnotation(entity, format, 'cnt:ContentAsText', 'oa:linking');
+        return annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:linking');
     }
 }
 
