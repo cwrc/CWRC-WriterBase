@@ -34,7 +34,8 @@
     "test": "jest",
     "report-coverage": "cat ./coverage/coverage-final.json | codecov",
     "travis-deploy-once": "travis-deploy-once",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "build-dependency-graph": "depcruise --include-only \"^src\" --output-type dot src | dot -T svg | depcruise-wrap-stream-in-html > ./dependency-graph/dependency-graph.html"
   },
   "browser": {
     "objtree": "./src/lib/objtree/ObjTree.js",
@@ -47,7 +48,7 @@
     "mapper": "./src/js/schema/mapper.js"
   },
   "dependencies": {
-    "@material-ui/core": "^4.9.13",
+    "@material-ui/core": "^4.9.14",
     "@material-ui/icons": "^4.9.1",
     "css": "^2.2.4",
     "fscreen": "1.0.2",
@@ -79,8 +80,8 @@
     "cz-conventional-changelog": "^3.2.0",
     "electron": "^8.2.5",
     "eslint": "^7.0.0",
-    "eslint-plugin-react": "^7.19.0",
-    "fetch-mock": "^9.5.0",
+    "eslint-plugin-react": "^7.20.0",
+    "fetch-mock": "^9.9.0",
     "husky": "^4.2.5",
     "jest": "^25.5.4",
     "jest-transform-stub": "^2.0.0",
