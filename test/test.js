@@ -115,21 +115,18 @@ test('writer.setDocument writer.getDocumentString writer.getDocumentXML', () => 
     })
 });
 
-test('writer.setDocument convertEntities', () => {
+test('writer.setDocument convertEntities', async () => {
     expect.assertions(1);
 
     writer = getWriterInstance()
+    await initAndLoadDoc(writer, teiDoc);
 
     return new Promise((resolve) => {
-        initAndLoadDoc(writer, teiDoc).then(() => {
-
-            writer.event('contentChanged').subscribe(() => {
-                expect($('[_entity]', writer.editor.getBody()).length).toBeGreaterThan(1);
-                resolve();
-            });
-
-            writer.entitiesList.convertEntities();
-        })
+        writer.event('contentChanged').subscribe(() => {
+            expect($('[_entity]', writer.editor.getBody()).length).toBeGreaterThan(1);
+            resolve();
+        });
+        writer.entitiesList.convertEntities();
     })
 });
 

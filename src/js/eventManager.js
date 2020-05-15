@@ -10,7 +10,7 @@ var $ = require('jquery');
 function EventManager(writer) {
     var w = writer;
     
-    var doDebug = true;
+    var doDebug = false;
 
     var events = {};
     
