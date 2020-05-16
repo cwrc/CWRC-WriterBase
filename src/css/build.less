@@ -15,29 +15,31 @@ html, body {
 }
 
 @{parentId} {
-    @import (less) url('../js/layout/layout.css');
-    @import (less) url('./style.css');
-    @import (less) url('./jquery-ui/jquery-ui.css');
-    @import (less) url('../lib/jquery/jquery.layout_and_plugins.css');
+    @import (css) url('../js/layout/layout.css');
+    @import (css) url('./style.css');
+    @import (css) url('./jquery-ui/jquery-ui.css');
+    @import (css) url('../lib/jquery/jquery.layout_and_plugins.css');
 
     @import (less) url('./icons.less');
 
-    @import (less) url('../js/dialogs/attributeWidget/attributeWidget.css');
-    @import (less) url('../js/dialogs/dialogForm/dialogForm.css');
-    @import (less) url('../js/dialogs/loadingIndicator/loadingIndicator.css');
+    @import (css) url('../js/dialogs/attributeWidget/attributeWidget.css');
+    @import (css) url('../js/dialogs/dialogForm/dialogForm.css');
+    @import (css) url('../js/dialogs/loadingIndicator/loadingIndicator.css');
 
-    @import (less) url('./tagContextMenu.css');
+    @import (css) url('./tagContextMenu.css');
 
     @import (less) url('../js/layout/modules/entitiesList/entitiesList.less');
-    @import (less) url('../js/layout/modules/imageViewer/imageViewer.css');
-    @import (less) url('../js/layout/modules/relations/relations.css');
-    @import (less) url('../js/layout/modules/validation/validation.css');
+    @import (css) url('../js/layout/modules/imageViewer/imageViewer.css');
+    @import (css) url('../js/layout/modules/relations/relations.css');
+    @import (css) url('../js/layout/modules/validation/validation.css');
     @import (less) url('../js/layout/modules/nerve/nerve.less');
 
-    @import (less) url('../../node_modules/jquery-contextmenu/dist/jquery.contextMenu.css');
-    @import (less) url('../../node_modules/prism-themes/themes/prism-ghcolors.css');
-    @import (less) url('../../node_modules/jstree/dist/themes/default/style.css');
-    @import (less) url('./jstree-overrides.css');
+    // @import (less) url('./../../node_modules/jquery-contextmenu/dist/jquery.contextMenu.css');
+    // @import (less) url('./jquery-contextmenu/jquery.contextMenu.css');
+    @import (css) url('jquery-contextmenu/jquery.contextMenu.css');
+    @import (css) url('prism-themes/themes/prism-ghcolors.css');
+    @import (css) url('jstree/dist/themes/default/style.css');
+    @import (css) url('./jstree-overrides.css');
 }
 
 // @{parentId} {
@@ -48,4 +50,4 @@ html, body {
 // }
 
 /* can't wrap these because otherwise they're TOO specific */
-@import (less) url('./tinymce-overrides.css');
+@import (css) url('./tinymce-overrides.css');
