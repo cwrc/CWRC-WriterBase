@@ -368,6 +368,12 @@ function Utilities(writer) {
 
         var evalResult;
         try {
+            // if (xpath === '*[@_tag="local"]-*[@_tag="name("].*[@_tag=")"]') {
+            //     console.log('opa')
+            //     // xpath = 'local-name()'
+            //     // xpath = '*[local-name(.)]';
+            //     xpath = '*/@_tag';
+            // }
             evalResult = doc.evaluate(xpath, contextNode, nsResolver, XPathResult.ANY_TYPE, null);
         } catch (e) {
             console.warn('utilities.evaluateXPath: there was an error evaluating the xpath', e)
@@ -393,8 +399,6 @@ function Utilities(writer) {
                 result = evalResult.singleNodeValue;
                 break;
         }
-
-        // console.log(contextNode, xpath, result);
 
         return result;
     };
