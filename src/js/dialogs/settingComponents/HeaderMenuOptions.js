@@ -14,9 +14,7 @@ export default class HeaderMenuOptions extends Component {
         colorPrimary: '#FFFFFF'
     }));
 
-    openDialog = () => {
-        this.props.dialog.dialog('open');
-    }
+    openDialog = () => this.props.dialog.dialog('open');
 
     render() {
         return (
