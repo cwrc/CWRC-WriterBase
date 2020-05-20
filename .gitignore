@@ -1,14 +1,7 @@
-/.project
-/.settings
-/.classpath
-/.tomcatplugin
-/WebContent
-.externalToolBuilders
-/.idea
 /src/js/lib/tinymce_src
 /node_modules
-/build
 /coverage
 /test/build/test.js
 npm-debug.log
 /.nyc_output
+/dependency-graph

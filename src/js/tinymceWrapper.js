@@ -13,7 +13,8 @@ require('./tinymce_plugins/prevent_delete.js');
 //TINYMCE TOOLBAR 1
 const buttons1 = [
     'schematags',
-    '|','addperson',
+    '|',
+    'addperson',
     'addplace',
     'addorg',
     'addtitle',
@@ -62,7 +63,8 @@ TinymceWrapper.init = function(config) {
     var editorId = config.editorId;
     var layoutContainerId = config.layoutContainerId;
 
-    var iconType = config.iconType === undefined ? 'img' : config.iconType;
+    // var iconType = config.iconType === undefined ? 'img' : config.iconType;
+    const iconType = config.iconType === undefined ? 'fas' : config.iconType;
 
     /**
      * Init tinymce
@@ -366,13 +368,13 @@ TinymceWrapper.init = function(config) {
                     w.validate();
                 }
             });
-            addButtonToEditor('addtriple', {
-                title: 'Add Relation', icon: ' '+iconType+' add-triple',
-                onclick: function() {
-                    $('#westTabs').tabs('option', 'active', 2);
-                    w.dialogManager.show('triple');
-                }
-            });
+            // addButtonToEditor('addtriple', {
+            //     title: 'Add Relation', icon: ' '+iconType+' add-triple',
+            //     onclick: function() {
+            //         $('#westTabs').tabs('option', 'active', 2);
+            //         w.dialogManager.show('triple');
+            //     }
+            // });
             addButtonToEditor('addtranslation', {
                 title: 'Add Translation', icon: ' '+iconType+' translation',
                 onclick: function() {
