@@ -66,7 +66,7 @@ const settings = (writer, config) => {
             mode: 'xmlrdfoverlap',
             annotationMode: w.JSON,
             allowOverlap: false,
-            schemaId: 'tei'
+            schemaId: ''
         }
 
         fontSizeOptions = [
