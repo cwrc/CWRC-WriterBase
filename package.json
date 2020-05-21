@@ -1,6 +1,6 @@
 {
   "name": "cwrc-writer-base",
-  "version": "5.1.1",
+  "version": "5.1.2",
   "description": "intuitive document editing with xml and rdf",
   "keywords": [
     "xml",
@@ -58,7 +58,7 @@
     "jquery-ui": "^1.12.1",
     "js-cookie": "^2.2.1",
     "jstree": "3.3.8",
-    "moment": "^2.25.3",
+    "moment": "^2.26.0",
     "openseadragon": "^2.4.1",
     "prism-themes": "^1.4.0",
     "prismjs": "^1.20.0",
