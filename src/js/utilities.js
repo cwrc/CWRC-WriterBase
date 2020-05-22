@@ -288,28 +288,25 @@ function Utilities(writer) {
      * @returns {XPathResult|null} The result or null
      */
     u.evaluateXPath = function(contextNode, xpath) {
-        var doc = contextNode.ownerDocument;
-        if (doc === null) { // then the contextNode is a doc
-            doc = contextNode;
-        }
-        var isCWRC = doc === w.editor.getDoc();
+        let doc = contextNode.ownerDocument;
+        if (doc === null) doc = contextNode; // then the contextNode is a doc
+           
+        const isCWRC = doc === w.editor.getDoc();
 
         // grouped matches: 1 separator, 2 axis, 3 namespace, 4 element name or attribute name or function, 5 predicate
-        var regex = /(\/{0,2})([\w-]+::|@)?(\w+?:)?([\w()]+)(\[.+?\])?/g;
+        const regex = /(\/{0,2})([\w-]+::|@)?(\w+?:)?([\w-(\.\*)]+)(\[.+?\])?/g;
 
-        var nsResolver = null;
-        var defaultNamespace = doc.documentElement.getAttribute('xmlns');
+        let nsResolver = null;
+        const defaultNamespace = doc.documentElement.getAttribute('xmlns');
         // TODO should doc.documentElement.namespaceURI also be checked? it will return http://www.w3.org/1999/xhtml for the editor doc
         if (!isCWRC) {
-            var nsr = doc.createNSResolver(doc.documentElement);
-            nsResolver = function(prefix) {
-                return nsr.lookupNamespaceURI(prefix) || defaultNamespace;
-            }
+            const nsr = doc.createNSResolver(doc.documentElement);
+            nsResolver = (prefix) => nsr.lookupNamespaceURI(prefix) || defaultNamespace;
 
             // default namespace hack (http://stackoverflow.com/questions/9621679/javascript-xpath-and-default-namespaces)
             if (defaultNamespace !== null) {
                 // add foo namespace to the element name
-                xpath = xpath.replace(regex, function(match, p1, p2, p3, p4, p5) {
+                xpath = xpath.replace(regex, (match, p1, p2, p3, p4, p5) => {
                     if (p3 !== undefined) {
                         // already has a namespace
                         return match;
@@ -319,7 +316,7 @@ function Utilities(writer) {
                             (p2 !== undefined && (p2.indexOf('attribute') === 0 || p2.indexOf('@') === 0))
                             ||
                             // it's a function not an element name
-                            p4.indexOf('()') !== -1
+                            p4.match(/\(.*?\)/) !== null
                         ) {
                             return [p1,p2,p3,p4,p5].join('');
                         } else {
@@ -332,32 +329,31 @@ function Utilities(writer) {
 
         if (defaultNamespace === null) {
             // remove all namespaces from the xpath
-            xpath = xpath.replace(regex, function(match, p1, p2, p3, p4, p5) {
+            xpath = xpath.replace(regex, (match, p1, p2, p3, p4, p5) => {
                 return [p1,p2,p4,p5].join('');
             });
         }
 
         if (isCWRC) {
-            if (doc === contextNode) {
-                contextNode = doc.documentElement;
-            }
+            if (doc === contextNode) contextNode = doc.documentElement;
             // if the context node is the schema root then we need to make sure the xpath starts with "//"
             if (contextNode.getAttribute('_tag') === w.schemaManager.getRoot() && xpath.charAt(0) !== '@') {
                 if (xpath.charAt(1) !== '/') {
-                    xpath = '/'+xpath;
+                    xpath = `/${xpath}`;
                     if (xpath.charAt(1) !== '/') {
-                        xpath = '/'+xpath;
+                        xpath = `/${xpath}`;
                     }
                 }
             }
 
-            xpath = xpath.replace(regex, function(match, p1, p2, p3, p4, p5) {
+            xpath = xpath.replace(regex, (match, p1, p2, p3, p4, p5) => {
                 if (
                     // it's an attribute and therefore doesn't need a default namespace
                     (p2 !== undefined && (p2.indexOf('attribute') === 0 || p2.indexOf('@') === 0))
                     ||
                     // it's a function not an element name
-                    p4.indexOf('()') !== -1
+                    p4.indexOf(/\(.*?\)/) !== -1
+                    // p4.match(/\(.*?\)/) !== null
                 ) {
                     return [p1,p2,p3,p4,p5].join('');
                 } else {
@@ -365,21 +361,16 @@ function Utilities(writer) {
                 }
             });
         }
-
-        var evalResult;
+        
+        let evalResult;
         try {
-            // if (xpath === '*[@_tag="local"]-*[@_tag="name("].*[@_tag=")"]') {
-            //     console.log('opa')
-            //     // xpath = 'local-name()'
-            //     // xpath = '*[local-name(.)]';
-            //     xpath = '*/@_tag';
-            // }
             evalResult = doc.evaluate(xpath, contextNode, nsResolver, XPathResult.ANY_TYPE, null);
         } catch (e) {
             console.warn('utilities.evaluateXPath: there was an error evaluating the xpath', e)
             return null;
         }
-        var result;
+
+        let result;
         switch (evalResult.resultType) {
             case XPathResult.NUMBER_TYPE:
                 result = evalResult.numberValue;
