@@ -16,7 +16,7 @@ const WAIT_TIME = 150;
 
 // override alert function so it doesn't hold up tests
 window.alert = (msg) => {
-    console.warn('window.alert:', msg);
+    console.log('window.alert:', msg);
 }
 
 const config = require('./mocks/config.json');
