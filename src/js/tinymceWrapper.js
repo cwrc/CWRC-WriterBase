@@ -40,8 +40,8 @@ const buttons1 = [
     'savebutton',
     'loadbutton',
     'logoutbutton',
-    '|',
-    'fullscreen'
+    // '|',
+    // 'fullscreen'
 ]
 
 function TinymceWrapper() {
@@ -63,8 +63,8 @@ TinymceWrapper.init = function(config) {
     var editorId = config.editorId;
     var layoutContainerId = config.layoutContainerId;
 
-    // var iconType = config.iconType === undefined ? 'img' : config.iconType;
-    const iconType = config.iconType === undefined ? 'fas' : config.iconType;
+    var iconType = config.iconType === undefined ? 'img' : config.iconType;
+    // const iconType = config.iconType === undefined ? 'fas' : config.iconType;
 
     /**
      * Init tinymce
@@ -215,9 +215,9 @@ TinymceWrapper.init = function(config) {
             function addButtonToEditor(buttonId, settings) {
                 // adjust the location of the tooltip
                 settings.onmouseenter = function(e) {
-                    var tt = this.tooltip();
-                    var button = $(this.$el[0]);
-                    var position = w.utilities.getOffsetPosition(button);
+                    const tt = this.tooltip();
+                    const button = $(this.$el[0]);
+                    const position = w.utilities.getOffsetPosition(button);
         
                     position.left += $(tt.$el[0]).outerWidth() * -0.5 + button.outerWidth() * 0.5;
                     position.top += button.outerHeight();
@@ -228,165 +228,190 @@ TinymceWrapper.init = function(config) {
             }
 
             addButtonToEditor('addperson', {
-                title: 'Tag Person', icon: ' '+iconType+' person', entityButton: true, entityType: 'person',
-                onclick: function() {
-                    w.tagger.addEntityDialog('person');
-                }
+                title: 'Tag Person',
+                icon: ` ${iconType} person`,
+                entityButton: true,
+                entityType: 'person',
+                onclick: () => w.tagger.addEntityDialog('person')
             });
+
             addButtonToEditor('addplace', {
-                title: 'Tag Place', icon: ' '+iconType+' place', entityButton: true, entityType: 'place',
-                onclick: function() {
-                    w.tagger.addEntityDialog('place');
-                }
+                title: 'Tag Place',
+                icon: ` ${iconType} place`,
+                entityButton: true,
+                entityType: 'place',
+                onclick: () => w.tagger.addEntityDialog('place')
             });
+
             addButtonToEditor('adddate', {
-                title: 'Tag Date', icon: ' '+iconType+' date', entityButton: true, entityType: 'date',
-                onclick: function() {
-                    w.tagger.addEntityDialog('date');
-                }
+				title: 'Tag Date',
+				icon: ` ${iconType} date`,
+				entityButton: true,
+				entityType: 'date',
+				onclick: () => w.tagger.addEntityDialog('date')
             });
+            
             addButtonToEditor('addorg', {
-                title: 'Tag Organization', icon: ' '+iconType+' org', entityButton: true, entityType: 'org',
-                onclick: function() {
-                    w.tagger.addEntityDialog('org');
-                }
+                title: 'Tag Organization',
+                icon: ` ${iconType} org`,
+                entityButton: true,
+                entityType: 'org',
+                onclick: () =>  w.tagger.addEntityDialog('org')
             });
+
             addButtonToEditor('addcitation', {
-                title: 'Tag Citation', icon: ' '+iconType+' citation', entityButton: true, entityType: 'citation',
-                onclick: function() {
-                    w.tagger.addEntityDialog('citation');
-                }
+				title: 'Tag Citation',
+				icon: ` ${iconType} citation`,
+				entityButton: true,
+				entityType: 'citation',
+				onclick: () => w.tagger.addEntityDialog('citation')
             });
-            addButtonToEditor('addnote', {
-                title: 'Tag Note', icon: ' '+iconType+' note', entityButton: true, entityType: 'note',
-                onclick: function() {
-                    w.tagger.addEntityDialog('note');
-                }
+            
+			addButtonToEditor('addnote', {
+				title: 'Tag Note',
+				icon: ` ${iconType} note`,
+				entityButton: true,
+				entityType: 'note',
+				onclick: () => w.tagger.addEntityDialog('note')
             });
-            addButtonToEditor('addcorrection', {
-                title: 'Tag Correction', icon: ' '+iconType+' correction', entityButton: true, entityType: 'correction',
-                onclick: function() {
-                    w.tagger.addEntityDialog('correction');
-                }
+            
+			addButtonToEditor('addcorrection', {
+				title: 'Tag Correction',
+				icon: ` ${iconType} correction`,
+				entityButton: true,
+				entityType: 'correction',
+				onclick: () => w.tagger.addEntityDialog('correction')
             });
-            addButtonToEditor('addkeyword', {
-                title: 'Tag Keyword', icon: ' '+iconType+' keyword', entityButton: true, entityType: 'keyword',
-                onclick: function() {
-                    w.tagger.addEntityDialog('keyword');
-                }
+            
+			addButtonToEditor('addkeyword', {
+				title: 'Tag Keyword',
+				icon: ` ${iconType} keyword`,
+				entityButton: true,
+				entityType: 'keyword',
+				onclick: () => w.tagger.addEntityDialog('keyword')
             });
-            addButtonToEditor('addlink', {
-                title: 'Tag Link', icon: ' '+iconType+' link', entityButton: true, entityType: 'link',
-                onclick: function() {
-                    w.tagger.addEntityDialog('link');
-                }
+            
+			addButtonToEditor('addlink', {
+				title: 'Tag Link',
+				icon: ` ${iconType} link`,
+				entityButton: true,
+				entityType: 'link',
+				onclick: () => w.tagger.addEntityDialog('link')
             });
-            addButtonToEditor('addtitle', {
-                title: 'Tag Text/Title', icon: ' '+iconType+' title', entityButton: true, entityType: 'title',
-                onclick: function() {
-                    w.tagger.addEntityDialog('title');
-                }
+            
+			addButtonToEditor('addtitle', {
+				title: 'Tag Text/Title',
+				icon: ` ${iconType} title`,
+				entityButton: true,
+				entityType: 'title',
+				onclick: () => w.tagger.addEntityDialog('title')
             });
-            addButtonToEditor('addrs', {
-                title: 'Tag Referencing String', icon: ' '+iconType+' rs', entityButton: true, entityType: 'rs',
-                onclick: function() {
-                    w.tagger.addEntityDialog('rs');
-                }
+            
+			addButtonToEditor('addrs', {
+				title: 'Tag Referencing String',
+				icon: ` ${iconType} rs`,
+				entityButton: true,
+				entityType: 'rs',
+				onclick: () => w.tagger.addEntityDialog('rs')
             });
-            addButtonToEditor('editTag', {
-                title: 'Edit Tag/Entity', icon: ' '+iconType+' tag-edit',
-                onclick: function() {
-                    w.tagger.editTagDialog();
-                }
+            
+			addButtonToEditor('editTag', {
+				title: 'Edit Tag/Entity',
+				icon: ` ${iconType} tag-edit`,
+				onclick: () => w.tagger.editTagDialog()
             });
-            addButtonToEditor('removeTag', {
-                title: 'Remove Tag', icon: ' '+iconType+' tag-delete',
-                onclick: function() {
-                    w.tagger.removeTag();
-                }
+            
+			addButtonToEditor('removeTag', {
+				title: 'Remove Tag',
+				icon: ` ${iconType} tag-delete`,
+				onclick: () => w.tagger.removeTag()
             });
-            addButtonToEditor('newbutton', {
-                title: 'New', image: w.cwrcRootUrl + 'img/page_white_text.png',
-                onclick: function() {
-                    w.showSaveDialog();
-                }
+            
+			addButtonToEditor('newbutton', {
+				title: 'New',
+				image: `${w.cwrcRootUrl}img/page_white_text.png`,
+				onclick: () => w.showSaveDialog()
             });
-            addButtonToEditor('savebutton', {
-                title: 'Save', icon: ' '+iconType+' save',
-                onclick: function() {
-                    w.showSaveDialog();
-                }
+            
+			addButtonToEditor('savebutton', {
+				title: 'Save',
+				icon: ` ${iconType} save`,
+				onclick: () => w.showSaveDialog()
             });
-            addButtonToEditor('saveasbutton', {
-                title: 'Save As', image: w.cwrcRootUrl + 'img/save_as.png',
-                onclick: function() {
-                    w.showSaveAsDialog();
-                }
+            
+			addButtonToEditor('saveasbutton', {
+				title: 'Save As',
+				image: `${w.cwrcRootUrl}img/save_as.png`,
+				onclick: () => w.showSaveAsDialog()
             });
+
             addButtonToEditor('saveexitbutton', {
-                title: 'Save & Exit', image: w.cwrcRootUrl + 'img/save_exit.png',
-                onclick: function() {
-                    w.saveAndExit();
-                }
+                title: 'Save & Exit',
+                // icon: ` ${iconType} save-exit`,
+                image: `${w.cwrcRootUrl}img/save_exit.png`,
+                onclick: () => w.saveAndExit()
             });
-            addButtonToEditor('logoutbutton', {
-                title: 'Log out', icon: ' '+iconType+' exit',
-                onclick: function() {
-                    w.exit();
-                }
+            
+			addButtonToEditor('logoutbutton', {
+				title: 'Log out',
+				icon: ` ${iconType} exit`,
+				onclick: () => w.exit()
             });
-            addButtonToEditor('loadbutton', {
-                title: 'Load', icon: ' '+iconType+' load',
-                onclick: function() {
-                    w.showLoadDialog();
-                }
-            });
+            
+			addButtonToEditor('loadbutton', {
+				title: 'Load',
+				icon: ` ${iconType} load`,
+				onclick: () => w.showLoadDialog()
+			});
 
-            addButtonToEditor('viewmarkup', {
-                title: 'Show Raw XML', icon: ' '+iconType+' view-markup',
-                onclick: function() {
-                    w.selection.showSelection();
-                }
+			addButtonToEditor('viewmarkup', {
+				title: 'Show Raw XML',
+				icon: ` ${iconType} view-markup`,
+				onclick: () => w.selection.showSelection()
             });
-            addButtonToEditor('toggletags', {
-                title: 'Toggle Tags', icon: ' '+iconType+' toggle-tags',
-                onclick: function() {
-                    $('body', w.editor.getDoc()).toggleClass('showTags');
-                    this.active($('body', w.editor.getDoc()).hasClass('showTags'));
-                }
-            });
+            
+			addButtonToEditor('toggletags', {
+				title: 'Toggle Tags',
+				icon: ` ${iconType} toggle-tags`,
+				onclick: function() {
+					$('body', w.editor.getDoc()).toggleClass('showTags');
+					this.active($('body', w.editor.getDoc()).hasClass('showTags'));
+				},
+			});
 
-            addButtonToEditor('editsource', {
-                title: 'Edit Raw XML', icon: ' '+iconType+' edit-source',
-                onclick: function() {
-                    w.dialogManager.show('editSource');
-                }
+			addButtonToEditor('editsource', {
+				title: 'Edit Raw XML',
+				icon: ` ${iconType} edit-source`,
+				onclick: () => w.dialogManager.show('editSource')
             });
-            addButtonToEditor('validate', {
-                title: 'Validate', icon: ' '+iconType+' validate',
-                onclick: function() {
-                    w.validate();
-                }
+            
+			addButtonToEditor('validate', {
+				title: 'Validate',
+				icon: ` ${iconType} validate`,
+				onclick: () => w.validate()
             });
-            // addButtonToEditor('addtriple', {
-            //     title: 'Add Relation', icon: ' '+iconType+' add-triple',
-            //     onclick: function() {
-            //         $('#westTabs').tabs('option', 'active', 2);
-            //         w.dialogManager.show('triple');
-            //     }
-            // });
-            addButtonToEditor('addtranslation', {
-                title: 'Add Translation', icon: ' '+iconType+' translation',
-                onclick: function() {
-                    w.dialogManager.show('translation');
-                }
+            
+			addButtonToEditor('addtriple', {
+                title: 'Add Relation',
+                icon: ` ${iconType} add-triple`,
+			    onclick: () => {
+			        $('#westTabs').tabs('option', 'active', 2);
+			        w.dialogManager.show('triple');
+			    }
             });
-            addButtonToEditor('fullscreen', {
-                name: 'fullscreen', title: 'Toggle Fullscreen', icon: ' '+iconType+' fullscreen-activate',
-                onclick: function() {
-                    w.layoutManager.toggleFullScreen();
-                }
+            
+			addButtonToEditor('addtranslation', {
+				title: 'Add Translation',
+				icon: ` ${iconType} translation`,
+				onclick: () => w.dialogManager.show('translation')
             });
+            
+			addButtonToEditor('fullscreen', {
+				name: 'fullscreen',
+				title: 'Toggle Fullscreen',
+				icon: ` ${iconType} fullscreen-activate`,
+				onclick: () => w.layoutManager.toggleFullScreen()
+			});
 
         }
     });

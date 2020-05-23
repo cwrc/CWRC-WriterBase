@@ -16,7 +16,7 @@ const WAIT_TIME = 150;
 
 // override alert function so it doesn't hold up tests
 window.alert = (msg) => {
-    console.warn('window.alert:', msg);
+    console.log('window.alert:', msg);
 }
 
 const config = require('./mocks/config.json');
@@ -247,7 +247,7 @@ test('tagger.editTagDialog tagger.editStructureTag', () => {
     })
 });
 
-test('tagger.editEntity', () => {
+test('tagger.editEntity', async () => {
     expect.assertions(1);
 
     writer = getWriterInstance()
@@ -255,29 +255,32 @@ test('tagger.editEntity', () => {
     let attributeName;
     const attributeValue = 'test';
 
+    await initAndLoadDoc(writer, teiDoc);
+
     return new Promise((resolve) => {
-        initAndLoadDoc(writer, teiDoc).then(() => {
-            writer.event('entityEdited').subscribe((entityId) => {
-                let entry = writer.entitiesManager.getEntity(entityId);
-                expect(entry.getAttribute(attributeName)).toBe(attributeValue);
-                resolve();
-            });
+        
+        writer.event('entityEdited').subscribe((entityId) => {
+            const entry = writer.entitiesManager.getEntity(entityId);
+            expect(entry.getAttribute(attributeName)).toBe(attributeValue);
+            resolve();
+        });
 
-            let entityEl = window.$('[_entity]', writer.editor.getBody()).first();
-            let entry = writer.entitiesManager.getEntity(entityEl.attr('id'));
-            writer.dialogManager.show('schema/' + entry.getType(), {
-                entry: entry
-            })
+        const entityEl = window.$('[_entity]', writer.editor.getBody()).first();
+        const entry = writer.entitiesManager.getEntity(entityEl.attr('id'));
 
-            setTimeout(() => {
-                let li = window.$('.attributeSelector:visible li:eq(0)');
-                attributeName = li.attr('data-name');
-                li.click();
-                let input = window.$('.attsContainer:visible input[name="' + attributeName + '"]');
-                input.val(attributeValue);
-                dialogClickOk();
-            }, WAIT_TIME);
+        writer.dialogManager.show(`schema/${entry.getType()}`, {
+            entry: entry
         })
+
+        setTimeout(() => {
+            let li = window.$('.attributeSelector:visible li:eq(0)');
+            attributeName = li.attr('data-name');
+            li.click();
+            let input = window.$('.attsContainer:visible input[name="' + attributeName + '"]');
+            input.val(attributeValue);
+            dialogClickOk();
+        }, WAIT_TIME);
+
     })
 });
 
