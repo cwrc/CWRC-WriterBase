@@ -64,11 +64,6 @@ function CWRCWriter(config) {
         console.info('using default cwrcRootUrl', w.cwrcRootUrl);
     }
 
-    // add css asap
-    // var cssLink = $('<link type="text/css" rel="stylesheet" href="' + w.cwrcRootUrl + 'css/cwrc-writer.css" />').appendTo(document.head);
-    // cssLink.on('load', function(e) {
-    // });
-
     w.currentDocId = null;
 
     // is the editor initialized
