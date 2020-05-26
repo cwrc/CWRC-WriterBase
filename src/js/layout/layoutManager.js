@@ -44,8 +44,10 @@ LayoutManager.prototype = {
         this.modulesLayout = config.modules || defaultModulesLayout;
         
         this.modules = [];
-        
-        this.$container = $('<div id="'+this.w.getUniqueId('cwrc_')+'" class="cwrc cwrcWrapper"></div>').appendTo(config.container);
+
+        this.$containerid = this.w.getUniqueId('cwrc_');
+
+        this.$container = $(`<div id="${this.$containerid}" class="cwrc cwrcWrapper"></div>`).appendTo(config.container);
 
         /* // experimental iframe container
         this.$iframe = $('<iframe src="about:blank" style="height: 100%; width: 100%; border: 0;"></iframe>').appendTo(config.container);

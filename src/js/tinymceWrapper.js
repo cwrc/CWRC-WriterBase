@@ -40,8 +40,8 @@ const buttons1 = [
     'savebutton',
     'loadbutton',
     'logoutbutton',
-    // '|',
-    // 'fullscreen'
+    '|',
+    'fullscreen'
 ]
 
 function TinymceWrapper() {
