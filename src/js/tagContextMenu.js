@@ -5,7 +5,8 @@ require('jquery-contextmenu');
 
 function TagContextMenu(writer) {
     this.w = writer;
-    this.selector = '#'+writer.containerId;
+    this.container = `#${writer.containerId}`;
+    this.selector = `#${this.w.layoutManager.$containerid}`; //`#${writer.containerId}`;
 
     // these properties are set in the show method
     this.tagId = null;
@@ -19,17 +20,16 @@ function TagContextMenu(writer) {
         trigger: 'none',
         build: function($trigger, event) {
             return {
-                appendTo: '#'+this.w.containerId,
+                appendTo: `#${this.w.layoutManager.$containerid}`,
                 className: 'tagContextMenu cwrc',
                 animation: {duration: 0, show: 'show', hide: 'hide'},
                 items: getItems.call(this),
                 callback: function(key, options, event) {
                     // general callback used for addTagDialog and changeTagDialog
-                    var $li = $(event.target).closest('li.context-menu-item');
-                    var action = $li.data('action');
-                    if (action === undefined) {
-                        return;
-                    }
+                    const $li = $(event.target).closest('li.context-menu-item');
+                    const action = $li.data('action');
+                    
+                    if (action === undefined) return;
 
                     this.w.editor.currentBookmark = this.w.editor.selection.getBookmark(1);
                     
@@ -96,7 +96,7 @@ TagContextMenu.prototype = {
      * Destroy the tag contextmenu
      */
     destroy: function() {
-        $(this.selector).contextMenu('destroy');
+        $(this.container).contextMenu('destroy');
     }
 }
 

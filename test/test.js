@@ -434,19 +434,19 @@ test('mapper.findEntities', () => {
     })
 });
 
-test('tagContextMenu.show', () => {
+test('tagContextMenu.show', async () => {
     expect.assertions(1);
 
-    writer = getWriterInstance()
+    writer = getWriterInstance();
+
+    await initAndLoadDoc(writer, teiDoc);
 
     return new Promise((resolve) => {
-        initAndLoadDoc(writer, teiDoc).then(() => {
-            writer.editor.fire('contextmenu')
-            setTimeout(() => {
-                expect(window.$('.tagContextMenu').length).toBe(1);
-                resolve();
-            }, 50)
-        })
+        writer.editor.fire('contextmenu')
+        setTimeout(() => {
+            expect(window.$('.tagContextMenu').length).toBe(1);
+            resolve();
+        }, 50)
     });
 });
 
