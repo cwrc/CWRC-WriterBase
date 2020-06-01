@@ -357,6 +357,7 @@ function CWRCWriter(config) {
     w.converter = new Converter(w);
     w.annotationsManager = new AnnotationsManager(w);
     w.settings =  settingsDialog(w, {
+        helpUrl: config.helpUrl,
         showEntities: true,
         showTags: false
     });

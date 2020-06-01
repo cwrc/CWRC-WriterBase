@@ -29,7 +29,7 @@ export default class HeaderMenuOptions extends Component {
                 </IconButton>
                 <IconButton 
                     size="small"
-                    href="https://cwrc.ca/Documentation/CWRC-Writer"
+                    href={this.props.helpUrl || 'https://cwrc.ca/Documentation/CWRC-Writer'}
                     target="_blank"
                     rel="noopener noreferrer"
                     color="inherit" 

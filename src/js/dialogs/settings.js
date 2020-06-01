@@ -29,16 +29,15 @@ const settings = (writer, config) => {
             $('.ui-dialog-titlebar-close', ui.dialog).show();
             updateSchema();
         },
-        close: () => {
-            $settingsDialog.dialog('close');
-        }
+        close: () => $settingsDialog.dialog('close')
     });
 
 
      //add HEADER OPTIONS
-     ReactDOM.render(
+    ReactDOM.render(
         <HeaderMenuOptions 
             dialog={$settingsDialog}
+            helpUrl={config.helpUrl}
         />,
         w.layoutManager.getHeaderButtonsParent()[0]
     );
@@ -50,7 +49,7 @@ const settings = (writer, config) => {
     // });
 
 
-    //EXTERNAL FUNCION TO SELECT SCHEMA IN SETTINGG DIALOG
+    //EXTERNAL FUNCTION TO SELECT SCHEMA IN SETTINGG DIALOG
     const updateSchema = () => {
         setingsComponents.setState(() => ({ schemaId: w.schemaManager.schemaId }));
     }
