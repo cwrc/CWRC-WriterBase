@@ -103,22 +103,12 @@ function XML2CWRC(writer) {
                             if (doIt) {
                                 if (cssUrl !== undefined) await w.schemaManager.loadSchemaCSS([cssUrl]);
 
-
                                 if (xmlUrl !== undefined) {
                                     const customSchemaId = w.schemaManager.addSchema({
                                         name: 'Custom Schema',
                                         xmlUrl: [xmlUrl],
                                         cssUrl: [cssUrl]
                                     });
-
-
-
-
-
-
-
-
-
 
                                     const res = await w.schemaManager.loadSchema(customSchemaId, loadSchemaCss);
                                     if (res.success) {
@@ -164,9 +154,6 @@ function XML2CWRC(writer) {
                                                                 }
                                                             }
                                                         });
-
-
-
                                                     }
                                                 } else {
                                                     w.event('documentLoaded').publish(false, null);
