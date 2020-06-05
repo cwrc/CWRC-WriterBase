@@ -283,7 +283,7 @@ function getItems() {
         }
     }
     items.remove_tag = {
-        name: 'Remove Tag Only',
+        name: 'Remove Tag',
         icon: 'tag_remove',
         callback: function() {
             this.w.tagger.removeStructureTag(this.tagId, false);
@@ -297,7 +297,7 @@ function getItems() {
         }.bind(this)
     }
     items.remove_all = {
-        name: 'Remove Both',
+        name: 'Remove All',
         icon: 'tag_remove',
         callback: function() {
             this.w.tagger.removeStructureTag(this.tagId, true);
