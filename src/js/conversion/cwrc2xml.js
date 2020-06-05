@@ -67,6 +67,8 @@ function CWRC2XML(writer) {
         xmlString += cwrc2xml.buildXMLString($rootEl, includeRDF);
         console.timeEnd('buildXMLString');
 
+        xmlString = xmlString.replace(/&(?!amp;)/g, '&amp;');  //replace all '&' with '&amp;' allowing html/xml to validate.
+
         // RDF
 
         if (includeRDF) {
