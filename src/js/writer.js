@@ -12,7 +12,7 @@ var Converter = require('./conversion/converter.js');
 var AnnotationsManager = require('annotationsManager');
 import { settingsDialog } from './dialogs/settings';
 var LayoutManager = require('./layout/layoutManager.js');
-var TagContextMenu = require('./tagContextMenu.js');
+import TagContextMenu from './tagContextMenu.js';
 var TinymceWrapper = require('./tinymceWrapper.js');
 
 import '../css/build.less';
@@ -356,7 +356,7 @@ function CWRCWriter(config) {
     w.tagger = new Tagger(w);
     w.converter = new Converter(w);
     w.annotationsManager = new AnnotationsManager(w);
-    w.settings =  settingsDialog(w, {
+    w.settings = settingsDialog(w, {
         helpUrl: config.helpUrl,
         showEntities: true,
         showTags: false
