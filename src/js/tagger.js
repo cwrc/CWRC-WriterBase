@@ -879,15 +879,12 @@ function Tagger(writer) {
         return nodes;
     };
     
-    tagger.addNoteWrapper = function(tag, type) {
-        $(tag)
-            .filter(':visible') // don't add to invisible tags
-            .wrap('<span class="noteWrapper '+type+'" />')
-            .parent().on('click', function(e) {
-                var $target = $(e.target);
-                if ($target.hasClass('noteWrapper')) {
-                    $target.toggleClass('hide');
-                }
+    tagger.addNoteWrapper = (tag, type) => {
+        $(tag).filter(':visible')   //! don't add to invisible tags
+            .wrap(`<span class="noteWrapper ${type} hide" />`)
+            .parent().on('click', ({target}) => {
+                const $target = $(target);
+                if ($target.hasClass('noteWrapper')) $target.toggleClass('hide');
             });
     };
 
