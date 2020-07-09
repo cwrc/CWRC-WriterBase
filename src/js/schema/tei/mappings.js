@@ -247,6 +247,10 @@ const mapping = {
                     case 'annotation':
                         types = 'oa:TextualBody'
                         break;
+                    default:
+                        types = `cwrc:Note`
+                        // types = `oa:${entity.attributes.type}`
+                        break;
                 }
                 return annotationsManager.commonAnnotation(entity, types, 'oa:describing');
             }
