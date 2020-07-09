@@ -566,6 +566,8 @@ function Tagger(writer) {
         var isNamedEntity = w.schemaManager.mapper.isNamedEntity(type);
         var tagName = w.schemaManager.mapper.getParentTag(type);
 
+        if (type === 'note') delete info.attributes.otherType; //remove otherType attribute;
+
         sanitizeObject(info.attributes, true);
         sanitizeObject(info.customValues, false);
 
