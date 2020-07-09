@@ -81,7 +81,7 @@ function Message(writer, parentEl) {
                 var value = w.dialogManager.getDialogPref(config.showConfirmKey);
                 if (value === false) {
                     // user has disabled this confirm so just do the callback
-                    config.callback(true);
+                    if (config.callback) config.callback(true);
                     return;
                 }
             }
@@ -106,11 +106,9 @@ function Message(writer, parentEl) {
                             w.dialogManager.setDialogPref(config.showConfirmKey, value);
                         }
                         $message.dialog('close');
-                        // make sure dialog closes before callback
-                        setTimeout(function() {
-                            callback(true);
-                        }, 0);
+                        if (callback) setTimeout(() => callback(true), 0); // make sure dialog closes before callback
                     },
+                },
                 },{
                     text: noText,
                     role: 'no',
@@ -120,12 +118,9 @@ function Message(writer, parentEl) {
                             w.dialogManager.setDialogPref(config.showConfirmKey, value);
                         }
                         $message.dialog('close');
-                        // make sure dialog closes before callback
-                        setTimeout(function() {
-                            callback(false);
-                        }, 0);
-                    }
-                }
+                        if (callback) setTimeout(() => callback(false), 0); // make sure dialog closes before callback
+                    },
+                },
             ]);
             $message.dialog('open');
         },
