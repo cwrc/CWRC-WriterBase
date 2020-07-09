@@ -410,7 +410,7 @@ const settings = (writer, config) => {
                                     type: 'button',
                                     id: 'resetConfirmButton',
                                     label: 'Reset Confirmations',
-                                    onClick: this.handleResetDialogPreference
+                                    onClick: this.handleResetDialogPreferences
                                 }
                             ]}
                         />
