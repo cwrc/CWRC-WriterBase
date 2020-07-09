@@ -5,7 +5,7 @@ var $ = require('jquery');
 var EventManager = require('./eventManager.js');
 var Utilities = require('./utilities.js');
 var SchemaManager = require('./schema/schemaManager.js');
-var DialogManager = require('./dialogManager.js');
+import DialogManager from './dialogManager.js';
 var EntitiesManager = require('./entities/entitiesManager.js');
 var Tagger = require('./tagger.js');
 var Converter = require('./conversion/converter.js');

@@ -1,19 +1,16 @@
-'use strict';
-
-var $ = require('jquery');
+import $ from 'jquery';
     
-function Message(writer, parentEl) {
-    var w = writer;
+const Message = (writer, parentEl) => {
     
-    var openDialogs = []; // track the open dialogs
+    let openDialogs = []; // track the open dialogs
 
-    function createMessageDialog(config) {
-        var $message = $(`
+    const createMessageDialog = (config) => {
+        const $message = $(`
         <div>
             <p>
-            <span class="ui-state-highlight" style="border: none;"><span style="float: left; margin-right: 4px;" class="ui-icon ui-icon-info"></span></span>
-            <span class="ui-state-error" style="border: none;"><span style="float: left; margin-right: 4px;" class="ui-icon ui-icon-alert"></span></span>
-            <span class="message"></span>
+                <span class="ui-state-highlight" style="border: none;"><span style="float: left; margin-right: 4px;" class="ui-icon ui-icon-info"></span></span>
+                <span class="ui-state-error" style="border: none;"><span style="float: left; margin-right: 4px;" class="ui-icon ui-icon-alert"></span></span>
+                <span class="message"></span>
             </p>
             <span id="confirmCheckboxParent" style="display: none;">
                 <input type="checkbox" id="showConfirmCheckbox" checked/>
@@ -22,20 +19,20 @@ function Message(writer, parentEl) {
         </div>
         `).appendTo(parentEl)
         
-        var title = config.title;
-        var modal = config.modal == null ? true : config.modal;
-        var height = config.height ? config.height : 300;
-        var width = config.width ? config.width : 300;
+        const title = config.title;
+        const modal = config.modal == null ? true : config.modal;
+        const height = config.height || 300;
+        const width = config.width || 300;
         $message.dialog({
-            title: title,
-            modal: modal,
+            title,
+            modal,
+            height,
+            width,
             resizable: true,
             closeOnEscape: true,
-            height: height,
-            width: width,
-            position: { my: "center", at: "center", of: w.layoutManager.getContainer() },
+            position: { my: "center", at: "center", of: writer.layoutManager.getContainer() },
             autoOpen: false,
-            close: function(ev) {
+            close: (ev) => {
                 openDialogs.splice(openDialogs.indexOf($message), 1);
 
                 $message.dialog('destroy');
@@ -46,16 +43,13 @@ function Message(writer, parentEl) {
             }
         });
         
-        var msg = config.msg;
+        const msg = config.msg;
         $message.find('p > span[class=message]').html(msg);
         
-        var type = config.type;
+        const type = config.type;
         $message.find('p > span[class^=ui-state]').hide();
-        if (type == 'info') {
-            $message.find('p > span[class=ui-state-highlight]').show();
-        } else if (type == 'error') {
-            $message.find('p > span[class=ui-state-error]').show();
-        }
+        if (type === 'info') $message.find('p > span[class=ui-state-highlight]').show();
+        if (type === 'error') $message.find('p > span[class=ui-state-error]').show();
         
         openDialogs.push($message);
 
@@ -64,21 +58,19 @@ function Message(writer, parentEl) {
     
     
     return {
-        show: function(config) {
+        show: (config) => {
             config.dialogType = 'message';
-            var $message = createMessageDialog(config);
+            const $message = createMessageDialog(config);
             $message.dialog('option', 'buttons', [{
                 text: 'Ok',
                 role: 'ok',
-                click: function() {
-                    $message.dialog('close');
-                }
+                click: () => $message.dialog('close'),
             }]);
             $message.dialog('open');
         },
-        confirm: function(config) {
+        confirm: (config) => {
             if (config.showConfirmKey) {
-                var value = w.dialogManager.getDialogPref(config.showConfirmKey);
+                const value = writer.dialogManager.getDialogPref(config.showConfirmKey);
                 if (value === false) {
                     // user has disabled this confirm so just do the callback
                     if (config.callback) config.callback(true);
@@ -87,35 +79,34 @@ function Message(writer, parentEl) {
             }
 
             config.dialogType = 'confirm';
-            var $message = createMessageDialog(config);
+            const $message = createMessageDialog(config);
             
-            if (config.showConfirmKey) {
-                $('#confirmCheckboxParent').show();
-            }
+            if (config.showConfirmKey) $('#confirmCheckboxParent').show();
             
-            var callback = config.callback;
-            var yesText = config.yesText || 'Yes';
-            var noText = config.noText || 'No';
+            const callback = config.callback;
+            const yesText = config.yesText || 'Yes';
+            const noText = config.noText || 'No';
+
             $message.dialog('option', 'buttons', [
                 {
                     text: yesText,
                     role: 'yes',
-                    click: function() {
+                    click: () => {
                         if (config.showConfirmKey) {
-                            var value = $('#showConfirmCheckbox').prop('checked');
-                            w.dialogManager.setDialogPref(config.showConfirmKey, value);
+                            const value = $('#showConfirmCheckbox').prop('checked');
+                            writer.dialogManager.setDialogPref(config.showConfirmKey, value);
                         }
                         $message.dialog('close');
                         if (callback) setTimeout(() => callback(true), 0); // make sure dialog closes before callback
                     },
                 },
-                },{
+                {
                     text: noText,
                     role: 'no',
-                    click: function() {
+                    click: () => {
                         if (config.showConfirmKey) {
-                            var value = $('#showConfirmCheckbox').prop('checked');
-                            w.dialogManager.setDialogPref(config.showConfirmKey, value);
+                            const value = $('#showConfirmCheckbox').prop('checked');
+                            writer.dialogManager.setDialogPref(config.showConfirmKey, value);
                         }
                         $message.dialog('close');
                         if (callback) setTimeout(() => callback(false), 0); // make sure dialog closes before callback
@@ -124,17 +115,15 @@ function Message(writer, parentEl) {
             ]);
             $message.dialog('open');
         },
-        destroy: function() {
-            for (var d of openDialogs) {
+        destroy: () => {
+            for (const d of openDialogs) {
                 d.dialog('destroy');
                 d.remove();
             }
             openDialogs = [];
         },
-        getOpenDialogs: function() {
-            return openDialogs;
-        }
+        getOpenDialogs: () => openDialogs,
     };
 };
 
-module.exports = Message;
+export default Message;

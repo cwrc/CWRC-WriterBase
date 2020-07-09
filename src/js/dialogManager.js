@@ -15,7 +15,7 @@ var AddSchema = require('./dialogs/addSchema.js');
 var LoadingIndicator = require('./dialogs/loadingIndicator/loadingIndicator.js');
 var Header = require('./dialogs/header.js');
 var EditSource = require('./dialogs/editSource.js');
-var Message = require('./dialogs/message.js');
+import Message from './dialogs/message.js';
 var Triple = require('./dialogs/triple.js');
 var AttributesEditor = require('./dialogs/attributesEditor/attributesEditor.js');
 var Translation = require('./dialogs/translation.js');
@@ -148,7 +148,7 @@ function DialogManager(writer) {
     var dm = {};
 
     dm.addDialog = function(dialogName, DialogClass) {
-        var dialog = new DialogClass(w, $cwrcDialogWrapper);
+        var dialog = DialogClass(w, $cwrcDialogWrapper);
         if (dialog.show === undefined) {
             console.warn(dialogName+" doesn't have required method \"show\"!");
         }
@@ -282,4 +282,5 @@ function DialogManager(writer) {
     return dm;
 };
 
-module.exports = DialogManager;
+
+export default DialogManager
