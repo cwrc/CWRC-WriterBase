@@ -110,7 +110,7 @@ module.exports = (writer, parentEl) => {
         if (e.code === 'Space') {
             writer.dialogManager.confirm({
                 title: 'Warning',
-                msg: 'You hit "space"',
+                msg: `Are you trying to add multiple values for this attribute? If not, remove the "space" you've just added`,
                 height: 200,
                 type: 'info',
                 showConfirmKey: 'confirm-space-in-xml-values',
