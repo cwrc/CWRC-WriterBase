@@ -9,7 +9,7 @@ const defaultTypeOptions = [
     { value: 'other', label: 'Other', title: 'Other Notes' },
 ];
 
-module.exports = (writer, parentEl) => {
+module.exports = function(writer, parentEl) {
 
     const type = 'note';
 
