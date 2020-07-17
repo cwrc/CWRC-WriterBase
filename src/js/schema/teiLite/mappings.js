@@ -69,11 +69,7 @@ const mapping = {
         },
 
         person: {
-            parentTag: 'rs',
-            xpathSelector: 'self::rs[@type="http://sparql.cwrc.ca/ontologies/cwrc#PersonalName"]',
-            requiredAttributes: {
-                type: 'http://sparql.cwrc.ca/ontologies/cwrc#PersonalName'
-            },
+            parentTag: 'persName',
             mapping: {
                 uri: '@ref',
                 lemma: '@key',
@@ -85,11 +81,7 @@ const mapping = {
         },
 
         org: {
-            parentTag: 'rs',
-            xpathSelector: 'self::rs[@type="http://www.w3.org/ns/org#FormalOrganization"]',
-            requiredAttributes: {
-                type: 'http://www.w3.org/ns/org#FormalOrganization'
-            },
+            parentTag: 'orgName',
             mapping: {
                 uri: '@ref',
                 lemma: '@key',
@@ -101,11 +93,7 @@ const mapping = {
         },
 
         place: {
-            parentTag: 'rs',
-            xpathSelector: 'self::rs[@type="http://sparql.cwrc.ca/ontologies/cwrc#Place"]',
-            requiredAttributes: {
-                type: 'http://sparql.cwrc.ca/ontologies/cwrc#Place'
-            },
+            parentTag: 'placeName',
             mapping: {
                 uri: '@ref',
                 lemma: '@key',
