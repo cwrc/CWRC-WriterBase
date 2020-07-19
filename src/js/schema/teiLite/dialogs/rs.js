@@ -1,5 +1,5 @@
 var $ = require('jquery');
-var DialogForm = require('dialogForm');
+var DialogForm = require('../../../dialogs/dialogForm/dialogForm'); 
 
 require('jquery-ui/ui/widgets/selectmenu');
 

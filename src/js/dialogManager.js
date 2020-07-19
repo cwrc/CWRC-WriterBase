@@ -4,12 +4,12 @@ var $ = require('jquery');
 
 require('jquery-ui/ui/widgets/dialog');
 require('jquery-ui/ui/widgets/tooltip');
-require('jquery-popup');
+require('../lib/jquery/jquery.popup');
 
 var DIALOG_PREFS_COOKIE_NAME = 'cwrc-writer-base-dialog-preferences';
 var Cookies = require('js-cookie');
 
-var DialogForm = require('dialogForm');
+var DialogForm = require('./dialogs/dialogForm/dialogForm');
 
 var AddSchema = require('./dialogs/addSchema.js');
 var LoadingIndicator = require('./dialogs/loadingIndicator/loadingIndicator.js');

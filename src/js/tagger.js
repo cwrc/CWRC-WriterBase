@@ -1,8 +1,8 @@
 'use strict';
 
 var $ = require('jquery');
-var Entity = require('entity');
-var Mapper = require('mapper');
+var Entity = require('./entities/entity');
+var Mapper = require('./schema/mapper');
 
 /**
  * @class Tagger

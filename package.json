@@ -38,16 +38,6 @@
     "semantic-release": "semantic-release",
     "build-dependency-graph": "depcruise --include-only \"^src\" --output-type dot src | dot -T svg | depcruise-wrap-stream-in-html > ./dependency-graph/dependency-graph.html"
   },
-  "browser": {
-    "objtree": "./src/lib/objtree/ObjTree.js",
-    "jquery-watermark": "./src/lib/jquery/jquery.watermark.min.js",
-    "jquery-popup": "./src/lib/jquery/jquery.popup.js",
-    "layout": "./src/lib/jquery/jquery.layout_and_plugins.js",
-    "dialogForm": "./src/js/dialogs/dialogForm/dialogForm.js",
-    "annotationsManager": "./src/js/entities/annotationsManager.js",
-    "entity": "./src/js/entities/entity.js",
-    "mapper": "./src/js/schema/mapper.js"
-  },
   "dependencies": {
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
@@ -75,7 +65,7 @@
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/git": "^9.0.0",
     "@testing-library/jest-dom": "^5.7.0",
-    "babel-jest": "^25.5.1",
+    "babel-jest": "^26.1.0",
     "codecov": "^3.7.1",
     "commitizen": "^4.1.2",
     "cz-conventional-changelog": "^3.2.0",
@@ -84,7 +74,7 @@
     "eslint-plugin-react": "^7.20.3",
     "fetch-mock": "^9.10.1",
     "husky": "^4.2.5",
-    "jest": "^25.5.4",
+    "jest": "^26.1.0",
     "jest-transform-stub": "^2.0.0",
     "less": "^3.11.3",
     "less-watch-compiler": "^1.14.6",

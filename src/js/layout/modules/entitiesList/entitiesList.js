@@ -1,7 +1,7 @@
 'use strict';
 
 const $ = require('jquery');
-const Mapper = require('mapper')
+const Mapper = require('../../../schema/mapper')
 
 require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/selectmenu');

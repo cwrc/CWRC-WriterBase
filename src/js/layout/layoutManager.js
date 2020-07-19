@@ -1,7 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
-require('layout');
+require('../../lib/jquery/jquery.layout_and_plugins');
 require('jquery-ui/ui/widgets/tabs');
 var fscreen = require('fscreen')['default'];
 

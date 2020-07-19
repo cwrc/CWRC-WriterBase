@@ -1,5 +1,5 @@
 const $ = require('jquery');
-const DialogForm = require('dialogForm');
+const DialogForm = require('../../../dialogs/dialogForm/dialogForm'); 
 
 
 const defaultTypeOptions = [

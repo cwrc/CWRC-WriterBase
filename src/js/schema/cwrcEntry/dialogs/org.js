@@ -1,5 +1,5 @@
 var $ = require('jquery');
-var DialogForm = require('dialogForm');
+var DialogForm = require('../../../dialogs/dialogForm/dialogForm'); 
 
 module.exports = function(writer, parentEl) {
     var w = writer;

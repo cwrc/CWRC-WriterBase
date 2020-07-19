@@ -1,7 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
-var Mapper = require('mapper');
+var Mapper = require('../schema/mapper');
 
 /**
  * @class XML2CWRC

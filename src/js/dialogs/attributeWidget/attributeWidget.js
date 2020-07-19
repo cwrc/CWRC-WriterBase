@@ -1,7 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
-var Mapper = require('mapper');
+var Mapper = require('../../schema/mapper');
 
 require('jquery-ui/ui/widgets/accordion');
 require('jquery-ui/ui/widgets/tooltip');

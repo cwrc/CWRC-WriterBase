@@ -3,7 +3,7 @@ var $ = require('jquery');
 var moment = require('moment/moment');
 moment.suppressDeprecationWarnings = true;
 
-var DialogForm = require('dialogForm');
+var DialogForm = require('../../../dialogs/dialogForm/dialogForm'); 
 
 require('jquery-ui/ui/widgets/datepicker');
 require('jquery-ui/ui/widgets/button');
