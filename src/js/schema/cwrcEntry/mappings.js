@@ -144,14 +144,14 @@ const mapping = {
         },
 
         note: {
-            xpathSelector: 'self::cwrcEntry:RESEARCHNOTE|self::cwrcEntry:SCHOLARNOTE',
             parentTag: ['RESEARCHNOTE', 'SCHOLARNOTE'],
+            xpathSelector: 'self::cwrcEntry:RESEARCHNOTE|self::cwrcEntry:SCHOLARNOTE',
             isNote: true,
             mapping: {
                 tag: 'local-name(.)',
                 noteContent: '.'
             },
-            annotation: (annotationsManager, entity, format) => {
+            annotation: (annotationsManager, entity) => {
                 return annotationsManager.commonAnnotation(entity, 'bibo:Note', 'oa:commenting');
             }
         },

@@ -231,9 +231,7 @@ const mapping = {
             xpathSelector: 'self::note[not(@type="citation")]',
             isNote: true,
             requiresSelection: false,
-            mapping: {
-                noteContent: '.'
-            },
+            mapping: { noteContent: '.' },
             annotation: (annotationsManager, entity) => {
                 let types = '';
                 const type = entity.getAttribute('type');
@@ -249,7 +247,6 @@ const mapping = {
                         break;
                     default:
                         types = `cwrc:Note`
-                        // types = `oa:${entity.attributes.type}`
                         break;
                 }
                 return annotationsManager.commonAnnotation(entity, types, 'oa:describing');
