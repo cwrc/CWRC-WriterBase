@@ -1,30 +1,52 @@
 const $ = require('jquery');
-const DialogForm = require('../../../dialogs/dialogForm/dialogForm'); 
-
-
-const defaultTypeOptions = [
-    { value: 'researchNote', label: 'Research Note', title: 'Internal to projects' },
-    { value: 'scholarNote', label: 'Scholarly Note', title: 'Footnotes/endnotes' },
-    { value: 'annotation', label: 'Annotation', title: 'Informal notes' },
-    { value: 'other', label: 'Other', title: 'Other Notes' },
-];
+const DialogForm = require('../../dialogs/dialogForm/dialogForm'); 
 
 module.exports = function(writer, parentEl) {
 
     const type = 'note';
-
+    
     const atts = writer.schemaManager.getAttributesForTag(type);
     const typeAtt = atts.find(({name}) => name === 'type');
 
-    const typeRequired = (typeAtt.required) ? 'required' : '';
-    
-    
+    const typeRequired = () => {
+        const mappingID = writer.schemaManager.mapper.currentMappingsId;
+        if (mappingID === 'orlando' || mappingID === 'cwrcEntry') return 'required'
+        return (typeAtt?.required) ? 'required' : '';
+    }
+
+    const defaultTypeOptions = () => {
+        const mappingID = writer.schemaManager.mapper.currentMappingsId;
+        let options;
+
+        if (mappingID === 'orlando' || mappingID === 'cwrcEntry') {
+            options = [
+                { value: 'RESEARCHNOTE', label: 'Research Note', title: 'Internal to projects' },
+                { value: 'SCHOLARNOTE', label: 'Scholarly Note', title: 'Footnotes/endnotes' }, 
+            ];
+        } else {
+            options = [
+                { value: 'researchNote', label: 'Research Note', title: 'Internal to projects' },
+                { value: 'scholarNote', label: 'Scholarly Note', title: 'Footnotes/endnotes' }, 
+                { value: 'annotation', label: 'Annotation', title: 'Informal notes' },
+                { value: 'other', label: 'Other', title: 'Other Notes' },
+            ];
+        }
+
+        return options;
+    }
+
+    const typeDataMapping = () => {
+        const mappingID = writer.schemaManager.mapper.currentMappingsId;
+        if (mappingID === 'orlando' || mappingID === 'cwrcEntry') return 'prop.tag';
+        return 'type';
+    }
+
 	const id = writer.getUniqueId('noteForm_');
 	const html = `
     <div class="annotationDialog">
         <div>
-            <label for="${id}_type"><b>Type</b></label>
-            <select id="${id}_type" name="${id}_type" data-type="select" data-mapping="type" ${typeRequired}></select>
+            <label for="${id}_type"><b>Type${typeRequired() && '*'}</b></label>
+            <select id="${id}_type" name="${id}_type" data-type="select" data-mapping="${typeDataMapping()}" ${typeRequired()}></select>
             <div id="${id}_noteOtherTypeSlot">
                 <br/>
                 <label for="${id}_noteOtherType"><b>Define Type</b></label>
@@ -59,7 +81,7 @@ module.exports = function(writer, parentEl) {
    
     dialog.$el.on('buildDynamicFields', (e, config, dialog) => {
         //TYPE
-        const typeChoices = (typeAtt.choices) ? typeAtt.choices : defaultTypeOptions;
+        const typeChoices = (typeAtt?.choices) ? typeAtt.choices : defaultTypeOptions();
         const choiceOptions = generateTypeOptions(typeChoices);
         optionsTypeElement.html(choiceOptions)
 	});
@@ -71,15 +93,20 @@ module.exports = function(writer, parentEl) {
         
         //other type
         const typeValue = optionsTypeElement.val();
-        const showOtherTypeTextFiel = (!typeAtt.choices && typeValue === 'other') ? true : false
+        const showOtherTypeTextFiel = (!typeAtt?.choices && typeValue === 'other') ? true : false
         toggleOtherTypeTextField(showOtherTypeTextFiel);
        
     });
 
     dialog.$el.on('beforeSave', (e, dialog) => {
-        //replace other type option for custom defined value
-        if (!typeAtt.choices && optionsTypeElement.val() === 'other') {
-            const otherTypeFieldValue= dialog.$el.find(`#${id}_noteOtherType`).val();
+        //type value
+        const typeValue = dialog.$el.find(`#${id}_type`).val();
+        dialog.isValid = (!!typeRequired() && typeValue === null) ? false : true;
+        if (!dialog.isValid) return;
+
+         //replace other type option for custom defined value
+        if (!typeAtt?.choices && optionsTypeElement.val() === 'other') {
+            const otherTypeFieldValue = dialog.$el.find(`#${id}_noteOtherType`).val();
             const typeCutstomOption = `<option value="${otherTypeFieldValue}" selected>${otherTypeFieldValue}</option>`;
             optionsTypeElement.html(typeCutstomOption);
         }
@@ -93,7 +120,7 @@ module.exports = function(writer, parentEl) {
 
     //toggle other type text field
 	optionsTypeElement.change((e) => {
-        if (typeAtt.choices) return;
+        if (typeAtt?.choices) return;
         const target = $(e.target);
 		const otherTypeSelected = (target.val() === 'other') ? true : false;
 		toggleOtherTypeTextField(otherTypeSelected);
@@ -121,13 +148,17 @@ module.exports = function(writer, parentEl) {
     const generateTypeOptions = (choices) => {
 
         let html = '<option value="" disabled selected hidden>Please Choose...</option>';
-        html += '<option value=""></option>';
+
+        //empty choice
+        const mappingID = writer.schemaManager.mapper.currentMappingsId;
+        if (mappingID !== 'orlando' && mappingID !== 'cwrcEntry') html += '<option value=""></option>';
         
+        //choices
         choices.map((choice) => {
             const value = (typeof choice === 'string') ? choice : choice.value;
             const label = (typeof choice === 'string') ? choice : choice.label;
 
-            const defaultChoice = (typeAtt.defaultValue === value) ? true : false;
+            const defaultChoice = (typeAtt?.defaultValue === value) ? true : false;
             const selected = defaultChoice ? 'selected' : '';
 
             html += `<option value="${value}" data-default="${defaultChoice}" ${selected}>${label}</option>`;

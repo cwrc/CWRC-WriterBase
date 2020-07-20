@@ -338,6 +338,8 @@ DialogForm.prototype = {
     
     save: function() {
         this.$el.trigger('beforeSave', [this]);
+        if (!this.isValid) return;
+        
         DialogForm.processForm(this);
 
         if (this.isValid === true) {
