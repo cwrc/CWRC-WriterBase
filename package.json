@@ -36,7 +36,7 @@
     "report-coverage": "cat ./coverage/coverage-final.json | codecov",
     "travis-deploy-once": "travis-deploy-once",
     "semantic-release": "semantic-release",
-    "build-dependency-graph": "depcruise --include-only \"^src\" --output-type dot src | dot -T svg | depcruise-wrap-stream-in-html > ./dependency-graph/dependency-graph.html"
+    "build-dependency-graph": "depcruise --include-only \"^src\" --output-type dot src | dot -Gsplines=ortho -T svg | depcruise-wrap-stream-in-html > ./dependency-graph/dependency-graph.html"
   },
   "dependencies": {
     "@material-ui/core": "^4.11.0",
@@ -66,10 +66,10 @@
     "@semantic-release/git": "^9.0.0",
     "@testing-library/jest-dom": "^5.7.0",
     "babel-jest": "^26.1.0",
-    "codecov": "^3.7.1",
+    "codecov": "^3.7.2",
     "commitizen": "^4.1.2",
     "cz-conventional-changelog": "^3.2.0",
-    "electron": "^9.1.0",
+    "electron": "^9.1.1",
     "eslint": "^7.5.0",
     "eslint-plugin-react": "^7.20.3",
     "fetch-mock": "^9.10.4",
