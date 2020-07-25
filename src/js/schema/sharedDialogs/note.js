@@ -99,10 +99,18 @@ module.exports = function(writer, parentEl) {
     });
 
     dialog.$el.on('beforeSave', (e, dialog) => {
-        //type value
+        //test type value
         const typeValue = dialog.$el.find(`#${id}_type`).val();
         dialog.isValid = (!!typeRequired() && typeValue === null) ? false : true;
-        if (!dialog.isValid) return;
+        if (!dialog.isValid) {
+            writer.dialogManager.show('message', {
+                title: 'Warning',
+                msg: `You must choose a Note type`,
+                height: 150,
+                type: 'info',
+            })
+            return;
+        }
 
          //replace other type option for custom defined value
         if (!typeAtt?.choices && optionsTypeElement.val() === 'other') {
