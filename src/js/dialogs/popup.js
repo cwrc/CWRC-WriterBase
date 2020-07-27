@@ -1,7 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
-require('jquery-popup');
+require('../../lib/jquery/jquery.popup');
     
 function Popup(writer, parentEl) {
     var w = writer;

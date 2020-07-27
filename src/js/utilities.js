@@ -1,7 +1,9 @@
 'use strict';
 
 var $ = require('jquery');
-var ObjTree = require('objtree');
+// var ObjTree = require('objtree');
+var ObjTree = require('../lib/objtree/ObjTree');
+
 
 /**
  * @class Utilities

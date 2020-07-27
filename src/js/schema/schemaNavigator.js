@@ -101,19 +101,16 @@ function SchemaNavigator() {
      * @param {String} tag The element name
      * @returns {Array}
      */
-    sn.getAttributesForTag = function(tag) {
-        var elements = _getEntriesForTag(tag);
-        if (elements.length == 0) {
-            console.warn('schemaNavigator: cannot find element for '+tag);
+    sn.getAttributesForTag = (tag) => {
+        const elements = _getEntriesForTag(tag);
+        if (elements.length === 0) {
+            // console.warn('schemaNavigator: cannot find element for '+tag);
             return [];
-        } else {
-            var children = [];
-            for (var i = 0; i < elements.length; i++) {
-                children = children.concat(_getElementChildren(elements[i], 'attribute'));
-            }
-            _sortEntries(children);
-            return children;
         }
+        
+        const children = elements.flatMap((element) => (_getElementChildren(element, 'attribute')));
+        _sortEntries(children);
+        return children;
     }
 
     /**

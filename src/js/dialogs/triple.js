@@ -1,7 +1,7 @@
 'use strict';
 
 var $ = require('jquery');
-require('jquery-watermark');
+require('../../lib/jquery/jquery.watermark.min');
 
 require('jquery-ui/ui/widgets/button');
     

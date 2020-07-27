@@ -6,7 +6,7 @@ require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/selectmenu');
 require('jquery-ui/ui/widgets/tooltip');
 
-var DialogForm = require('dialogForm');
+var DialogForm = require('../../../dialogs/dialogForm/dialogForm');
 
 const NerveToCWRCMappings = {
     'PERSON': 'person',

@@ -5,7 +5,7 @@ var $rdf = require('rdflib');
 var moment = require('moment/moment');
 moment.suppressDeprecationWarnings = true;
 
-var Entity = require('entity');
+var Entity = require('./entity');
  
 /**
  * @class AnnotationsManager

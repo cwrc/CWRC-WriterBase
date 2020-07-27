@@ -1,8 +1,8 @@
 'use strict';
 
 var $ = require('jquery');
-var Entity = require('entity');
-var Mapper = require('mapper');
+var Entity = require('./entities/entity');
+var Mapper = require('./schema/mapper');
 
 /**
  * @class Tagger
@@ -566,6 +566,8 @@ function Tagger(writer) {
         var isNamedEntity = w.schemaManager.mapper.isNamedEntity(type);
         var tagName = w.schemaManager.mapper.getParentTag(type);
 
+        if (type === 'note') delete info.attributes.otherType; //remove otherType attribute;
+
         sanitizeObject(info.attributes, true);
         sanitizeObject(info.customValues, false);
 
@@ -879,15 +881,12 @@ function Tagger(writer) {
         return nodes;
     };
     
-    tagger.addNoteWrapper = function(tag, type) {
-        $(tag)
-            .filter(':visible') // don't add to invisible tags
-            .wrap('<span class="noteWrapper '+type+'" />')
-            .parent().on('click', function(e) {
-                var $target = $(e.target);
-                if ($target.hasClass('noteWrapper')) {
-                    $target.toggleClass('hide');
-                }
+    tagger.addNoteWrapper = (tag, type) => {
+        $(tag).filter(':visible')   //! don't add to invisible tags
+            .wrap(`<span class="noteWrapper ${type} hide" />`)
+            .parent().on('click', ({target}) => {
+                const $target = $(target);
+                if ($target.hasClass('noteWrapper')) $target.toggleClass('hide');
             });
     };
 

@@ -119,16 +119,18 @@ DialogForm.processForm = function(dialogInstance) {
                     mapping = mapping.replace(/^prop\./, '');
                     dataKey = 'properties';
                 }
+                
+                let val;
                 switch (type) {
                     case 'radio':
-                        var val = formEl.find('input:checked').val();
+                        val = formEl.find('input:checked').val();
                         data[dataKey][mapping] = val;
                         break;
                     case 'textbox':
                     case 'hidden':
                     case 'select':
-                        var val = formEl.val();
-                        data[dataKey][mapping] = val;
+                        val = formEl.val();
+                        if (val !== null) data[dataKey][mapping] = val;
                         break;
                 }
             }
@@ -172,21 +174,24 @@ DialogForm.populateForm = function(dialogInstance) {
                     } else {
                         value = data.attributes[mapping];
                     }
+
+                    if (mapping === 'otherType') value = data.attributes['type'];
                     
                     if (value !== undefined) {
                         switch (type) {
                             case 'select':
+                                const selectedOption = $(`option[value="${value}"]`, formEl);
+                                if (!selectedOption[0]) value = 'other' //if there is no option for the value, select 'other' option
                                 formEl.val(value);
-                                if (formEl.data('transform') === 'selectmenu') {
-                                    formEl.selectmenu('refresh');
-                                }
+                                if (formEl.data('transform') === 'selectmenu') formEl.selectmenu('refresh');
                                 formEl.parents('[data-transform="accordion"]').accordion('option', 'active', 0);
                                 break;
+
                             case 'radio':
-                                $('input[value="'+value+'"]', formEl).prop('checked', true);
-                                if (formEl.data('transform') === 'buttonset') {
-                                    $('input', formEl).button('refresh');
-                                }
+                                let radioOption = $(`input[value="${value}"]`, formEl);
+                                if (!radioOption[0]) radioOption = $('input[value="other"]', formEl); //if there is no option for the value, check 'other' option
+                                radioOption.prop('checked', true);
+                                if (formEl.data('transform') === 'buttonset') $('input', formEl).button('refresh');
                                 break;
                             case 'textbox':
                                 formEl.val(value);
@@ -228,6 +233,8 @@ DialogForm.prototype = {
             }
             this.attributesWidget.reset();
         }
+
+        this.$el.trigger('buildDynamicFields', [config, this]);
         
         // reset the form
         $('[data-type]', this.$el).each(function(index, el) {
@@ -324,16 +331,17 @@ DialogForm.prototype = {
         }
 
         DialogForm.populateForm(this);
-        
         this.$el.trigger('beforeShow', [config, this]);
         
         this.$el.dialog('open');
     },
     
     save: function() {
-        DialogForm.processForm(this);
-        
         this.$el.trigger('beforeSave', [this]);
+        if (!this.isValid) return;
+        
+        DialogForm.processForm(this);
+
         if (this.isValid === true) {
             this.$el.trigger('beforeClose');
             this.$el.dialog('close');
@@ -343,7 +351,6 @@ DialogForm.prototype = {
             } else {
                 this.w.tagger.finalizeEntity(this.type, this.currentData);
             }
-
             this.$el.trigger('save', [this]);
         }
     },
