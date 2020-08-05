@@ -115,11 +115,11 @@ Options that can be set on the configuration object:
 - `config.mode`: String. The mode in which to start the CWRC-Writer: `xml` or `xmlrdf`.
 - `config.allowOverlap`: Boolean. Should overlapping entities be allowed initially?
 - `config.schemas`: Object. A map of schema objects that can be used in the CWRC-Writer. Each entry should contain the following:
+  - `id`: String. The schema id.
   - `name`: String. The schema title.
-  - `url`: String. An URL that links to the schema (RELAX NG) file.
-  - `cssUrl`: String. An URL that links to the CSS associated with this schema.
   - `schemaMappingsId`: String. The directory name in the [schema directory](src/js/schema) from which to load mapping and dialogs files for the schema.
-  - `altUrl`: String. Optional. An alternative URL that links to the schema file. This can be used in the rare case that you want to match against a particular schema URL, but load the schema from another location (e.g. to avoid CORS errors).
+  - `xmlUrl`: Array. A list of URLs that links to the schema (RELAX NG) file. CWRC-Griter will load the first in the list. Alternative URL can be used in the rare case that you want to match against a particular schema URL, but load the schema from another location (e.g. to avoid CORS errors).
+  - `cssUrl`: Array. A list of URLs that links to the CSS associated with this schema.
 - `config.buttons1`, `config.buttons2`, `config.buttons3`: String. A comma separated list of buttons to display in the CWRC-Writer toolbars. Possible values: `schematags, addperson, addplace, adddate, addorg, addcitation, addnote, addtitle, addcorrection, addkeyword, addlink, editTag, removeTag, addtriple, toggletags, viewmarkup, editsource, validate, savebutton, loadbutton, logoutbutton, fullscreen`.
 
 ### Writer object
