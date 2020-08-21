@@ -4,7 +4,7 @@ cache: npm
 notifications:
   email: false
 node_js:
-  - '13.9.0'
+  - '14.5.0'
 before_script:
   - npm prune
 script:
