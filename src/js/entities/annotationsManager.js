@@ -5,6 +5,7 @@ var $rdf = require('rdflib');
 var moment = require('moment/moment');
 moment.suppressDeprecationWarnings = true;
 
+const CWRCWriterVersion = require('../../../package.json').version;
 var Entity = require('./entity');
  
 /**
@@ -85,8 +86,8 @@ AnnotationsManager.prototype = {
         var userInfo = this.w.getUserInfo();
         
         // APP
-        var appUri = 'https://cwrc-writer.cwrc.ca/'; // if nerve it should be https://nerve.cwrc.ca/
-        var appVersion = '1.0';
+        var appURI = window.location.origin; // the URI from where CWRC-Writer is been used
+        var appVersion = CWRCWriterVersion;
 
         // TIME
         var now = new Date();
@@ -142,7 +143,7 @@ AnnotationsManager.prototype = {
                     "dc:format": "text/xml"
                 },
                 "oa:renderedVia": {
-                    "@id": appUri,
+                    "@id": appURI,
                     "@type": "as:Application",
                     "rdfs:label": "CWRC Writer",
                     "schema:softwareVersion": appVersion
@@ -152,7 +153,7 @@ AnnotationsManager.prototype = {
                 "@type": types
             },
             "as:generator": {
-                "@id": appUri,
+                "@id": appURI,
                 "@type": "as:Application",
                 "rdfs:label": "CWRC Writer",
                 "schema:url": "https://cwrc-writer.cwrc.ca",
