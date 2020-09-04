@@ -121,6 +121,10 @@ EntitiesManager.prototype = {
             entity.setCustomValue(key, info.customValues[key]);
         }
 
+        //update modified date
+        entity.setDateModified();
+        entity.setDidUpdate(true);
+
         return entity;
     },
     

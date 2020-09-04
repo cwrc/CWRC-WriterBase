@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @class Entity
  * @param {Object} config
@@ -69,10 +67,15 @@ function Entity(config) {
 
     /**
      * When the entity was created.
-     * TODO should this update if the entity is edited?
      * @type {String} A date in ISO string format
      */
     this.dateCreated = undefined;
+
+     /**
+     * Timestamp when the entity was modified the last time.
+     * @type {String} A date in ISO string format
+     */
+    this.dateModified = undefined;
     
     /**
      * Values used to identify the text range of the entity. Mainly set by converter when loading a document.
@@ -103,7 +106,24 @@ function Entity(config) {
      * @type {String}
      */
     this.certainty = undefined;
-    
+
+    /**
+     * The creator of the entity annotation.
+     * @type {Object}
+     */
+    this.creator = undefined;
+
+    /**
+     * If the entity got updated over the session.
+     * @type {Boolean}
+     */
+    this._didUpdate = false;
+
+    /**
+     * Store original data loaded from XML.
+     * @type {String}
+     */
+    this._originalData = undefined;
 
 
     // SET VALUES FROM CONFIG
@@ -114,7 +134,16 @@ function Entity(config) {
 
     if (config.dateCreated !== undefined) {
         // try setting the date
-        var date = new Date(config.dateCreated);
+        const date = new Date(config.dateCreated);
+        if (isNaN(date.valueOf())) {
+            // invalid date so use now
+            this.dateCreated = new Date().toISOString();
+        } else {
+            this.dateCreated = date.toISOString();
+        }
+    } else if (config?.originalData?.['dcterms:created']) {
+        // try setting the date
+        const date = new Date(config.originalData['dcterms:created']);
         if (isNaN(date.valueOf())) {
             // invalid date so use now
             this.dateCreated = new Date().toISOString();
@@ -123,6 +152,28 @@ function Entity(config) {
         }
     } else {
         this.dateCreated = new Date().toISOString();
+    }
+
+    if (config?.dateModified) {
+        // try setting the date
+        const date = new Date(config.dateModified);
+        if (isNaN(date.valueOf())) {
+            // invalid date so use now
+            this.dateModified = this.dateCreated;
+        } else {
+            this.dateModified = date.toISOString();
+        }
+    } else if (config?.originalData?.['dcterms:modified']) {
+        // try setting the date
+        const date = new Date(config.originalData['dcterms:modified']);
+        if (isNaN(date.valueOf())) {
+            // invalid date so use createdDate
+            this.dateModified = this.dateCreated;
+        } else {
+            this.dateModified = date.toISOString();
+        }
+    } else {
+        this.dateModified = this.dateCreated;
     }
     
     if (config.content !== undefined) {
@@ -157,12 +208,24 @@ function Entity(config) {
     if (config.isNamedEntity !== undefined) {
         this._isNamedEntity = config.isNamedEntity;
     }
+    if (config?.originalData?.['dcterms:creator']) {
+        this.creator = config.originalData['dcterms:creator'];
+    }
+
+    if (config?.didUpdate) {
+        this._didUpdate = config.didUpdate;
+    }
+
+    if (config?.originalData) {
+        this._originalData = config.originalData;
+    }
+
 }
 
 Entity.getTitleFromContent = function(content) {
-    var content = content.trim().replace(/\s+/g, ' ');
+    content = content.trim().replace(/\s+/g, ' ');
     if (content.length <= 34) return content;
-    var title = content.substring(0, 34) + '&#8230;';
+    const title = content.substring(0, 34) + '&#8230;';
     return title;
 };
 
@@ -221,7 +284,7 @@ Entity.prototype = {
     },
     setAttributes: function(attObj) {
         this.attributes = {};
-        for (var key in attObj) {
+        for (const key in attObj) {
             this.attributes[key] = attObj[key];
         }
     },
@@ -260,6 +323,17 @@ Entity.prototype = {
 
     getDateCreated: function() {
         return this.dateCreated;
+    },
+
+    getDateModified: function() {
+        return this.dateModified;
+    },
+    setDateModified: function(date) {
+        if (date) {
+            this.dateModified = date;
+        } else {
+            this.dateModified = new Date().toISOString();
+        }
     },
 
     getURI: function() {
@@ -301,11 +375,29 @@ Entity.prototype = {
     setRange: function(rangeObj) {
         this.annotationRange = rangeObj;
     },
-    
+
+    getCreator: function() {
+        return this.creator;
+    },
+    setCreator: function(creator) {
+        this.creator = creator;
+    },
+
+    get didUpdate() {
+        return this._didUpdate;
+    },
+    setDidUpdate(value) {
+        this._didUpdate = value;
+    },
+
+    get originalData() {
+        return this._originalData;
+    },
+
     clone: function() {
-        var clone = Object.create(Entity.prototype);
-        for (var key in this) {
-            var prop = this[key];
+        const clone = Object.create(Entity.prototype);
+        for (const key in this) {
+            const prop = this[key];
             if (typeof prop !== 'function') {
                 clone[key] = prop;
             }

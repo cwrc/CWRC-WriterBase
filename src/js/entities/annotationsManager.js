@@ -1,12 +1,11 @@
-'use strict';
-
-var $ = require('jquery');
-var $rdf = require('rdflib');
-var moment = require('moment/moment');
-moment.suppressDeprecationWarnings = true;
+const $ = require('jquery');
+const $rdf = require('rdflib');
+const moment = require('moment/moment');
 
 const CWRCWriterVersion = require('../../../package.json').version;
-var Entity = require('./entity');
+const Entity = require('./entity');
+
+moment.suppressDeprecationWarnings = true;
  
 /**
  * @class AnnotationsManager
@@ -65,8 +64,8 @@ AnnotationsManager.prototype = {
     constructor: AnnotationsManager,
 
     getAnnotationURIForEntity: function(entity) {
-        var annoIdDateString = moment(entity.getDateCreated()).format('YYYYMMDDHHmmssSSS');
-        var annotationId = entity.getType()+'_annotation_'+annoIdDateString; // github doc + entity type + datestring
+        const annoIdDateString = moment(entity.getDateCreated()).format('YYYYMMDDHHmmssSSS');
+        const annotationId = `${entity.getType()}_annotation_${annoIdDateString}`; // github doc + entity type + datestring
         return encodeURI(annotationId);
     },
 
@@ -78,34 +77,92 @@ AnnotationsManager.prototype = {
      * @returns {JSON} 
      */
     commonAnnotation: function(entity, types, motivations) {
+
+        //retrieve original data if exists.
+        const docId = this.w.getDocumentURI();
+        const originalData = entity.originalData;
+
+        //check if any thing got modified
+        const checkChanges = () => {
+            if (!originalData) return true;
+            
+            //check if user edited annotation
+            if (entity.didUpdate) return true;
+
+            //check if xpath has chaged
+            const range = entity.getRange();
+
+            if (range.endXPath) {
+                if (range.startXPath !== originalData['oa:hasTarget']['oa:hasSelector']['oa:hasStartSelector']['rdf:value']
+                    || range.endXPath !== originalData['oa:hasTarget']['oa:hasSelector']['oa:hasEndSelector']['rdf:value']
+                    || range.startOffset !== originalData['oa:hasTarget']['oa:hasSelector']['oa:refinedBy']['oa:start']
+                    || range.endOffset !== originalData['oa:hasTarget']['oa:hasSelector']['oa:refinedBy']['oa:end']
+                    ) {
+                        return true;
+                }
+            } else {
+                if (range.startXPath !== originalData['oa:hasTarget']['oa:hasSelector']['rdf:value']) {
+                    return true;
+                }
+            }
+
+            //check if file will change URI (save into a different place)
+            if (originalData['@id'] !== `${docId}?${this.getAnnotationURIForEntity(entity)}`) {
+                return true
+            }
+
+            return false;
+        }
+
+        const hasMutated = checkChanges();
+
+        // Check if annotation mutated.
+        if (originalData && !hasMutated) {
+            return originalData;
+        }
+
         if (motivations === undefined) {
             motivations = 'oa:identifying';
         }
 
+        console.log(entity);
+
         // USER
-        var userInfo = this.w.getUserInfo();
+        const userInfo = this.w.getUserInfo();
         
         // APP
-        var appURI = window.location.origin; // the URI from where CWRC-Writer is been used
-        var appVersion = CWRCWriterVersion;
+        const appURI = window.location.origin; // the URI from where CWRC-Writer is been used
 
         // TIME
-        var now = new Date();
-        var createdDate = entity.getDateCreated();
-        var issuedDate = now.toISOString();
+        // var now = new Date();
+        const createdDate = entity.getDateCreated();
+        const modifiedDate = entity.getDateModified();
         
         // ENTITY
-        var entityType = entity.getType();
-        var certainty = entity.getCertainty();
-        var range = entity.getRange();
+        const entityType = entity.getType();
+        const certainty = entity.getCertainty();
+        const range = entity.getRange();
 
-        var entityId = entity.getURI();
-        
-        var docId = this.w.getDocumentURI();
+        const entityId = entity.getURI();
 
-        var annotationId = docId + '?' + this.getAnnotationURIForEntity(entity);
+        const annotationId = `${docId}?${this.getAnnotationURIForEntity(entity)}`;
 
-        var annotation = {
+        let creator;
+        if (entity?.creator) {
+            creator = entity.creator;
+        } else {
+            creator = {
+                "@id": userInfo.id,
+                "@type": [
+                    "cwrc:NaturalPerson",
+                    "schema:Person"
+                ],
+                "cwrc:hasName": userInfo.name,
+                "foaf:nick": userInfo.nick
+            }
+        }
+
+        const annotation = {
             "@context": {
                 "dcterms:created": {
                     "@type": "xsd:dateTime",
@@ -123,19 +180,11 @@ AnnotationsManager.prototype = {
             "@id": annotationId,
             "@type": "oa:Annotation",
             "dcterms:created": createdDate,
-            "dcterms:issued": issuedDate,
-            "dcterms:creator": {
-                "@id": userInfo.id,
-                "@type": [
-                    "cwrc:NaturalPerson",
-                    "schema:Person"
-                ],
-                "cwrc:hasName": userInfo.name,
-                "foaf:nick": userInfo.nick
-            },
+            "dcterms:modified": modifiedDate,
+            "dcterms:creator": creator,
             "oa:motivatedBy": motivations,
             "oa:hasTarget": {
-                "@id": annotationId+'#Target',
+                "@id": `${annotationId}#Target`,
                 "@type": "oa:SpecificResource",
                 "oa:hasSource": {
                     "@id": docId,
@@ -146,7 +195,7 @@ AnnotationsManager.prototype = {
                     "@id": appURI,
                     "@type": "as:Application",
                     "rdfs:label": "CWRC Writer",
-                    "schema:softwareVersion": appVersion
+                    "schema:softwareVersion": CWRCWriterVersion
                 }
             },
             "oa:hasBody":{
@@ -157,11 +206,46 @@ AnnotationsManager.prototype = {
                 "@type": "as:Application",
                 "rdfs:label": "CWRC Writer",
                 "schema:url": "https://cwrc-writer.cwrc.ca",
-                "schema:softwareVersion": appVersion
+                "schema:softwareVersion": CWRCWriterVersion
             }
         };
 
-        for (var prefix in AnnotationsManager.namespaces) {
+        //contributors
+        if (entity.didUpdate) {
+
+             //add contributor if current user IS NOT the creator and one of the contributors
+            const userIsCreator = userInfo.id === entity.creator['@id'];
+            let userIsContributor = false;
+            if (annotation['dcterms:contributor']) {
+                userIsContributor = annotation['dcterms:contributor'].find(
+                    (contributor = contributor['@id'] === userInfo.id)
+                );
+            }
+
+            if (userIsCreator === false && userIsContributor === false) {
+                
+				const contributor = {
+					'dcterms:contributor': {
+						'@id': userInfo.id,
+						'@type': ['cwrc:NaturalPerson', 'schema:Persosn'],
+						'cwrc:hasName': userInfo.name,
+						'foaf:nick': userInfo.nick,
+					},
+                };
+
+                if (entity?.originalData?.['dcterms:contributor']) {
+                    annotation['dcterms:contributor'] = [
+						...entity.originalData['dcterms:contributor'],
+						contributor,
+					];
+                } else {
+                    annotation['dcterms:contributor'] = [contributor];
+                }
+			}
+            
+        }
+
+        for (const prefix in AnnotationsManager.namespaces) {
             annotation["@context"][prefix] = AnnotationsManager.namespaces[prefix];
         }
 
@@ -169,8 +253,8 @@ AnnotationsManager.prototype = {
             annotation["oa:hasBody"]["@id"] = entityId;
             annotation["oa:hasBody"]["dc:format"] = "text/plain";
         } else if (entity.isNote()) {
-            var noteEl = $('#'+entity.getId(), this.w.editor.getBody());
-            var noteContent = noteEl[0].textContent;
+            const noteEl = $('#'+entity.getId(), this.w.editor.getBody());
+            const noteContent = noteEl[0].textContent;
             annotation["oa:hasBody"]["dc:format"] = "text/plain";
             annotation["oa:hasBody"]["rdf:value"] = noteContent;
         }
@@ -195,14 +279,14 @@ AnnotationsManager.prototype = {
             };
         } else {
             annotation["oa:hasTarget"]["oa:hasSelector"] = {
-                "@id": annotationId+'#Selector',
+                "@id": `${annotationId}#Selector`,
                 "@type": "oa:XPathSelector",
                 "rdf:value": range.startXPath
             };
         }
         
         if (certainty !== undefined) {
-            annotation["oa:hasCertainty"] = 'cwrc:'+certainty;
+            annotation["oa:hasCertainty"] = `cwrc:${certainty}`;
         }
         
         return annotation;
@@ -356,6 +440,9 @@ AnnotationsManager.prototype = {
         var annotation = JSON.parse(rdf.text());
         if (annotation != null) {
             entityConfig = {};
+
+            //store original data
+            entityConfig.originalData = annotation;
 
             // type
             entityConfig.type = '';
