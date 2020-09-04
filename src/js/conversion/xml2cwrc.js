@@ -279,7 +279,8 @@ function XML2CWRC(writer) {
         if ($rdfs.length) {
 
             $rdfs.children().each(function(index, el) {
-                var entityConfig = w.annotationsManager.getEntityConfigFromAnnotation(el);
+                let entityConfig = w.annotationsManager.getEntityConfigFromAnnotation(el);
+                
                 if (entityConfig != null) {
 
                     var isOverlapping = entityConfig.range.endXPath !== undefined;
@@ -296,7 +297,7 @@ function XML2CWRC(writer) {
                         if (mappingInfo.type !== entityConfig.type) {
                             console.warn('xml2cwrc.processRDF: entity type mismatch. RDF =', entityConfig.type+'. Element =',mappingInfo.type+'.');
                         }
-                        $.extend(entityConfig, mappingInfo);
+                        entityConfig = {...entityConfig, ...mappingInfo } 
                     } else {
                         // TODO review overlapping entities
                     }
