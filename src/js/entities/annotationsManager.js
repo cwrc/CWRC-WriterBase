@@ -125,8 +125,6 @@ AnnotationsManager.prototype = {
             motivations = 'oa:identifying';
         }
 
-        console.log(entity);
-
         // USER
         const userInfo = this.w.getUserInfo();
         
@@ -213,8 +211,14 @@ AnnotationsManager.prototype = {
         //contributors
         if (entity.didUpdate) {
 
-             //add contributor if current user IS NOT the creator and one of the contributors
-            const userIsCreator = userInfo.id === entity.creator['@id'];
+             //add contributor if current user IS NEITHER the creator NOR one of the contributors
+            let userIsCreator = false 
+            if (entity?.creator?.['@id']) {
+                userIsCreator = userInfo.id === entity?.creator?.['@id']
+            } else {
+                userIsCreator = userInfo.id === creator['@id']
+            }
+
             let userIsContributor = false;
             if (annotation['dcterms:contributor']) {
                 userIsContributor = annotation['dcterms:contributor'].find(
