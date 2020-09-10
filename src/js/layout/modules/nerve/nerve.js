@@ -910,13 +910,12 @@ function Nerve(config) {
         })
     }
 
-    var editEntity = function(entityId) {
+    const editEntity = (entityId) => {
         if (editDialog === null) {
             editDialog = new NerveEditDialog(w, $parent);
             editDialog.$el.dialog('option', 'modal', false); // TODO modal dialog interferes with typing in lookups input
-            editDialog.$el.on('save', function(e, dialog) {
-                var entity = w.entitiesManager.getEntity(dialog.currentId);
-                
+            editDialog.$el.on('save', (e, dialog) => {
+                const entity = w.entitiesManager.getEntity(dialog.currentId);
                 updateEntityView(entity, true);
                 filterEntityView(getFilterValue());
             });
@@ -1096,68 +1095,70 @@ var doLookup = function(w, query, type, callback) {
     });
 }
 
-function NerveEditDialog(writer, parentEl) {
-    var w = writer;
-    var forceSave = false; // needed for confirmation dialog in beforeSave
-    var $el = $(''+
-    '<div class="annotationDialog">'+
-        '<div>'+
-            '<select data-transform="selectmenu" data-type="select" data-mapping="prop.type">'+
-                '<option value="person">Person</option>'+
-                '<option value="place">Place</option>'+
-                '<option value="org">Organization</option>'+
-                '<option value="title">Title</option>'+
-            '</select>'+
-        '</div>'+
-        '<div>'+
-            '<label>Standard name:</label>'+
-            '<input type="text" data-type="textbox" data-mapping="prop.lemma" />'+
-        '</div>'+
-        '<div>'+
-            '<label>URI:</label>'+
-            '<input type="text" data-type="textbox" data-mapping="prop.uri" style="margin-right: 5px;" />'+
-            '<button type="button" title="Entity lookup" data-action="lookup"></button>'+
-        '</div>'+
-    '</div>').appendTo(parentEl);
+const NerveEditDialog = (writer, parentEl) => {
+    let forceSave = false; // needed for confirmation dialog in beforeSave
 
-    var dialog = new DialogForm({
-        writer: w,
-        $el: $el,
+    const $el = $(`
+        <div class="annotationDialog">
+            <div>
+                <select data-transform="selectmenu" data-type="select" data-mapping="prop.type">
+                    <option value="person">Person</option>
+                    <option value="place">Place</option>
+                    <option value="org">Organization</option>
+                    <option value="title">Title</option>
+                </select>
+            </div>
+            <div>
+                <label>Standard name:</label>
+                <input type="text" data-type="textbox" data-mapping="prop.lemma" />
+            </div>
+            <div>
+                <label>URI:</label>
+                <input type="text" data-type="textbox" data-mapping="prop.uri" style="margin-right: 5px;" />
+                <button type="button" title="Entity lookup" data-action="lookup"></button>
+            </div>
+        </div>`).appendTo(parentEl);
+
+    const dialog = new DialogForm({
+        writer,
+        $el,
         type: 'person',
         title: 'Edit Entity',
         width: 350,
         height: 300
     });
 
-    $el.find('button[data-action=lookup]').button({icon: 'ui-icon-search'}).on('click', function() {
-        var entity = dialog.showConfig.entry;
-        var type = $el.find('select').val();
-        var query = entity.content.trim().replace(/\s+/g, ' ');
-        doLookup(w, query, type, function(result) {
-            $el.find('input[data-mapping="prop.lemma"]').val(result.name);
-            $el.find('input[data-mapping="prop.uri"]').val(result.uri);
+    dialog.$el.find('button[data-action=lookup]').button({icon: 'ui-icon-search'}).on('click', () => {
+        const type = dialog.$el.find('select').val();
+        const entity = dialog.showConfig.entry;
+        const query = entity.content.trim().replace(/\s+/g, ' ');
+        doLookup(writer, query, type, ({ name, uri }) => {
+            dialog.$el.find('input[data-mapping="prop.lemma"]').val(name);
+            dialog.$el.find('input[data-mapping="prop.uri"]').val(uri);
         });
     });
 
-    dialog.$el.on('beforeShow', function() {
+    dialog.$el.on('beforeShow', () => {
         forceSave = false;
     });
 
-    dialog.$el.on('beforeSave', function(e, dialog) {
+    dialog.$el.on('beforeSave', (e, dialog) => {        
         if (forceSave) {
             dialog.isValid = true;
         } else {
-            var uri = dialog.currentData.properties.uri;
-            if (uri !== '' && uri.search(/^https?:\/\//) !== 0) {
+            const uri = dialog.$el.find('input[data-mapping="prop.uri"]').val();
+            const isValidURLRegex = new RegExp('^https?:\/\/');
+            if (uri !== '' && uri.search(isValidURLRegex) !== 0) {
                 dialog.isValid = false;
-                w.dialogManager.confirm({
+                writer.dialogManager.confirm({
                     title: 'Warning',
-                    msg: '<p>The URI you\'ve entered does not look valid.</p>'+
-                    '<p>Are you sure you want to use it?</p>',
+                    msg: `
+                        <p>The URI you have entered does not look valid.</p>
+                        <p>Are you sure you want to use it?</p>`,
                     showConfirmKey: 'confirm-nerve-uri',
                     type: 'info',
-                    callback: function(doIt) {
-                        setTimeout(function() { // need setTimeout in case confirm dialog is skipped
+                    callback: (doIt) => {
+                        setTimeout(() => { // need setTimeout in case confirm dialog is skipped
                             if (doIt) {
                                 forceSave = true;
                                 dialog.save();
@@ -1171,27 +1172,28 @@ function NerveEditDialog(writer, parentEl) {
         }
 
         if (dialog.isValid) {
-            var sm = w.schemaManager;
+            console.log(dialog.currentData)
+            const sm = writer.schemaManager;
 
-            var type = dialog.currentData.properties.type;
-            var tag = sm.mapper.getParentTag(type);
+            const type = dialog.currentData.properties.type;
+            const tag = sm.mapper.getParentTag(type);
             dialog.currentData.properties.tag = tag;
 
-            var oldType = w.entitiesManager.getEntity(dialog.currentId).getType();
+            const oldType = writer.entitiesManager.getEntity(dialog.currentId).getType();
             if (type !== oldType) {
-                var requiredAttributes = sm.mapper.getRequiredAttributes(oldType)
-                for (var attName in requiredAttributes) {
+                const requiredAttributes = sm.mapper.getRequiredAttributes(oldType)
+                for (const attName in requiredAttributes) {
                     delete dialog.currentData.attributes[attName];
                 }
             }
 
-            var lemmaMapping = sm.mapper.getAttributeForProperty(type, 'lemma');
+            const lemmaMapping = sm.mapper.getAttributeForProperty(type, 'lemma');
             if (lemmaMapping) {
-                dialog.currentData.attributes[lemmaMapping] = dialog.currentData.properties.lemma
+                dialog.currentData.attributes[lemmaMapping] = dialog.$el.find('input[data-mapping="prop.lemma"]').val()
             }
-            var uriMapping = sm.mapper.getAttributeForProperty(type, 'uri');
+            const uriMapping = sm.mapper.getAttributeForProperty(type, 'uri');
             if (uriMapping) {
-                dialog.currentData.attributes[uriMapping] = dialog.currentData.properties.uri
+                dialog.currentData.attributes[uriMapping] = dialog.$el.find('input[data-mapping="prop.uri"]').val()
             }
 
             dialog.currentData.customValues.edited = 'true';
