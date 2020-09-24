@@ -221,7 +221,8 @@ LayoutManager.prototype = {
             },
             center: {
                 onresize_end: function(region, pane, state, options) {
-                    this.resizeEditor();
+                    //! DEPRECASTED resizeEditor might not be necessary anymore.
+                    // this.resizeEditor();
                 }.bind(this)
             }
         };
@@ -282,11 +283,12 @@ LayoutManager.prototype = {
         
         // show/hide entity buttons based on the presence of a custom schema
         this.w.event('documentLoaded').subscribe(function(success) {
-            if (!success || this.w.schemaManager.isSchemaCustom()) {
-                doHandleEntityButtons(true);
-            } else {
-                doHandleEntityButtons();
-            }
+            //TODO: Reasses doHandleEntityButtons function. New TinyMCE has a diferent way to get into its properties.
+            // if (!success || this.w.schemaManager.isSchemaCustom()) {
+            //     doHandleEntityButtons(true);
+            // } else {
+            //     doHandleEntityButtons();
+            // }
         }.bind(this));
     },
     

@@ -24,7 +24,7 @@ module.exports = {
 	testEnvironment: '@jest-runner/electron/environment',
 	testMatch: ['**/test/test.js'],
 	transform: {
-		'.+\\.(css|styl|less|sass|scss|png|jpg|ttf|woff|woff2)$': 'jest-transform-stub',
+		'.+\\.(css|styl|less|sass|scss|png|jpg|ttf|woff|woff2|svg)$': 'jest-transform-stub',
 		'^.+\\.js$': 'babel-jest',
 	},
 	verbose: true,
