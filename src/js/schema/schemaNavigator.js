@@ -406,9 +406,8 @@ function SchemaNavigator() {
                         var choices = [];
                         var values = [];
                         _queryDown(choice, function(item) {
-                            if (item.value) {
-                                values = item.value;
-                            }
+                            if (item.value) values = item.value;
+                            if (!Array.isArray(values)) values = [values]
                         });
                         for (var j = 0; j < values.length; j++) {
                             var val = values[j];
