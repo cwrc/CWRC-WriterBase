@@ -1,7 +1,5 @@
-'use strict';
-
-var $ = require('jquery');
-var Mapper = require('../../schema/mapper');
+const $ = require('jquery');
+const Mapper = require('../../schema/mapper');
 
 require('jquery-ui/ui/widgets/accordion');
 require('jquery-ui/ui/widgets/tooltip');
@@ -12,35 +10,36 @@ function AttributeWidget(config) {
     this.$parent = config.$parent; // the parent form (optional)
     
     this.showSchemaHelp = config.showSchemaHelp === true ? true : false;
-    var schemaHelpEl = '';
-    if (this.showSchemaHelp) {
-        schemaHelpEl = '<div class="schemaHelp"></div>';
-    }
+    const schemaHelpEl = this.showSchemaHelp ? '<div class="schemaHelp"></div>' : '';
+    // if (this.showSchemaHelp) schemaHelpEl = '<div class="schemaHelp"></div>';
     
     this.mode = AttributeWidget.ADD;
     
     this.isDirty = false;
     
     this.$el.addClass('attributeWidget');
-    this.$el.append(''+
-    '<div class="attributeSelector">'+
-        '<h2>Attributes</h2>'+
-        '<ul></ul>'+
-    '</div>'+
-    '<div class="attsContainer">'+
-    '</div>'+
-    schemaHelpEl);
+
+    this.$el.append(`
+        <div class="attributeSelector">
+            <h2>Attributes</h2>
+            <ul></ul>
+        </div>
+            <div class="attsContainer">
+        </div>
+        ${schemaHelpEl}
+    `);
     
     if (this.$parent !== undefined) {
         // add listeners for other form elements
         $('[data-mapping]', this.$parent).each($.proxy(function(index, el) {
-            var formEl = $(el);
-            var type = formEl.data('type');
-            var mapping = formEl.data('mapping');
+            const formEl = $(el);
+            const type = formEl.data('type');
+            const mapping = formEl.data('mapping');
+
             // check the mapping to make sure it's an attribute
             // TODO if the data-type is hidden then the attribute should not be modifiable in this widget
             if (mapping.indexOf('custom.') === -1 && mapping.indexOf('prop.') === -1) {
-                var changeEl;
+                let changeEl;
                 if (type === 'radio') {
                     changeEl = $('input', formEl);
                 } else if (type === 'textbox' || type === 'select') {
@@ -48,7 +47,7 @@ function AttributeWidget(config) {
                 }
                 if (changeEl !== undefined) {
                     changeEl.change($.proxy(function(mapping, e) {
-                        var dataObj = {};
+                        const dataObj = {};
                         dataObj[mapping] = $(e.target).val();
                         this.setData(dataObj);
                     }, this, mapping));
@@ -71,13 +70,13 @@ AttributeWidget.prototype = {
         this.isDirty = false;
         
         if (this.showSchemaHelp && tag !== undefined) {
-            var helpText = this.w.schemaManager.getDocumentationForTag(tag);
-            if (helpText != '') {
-                $('.schemaHelp', this.$el).html('<h3>'+tag+' Documentation</h3><p>'+helpText+'</p>');
+            let helpText = this.w.schemaManager.getDocumentationForTag(tag);
+            if (helpText !== '') {
+                $('.schemaHelp', this.$el).html(`<h3>${tag} Documentation</h3><p>${helpText}</p>`);
             }
         }
         
-        atts.sort(function(a, b) {
+        atts.sort((a, b) => {
             if (a.name > b.name) {
                 return 1;
             } else if (a.name < b.name) {
@@ -86,57 +85,67 @@ AttributeWidget.prototype = {
             return 0;
         });
 
-        var disallowedAttributes = Mapper.reservedAttributes;
+        const disallowedAttributes = Mapper.reservedAttributes;
         
         // build atts
-        var attsString = '';
-        var attributeSelector = '';
-        var att, currAttString;
-        var isRequired = false;
-        for (var i = 0; i < atts.length; i++) {
+        let attsString = '';
+        let attributeSelector = '';
+        let att;
+        let currAttString;
+        let isRequired = false;
+
+        for (let i = 0; i < atts.length; i++) {
             att = atts[i];
             currAttString = '';
             isRequired = att.required;
             
             if (disallowedAttributes[att.name] !== true) {
-                var displayName = att.name;
+                let displayName = att.name;
                 if (att.fullName !== '') {
-                    displayName += ' ('+att.fullName+')';
+                    displayName += ` (${att.fullName})`;
+                    // displayName += ' ('+att.fullName+')';
                 }
+
                 att.defaultValue = '';
-                var display = 'block';
-                var requiredClass = isRequired ? ' required' : '';
+                let display = 'block';
+                const requiredClass = isRequired ? ' required' : '';
+
                 if (initialVals[att.name] && initialVals[att.name] !== undefined) {
                     display = 'block';
-                    attributeSelector += '<li data-name="'+att.name+'" class="selected'+requiredClass+'">'+displayName+'</li>';
+                    attributeSelector += `<li data-name="${att.name}" class="selected${requiredClass}">${displayName}</li>`;
                     att.defaultValue = initialVals[att.name];
                 } else {
                     display = 'none';
-                    attributeSelector += '<li data-name="'+att.name+'" class="'+requiredClass+'">'+displayName+'</li>';
+                    attributeSelector += `<li data-name="${att.name}" class="${requiredClass}">${displayName}</li>`;
                 }
-                currAttString += '<div data-name="form_'+att.name+'" style="display:'+display+';"><label>'+displayName+'</label>';
+
+                currAttString += `<div data-name="form_${att.name}" style="display:${display};"><label>${displayName}</label>`;
                 if (typeof att.documentation === 'string' && att.documentation !== '') { // docs will be objects if the doc element was empty
-                    currAttString += '<ins class="ui-icon ui-icon-help" title="'+att.documentation+'">&nbsp;</ins>';
+                    currAttString += `<ins class="ui-icon ui-icon-help" title="${att.documentation}">&nbsp;</ins>`;
                 }
+
                 currAttString += '<br/>';
+
                 // TODO add list support
 //                if ($('list', attDef).length > 0) {
 //                    currAttString += '<input type="text" name="'+att.name+'" value="'+att.defaultValue+'"/>';
 //                } else if ($('choice', attDef).length > 0) {
                 if (att.choices && att.choices.length > 0) {
-                    currAttString += '<select name="'+att.name+'">';
-                    var attVal, selected;
-                    for (var j = 0; j < att.choices.length; j++) {
+                    currAttString += `<select name="${att.name}">`;
+                    let attVal;
+                    let selected;
+                    for (let j = 0; j < att.choices.length; j++) {
                         attVal = att.choices[j];
                         selected = att.defaultValue == attVal ? ' selected="selected"' : '';
-                        currAttString += '<option value="'+attVal+'"'+selected+'>'+attVal+'</option>';
+                        currAttString += `<option value="${attVal}"${selected}>${attVal}</option>`;
                     }
                     currAttString += '</select>';
 //                } else if ($('ref', attDef).length > 0) {
 //                    currAttString += '<input type="text" name="'+att.name+'" value="'+att.defaultValue+'"/>';
                 } else {
-                    currAttString += '<input type="text" name="'+att.name+'" value="'+att.defaultValue+'"/>';
+                    currAttString += `<input type="text" name="${att.name}" value="${att.defaultValue}"/>`;
                 }
+                
                 if (isRequired) currAttString += ' <span class="required">*</span>';
                 currAttString += '</div>';
                 
@@ -148,22 +157,21 @@ AttributeWidget.prototype = {
         $('.attsContainer', this.$el).html(attsString);
         
         $('.attributeSelector li', this.$el).click(function() {
-            var name = $(this).data('name').replace(/:/g, '\\:');
-            var div = $('[data-name="form_'+name+'"]', this.$el);
+            const name = $(this).data('name').replace(/:/g, '\\:');
+            const div = $(`[data-name="form_${name}"]`, this.$el);
             $(this).toggleClass('selected');
-            if ($(this).hasClass('selected')) {
-                div.show();
-            } else {
-                div.hide();
-            }
+            $(this).hasClass('selected') ? div.show() : div.hide();
+            // if ($(this).hasClass('selected')) {
+            //     div.show();
+            // } else {
+            //     div.hide();
+            // }
         });
         
         $('ins', this.$el).tooltip({
             show: false,
             hide: false,
-            classes: {
-                'ui-tooltip': 'cwrc-tooltip'
-            }
+            classes: { 'ui-tooltip': 'cwrc-tooltip' }
         });
         
         $('input, select, option', this.$el).change(function(event) {
@@ -184,8 +192,8 @@ AttributeWidget.prototype = {
     reset: function() {
         $('.attributeSelector li', this.$el).each(function(el, index) {
             $(this).removeClass('selected');
-            var name = $(this).data('name').replace(/:/g, '\\:');
-            var div = $('[data-name="form_'+name+'"]', this.$el);
+            const name = $(this).data('name').replace(/:/g, '\\:');
+            const div = $(`[data-name="form_${name}"]`, this.$el);
             div.hide();
         });
         $('.attsContainer input, .attsContainer select', this.$el).val('');
@@ -196,13 +204,11 @@ AttributeWidget.prototype = {
      * @returns {Boolean} True if data was set
      */
     setData: function(data) {
-        var wasDataSet = false;
-        
-        for (var key in data) {
-            var val = data[key];
+        let wasDataSet = false;
+        for (const key in data) {
+            const val = data[key];
             wasDataSet = this.setAttribute(key, val) || wasDataSet;
         }
-        
         return wasDataSet;
     },
     /**
@@ -213,21 +219,20 @@ AttributeWidget.prototype = {
      * @returns {Boolean} True if data was set
      */
     setAttribute: function(name, value) {
-        var li = $('.attributeSelector li[data-name="'+name+'"]', this.$el);
+        const li = $(`.attributeSelector li[data-name="${name}"]`, this.$el);
         if (li.length === 1) {
             if (value != null) {
                 li.addClass('selected');
-                var div = $('[data-name="form_'+name+'"]', this.$el);
+                const div = $(`[data-name="form_${name}"]`, this.$el);
                 $('input, select', div).val(value);
                 div.show();
-                return true;
             } else {
                 li.removeClass('selected');
-                var div = $('[data-name="form_'+name+'"]', this.$el);
+                const div = $(`[data-name="form_${name}"]`, this.$el);
                 $('input, select', div).val('');
                 div.hide();
-                return true;
             }
+            return true;
         } else {
             console.warn('attributeWidget: no attribute for',name);
             return false;
@@ -239,11 +244,11 @@ AttributeWidget.prototype = {
      * @returns {Object|undefined} Returns undefined if invalid
      */
     getData: function() {
-        var attributes = {};
+        const attributes = {};
         $('.attributeSelector li.selected', this.$el).each((index, el) => {
-            var name = $(el).data('name');
-            $('.attsContainer > div[data-name="form_'+name+'"]', this.$el).children('input[type!="hidden"], select').each(function(index, el) {
-                var val = $(this).val();
+            const name = $(el).data('name');
+            $(`.attsContainer > div[data-name="form_${name}"]`, this.$el).children('input[type!="hidden"], select').each(function(index, el) {
+                const val = $(this).val();
                 if (val !== '') { // ignore blank values
                     attributes[$(this).attr('name')] = val;
                 }
@@ -251,17 +256,17 @@ AttributeWidget.prototype = {
         });
         
         // validation
-        var invalid = [];
+        const invalid = [];
         $('.attsContainer span.required', this.$el).parent().children('input[type!="hidden"], select').each(function(index, el) {
-            var entry = attributes[$(this).attr('name')];
+            const entry = attributes[$(this).attr('name')];
             if (entry === undefined || entry == '') {
                 invalid.push($(this).attr('name'));
             }
         });
         if (invalid.length > 0) {
-            for (var i = 0; i < invalid.length; i++) {
-                var name = invalid[i];
-                $('.attsContainer *[name="'+name+'"]', this.$el).css({borderColor: 'red'}).keyup(function(event) {
+            for (let i = 0; i < invalid.length; i++) {
+                const name = invalid[i];
+                $(`.attsContainer *[name="${name}"]`, this.$el).css({borderColor: 'red'}).keyup(function(event) {
                     $(this).css({borderColor: '#ccc'});
                 });
             }
