@@ -298,6 +298,9 @@ function Nerve(config) {
 
         const doBuild = (currentNode) => {
             const tags = _nodeToStringArray(currentNode);
+
+            if (tags[0] === '<teiHeader>') return; // * skip `<teiheader>` when sending document to NSSI [NERVE]
+            
             xmlString += tags[0];
             currentNode.contents().each((index, el) => {
                 if (el.nodeType == Node.ELEMENT_NODE) {
