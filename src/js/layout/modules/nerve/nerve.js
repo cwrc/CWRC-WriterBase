@@ -282,25 +282,24 @@ function Nerve(config) {
 
     // Converts to xml using just the _tag attribute and ignores everything else.
     // We don't want to do a full/normal conversion because of differences between entities in the editor and in the outputted xml.
-    var getBasicXmlDocument = function() {
-        var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n<?xml-model href="'+w.schemaManager.getXMLUrl()+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
+    const getBasicXmlDocument = () => {
+        let xmlString = `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-model href="${w.schemaManager.getXMLUrl()}" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n`;
 
-        function _nodeToStringArray(currNode) {
-            var array = [];
-            var tag = currNode.attr('_tag');
+        const _nodeToStringArray = (currNode) => {
+            const tag = currNode.attr('_tag');
+            let array = [];
             if (tag !== undefined) {
-                array.push('<'+tag+'>');
-                array.push('</'+tag+'>');
+                array = [ ...array, `<${tag}>`, `</${tag}>`]
             } else {
                 array = ['',''];
             }
             return array;
         }
 
-        function doBuild(currentNode) {
-            var tags = _nodeToStringArray(currentNode);
+        const doBuild = (currentNode) => {
+            const tags = _nodeToStringArray(currentNode);
             xmlString += tags[0];
-            currentNode.contents().each(function(index, el) {
+            currentNode.contents().each((index, el) => {
                 if (el.nodeType == Node.ELEMENT_NODE) {
                     doBuild($(el));
                 } else if (el.nodeType == Node.TEXT_NODE) {
@@ -311,9 +310,9 @@ function Nerve(config) {
         }
 
         w.entitiesManager.highlightEntity();
-        var root = w.schemaManager.getRoot();
-        var $body = $(w.editor.getBody());
-        var $rootEl = $body.children('[_tag='+root+']');
+        const root = w.schemaManager.getRoot();
+        const $body = $(w.editor.getBody());
+        const $rootEl = $body.children(`[_tag=${root}]`);
         doBuild($rootEl);
         
         xmlString = xmlString.replace(/\uFEFF/g, '');
