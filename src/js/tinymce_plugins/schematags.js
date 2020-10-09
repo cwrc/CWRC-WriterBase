@@ -310,10 +310,11 @@ tinymce.PluginManager.add('schematags', function(editor) {
                     var query = e.control.value();
                     var menu = e.control.parent().items()[1];
                     menu.items().each(function(item) {
+                        console.log(query, item, item.settings.key)
                         if (query == '') {
                             item.disabled(item.settings.initialFilterState);
                             item.visible(!item.settings.initialFilterState);
-                        } else if (!item.settings.initialFilterState && item.settings.key && item.settings.key.toLowerCase().indexOf(query) != -1) {
+                        } else if (!item.settings.initialFilterState && item.settings.key && item.settings.key.toLowerCase().indexOf(query.toLowerCase()) != -1) {
                             item.disabled(false);
                             item.visible(true);
                         } else {
