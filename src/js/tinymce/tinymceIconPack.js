@@ -1,3 +1,4 @@
+const iconsTags = require('../../icons/tags-solid.svg');
 const iconPerson = require('../../icons/user-solid.svg');
 const iconPlace = require('../../icons/globe-solid.svg');
 const titleIcon = require('../../icons/book-solid.svg');
@@ -24,6 +25,7 @@ const fullscreenIcon = require('../../icons/expand-arrows-alt-solid.svg');
 
 
 const addIconPack = (editor) => {
+    editor.ui.registry.addIcon('tags', iconsTags);
     editor.ui.registry.addIcon('person', iconPerson);
     editor.ui.registry.addIcon('place', iconPlace);
     editor.ui.registry.addIcon('title', titleIcon);
