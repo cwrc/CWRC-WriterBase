@@ -6,9 +6,11 @@ require('../../lib/jquery/jquery.watermark.min');
 
 
 tinymce.PluginManager.add('schematags', function(editor) {
+
+    console.log(tinymce)
     
     // re-implementing tinymce.ui.Menu to use dialogWrapper and so that we can set autohide
-    tinymce.ui.Factory.add('cwrcmenu', tinymce.ui.FloatPanel.extend({
+    tinymce.editor.ui.registry.add('cwrcmenu', tinymce.editor.ui.FloatPanel.extend({
         Defaults: {
             defaultType: 'menuitem',
             border: 1,
@@ -80,7 +82,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
     
  
     // Button to trigger the cwrcmenu
-    tinymce.ui.Factory.add('cwrcpanelbutton', tinymce.ui.PanelButton.extend({
+    tinymce.ui.add('cwrcpanelbutton', tinymce.ui.PanelButton.extend({
         // CHANGES
         // set popover to false
         
@@ -313,7 +315,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
                         if (query == '') {
                             item.disabled(item.settings.initialFilterState);
                             item.visible(!item.settings.initialFilterState);
-                        } else if (!item.settings.initialFilterState && item.settings.key && item.settings.key.toLowerCase().indexOf(query) != -1) {
+                        } else if (!item.settings.initialFilterState && item.settings.key && item.settings.key.toLowerCase().indexOf(query.toLowerCase()) != -1) {
                             item.disabled(false);
                             item.visible(true);
                         } else {

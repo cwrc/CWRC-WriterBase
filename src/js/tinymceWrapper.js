@@ -87,6 +87,9 @@ TinymceWrapper.init = (config) => {
 
         valid_elements: '*[*]', // allow everything
 
+        // ? TRY TO IMPLEMENT PLUGIN SCHEMA TAG AS A WRAPPER FOR MENUITEM
+        // ? PERHAPS IT IS BETTER TO HAVE THE RIBBON OUTSIDE OF TINYMCE (USING REACT)
+
         //TODO: Reassess plugins on tinymce 5.0
         plugins: [
             'schematags',   //!We might use the native menu options. If not, rework the plugin
@@ -353,11 +356,13 @@ TinymceWrapper.init = (config) => {
     }
 
     const onChangeHandler = (event) => {
+        console.log('opa')
         $('br', w.editor.getBody()).remove(); // remove br tags that get added by shift+enter
         // w.event('contentChanged').publish();
     }
 
     const onNodeChangeHandler = (e) => {
+        console.log('opa')
         let el = e.element;
         if (el.nodeType != 1) {
             w.editor.currentNode = w.utilities.getRootTag()[0];
@@ -411,6 +416,8 @@ TinymceWrapper.init = (config) => {
                 w.editor.currentNode = el;
             }
         }
+
+        console.log('opa')
 
         w.editor.currentBookmark = w.editor.selection.getBookmark(1);
 

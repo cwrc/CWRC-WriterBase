@@ -1,7 +1,10 @@
 import $ from 'jquery';
+import { getSchemaTags } from './schematags'
 
 const toolbarOptions = [
 	'schematags',
+	'|',
+	'schema-tags',
 	'|',
 	'tag-person',
 	'tag-place',
@@ -33,10 +36,22 @@ const toolbarOptions = [
 	'fullscreen',
 ];
 
-const configureToolbar = (wrtier, editor) => {
-	const w = wrtier;
+const configureToolbar = (writer, editor) => {
+	const w = writer;
 
 	const buttons = [
+		{
+            title: 'Tags',
+            buttonType: 'menuitem',
+			slug: 'schema-tags',
+			icon: 'tags',
+			text: 'Tags',
+			tooltip: 'Schema Tags',
+			fetch: (callback) => {
+				const items = getSchemaTags({editor})
+				callback(items);
+			}
+		},
 		{
             title: 'Tag Person',
             buttonType: 'button',
@@ -297,7 +312,8 @@ const configureToolbar = (wrtier, editor) => {
         // };
 
         if (button.buttonType === 'button') editor.ui.registry.addButton(option, button);
-        if (button.buttonType === 'toggle') editor.ui.registry.addToggleButton(option, button);
+		if (button.buttonType === 'toggle') editor.ui.registry.addToggleButton(option, button);
+		if (button.buttonType === 'menuitem') editor.ui.registry.addMenuButton(option, button);
 
 		
 	});
