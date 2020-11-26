@@ -22,6 +22,8 @@ ObjTree.prototype.xmlDecl = '<?xml version="1.0" encoding="UTF-8" ?>\n';
 ObjTree.prototype.attr_prefix = '-';
 ObjTree.prototype.overrideMimeType = 'text/xml';
 
+ObjTree.prototype.unchanged = false;
+
 //  method: parseXML( xmlsource )
 
 ObjTree.prototype.parseXML = function ( xml ) {
@@ -177,12 +179,14 @@ ObjTree.prototype.parseElement = function ( elem ) {
                 if ( typeof(cnt[key]) == "undefined" ) cnt[key] = 0;
                 cnt[key] ++;
                 
-                // CHANGED
-                // add parent property
-                // add key property
-                if (typeof(val) == "object") {
-                    val['$parent'] = retval;
-                    val['$key'] = key;
+                if (this.unchanged === false) {
+                    // CHANGED
+                    // add parent property
+                    // add key property
+                    if (typeof(val) == "object") {
+                        val['$parent'] = retval;
+                        val['$key'] = key;
+                    }
                 }
                 
                 this.addNode( retval, key, cnt[key], val );

@@ -1,10 +1,14 @@
 import $ from 'jquery';
 import 'jquery-contextmenu';
+import { sortBy } from 'lodash';
+// import { getChildrenForPath } from './schema/schemaNavigator2';
+// import schemaNavigator from './schema/schemaNavigator3';
+import schemaNavigator from './schema/schemaNavigator4';
 
 function TagContextMenu(writer) {
     this.w = writer;
     this.container = `#${writer.containerId}`;
-    this.selector = `#${this.w.layoutManager.$containerid}`; //`#${writer.containerId}`;
+    this.selector = `#${writer.layoutManager.$containerid}`; //`#${writer.containerId}`;
 
     // these properties are set in the show method
     this.tagId = null;
@@ -104,7 +108,6 @@ TagContextMenu.prototype = {
 $.contextMenu.types.cwrcTag = function (item, parentMenu, root) {
     if (item.icon) this.addClass(`${root.classNames.icon} ${root.classNames.icon}-${item.icon}`);
     $(`<span>${item.name}</span>`).appendTo(this);
-
     this.data('action', parentMenu.tagAction);
 };
 
@@ -121,8 +124,8 @@ function getItems() {
         return items;
     }
 
-    const tag = $('#' + this.tagId, this.w.editor.getBody())[0];
-
+    const tag = $(`#${this.tagId}`, this.w.editor.getBody())[0];
+   
     const needsChildTags = this.isMultiple === false;
     const needsSiblingTags = this.isMultiple === false;
     const needsParentTags = this.isMultiple === true || this.useSelection === false;
@@ -233,6 +236,9 @@ function getItems() {
         }
     }
 
+    // ! Change tag should considers the filters applied to tag availability.
+    // e.g. if the tag in question is part of a OPTIONAL CHOICE patterns, the filter would have removed other options in this patterns
+    // That is, filter should be applied depending onf the case of use and context.
     items.change_tag = {
         name: 'Change Tag',
         icon: 'tag_edit',
@@ -310,6 +316,18 @@ function getItems() {
 }
 
 function addEntities(items) {
+
+    // ? Better solution - Check if order matters // also check if the word "tag" is needed
+    // const entityMappings = this.w.schemaManager.mapper.getMappings().entities;
+    // const menu = {};
+    // Object.entries(entityMappings).forEach(([key,value]) => {
+    //     menu[key] = {
+    //         name: `Tag ${key}`,
+    //         icon: key,
+    //         callback: () => this.w.tagger.addEntityDialog(key)
+    //     }
+    // })
+
     items.add_entity = {
         name: 'Insert Entity',
         icon: 'tag_add',
@@ -385,123 +403,173 @@ function addEntities(items) {
 
 }
 
+const logStyle = 'color: #333; font-weight: bold; background-color: #ededed;padding: 5px; border-radius: 5px';
+
 function getChildrenForTag(tag) {
-    const dfd = $.Deferred();
+    // console.log('%cChildren for Tag', logStyle);
 
-    setTimeout(() => {
-        const path = this.w.utilities.getElementXPath(tag);
-        const validKeys = this.w.schemaManager.getChildrenForPath(path);
+    const path = this.w.utilities.getElementXPath(tag);
 
-        dfd.resolve(getSubmenu(validKeys));
-    }, 0);
+    let children = schemaNavigator.getChildrenForPath(path);
+    
+    const localContextTags = getLocalContextTags(tag);
+    if (localContextTags.size > 0) {
+        children = schemaNavigator.filterByPresentTags(children, localContextTags)
+    };
 
-    return dfd.promise();
-}
+    let availableChildren = children.map(({ fullName = '', attributes: { name: name } }) => ({
+		name,
+		fullName,
+	}));
+	
+    availableChildren = sortBy(availableChildren, ['name']);
 
+    // console.log('%c------', logStyle);
+
+    return getSubmenu(availableChildren);
+};
+
+
+// ! Deprecated ?
 function getParentsForTag(tag) {
-    const dfd = $.Deferred();
+	// console.log('%Parents for Tag', logStyle);
 
-    setTimeout(() => {
-        const path = this.w.utilities.getElementXPath(tag);
-        const validKeys = this.w.schemaManager.getParentsForPath(path);
+	//parents for a tag
+	const path = this.w.utilities.getElementXPath(tag);
+	const parentsForTag = schemaNavigator.getParentsForPath(path);
 
-        dfd.resolve(getSubmenu(validKeys));
-    }, 0);
+	let availableParents = parentsForTag.map(({ fullName = '', attributes: { name: name } }) => ({
+		name,
+		fullName,
+	}));
 
-    return dfd.promise();
+	availableParents = sortBy(availableParents, ['name']);
+
+	// console.log('%c------', logStyle);
+
+	return getSubmenu(availableParents);
 }
 
 function getSiblingsForTag(tag) {
-    const dfd = $.Deferred();
+    // console.log('%cSiblings for Tag', logStyle);
 
-    setTimeout(() => {
-        const parentTag = $(tag).parents('[_tag]');
-        const path = this.w.utilities.getElementXPath(parentTag[0]);
-        const validKeys = this.w.schemaManager.getChildrenForPath(path);
+    const parentTag = $(tag).parents('[_tag]');
+    const parentPath = this.w.utilities.getElementXPath(parentTag[0]);
 
-        dfd.resolve(getSubmenu(validKeys));
-    }, 0);
+    let childrenForParent = schemaNavigator.getChildrenForPath(parentPath);
 
-    return dfd.promise();
-}
-
-function getInsertAroundTags(tag) {
-    const dfd = $.Deferred();
-
-    setTimeout(() => {
-        // valid parents of the tag
-        const parentpath = this.w.utilities.getElementXPath(tag);
-        const parentKeys = this.w.schemaManager.getParentsForPath(parentpath);
-
-        // valid children of the parent of the tag
-        const parentTag = $(tag).parents('[_tag]');
-        const parentChildrenpath = this.w.utilities.getElementXPath(parentTag[0]);
-        const parentChildrenKeys = this.w.schemaManager.getChildrenForPath(parentChildrenpath);
-
-        const validKeys = [];
-
-        // find common keys
-        for (let i = 0; i < parentKeys.length; i++) {
-            const pk = parentKeys[i];
-            for (let j = 0; j < parentChildrenKeys.length; j++) {
-                const pck = parentChildrenKeys[j];
-                if (pk.name == pck.name) {
-                    validKeys.push(pk);
-                    break;
-                }
-            }
-        }
-
-        dfd.resolve(getSubmenu(validKeys));
-    }, 0);
-
-    return dfd.promise();
-}
-
-const getSubmenu = (tags) => {
-    const submenu = {};
-
-    if (tags.length === 0) {
-        submenu['no_tags'] = {
-            name: 'No Tags Available',
-            icon: 'no_tags'
-        };
-        return submenu;
-    }
-
-    function handleKeyUp(e) {
-        const query = this.value;
-        e.data.$menu.find('li').each((index, el) => {
-            if (index > 0) {
-                const label = $(el).children('span')[0].firstChild.data;
-                (query === '' || label.indexOf(query) !== -1) ? $(el).show(): $(el).hide();
-            }
-        });
-    }
-
-    submenu['tag_filter'] = {
-        name: 'Filter Tags',
-        type: 'text',
-        events: {
-            keyup: handleKeyUp
-        }
+    const parentContextTags = getLocalContextTags(parentTag[0]);
+    if (parentContextTags.size > 0) {
+        childrenForParent = schemaNavigator.filterByPresentTags(childrenForParent, parentContextTags)
     };
 
-    for (let i = 0; i < tags.length; i++) {
-        const tag = tags[i];
-        const key = tag.name;
-        let label = tag.name;
-        if (tag.fullName !== '') {
-            label += ` <span class="fullName">(${tag.fullName})</span>`;
-        }
-        submenu[key] = {
-            name: label,
-            type: 'cwrcTag',
-            icon: 'tag'
-        };
-    }
+    let availableChildrenForParent = childrenForParent.map(({ fullName = '', attributes: { name: name } }) => ({
+		name,
+		fullName,
+	}));
+    
+    availableChildrenForParent = sortBy(availableChildrenForParent, ['name']);
 
-    return submenu;
+    // console.log('%c------', logStyle);
+    
+    return getSubmenu(availableChildrenForParent)
+};
+
+
+function getInsertAroundTags(tag) {
+	// console.log('%cParents for Tag (Around)', logStyle);
+
+	//parents for a tag
+	const path = this.w.utilities.getElementXPath(tag);
+	const parentsForTag = schemaNavigator.getParentsForPath(path);
+
+	// valid children of the parent of the tag
+	const parentTag = $(tag).parents('[_tag]');
+	const parentPath = this.w.utilities.getElementXPath(parentTag[0]);
+
+	let childrenForParent = schemaNavigator.getChildrenForPath(parentPath);
+
+	const parentContextTags = getLocalContextTags(parentTag[0]);
+	if (parentContextTags.size > 0) {
+		childrenForParent = schemaNavigator.filterByPresentTags(
+			childrenForParent,
+			parentContextTags
+		);
+	}
+
+	const commonTags = parentsForTag.filter((pTag) =>
+		childrenForParent.find((cTag) => pTag['@name'] === cTag['@name'])
+	);
+
+	// console.log({parentsForTag, availableChildren, commonTags});
+
+	if (commonTags.length == 0) getSubmenu([]);
+
+	let availableCommonTags = commonTags.map(({ fullName = '', attributes: { name: name } }) => ({
+		name,
+		fullName,
+	}));
+
+	availableCommonTags = sortBy(availableCommonTags, ['name']);
+
+	// console.log('%c------', logStyle);
+
+	return getSubmenu(availableCommonTags);
 }
+
+
+const getLocalContextTags = (tag) => {
+    const collection = new Set();
+    const children = $(tag).children();
+    children.each((index, child) => {
+        // const tagID = $(child).attr('id');
+        const tagName = $(child).attr('_tag');
+        // const tag = $(`#${tagID}`, this.w.editor.getBody())[0];
+        collection.add(tagName);
+    })
+    return collection;
+};
+
+const getSubmenu = (tags) => {
+	const submenu = {};
+
+	if (tags.length === 0) {
+		submenu['no_tags'] = {
+			name: 'No Tags Available',
+			icon: 'no_tags',
+		};
+		return submenu;
+	}
+
+	const handleKeyUp = (e) => {
+		const query = e.target.value;
+		e.data.$menu.find('li').each((index, el) => {
+			if (index > 0) {
+				const label = $(el).children('span')[0].firstChild.data;
+				query === '' || label.toLowerCase().indexOf(query.toLowerCase()) != -1
+					? $(el).show()
+					: $(el).hide();
+			}
+		});
+	};
+
+	submenu['tag_filter'] = {
+		name: 'Filter Tags',
+		type: 'text',
+		events: { keyup: handleKeyUp },
+	};
+
+	tags.forEach(({ name, fullName }) => {
+		const label = fullName ? `${name} <span class="fullName">(${fullName})</span>` : name;
+
+		submenu[name] = {
+			name: label,
+			type: 'cwrcTag',
+			icon: 'tag',
+		};
+	});
+
+	return submenu;
+};
 
 export default TagContextMenu;

@@ -4,15 +4,16 @@ var $ = require('jquery');
 
 var EventManager = require('./eventManager.js');
 var Utilities = require('./utilities.js');
-var SchemaManager = require('./schema/schemaManager.js');
-import DialogManager from './dialogManager.js';
+// var SchemaManager = require('./schema/schemaManager.js');
+import SchemaManager from './schema/schemaManager';
+import DialogManager from './dialogManager';
 var EntitiesManager = require('./entities/entitiesManager.js');
 var Tagger = require('./tagger.js');
 var Converter = require('./conversion/converter.js');
 var AnnotationsManager = require('./entities/annotationsManager');
 import { settingsDialog } from './dialogs/settings';
 var LayoutManager = require('./layout/layoutManager.js');
-import TagContextMenu from './tagContextMenu.js';
+import TagContextMenu from './tagContextMenu';
 var TinymceWrapper = require('./tinymceWrapper.js');
 
 import '../css/build.less';

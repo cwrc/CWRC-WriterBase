@@ -3,7 +3,10 @@
 const $ = require('jquery');
 const Mapper = require('./mapper.js');
 const css = require('css');
-const SchemaNavigator = require('./schemaNavigator.js');
+import SchemaNavigator from './schemaNavigator';
+// import { setSchemaJSON } from './schemaNavigator2';
+// import { setSchemaJSON } from './schemaNavigator3';
+import { setSchemaJSON } from './schemaNavigator4';
 
 /**
  * @class SchemaManager
@@ -591,7 +594,7 @@ function SchemaManager(writer, config) {
      * - Hide the header tag
      * - Set references to the elements and the JSON version of the schema
      */
-    const processSchema = () => {
+    const processSchema = async () => {
         // remove old schema elements
         $('#schemaTags', w.editor.dom.doc).remove();
         
@@ -627,10 +630,26 @@ function SchemaManager(writer, config) {
         });
         
         sm.schemaJSON = w.utilities.xmlToJSON($('grammar', sm.schemaXML)[0]);
+
         if (sm.schemaJSON === null) {
             console.warn('schemaManager.loadSchema: schema XML could not be converted to JSON');
         }
         sm.navigator.setSchemaJSON(sm.schemaJSON);
+
+
+        ///
+        // const schemaJSON_alt1 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'ObjTree-unchanged'});
+        // const schemaJSON_alt2 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'xml2js'});
+        // const schemaJSON_alt3 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'xml-js-compact'});
+        const schemaJSON_alt4 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'xml-js'});
+        // const schemaJSON_alt5 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'fxp'});
+        // const schemaJSON_alt6 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'salve'});
+
+        // setSchemaJSON(schemaJSON_alt1, 'ObjTree')
+        setSchemaJSON(schemaJSON_alt4)
+        // setSchemaJSON(schemaJSON_alt3, 'xml-js-compact')
+        // setSchemaJSON(schemaJSON_alt4, 'xml-js')
+        // setSchemaJSON(schemaJSON_alt5, 'fxp')
     }
 
     /**
@@ -830,4 +849,6 @@ function SchemaManager(writer, config) {
 }
 
 
-module.exports = SchemaManager;
+// module.exports = SchemaManager;
+
+export default SchemaManager;

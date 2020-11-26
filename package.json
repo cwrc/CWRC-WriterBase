@@ -42,6 +42,7 @@
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
     "css": "^3.0.0",
+    "fast-xml-parser": "^3.17.4",
     "fscreen": "^1.1.0",
     "iso-639-2": "^2.0.0",
     "jquery": "3.4.1",
@@ -49,13 +50,20 @@
     "jquery-ui": "^1.12.1",
     "js-cookie": "^2.2.1",
     "jstree": "3.3.8",
+    "lodash": "^4.17.20",
     "moment": "^2.29.0",
+    "object-path": "^0.11.5",
+    "object-scan": "^13.6.6",
     "openseadragon": "^2.4.1",
     "prism-themes": "^1.4.1",
     "prismjs": "^1.21.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "tinymce": "4.9.8"
+    "salve": "^9.1.2",
+    "tinymce": "4.9.8",
+    "underscore": "^1.11.0",
+    "xml-js": "^1.6.11",
+    "xml2js": "^0.4.23"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
@@ -84,11 +92,6 @@
   "config": {
     "commitizen": {
       "path": "cz-conventional-changelog"
-    }
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run test"
     }
   }
 }

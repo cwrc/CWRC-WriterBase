@@ -1,6 +1,4 @@
-'use strict';
-
-var $ = require('jquery');
+import { isEqual } from 'underscore';
 
 /**
  * Navigates the schema JSON to get parents, children, and attributes for tags or paths.
@@ -10,17 +8,13 @@ function SchemaNavigator() {
     /**
      * @lends SchemaNavigator.prototype
      */
-    var sn = {};
+    const sn = {};
 
-    var schemaJSON;
-    sn.setSchemaJSON = function(json) {
-        schemaJSON = json;
-    }
+    let schemaJSON;
+    sn.setSchemaJSON = (json) => schemaJSON = json;
 
-    var schemaElements;
-    sn.setSchemaElements = function(elements) {
-        schemaElements = elements;
-    }
+    let schemaElements;
+    sn.setSchemaElements = (elements) => schemaElements = elements;
 
     /**
      * Returns an array of valid parents for a particular tag
@@ -42,22 +36,6 @@ function SchemaNavigator() {
         }
     }
 
-    /**
-     * Returns an array of valid parents for a particular path
-     * @param {String} path The path
-     * @returns {Array}
-     */
-    sn.getParentsForPath = function(path) {
-        var element = _getEntryForPath(path);
-        if (element === null) {
-            console.warn('schemaNavigator: cannot find element for '+path);
-            return [];
-        } else {
-            var parents = _getElementParents(element);
-            _sortEntries(parents);
-            return parents;
-        }
-    }
 
     /**
      * Returns an array of valid children for a particular tag
@@ -80,21 +58,115 @@ function SchemaNavigator() {
     }
 
     /**
-     * Returns an array of valid children for a particular path
+     * Returns an array of valid parents for a particular path
      * @param {String} path The path
+     * @param {Array} context Array of tags in the local context tag
      * @returns {Array}
      */
-    sn.getChildrenForPath = function(path) {
-        var element = _getEntryForPath(path);
+    sn.getParentsForPath = (path,context) => {
+        const element = _getEntryForPath(path);
+
         if (element === null) {
             console.warn('schemaNavigator: cannot find element for '+path);
             return [];
-        } else {
-            var children = _getElementChildren(element, 'element');
-            _sortEntries(children);
-            return children;
-        }
+        };
+
+        let parents = _getElementParents(element);
+        if (context && context.length > 0) parents = checkValidKeysRestriction(parents, context);
+        _sortEntries(parents);
+        return parents;
     }
+
+    /**
+     * Returns an array of valid children for a particular path
+     * @param {String} path The path
+     * @param {Array} context Array of tags in the local context tag
+     * @returns {Array}
+     */
+    sn.getChildrenForPath = (path,context) => {
+        // console.log(path)
+
+        console.time('_getEntryForPath_ObjTree_Original')
+        const element = _getEntryForPath(path);
+        // console.log(element)
+        
+
+        if (element === null) {
+            console.warn(`schemaNavigator: cannot find element for ${path}`);
+            return [];
+        }
+        
+        let children = _getElementChildren(element, 'element');
+
+        // console.log(children);
+
+        console.timeEnd('_getEntryForPath_ObjTree_Original')
+
+
+        // if (context && context.length > 0) children = checkValidKeysRestriction(children, context);
+        // _sortEntries(children);
+        
+        return children;
+    }
+
+    /**
+     * Returns an array of valid children for a particular path
+     * After checking for restricions on local context 
+     * @param {Array} children The the possible tags for the path
+     * @param {Array} context Array of tags in the local context tag
+     * @returns {Array}
+     */
+    const checkValidKeysRestriction = (avilablaTags, existingTags) => {
+        //check if there are tags that will limit the options
+        // console.log(children)
+        // const keyIsPresent = children.find((key) => {
+        //     return (
+        //         context.includes(key.name)
+        //         && key?.group?.length === 1
+        //     );
+        // });
+
+        // // console.log(keyIsPresent);
+        // //narrow options
+        // if (keyIsPresent) {
+        //     const groupRestriction = keyIsPresent.group[0];
+        //     console.table(children);
+        //     children = children.filter((key) => key.group.includes(groupRestriction));
+        // };
+
+        //-------------
+
+
+         //check if there are tags that will limit the options
+        console.log(avilablaTags)
+        const groupsRestriction = [];
+
+        avilablaTags.forEach((tag) => {
+
+            // const tag = existingTags.includes(tag.name)
+            if (!existingTags.includes(tag.name)) return
+            if (!tag.patterns) return;
+
+            const patterns = [...new Set(tag.patterns.map(item => item.name))];
+
+            console.log(patterns);
+
+            // return (
+            //     existingTags.includes(key.name)
+            //     && key?.group?.length === 1
+            // );
+        });
+
+        // console.log(keyIsPresent);
+        //narrow options
+        // if (groupsRestriction.length > 0 ) {
+        //     // const groupRestriction = keyIsPresent.group[0];
+        //     avilablaTags = avilablaTags.filter((key) => key.patterns.includes(groupsRestriction));
+        //     console.table(avilablaTags);
+        // };
+    
+        return avilablaTags;
+    };
 
     /**
      * Returns an array of valid attributes for a particular tag
@@ -150,32 +222,42 @@ function SchemaNavigator() {
      * @param {String} path A forward slash delimited pseudo-xpath
      * @returns {Object}
      */
-    function _getEntryForPath(path) {
-        var context = schemaJSON.grammar;
-        var match = null;
+    const _getEntryForPath = (path) => {
+        let context = schemaJSON.grammar;
+        let match = null;
         
-        var tags = path.split('/');
-        for (var i = 0; i < tags.length; i++) {
-            var tag = tags[i];
-            if (tag !== '') {
-                tag = tag.replace(/\[\d+\]$/, ''); // remove any indexing
-                _queryDown(context, function(item) {
-                    if (item['@name'] && item['@name'] === tag) {
-                        context = item;
-                        if (i === tags.length - 1) {
-                            if (item['$key'] === 'element') {
-                                match = item;
-                                return false;
-                            } else {
-                                // the name matches but we're in define so drill down further
-                                context = item;
-                            }
+        // console.log("^^^^^^");
+        // console.time("Manually");
+        const tags = path.split('/');
+        for (let i = 0; i < tags.length; i++) {
+            let tag = tags[i];
+            if  (tag === '') continue;
+
+            // console.log(tag)
+           
+            tag = tag.replace(/\[\d+\]$/, ''); // remove any indexing
+
+            _queryDown(context, (item) => {
+                if (item['@name'] && item['@name'] === tag) {
+                    context = item;
+
+                    if (i === tags.length - 1) {
+                        if (item['$key'] === 'element') {
+                            match = item;
+                            return false;
+                        } else {
+                            // the name matches but we're in define so drill down further
+                            context = item;
                         }
-                        return true;
                     }
-                }, true);
-            }
+
+                    return true;
+                }
+            }, true);
+            
         }
+
+        // console.log(match)
         return match;
     }
 
@@ -184,16 +266,15 @@ function SchemaNavigator() {
      * @param {Object} el The schema entry
      * @returns {Array}
      */
-    function _getElementParents(el) {
-        var parents = [];
+    const _getElementParents = (el) => {
+        const parents = [];
 
-        var parent = el.$parent;
+        let parent = el.$parent;
         while (parent !== undefined) {
             if (parent.$key === 'define' || parent.$key === 'element') {
                 break;
-            } else {
-                parent = parent.$parent;
             }
+            parent = parent.$parent;
         }
         
         if (parent.$key === 'define') {
@@ -211,20 +292,20 @@ function SchemaNavigator() {
      * @param {String} type Either "element" or "attribute"
      * @returns {Array}
      */
-    function _getElementChildren(element, type) {
-        var children = [];
+    const _getElementChildren = (element, type) => {
+        let children = [];
 
-        _getChildrenJSON(element, {}, 0, type, children); 
+        _getChildrenJSON(element, {}, 0, type, children);
+
         if (children.indexOf('anyName') != -1) {
             children = [];
             // anyName means include all elements
-            for (i = 0; i < schemaElements.length; i++) {
-                var el = schemaElements[i];
-                // TODO need to add more info than just the name
+            schemaElements.forEach((element) => {
+                // TODO need to add more info than just the name [2018]
                 children.push({
-                    name: el
+                    name: element
                 });
-            }
+            });
         }
 
         return children;
@@ -234,8 +315,8 @@ function SchemaNavigator() {
      * Sort the schema entries by name in ascending order
      * @param {Array} entries An array of schema entries
      */
-    function _sortEntries(entries) {
-        entries.sort(function(a, b) {
+    const _sortEntries = (entries) => {
+        entries.sort((a, b) => {
             if (a.name > b.name) return 1;
             if (a.name < b.name) return -1;
             return 0;
@@ -249,18 +330,20 @@ function SchemaNavigator() {
      * @param {Integer} level Tracks the current tree depth
      * @param {Array} parents An array to store the results
      */
-    function _getParentsJSON(defName, defHits, level, parents) {
-        var context = schemaJSON.grammar;
-        var matches = [];
-        _queryDown(context, function(item) {
+    const _getParentsJSON = (defName, defHits, level, parents) => {
+
+        const context = schemaJSON.grammar;
+        const matches = [];
+
+        _queryDown(context, (item) => {
             if (item.$key === 'ref' && item['@name'] === defName) {
                 matches.push(item);
             }
         });
         
-        for (var i = 0; i < matches.length; i++) {
-            var item = matches[i];
-            var parent = item.$parent;
+        matches.forEach((item) => {
+            let parent = item.$parent;
+
             while (parent !== undefined) {
                 if (parent.$key === 'element' || parent.$key === 'define') {
                     break;
@@ -268,34 +351,40 @@ function SchemaNavigator() {
                     parent = parent.$parent;
                 }
             }
+
             if (parent.$key === 'element') {
-                var docs = null;
-                _queryDown(parent, function(item) {
+                let documentation = null;
+
+                _queryDown(parent, (item) => {
                     if (item['a:documentation']) {
-                        docs = item['a:documentation'];
+                        documentation = item['a:documentation'];
                         return false;
                     }
                 });
-                if (docs != null && docs['#text'] !== undefined) {
-                    docs = docs['#text'];
-                } else if (docs == null) {
-                    docs = '';
+
+                if (documentation != null && documentation['#text'] !== undefined) {
+                    documentation = documentation['#text'];
+                } else if (documentation == null) {
+                    documentation = '';
                 }
-                var fullName = _getFullNameFromDocumentation(docs);
+
+                const fullName = _getFullNameFromDocumentation(documentation);
                 
                 parents.push({
                     name: parent['@name'],
-                    fullName: fullName,
-                    level: level,
-                    documentation: docs
+                    fullName,
+                    documentation,
+                    level,
                 });
+
             } else {
                 if (!defHits[parent['@name']]) {
                     defHits[parent['@name']] = true;
                     _getParentsJSON(parent['@name'], defHits, level+1, parents);
                 }
             }
-        }
+
+        });
     }
 
     /**
@@ -307,167 +396,302 @@ function SchemaNavigator() {
      * @param {Array} children The children to return
      * @param {Object} refParentProps For storing properties of a ref's parent (e.g. optional), if we're processing the ref's definition
      */
-    function _getChildrenJSON(currEl, defHits, level, type, children, refParentProps) {
+    const _getChildrenJSON = (currEl, defHits, level, type, children, refParentProps) => {
         // first get the direct types
-        var hits = [];
-        _queryDown(currEl, function(item) {
-            if (item.$key === 'element' && item !== currEl) return false; // we're inside a different element so stop querying down
+        let hits = [];
+        // console.log(currEl)
+        if (refParentProps?.locallyDefined) {
+            hits = [ ...hits, currEl]
+        } else {
+            _queryDown(currEl, (item) => {
+
+                // console.log(item)
+                if (item.$key === 'element' && item !== currEl) return false; // we're inside a different element so stop querying down
+
+                // console.log(item[type])
+                
+                if (item[type] !== undefined) {
+                    hits = [ ...hits, item[type]]  // use spread incase item[type] is an array
+                    // hits = hits.concat(item[type]); // use concat incase item[type] is an array
+                }
+            });
+        }
+        // console.log(children)
+        
+
+        hits = hits.flat();
+        // console.log(hits)
+        // console.log(currEl, hits)
+       
+        hits.forEach((child) => {
+        // for (var i = 0; i < hits.length; i++) {
+            // var child = hits[i];
             
-            if (item[type] != null) {
-                hits = hits.concat(item[type]); // use concat incase item[type] is an array
-            }
-        });
-        for (var i = 0; i < hits.length; i++) {
-            var child = hits[i];
-            
-            var docs = null;
-            _queryDown(child, function(item) {
+            let documentation = null;
+
+            _queryDown(child, (item) => {
                 if (item['a:documentation']) {
-                    docs = item['a:documentation'];
+                    documentation = item['a:documentation'];
                     return false;
                 }
             });
-            if (docs != null && docs['#text'] !== undefined) {
-                docs = docs['#text'];
-            } else if (docs == null) {
-                docs = '';
+
+            if (documentation !== null && documentation['#text'] !== undefined) {
+                documentation = documentation['#text'];
+            } else if (documentation == null) {
+                documentation = '';
             }
-            var fullName = _getFullNameFromDocumentation(docs);
+
+            const fullName = _getFullNameFromDocumentation(documentation);
             
             if (child.anyName) {
                 children.push('anyName');
                 return;
             }
-            
-            var duplicate = false;
-            children.every(function(entry, index, array) {
-                if (entry.name === child['@name']) {
-                    duplicate = true;
-                    return false;
+
+            const duplicateEntry = children.find((entry) => entry.name === child['@name'])
+
+            // console.log(child, duplicateEntry, refParentProps)
+
+            if (duplicateEntry) {
+                if (refParentProps.group !== null) {
+                    if (!duplicateEntry.patterns) duplicateEntry.patterns = [];
+                    duplicateEntry.patterns.push({
+                        name: refParentProps.pattern,
+                        group: refParentProps.group
+                    });
                 }
-                return true;
-            });
+                return;
+            }
+
+
+            const childObj = {
+                name: child['@name'],
+                fullName,
+                documentation,
+                level: level+0,
+            };
+
+            // console.log(childObj, refParentProps)
+
+            if (refParentProps && refParentProps?.group !== null) {
+                childObj.patterns = [{
+                    name: refParentProps.pattern,
+                    group: refParentProps.group
+                }]
+            }
             
-            if (!duplicate) {
-                var childObj = {
-                    name: child['@name'],
-                    fullName: fullName,
-                    level: level+0,
-                    documentation: docs
-                };
-                
-                if (type == 'element') {
-                    if (refParentProps && refParentProps.optional != null) {
-                        childObj.required = !refParentProps.optional;
-                    } else {
-                        if (child.$parent.$key === 'element' || child.$parent.$key === 'oneOrMore') {
-                            childObj.required = true;
-                        } else {
-                            childObj.required = false;
-                        }
-                    }
-                } else if (type == 'attribute') {
-                    if (refParentProps && refParentProps.optional != null) {
-                        childObj.required = !refParentProps.optional;
-                    } else {
+            if (type === 'element') {
+
+                if (refParentProps && refParentProps?.optional !== null) {
+                    childObj.required = !refParentProps.optional;
+                } else {
+                    if (child.$parent.$key === 'element' || child.$parent.$key === 'oneOrMore') {
                         childObj.required = true;
-                        _queryUp(child.$parent, function(item) {
-                            if (item.optional) {
-                                childObj.required = false;
-                                return false;
-                            }
-                        });
+                    } else {
+                        childObj.required = false;
                     }
-                    
-                    var defaultVal = null;
-                    _queryDown(child, function(item) {
-                        if (item['@a:defaultValue']) {
-                            defaultVal = item['@a:defaultValue'];
-                            return false;
-                        }
-                    });
-                    childObj.defaultValue = defaultVal || '';
-
-                    var choice = null;
-                    var list = null;
-                    _queryDown(child, function(item) {
-                        if (item.choice) {
-                            choice = item.choice;
-                        }
-                        if (item.list) {
-                            list = item.list;
-                        }
-                        if (choice !== null && list !== null) {
-                            return false;
-                        }
-                    });
-
-                    if (choice != null) {
-                        var choices = [];
-                        var values = [];
-                        _queryDown(choice, function(item) {
-                            if (item.value) values = item.value;
-                            if (!Array.isArray(values)) values = [values]
-                        });
-                        for (var j = 0; j < values.length; j++) {
-                            var val = values[j];
-                            if (val['#text']) {
-                                val = val['#text'];
-                            }
-                            choices.push(val);
-                        }
-                        childObj.choices = choices;
-                    }
-
-                    if (list !== null) {
-                        // TODO
-                    }
-
-                    // TODO process data pattern using pcre-to-regexp
                 }
-                children.push(childObj);
+
+            } else if (type === 'attribute') {
+
+                if (refParentProps?.optional != null) {
+                    childObj.required = !refParentProps.optional;
+                } else {
+                    childObj.required = true;
+                    _queryUp(child.$parent, (item) => {
+                        if (item.optional) {
+                            childObj.required = false;
+                            return false;
+                        }
+                    });
+                }
+                
+                let defaultVal = '';
+                _queryDown(child, (item) => {
+                    if (item['@a:defaultValue']) {
+                        defaultVal = item['@a:defaultValue'];
+                        return false;
+                    }
+                });
+                childObj.defaultValue = defaultVal;
+
+                let choice = null;
+                let list = null;
+                _queryDown(child, (item) => {
+                    if (item.choice) choice = item.choice;
+                    if (item.list) list = item.list;
+                    if (choice !== null && list !== null) return false;
+                });
+
+                if (choice !== null) {
+
+                    const choices = [];
+                    let values = [];
+
+                    _queryDown(choice, (item) => {
+                        if (item.value) values = item.value;
+                        if (!Array.isArray(values)) values = [values]
+                    });
+
+                    values.forEach((val) => {
+                        if (val['#text']) val = val['#text'];
+                        choices.push(val);
+                    });
+                    childObj.choices = choices;
+                }
+
+                if (list !== null) {
+                    // TODO
+                }
+
+                // TODO process data pattern using pcre-to-regexp
             }
-        }
-        
-        // now process the references
-        hits = [];
-        _queryDown(currEl, function(item) {
-            if (item.$key === 'element' && item !== currEl) return false; // we're inside a different element so stop querying down
-            
-            if (item.ref) {
-                hits = hits.concat(item.ref); // use concat incase item.ref is an array
-            }
+
+            children.push(childObj);
+            // console.log(childObj)
         });
         
-        for (var i = 0; i < hits.length; i++) {
-            var ref = hits[i];
-            var name = ref['@name'];
+        // now process the references
+        // console.log(hits)
+        hits = [];
+        _queryDown(currEl, (item) => {
+            // console.log(item)
+            // console.log(item.$parent === 'element')
+            if (item.$key === 'element'
+                && item.$parent.$key !== 'choice'
+                && item !== currEl
+            ) {
+                return false; // we're inside a different element so stop querying down
+            }
 
-            // store optional value
-            var optional = null;
-            _queryUp(ref, function(item) {
+            const getRefGroup = (currentCollection, context) => {
+                for (let i = 0; i < context.length; i++) {
+                    const collection = context[i];
+                    if (isEqual(currentCollection, collection)) return i;
+                    // console.log({currentOneOrMore, collection, isequal: isEqual(currentOneOrMore, collection)})
+                }
+                return null;
+            }
+            
+            if (item.ref) {
+
+                let ref = item.ref;
+
+                let patternName = null;
+                let patternPath = null;
+
+                if (item.$key === 'choice') {
+                    if (item.$parent.$key === 'oneOrMore' || item.$parent.$key === 'zeroOrMore' || item.$parent.$key === 'optional') {
+                        patternName = item.$parent.$key;
+                        patternPath = item.$parent.$parent;
+                    }
+                }
+
+                if (item.$key === 'oneOrMore' || item.$key === 'zeroOrMore' || item.$key === 'optional') {
+                    patternName = item.$key;
+                    patternPath = item.$parent;
+                }
+
+                if (!patternName) return;
+
+                // console.log({item, patternPath, patternName, path:patternPath[patternName]});
+                    
+
+                if (Array.isArray(patternPath[patternName])) {
+                    // console.log(item);
+                    const currentCollection = item.$parent;
+                    const context = patternPath[patternName];
+                    const group = getRefGroup(currentCollection, context);
+                    
+                    // console.log(group);
+                    if (group !== null) {
+                        ref = ref.map((child) => {
+                            child.group = group;
+                            child.pattern = patternName;
+                            // console.log(child);
+                            return child;
+                        });
+                    }
+                };
+
+                // if (typeof patternPath[patternName] === 'object') {
+                //     ref = ref.map((child) => {
+                //         child.group = 0;
+                //         child.pattern = patternName;
+                //         // console.log(child);
+                //         return child;
+                //     });
+                // };
+
+                // if (item.$key === 'choice') {
+               
+                //     if (item.$parent.$key === 'oneOrMore' || item.$parent.$key === 'zeroOrMore' || item.$parent.$key === 'optional') {
+                //         const parentKey = item.$parent.$key;
+
+                //         if (Array.isArray(item.$parent.$parent[parentKey])) {
+                //             // console.log(item);
+                //             const currentCollection = item.$parent;
+                //             const context = item.$parent.$parent[parentKey];
+                //             const group = getRefGroup(currentCollection, context);
+                //             // console.log(group);
+                //             if (group !== null) {
+                //                 ref = ref.map((child) => {
+                //                     child.group = group;
+                //                     child.pattern = parentKey;
+                //                     // console.log(child);
+                //                     return child;
+                //                 });
+                //             }
+                //         }
+                        
+                //     }
+                // }
+                
+
+                // console.log(ref)
+                hits = hits.concat(ref); // use concat incase item.ref is an array
+            }
+        });
+       
+        hits.forEach((ref) => {
+            
+            const name = ref['@name'];
+
+            // store extra values
+            let optional = null;
+            let pattern = null;
+
+
+            _queryUp(ref, (item) => {
                 if (item.$parent && item.$parent.$key) {
-                    var parentKey = item.$parent.$key;
+                    const parentKey = item.$parent.$key;
                     if (parentKey === 'choice' || parentKey === 'optional' || parentKey === 'zeroOrMore') {
                         // we're taking choice to mean optional, even though it could mean a requirement to choose one or more elements
                         optional = true;
+                        // pattern = parentKey;
                         return false;
                     } else if (parentKey === 'oneOrMore') {
                         optional = false;
+                        // pattern = parentKey;
                         return false;
                     }
                 }
                 return false;
             });
             
-            if (!defHits[name]) {
+            // if (!defHits[name]) {
                 defHits[name] = true;
-                var def = _getDefinition(name);
+                const def = _getDefinition(name);
                 if (def !== null) {
-                    _getChildrenJSON(def, defHits, level+1, type, children, {optional: optional});
+                    _getChildrenJSON(def, defHits, level+1, type, children, {
+                        optional,
+                        pattern: ref.pattern,
+                        group: ref.group
+                    });
                 }
-            }
-        }
+            // }
+        });
     }
 
     /**
@@ -477,10 +701,10 @@ function SchemaNavigator() {
      * @param {Function} matchingFunc The function that's called on each entry.
      */
     function _queryUp(context, matchingFunc) {
-        var continueQuery = true;
-        while (continueQuery && context != null) {
+        let continueQuery = true;
+        while (continueQuery && context !== null) {
             continueQuery = matchingFunc.call(this, context);
-            if (continueQuery == undefined) continueQuery = true;
+            if (continueQuery === undefined) continueQuery = true;
             context = context.$parent;
         }
     }
@@ -493,60 +717,51 @@ function SchemaNavigator() {
      * @param {Boolean} [processRefs] Automatically process refs, i.e. fetch their definitions
      */
     function _queryDown(context, matchingFunc, processRefs) {
-        var continueQuery = true;
+        let continueQuery = true;
         
-        var defHits = {};
+        const defHits = {};
         
-        function isArray(obj) {
-            return toString.apply(obj) === '[object Array]';
-        }
-        function isObject(obj){
-            return !!obj && Object.prototype.toString.call(obj) === '[object Object]';
-        }
+        const isArray = (obj) => toString.apply(obj) === '[object Array]';
+        const isObject = (obj) => (!!obj && Object.prototype.toString.call(obj) === '[object Object]');
 
         function doQuery(currContext) {
-            if (continueQuery) {
-                continueQuery = matchingFunc.call(this, currContext);
-                if (continueQuery == undefined) continueQuery = true;
-                for (var key in currContext) {
+
+            if (!continueQuery) return; //stop recursion
+
+            continueQuery = matchingFunc.call(this, currContext);
+            if (continueQuery == undefined) continueQuery = true;
+
+            for (let key in currContext) {
+                
+                // filter out metadata and attributes
+                if (key !== '$parent' && key !== '$key' && key.search('@') != 0) {
                     
-                    // filter out metadata and attributes
-                    if (key != '$parent' && key != '$key' && key.search('@') != 0) {
-                        
-                        var prop = currContext[key];
-                        
-                        if (processRefs === true && key === 'ref') {
-                            var refs;
-                            if (isArray(prop)) {
-                                refs = prop;
-                            } else {
-                                refs = [prop];
-                            }
-                            var defs = [];
-                            for (var j = 0; j < refs.length; j++) {
-                                var name = refs[j]['@name'];
-                                if (defHits[name] === undefined) {
-                                    defHits[name] = true;
-                                    var def = _getDefinition(name);
-                                    if (def !== null) {
-                                        doQuery(def);
-                                    }
-                                }
-                            }
-                        } else {
-                            if (isArray(prop)) {
-                                for (var i = 0; i < prop.length; i++) {
-                                    doQuery(prop[i]);
-                                }
-                            } else if (isObject(prop)) {
-                                doQuery(prop);
-                            }
+                    const prop = currContext[key];
+                    
+                    if (processRefs === true && key === 'ref') {
+                        const refs = (isArray(prop)) ? prop : [prop];
+
+                        // const defs = [];
+
+                        refs.forEach((ref) => {
+                            const name = ref['@name'];
+                            if (defHits[name] === undefined) {
+                                defHits[name] = true;
+                                const def = _getDefinition(name);
+                                if (def !== null) doQuery(def);
+                            } 
+                        });
+
+                    } else {
+                        if (isArray(prop)) {
+                            prop.forEach((item) => doQuery(item))
+                        } else if (isObject(prop)) {
+                            doQuery(prop);
                         }
                     }
                 }
-            } else {
-                return;
             }
+            
         }
         
         doQuery(context);
@@ -557,16 +772,18 @@ function SchemaNavigator() {
      * @param {String} name The name
      * @returns {Object|Null}
      */
-    function _getDefinition(name) {
-        var defs = schemaJSON.grammar.define;
-        for (var i = 0, len = defs.length; i < len; i++) {
-            var d = defs[i];
-            if (d['@name'] == name) return d;
-        }
-        
-        console.warn('schemaNavigator: no definition found for', name);
-        return null;
-    }
+    const _getDefinition = (name) => {
+		const defs = schemaJSON.grammar.define;
+
+		const definition = defs.find((def) => def['@name'] === name);
+
+		if (!definition) {
+			console.warn('schemaNavigator: no definition found for', name);
+			return null;
+		}
+
+		return definition;
+	};
 
     /**
      * Parses the passed documentation string and returns the full name.
@@ -574,15 +791,13 @@ function SchemaNavigator() {
      * @param {String} documentation The documentation string
      * @returns {String}
      */
-    function _getFullNameFromDocumentation(documentation) {
-        var hit = /^\((.*?)\)/.exec(documentation);
-        if (hit !== null) {
-            return hit[1];
-        }
-        return '';
+    const _getFullNameFromDocumentation = (documentation) => {
+        const hit = /^\((.*?)\)/.exec(documentation);
+        if (hit === null) return '';
+        return hit[1];
     }
     
     return sn;
 }
 
-module.exports = SchemaNavigator;
+export default SchemaNavigator;
