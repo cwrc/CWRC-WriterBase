@@ -306,14 +306,18 @@ tinymce.PluginManager.add('schematags', function(editor) {
             },
             items: [{
                 type: 'textbox',
-                onkeyup: function(e) {
-                    var query = e.control.value();
-                    var menu = e.control.parent().items()[1];
-                    menu.items().each(function(item) {
-                        if (query == '') {
+                onkeyup: (e) => {
+                    const query = e.control.value();
+                    const menu = e.control.parent().items()[1];
+                    menu.items().each((item) => {
+                        if (query === '') {
                             item.disabled(item.settings.initialFilterState);
                             item.visible(!item.settings.initialFilterState);
-                        } else if (!item.settings.initialFilterState && item.settings.key && item.settings.key.toLowerCase().indexOf(query) != -1) {
+                        } else if (
+                            !item.settings.initialFilterState &&
+                            item.settings.key &&
+                            item.settings.key.toLowerCase().indexOf(query.toLowerCase()) != -1
+                        ) {
                             item.disabled(false);
                             item.visible(true);
                         } else {

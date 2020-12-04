@@ -190,7 +190,7 @@ function CWRCWriter(config) {
 
     w.exit = function() {
         if (w.storageDialogs.logOut) {
-            w.storageDialogs.logOut();
+            w.storageDialogs.logOut(w);
         } else {
             console.warn('writer: no exit/logout method found!');
         }

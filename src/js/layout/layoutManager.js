@@ -103,6 +103,7 @@ LayoutManager.prototype = {
 
         html += `
         <div class="cwrc cwrcFooter ui-layout-south">
+            <a title="Powered by Tiny" target="_blank" href="https://www.tiny.cloud">Powered by Tiny</a>
             <a title="GitHub Release Notes" target="_blank" href="https://github.com/cwrc/CWRC-WriterBase/releases/tag/v${version}">CWRC-Writer version ${version}</a>
         </div>
         `;
