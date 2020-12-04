@@ -19,7 +19,7 @@ jobs:
       deploy:
         provider: script
         script: npx semantic-release
-        keep_history: true
+        cleanup: false
         on:
           branch: master
 services:
