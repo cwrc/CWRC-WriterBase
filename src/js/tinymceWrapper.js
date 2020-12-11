@@ -18,13 +18,13 @@ const buttons1 = [
     'addplace',
     'addorg',
     'addtitle',
-    'adddate',
+    'addrs',
     'addcitation',
     'addnote',
+    'adddate',
     'addcorrection',
     'addkeyword',
     'addlink',
-    'addrs',
     'addtranslation',
     '|',
     'editTag',
@@ -42,7 +42,7 @@ const buttons1 = [
     'logoutbutton',
     '|',
     'fullscreen'
-]
+];
 
 function TinymceWrapper() {
 }
@@ -228,7 +228,7 @@ TinymceWrapper.init = function(config) {
             }
 
             addButtonToEditor('addperson', {
-                title: 'Tag Person',
+                title: 'Insert Person Annotation',
                 icon: ` ${iconType} person`,
                 entityButton: true,
                 entityType: 'person',
@@ -236,71 +236,23 @@ TinymceWrapper.init = function(config) {
             });
 
             addButtonToEditor('addplace', {
-                title: 'Tag Place',
+                title: 'Insert Place Annotation',
                 icon: ` ${iconType} place`,
                 entityButton: true,
                 entityType: 'place',
                 onclick: () => w.tagger.addEntityDialog('place')
             });
 
-            addButtonToEditor('adddate', {
-				title: 'Tag Date',
-				icon: ` ${iconType} date`,
-				entityButton: true,
-				entityType: 'date',
-				onclick: () => w.tagger.addEntityDialog('date')
-            });
-            
             addButtonToEditor('addorg', {
-                title: 'Tag Organization',
+                title: 'Insert Organization Annotation',
                 icon: ` ${iconType} org`,
                 entityButton: true,
                 entityType: 'org',
                 onclick: () =>  w.tagger.addEntityDialog('org')
             });
-
-            addButtonToEditor('addcitation', {
-				title: 'Tag Citation',
-				icon: ` ${iconType} citation`,
-				entityButton: true,
-				entityType: 'citation',
-				onclick: () => w.tagger.addEntityDialog('citation')
-            });
             
-			addButtonToEditor('addnote', {
-				title: 'Tag Note',
-				icon: ` ${iconType} note`,
-				entityButton: true,
-				entityType: 'note',
-				onclick: () => w.tagger.addEntityDialog('note')
-            });
-            
-			addButtonToEditor('addcorrection', {
-				title: 'Tag Correction',
-				icon: ` ${iconType} correction`,
-				entityButton: true,
-				entityType: 'correction',
-				onclick: () => w.tagger.addEntityDialog('correction')
-            });
-            
-			addButtonToEditor('addkeyword', {
-				title: 'Tag Keyword',
-				icon: ` ${iconType} keyword`,
-				entityButton: true,
-				entityType: 'keyword',
-				onclick: () => w.tagger.addEntityDialog('keyword')
-            });
-            
-			addButtonToEditor('addlink', {
-				title: 'Tag Link',
-				icon: ` ${iconType} link`,
-				entityButton: true,
-				entityType: 'link',
-				onclick: () => w.tagger.addEntityDialog('link')
-            });
-            
-			addButtonToEditor('addtitle', {
-				title: 'Tag Text/Title',
+            addButtonToEditor('addtitle', {
+				title: 'Insert Title Annotation',
 				icon: ` ${iconType} title`,
 				entityButton: true,
 				entityType: 'title',
@@ -308,15 +260,63 @@ TinymceWrapper.init = function(config) {
             });
             
 			addButtonToEditor('addrs', {
-				title: 'Tag Referencing String',
+				title: 'Insert Referencing String Annotation',
 				icon: ` ${iconType} rs`,
 				entityButton: true,
 				entityType: 'rs',
 				onclick: () => w.tagger.addEntityDialog('rs')
             });
+
+            addButtonToEditor('addcitation', {
+				title: 'Insert Citation Annotation',
+				icon: ` ${iconType} citation`,
+				entityButton: true,
+				entityType: 'citation',
+				onclick: () => w.tagger.addEntityDialog('citation')
+            });
+            
+			addButtonToEditor('addnote', {
+				title: 'Insert Note Annotation',
+				icon: ` ${iconType} note`,
+				entityButton: true,
+				entityType: 'note',
+				onclick: () => w.tagger.addEntityDialog('note')
+            });
+
+            addButtonToEditor('adddate', {
+				title: 'Insert Date Annotation',
+				icon: ` ${iconType} date`,
+				entityButton: true,
+				entityType: 'date',
+				onclick: () => w.tagger.addEntityDialog('date')
+            });
+            
+			addButtonToEditor('addcorrection', {
+				title: 'Insert Correction Annotation',
+				icon: ` ${iconType} correction`,
+				entityButton: true,
+				entityType: 'correction',
+				onclick: () => w.tagger.addEntityDialog('correction')
+            });
+            
+			addButtonToEditor('addkeyword', {
+				title: 'Insert Keyword Annotation',
+				icon: ` ${iconType} keyword`,
+				entityButton: true,
+				entityType: 'keyword',
+				onclick: () => w.tagger.addEntityDialog('keyword')
+            });
+            
+			addButtonToEditor('addlink ', {
+				title: 'Insert Link Annotation',
+				icon: ` ${iconType} link`,
+				entityButton: true,
+				entityType: 'link',
+				onclick: () => w.tagger.addEntityDialog('link')
+            });
             
 			addButtonToEditor('editTag', {
-				title: 'Edit Tag/Entity',
+				title: 'Edit Tag/Entity Annotation',
 				icon: ` ${iconType} tag-edit`,
 				onclick: () => w.tagger.editTagDialog()
             });
@@ -394,10 +394,10 @@ TinymceWrapper.init = function(config) {
 			addButtonToEditor('addtriple', {
                 title: 'Add Relation',
                 icon: ` ${iconType} add-triple`,
-			    onclick: () => {
-			        $('#westTabs').tabs('option', 'active', 2);
-			        w.dialogManager.show('triple');
-			    }
+                onclick: () => {
+                    $('#westTabs').tabs('option', 'active', 2);
+                    w.dialogManager.show('triple');
+                }
             });
             
 			addButtonToEditor('addtranslation', {
@@ -704,6 +704,6 @@ TinymceWrapper.init = function(config) {
 
         w.entitiesManager.highlightEntity(id, w.editor.selection.getBookmark());
     }
-}
+};
 
 module.exports = TinymceWrapper;

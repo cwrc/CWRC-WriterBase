@@ -316,91 +316,24 @@ function getItems() {
 }
 
 function addEntities(items) {
+	const entityMappings = this.w.schemaManager.mapper.getMappings().entities;
+	const menu = {};
 
-    // ? Better solution - Check if order matters // also check if the word "tag" is needed
-    // const entityMappings = this.w.schemaManager.mapper.getMappings().entities;
-    // const menu = {};
-    // Object.entries(entityMappings).forEach(([key,value]) => {
-    //     menu[key] = {
-    //         name: `Tag ${key}`,
-    //         icon: key,
-    //         callback: () => this.w.tagger.addEntityDialog(key)
-    //     }
-    // })
+	Object.entries(entityMappings).forEach(([key, value]) => {
+		const name = value.label ? value.label : `${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+		menu[key] = {
+			name,
+			icon: key,
+			callback: () => this.w.tagger.addEntityDialog(key),
+		};
+	});
 
-    items.add_entity = {
-        name: 'Insert Entity',
-        icon: 'tag_add',
-        className: 'entities',
-        items: {
-            add_person: {
-                name: 'Tag Person',
-                icon: 'person',
-                callback: () => this.w.tagger.addEntityDialog('person')
-            },
-            add_place: {
-                name: 'Tag Place',
-                icon: 'place',
-                callback: () => this.w.tagger.addEntityDialog('place')
-            },
-            add_date: {
-                name: 'Tag Date',
-                icon: 'date',
-                callback: () => this.w.tagger.addEntityDialog('date')
-            },
-            add_org: {
-                name: 'Tag Organization',
-                icon: 'org',
-                callback: () => this.w.tagger.addEntityDialog('org')
-            },
-            add_citation: {
-                name: 'Tag Citation',
-                icon: 'citation',
-                callback: () => this.w.tagger.addEntityDialog('citation')
-            },
-            add_note: {
-                name: 'Tag Note',
-                icon: 'note',
-                callback: () => this.w.tagger.addEntityDialog('note')
-            },
-            add_title: {
-                name: 'Tag Text/Title',
-                icon: 'title',
-                callback: () => this.w.tagger.addEntityDialog('title')
-            },
-            add_correction: {
-                name: 'Tag Correction',
-                icon: 'correction',
-                callback: () => this.w.tagger.addEntityDialog('correction')
-            },
-            add_keyword: {
-                name: 'Tag Keyword',
-                icon: 'keyword',
-                callback: () => this.w.tagger.addEntityDialog('keyword')
-            },
-            add_link: {
-                name: 'Tag Link',
-                icon: 'link',
-                callback: () => this.w.tagger.addEntityDialog('link')
-            },
-            add_rs: {
-                name: 'Tag RS',
-                icon: 'rs',
-                callback: () => this.w.tagger.addEntityDialog('rs')
-            }
-        }
-    }
-
-    // filter the entities and only show those we have mappings for
-    // TODO cache so we don't do this filtering every time
-    const entityMappings = this.w.schemaManager.mapper.getMappings().entities;
-    for (let key in items.add_entity.items) {
-        const entityType = items.add_entity.items[key].icon;
-        if (entityMappings[entityType] === undefined) {
-            delete items.add_entity.items[key];
-        }
-    }
-
+	items.add_entity = {
+		name: 'Insert Entity Annotation',
+		icon: 'tag_add',
+		className: 'entities',
+		items: menu,
+	};
 }
 
 const logStyle = 'color: #333; font-weight: bold; background-color: #ededed;padding: 5px; border-radius: 5px';

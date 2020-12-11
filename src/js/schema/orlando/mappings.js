@@ -19,7 +19,7 @@ const handleGraphics = $tag => {
         $('body').append($img);
         $img.attr('src', url);
     }
-}
+};
 
 const mapping = {
 
@@ -52,6 +52,7 @@ const mapping = {
     entities: {
 
         person: {
+            label: 'Person',
             parentTag: 'NAME',
             mapping: {
                 uri: '@REF',
@@ -62,18 +63,8 @@ const mapping = {
             }
         },
 
-        org: {
-            parentTag: 'ORGNAME',
-            mapping: {
-                uri: '@REF',
-                lemma: '@STANDARD'
-            },
-            annotation: (annotationsManager, entity, format) => {
-                return annotationsManager.commonAnnotation(entity, 'foaf:Organization');
-            }
-        },
-
         place: {
+            label: 'Place',
             parentTag: 'PLACE',
             textTag: ['ADDRESS', 'AREA', 'GEOG', 'PLACENAME', 'REGION', 'SETTLEMENT'],
             mappingFunction: (entity) => {
@@ -98,7 +89,20 @@ const mapping = {
             }
         },
 
+        org: {
+            label: 'Organization',
+            parentTag: 'ORGNAME',
+            mapping: {
+                uri: '@REF',
+                lemma: '@STANDARD'
+            },
+            annotation: (annotationsManager, entity, format) => {
+                return annotationsManager.commonAnnotation(entity, 'foaf:Organization');
+            }
+        },
+
         title: {
+            label: 'Title',
             parentTag: 'TITLE',
             mapping: {
                 uri: '@REF',
@@ -119,7 +123,35 @@ const mapping = {
             }
         },
 
+        citation: {
+            label: 'Citation',
+            parentTag: 'BIBCIT',
+            isNote: true,
+            mapping: {
+                uri: '@REF',
+                noteContent: '.'
+            },
+            annotation: (annotationsManager, entity, format) => {
+                return annotationsManager.commonAnnotation(entity, 'dcterms:BibliographicResource', 'cw:citing');
+            }
+        },
+
+        note: {
+            label: 'Note',
+            parentTag: ['RESEARCHNOTE', 'SCHOLARNOTE'],
+            xpathSelector: 'self::orlando:RESEARCHNOTE|self::orlando:SCHOLARNOTE',
+            isNote: true,
+            mapping: {
+                tag: 'local-name(.)',
+                noteContent: '.'
+            },
+            annotation: (annotationsManager, entity) => {
+                return annotationsManager.commonAnnotation(entity, 'bibo:Note', 'oa:commenting');
+            }
+        },
+
         date: {
+            label: 'Date',
             xpathSelector: 'self::orlando:DATE|self::orlando:DATERANGE|self::orlando:DATESTRUCT',
             parentTag: ['DATE', 'DATERANGE', 'DATESTRUCT'],
             mapping: {
@@ -158,32 +190,8 @@ const mapping = {
             }
         },
 
-        note: {
-            parentTag: ['RESEARCHNOTE', 'SCHOLARNOTE'],
-            xpathSelector: 'self::orlando:RESEARCHNOTE|self::orlando:SCHOLARNOTE',
-            isNote: true,
-            mapping: {
-                tag: 'local-name(.)',
-                noteContent: '.'
-            },
-            annotation: (annotationsManager, entity) => {
-                return annotationsManager.commonAnnotation(entity, 'bibo:Note', 'oa:commenting');
-            }
-        },
-
-        citation: {
-            parentTag: 'BIBCIT',
-            isNote: true,
-            mapping: {
-                uri: '@REF',
-                noteContent: '.'
-            },
-            annotation: (annotationsManager, entity, format) => {
-                return annotationsManager.commonAnnotation(entity, 'dcterms:BibliographicResource', 'cw:citing');
-            }
-        },
-
         correction: {
+            label: 'Correction',
             parentTag: 'SIC',
             annotation: (annotationsManager, entity, format) => {
                 const anno = annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:editing');
@@ -201,6 +209,7 @@ const mapping = {
         },
 
         keyword: {
+            label: 'Keyword',
             parentTag: 'KEYWORDCLASS',
             isNote: true,
             annotation: (annotationsManager, entity, format) => {
@@ -220,6 +229,7 @@ const mapping = {
         },
 
         link: {
+            label: 'Link',
             parentTag: 'XREF',
             annotation: (annotationsManager, entity, format) => {
                 return annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:linking');

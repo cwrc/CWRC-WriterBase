@@ -20,7 +20,7 @@ const handleGraphics = $tag => {
         $('body').append($img);
         $img.attr('src', url);
     }
-}
+};
 
 const mapping = {
 
@@ -52,24 +52,8 @@ const mapping = {
 
     entities: {
 
-        rs: {
-            parentTag: 'rs',
-            mapping: {
-                uri: '@ref',
-                lemma: '@key',
-                certainty: '@cert'
-            },
-            annotation: (annotationsManager, entity) => {
-                let type = entity.getAttribute('type');
-                if (type === undefined || type === '') {
-                    type = 'owl:Thing';
-                }
-                type = type.replace('http://sparql.cwrc.ca/ontology/cwrc#', 'cwrc:');
-                return annotationsManager.commonAnnotation(entity, type);
-            }
-        },
-
         person: {
+            label: 'Person',
             parentTag: 'persName',
             mapping: {
                 uri: '@ref',
@@ -97,19 +81,8 @@ const mapping = {
             }
         },
 
-        org: {
-            parentTag: 'orgName',
-            mapping: {
-                uri: '@ref',
-                lemma: '@key',
-                certainty: '@cert'
-            },
-            annotation: (annotationsManager, entity) => {
-                return annotationsManager.commonAnnotation(entity, 'org:Organization');
-            }
-        },
-
         place: {
+            label: 'Place',
             parentTag: 'placeName',
             mappingFunction: entity => {
                 const startTag = Mapper.getTagAndDefaultAttributes(entity);
@@ -142,7 +115,21 @@ const mapping = {
             }
         },
 
+        org: {
+            label: 'Organization',
+            parentTag: 'orgName',
+            mapping: {
+                uri: '@ref',
+                lemma: '@key',
+                certainty: '@cert'
+            },
+            annotation: (annotationsManager, entity) => {
+                return annotationsManager.commonAnnotation(entity, 'org:Organization');
+            }
+        },
+
         title: {
+            label: 'Title',
             parentTag: 'title',
             mapping: {
                 uri: '@ref',
@@ -154,7 +141,108 @@ const mapping = {
             }
         },
 
+        rs: {
+            label: 'Referencing String',
+            parentTag: 'rs',
+            mapping: {
+                uri: '@ref',
+                lemma: '@key',
+                certainty: '@cert'
+            },
+            annotation: (annotationsManager, entity) => {
+                let type = entity.getAttribute('type');
+                if (type === undefined || type === '') {
+                    type = 'owl:Thing';
+                }
+                type = type.replace('http://sparql.cwrc.ca/ontology/cwrc#', 'cwrc:');
+                return annotationsManager.commonAnnotation(entity, type);
+            }
+        },
+
+        citation: {
+            label: 'Citation',
+            parentTag: 'note',
+            xpathSelector: 'self::note[@type="citation"]/bibl',
+            textTag: 'bibl',
+            isNote: true,
+            requiresSelection: false,
+            mappingFunction: (entity) => {
+                let startTag = `${Mapper.getTagAndDefaultAttributes(entity)}<bibl>`;
+                const lookupId = entity.getURI();
+                if (lookupId) startTag += `<ref target="${lookupId}"/>`;
+                const endTag = '</bibl></note>';
+                return [startTag, endTag];
+            },
+            mapping: {
+                uri: 'bibl/ref/@target',
+                certainty: '@cert',
+                noteContent: 'bibl/text()'
+            },
+            annotation: (annotationsManager, entity) => {
+                const anno = annotationsManager.commonAnnotation(entity, 'cito:Citation', 'cwrc:citing');
+                if (entity.getURI()) {
+                    anno['oa:hasBody'] = [
+                        anno['oa:hasBody'],
+                        {
+                            '@id': `${anno['@id']}#Cites`,
+                            '@type': 'cito:Citation',
+                            'cito:hasCitingEntity': anno['@id'],
+                            'cito:hasCitedEntity': entity.getURI(),
+                            'cito:hasCitationEvent': 'cito:cites'
+                        }
+                    ];
+                    anno['@context']['cito'] = 'http://purl.org/spar/cito/';
+                }
+                return anno;
+            }
+        },
+
+        note: {
+            label: 'Note',
+            parentTag: 'note',
+            xpathSelector: 'self::note[not(@type="citation")]',
+            isNote: true,
+            requiresSelection: false,
+            mapping: { noteContent: '.' },
+            annotation: (annotationsManager, entity) => {
+                let types = '';
+                const type = entity.getAttribute('type');
+                switch (type) {
+                    case 'researchNote':
+                        types = 'cwrc:NoteInternal';
+                        break;
+                    case 'scholarNote':
+                        types = 'cwrc:NoteScholarly';
+                        break;
+                    case 'annotation':
+                        types = 'oa:TextualBody';
+                        break;
+                    default:
+                        types = 'cwrc:Note';
+                        break;
+                }
+                return annotationsManager.commonAnnotation(entity, types, 'oa:describing');
+            }
+        },
+
+        date: {
+            label: 'Date',
+            parentTag: 'date',
+            annotation: (annotationsManager, entity) => {
+                const anno = annotationsManager.commonAnnotation(entity, 'xsd:date');
+                let date;
+                if (entity.getAttribute('when') !== undefined) {
+                    date = entity.getAttribute('when');
+                } else {
+                    date = `${entity.getAttribute('from')}/${entity.getAttribute('to')}`;
+                }
+                anno['oa:hasBody']['rdf:value'] = date;
+                return anno;
+            }
+        },
+
         correction: {
+            label: 'Correction',
             xpathSelector: 'self::choice|self::corr',
             parentTag: ['choice', 'corr'],
             textTag: 'sic',
@@ -194,103 +282,13 @@ const mapping = {
                     '@type': 'fabio:Correction',
                     'dc:format': 'text/xml',
                     'rdf:value': entity.getCustomValue('corrText')
-                }
-                return anno;
-            }
-        },
-
-        link: {
-            parentTag: 'ref',
-            annotation: (annotationsManager, entity) => {
-                const anno = annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:linking');
-                anno['oa:hasBody'] = {
-                    '@id': entity.getAttribute('target'),
-                    '@type': 'cnt:ContentAsText'
                 };
                 return anno;
             }
         },
 
-        date: {
-            parentTag: 'date',
-            annotation: (annotationsManager, entity) => {
-                const anno = annotationsManager.commonAnnotation(entity, 'xsd:date');
-                let date;
-                if (entity.getAttribute('when') !== undefined) {
-                    date = entity.getAttribute('when');
-                } else {
-                    date = `${entity.getAttribute('from')}/${entity.getAttribute('to')}`;
-                }
-                anno['oa:hasBody']['rdf:value'] = date;
-                return anno;
-            }
-        },
-
-        note: {
-            parentTag: 'note',
-            xpathSelector: 'self::note[not(@type="citation")]',
-            isNote: true,
-            requiresSelection: false,
-            mapping: { noteContent: '.' },
-            annotation: (annotationsManager, entity) => {
-                let types = '';
-                const type = entity.getAttribute('type');
-                switch (type) {
-                    case 'researchNote':
-                        types = 'cwrc:NoteInternal';
-                        break;
-                    case 'scholarNote':
-                        types = 'cwrc:NoteScholarly';
-                        break;
-                    case 'annotation':
-                        types = 'oa:TextualBody'
-                        break;
-                    default:
-                        types = `cwrc:Note`
-                        break;
-                }
-                return annotationsManager.commonAnnotation(entity, types, 'oa:describing');
-            }
-        },
-
-        citation: {
-            parentTag: 'note',
-            xpathSelector: 'self::note[@type="citation"]/bibl',
-            textTag: 'bibl',
-            isNote: true,
-            requiresSelection: false,
-            mappingFunction: (entity) => {
-                let startTag = `${Mapper.getTagAndDefaultAttributes(entity)}<bibl>`;
-                const lookupId = entity.getURI();
-                if (lookupId) startTag += `<ref target="${lookupId}"/>`;
-                const endTag = '</bibl></note>';
-                return [startTag, endTag];
-            },
-            mapping: {
-                uri: 'bibl/ref/@target',
-                certainty: '@cert',
-                noteContent: 'bibl/text()'
-            },
-            annotation: (annotationsManager, entity) => {
-                const anno = annotationsManager.commonAnnotation(entity, 'cito:Citation', 'cwrc:citing');
-                if (entity.getURI()) {
-                    anno['oa:hasBody'] = [
-                        anno['oa:hasBody'],
-                        {
-                            '@id': `${anno['@id']}#Cites`,
-                            '@type': 'cito:Citation',
-                            'cito:hasCitingEntity': anno['@id'],
-                            'cito:hasCitedEntity': entity.getURI(),
-                            'cito:hasCitationEvent': 'cito:cites'
-                        }
-                    ]
-                    anno['@context']['cito'] = 'http://purl.org/spar/cito/';
-                }
-                return anno;
-            }
-        },
-
         keyword: {
+            label: 'Keyword',
             parentTag: 'seg',
             xpathSelector: 'self::seg/term',
             textTag: 'term',
@@ -328,7 +326,7 @@ const mapping = {
                     }, {
                         'dc:format': 'text/xml',
                         'skos:altLabel': entity.getContent()
-                    }]
+                    }];
                     anno['@context']['skos'] = 'http://www.w3.org/2004/02/skos/';
                 } else if (hasAna) {
                     anno['oa:hasBody'] = [{
@@ -337,19 +335,32 @@ const mapping = {
                     }, {
                         'dc:format': 'text/xml',
                         'skos:altLabel': entity.getContent()
-                    }]
+                    }];
                     anno['@context']['skos'] = 'http://www.w3.org/2004/02/skos/';
                 } else {
                     anno['oa:hasBody'] = {
                         '@type': 'fabio:UncontrolledVocabulary',
                         'dc:format': 'text/xml',
                         'rdf:value': entity.getContent()
-                    }
+                    };
                 }
 
                 return anno;
             }
-        }
+        },
+
+        link: {
+            label: 'Link',
+            parentTag: 'ref',
+            annotation: (annotationsManager, entity) => {
+                const anno = annotationsManager.commonAnnotation(entity, 'cnt:ContentAsText', 'oa:linking');
+                anno['oa:hasBody'] = {
+                    '@id': entity.getAttribute('target'),
+                    '@type': 'cnt:ContentAsText'
+                };
+                return anno;
+            }
+        },
 
     }
 
