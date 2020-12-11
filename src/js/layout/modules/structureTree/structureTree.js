@@ -1,7 +1,7 @@
 'use strict';
 
-var $ = require('jquery');
-require('jstree');
+import $ from 'jquery';
+import 'jstree';
 
 /**
  * @class StructureTree
@@ -11,14 +11,14 @@ require('jstree');
  * @param {String} config.parentId
  */
 function StructureTree(config) {
-    var w = config.writer;
+    const w = config.writer;
     
-    var id = w.getUniqueId('tree_');
+    const id = w.getUniqueId('tree_');
     
     /**
      * @lends StructureTree.prototype
      */
-    var tree = {
+    const tree = {
         currentlySelectedNodes: [], // ids of the currently selected nodes
         selectionType: null, // is the node or the just the contents of the node selected?
         NODE_SELECTED: 0,
@@ -28,13 +28,13 @@ function StructureTree(config) {
     
     // 2 uses, 1) we want to highlight a node in the tree without selecting it's counterpart in the editor
     // 2) a tree node has been clicked and we want to avoid re-running the selectNode function triggered by the editor's onNodeChange handler
-    var ignoreSelect = false;
+    let ignoreSelect = false;
     
-    var $tree; // tree reference
-    var initialized = false; // has $tree been initialized
-    var updatePending = false;
+    let $tree; // tree reference
+    let initialized = false; // has $tree been initialized
+    let updatePending = false;
 
-    var enabled = true; // enabled means we update based on events
+    let enabled = true; // enabled means we update based on events
     
     /**
      * Updates the tree to reflect the document structure.
@@ -64,14 +64,14 @@ function StructureTree(config) {
                 if (w.isReadOnly) {
                     // clean up parent property added in doUpdate
                     const removeParentProperty = function(nodeData) {
-                        delete nodeData.parent
+                        delete nodeData.parent;
                         if (nodeData.children) {
                             nodeData.children.forEach((child) => {
-                                removeParentProperty(child)
-                            })
+                                removeParentProperty(child);
+                            });
                         }
-                    }
-                    removeParentProperty(rootData)
+                    };
+                    removeParentProperty(rootData);
                 }
                 
                 treeRef.create_node(null, rootData);
@@ -96,10 +96,10 @@ function StructureTree(config) {
             tree.update();
             updatePending = false;
         }
-    }
+    };
     tree.disable = function() {
         enabled = false;
-    }
+    };
     
     tree.destroy = function() {
         $(document).off('dnd_start.vakata', handleDnDStart);
@@ -387,24 +387,35 @@ function StructureTree(config) {
         return true;
     }
     
-    function _onNodeSelect(event, data) {
-        if (!ignoreSelect) {
-            var $target = $(data.event.currentTarget);
-            
-            var selectContents;
-            if ($target.hasClass('contentsSelected')) {
-                selectContents = false;
-            } else if ($target.hasClass('nodeSelected')) {
-                selectContents = true;
-            } else {
-                selectContents = true;
-            }
-            
-            var multiselect = (tinymce.isMac ? data.event.metaKey : data.event.ctrlKey) || data.event.shiftKey;
-            
-            selectNode($target.parent(), selectContents, multiselect, false) 
-        }
-    }
+    const _onNodeSelect = (event, data) => {
+		if (ignoreSelect) return;
+
+		const $target = $(data.event.currentTarget);
+		const selectContents = isSelectedContents($target);
+		// eslint-disable-next-line no-undef
+		const multiselect = isMultiselect(data.event);
+
+		selectNode($target.parent(), selectContents, multiselect, false);
+	};
+
+	const isSelectedContents = ($target) => {
+		let selectContents = true;
+
+		if ($target.hasClass('contentsSelected')) {
+			selectContents = false;
+		} else if ($target.hasClass('nodeSelected')) {
+			selectContents = true;
+		}
+
+		return selectContents;
+	};
+
+	const isMultiselect = (event) => {
+		let multiselect = false;
+		// eslint-disable-next-line no-undef
+		multiselect = (tinymce.isMac ? event.metaKey : event.ctrlKey) || event.shiftKey;
+		return multiselect;
+	};
     
     function _onNodeDeselect(event, data) {
         if (data !== undefined) {
@@ -487,7 +498,8 @@ function StructureTree(config) {
         plugins: plugins,
         core: {
             worker: false, // transpiler messing up web worker so set this false, see: https://github.com/vakata/jstree/issues/1717
-            check_callback: function (operation, node, node_parent, node_position, more) {
+            // eslint-disable-next-line no-unused-vars
+            check_callback: (operation, node, node_parent, node_position, more) => {
                 if (w.editor.readonly && (operation === 'move_node' || operation === 'copy_node')) {
                     return false; // prevent drag n drop when editor is readonly (such as during nerve vetting)
                 }
@@ -513,27 +525,34 @@ function StructureTree(config) {
         }
     });
 
-    $tree.on('contextmenu', function(event) {
+    $tree.on('contextmenu', (event) => {
         event.preventDefault();
         event.stopImmediatePropagation();
         
-        var li = $(event.target).parents('li.jstree-node').first();
-        if (li.length === 1) {
-            var selectedIds = tree.currentlySelectedNodes; // store selected nodes before highlighting
+        const $target = $(event.target)
+            .parents('li.jstree-node')
+            .first();
+       
+        if ($target.length !== 1) return;
 
-            var tagId = li.attr('name');
-            tree.highlightNode($('#'+tagId, w.editor.getBody())[0]);
-            
-            if (selectedIds.indexOf(tagId) !== -1 && selectedIds.length > 1) {
-                tagId = selectedIds;
-            }
+        const selectedIds = tree.currentlySelectedNodes; // store selected nodes before highlighting
 
-            // use setTimeout to make sure that highlight happens first
-            setTimeout(function() {
-                w.tagMenu.show(event, tagId, false);
-            },0);
+        let tagId = $target.attr('name');
+        tree.highlightNode($(`#${tagId}`, w.editor.getBody())[0]);
+        if (selectedIds.indexOf(tagId) !== -1 && selectedIds.length > 1) {
+            tagId = selectedIds;
         }
-    })
+
+        //select as if it was a left-click;
+        const selectContents = isSelectedContents($target);
+        const multiselect = isMultiselect(event);
+        selectNode($target, selectContents, multiselect, false) ;
+
+        // use setTimeout to make sure that highlight happens first
+        setTimeout(() => {
+            w.tagMenu.show(event, tagId, false);
+        },0);
+    });
     
     $tree.on('select_node.jstree', _onNodeSelect);
     $tree.on('deselect_node.jstree', _onNodeDeselect);
@@ -698,6 +717,6 @@ function StructureTree(config) {
     w.tree = tree;
     
     return tree;
-};
+}
 
-module.exports = StructureTree;
+export default StructureTree;

@@ -5,7 +5,7 @@ require('../../lib/jquery/jquery.layout_and_plugins');
 require('jquery-ui/ui/widgets/tabs');
 var fscreen = require('fscreen')['default'];
 
-var StructureTree = require('./modules/structureTree/structureTree.js');
+import StructureTree from './modules/structureTree/structureTree.js';
 var EntitiesList = require('./modules/entitiesList/entitiesList.js')
 var Validation = require('./modules/validation/validation.js');
 var Relations = require('./modules/relations/relations.js');
@@ -529,4 +529,5 @@ function initModule(idPrefix, writer, module) {
     return null;
 }
 
-module.exports = LayoutManager;
+// module.exports = LayoutManager;
+export default LayoutManager;
