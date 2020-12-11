@@ -15,17 +15,17 @@
     },
     "parser": "babel-eslint",
     "parserOptions": {
+        "allowImportExportEverywhere": false,
         "ecmaVersion": 2020,
         "sourceType": "module",
-        "allowImportExportEverywhere": false,
         "codeFrame": true
     },
     "rules": {
         "quotes": [2, "single"],
         "require-atomic-updates": "off",
-        "no-unused-vars": 2,
         "no-multi-spaces": 0,
         "no-trailing-spaces": 0,
+        "no-unused-vars": 2,
         "semi": ["error", "always"],
         "require-await": ["error"]
     }
