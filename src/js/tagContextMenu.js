@@ -111,6 +111,17 @@ $.contextMenu.types.cwrcTag = function (item, parentMenu, root) {
     this.data('action', parentMenu.tagAction);
 };
 
+//Search box
+$.contextMenu.types.search = function(item, opt) {
+	$(`<label for="contextmenu_search" class="contextmenu_search">
+            <input type="input" id="contextmenu_search" placeholder="Search">
+            <i class="fas fa-search contextmenu_search__icon"></i>
+        </label>`).appendTo(this);
+
+	this.addClass('contextmenu_search_container');
+	this.on('contextmenu:focus', (event) => event.stopImmediatePropagation());
+	this.on('keyup', (e) => item.events.keyup(e, opt));
+};
 function getItems() {
     const items = {};
 
@@ -474,21 +485,34 @@ const getSubmenu = (tags) => {
 		return submenu;
 	}
 
-	const handleKeyUp = (e) => {
+	const handleKeyUp = (e, opt) => {
 		const query = e.target.value;
-		e.data.$menu.find('li').each((index, el) => {
-			if (index > 0) {
-				const label = $(el).children('span')[0].firstChild.data;
-				query === '' || label.toLowerCase().indexOf(query.toLowerCase()) != -1
-					? $(el).show()
-					: $(el).hide();
-			}
+		const collection = Object.entries(opt.items);
+
+		const result = collection.filter(([key, itemValue]) => {
+			const { name, type, $node } = itemValue;
+            if (type === 'search' || key === 'noresult') return;
+            
+            const match = query === '' || name.toLowerCase().indexOf(query.toLowerCase()) != -1;
+
+            itemValue.visible = match ? true : false;
+            itemValue.visible = match ? $node.show() : $node.hide();
+           
+            return match;
 		});
+
+		// show/hide noResult
+		let noResultItem = collection.find(([key]) => key === 'noresult');
+        const [, noResultValue] = noResultItem;
+		noResultValue.visible = result.length === 0 ? true : false;
+        noResultValue.visible = result.length === 0
+            ? noResultValue.$node.show()
+            : noResultValue.$node.hide();
 	};
 
-	submenu['tag_filter'] = {
-		name: 'Filter Tags',
-		type: 'text',
+	submenu['search'] = {
+		type: 'search',
+		callback: () => false,
 		events: { keyup: handleKeyUp },
 	};
 
@@ -499,8 +523,16 @@ const getSubmenu = (tags) => {
 			name: label,
 			type: 'cwrcTag',
 			icon: 'tag',
+			visible: true,
 		};
 	});
+
+	submenu['noresult'] = {
+		name: 'No result',
+		icon: 'no_tags',
+		disabled: true,
+		visible: false,
+	};
 
 	return submenu;
 };
