@@ -10,12 +10,13 @@
     list-style: none;
     margin: 5px 5px 10px 5px;
     display: flex;
+    // min-height: 40px;
 }
 
 .entitiesList > li > div {
-    box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
-    border: 1px solid #666;
     flex: 1;
+    border-radius: 4px;
+    padding: 5px;
 }
 
 .entitiesList > li > div:hover {
@@ -27,12 +28,9 @@
 }
 
 .entitiesList li .icon {
-    width: 22px;
-    height: 22px;
+    padding: 4px;
     margin-right: 2px;
-    display: inline-block;
-    background-position: 3px 3px;
-    background-repeat: no-repeat;
+    color: #333;
 }
 
 .entitiesList .header {
@@ -69,6 +67,11 @@
     display: none;
 }
 
+.entitiesList .expanded > div {
+    border-radius: 4px;
+    box-shadow: 0 0px 8px rgba(0, 0, 0, .2);
+}
+
 .entitiesList .expanded .info {
     display: block;
     padding: 0px 3px 3px 3px;
@@ -76,7 +79,6 @@
 
 .entitiesList .info ul {
     list-style: none;
-    background-color: #fff;
     padding: 2px;
     color: #000;
     max-height: 160px;
@@ -97,166 +99,122 @@
     border-top: 1px solid #BBB !important;
 }
 
-.entitiesList .person .icon, .entitiesList.candidates .person.candidate .icon {
-    background-image: url('../../../../img/user.png');
-    opacity: 1;
-}
-.entitiesList .person > div, .entitiesList.candidates .person.candidate > div {
-    background-color: mix(desaturate(@entity-person, 30%), #fff, 50%);
-}
-.entitiesList.candidates .person > div {
-    background-color: mix(desaturate(@entity-person, 60%), #fff, 25%);
-}
-.entitiesList.candidates .person .icon {
-    opacity: 0.5;
+.entitiesList.candidates .candidate > div {
+    background-color: #eee;
 }
 
 
-.entitiesList .place .icon, .entitiesList.candidates .place.candidate .icon {
-    background-image: url('../../../../img/world.png');
-    opacity: 1;
+.entitiesList .person:hover .icon, .entitiesList.candidates .person.candidate:hover .icon {
+    color: @entity-person;
 }
-.entitiesList .place > div, .entitiesList.candidates .place.candidate > div {
-    background-color: mix(desaturate(@entity-place, 30%), #fff, 50%);
+.entitiesList .person:hover > div, .entitiesList.candidates .person.candidate:hover > div {
+    background-color: fade(@entity-person, 20%);
+   
 }
-.entitiesList.candidates .place > div {
-    background-color: mix(desaturate(@entity-place, 60%), #fff, 25%);
-}
-.entitiesList.candidates .place .icon {
-    opacity: 0.5;
+.entitiesList .person.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-person, 20%);
 }
 
 
-.entitiesList .date .icon, .entitiesList.candidates .date.candidate .icon {
-    background-image: url('../../../../img/calendar.png');
-    opacity: 1;
+.entitiesList .place:hover .icon, .entitiesList.candidates .place.candidate:hover .icon {
+    color: @entity-place;
 }
-.entitiesList .date > div, .entitiesList.candidates .date.candidate > div {
-    background-color: mix(desaturate(@entity-date, 30%), #fff, 50%);
+.entitiesList .place:hover > div, .entitiesList.candidates .place.candidate:hover > div {
+    background-color: fade(@entity-place, 20%);
 }
-.entitiesList.candidates .date > div {
-    background-color: mix(desaturate(@entity-date, 60%), #fff, 25%);
+.entitiesList .place.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-place, 20%);
 }
-.entitiesList.candidates .date .icon {
-    opacity: 0.5;
+
+.entitiesList .org:hover .icon, .entitiesList.candidates .org.candidate:hover .icon {
+    color: @entity-org;
+}
+.entitiesList .org:hover > div, .entitiesList.candidates .org.candidate:hover > div {
+    background-color: fade(@entity-org, 20%);
+}
+.entitiesList .org.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-org, 20%);
+}
+
+.entitiesList .title:hover .icon, .entitiesList.candidates .title.candidate:hover .icon {
+    color: @entity-title;
+}
+.entitiesList .title:hover > div, .entitiesList.candidates .title.candidate:hover > div {
+    background-color: fade(@entity-title, 20%);
+}
+.entitiesList .title.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-title, 20%);
+}
+
+.entitiesList .rs:hover .icon, .entitiesList.candidates .rs.candidate:hover .icon {
+    color: @entity-rs;
+}
+.entitiesList .rs:hover > div, .entitiesList.candidates .rs.candidate:hover > div {
+    background-color: fade(@entity-rs, 20%);
+}
+.entitiesList .rs.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-rs, 20%);
+}
+
+.entitiesList .citation:hover .icon, .entitiesList.candidates .citation.candidate:hover .icon {
+    color: @entity-citation;
+}
+.entitiesList .citation:hover > div, .entitiesList.candidates .citation.candidate:hover > div {
+    background-color: fade(@entity-citation, 20%);
+}
+.entitiesList .citation.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-citation, 20%);
+}
+
+.entitiesList .note:hover .icon, .entitiesList.candidates .note.candidate:hover .icon {
+    color: @entity-note;
+}
+.entitiesList .note:hover > div, .entitiesList.candidates .note.candidate:hover > div {
+    background-color: fade(@entity-note, 20%);
+}
+.entitiesList .note.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-note, 20%);
+}
+
+.entitiesList .date:hover .icon, .entitiesList.candidates .date.candidate:hover .icon {
+    color: @entity-date;
+}
+.entitiesList .date:hover > div, .entitiesList.candidates .date.candidate:hover > div {
+    background-color: fade(@entity-date, 20%);;
+}
+.entitiesList .date.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-date, 20%);
 }
 
 
-.entitiesList .org .icon, .entitiesList.candidates .org.candidate .icon {
-    background-image: url('../../../../img/group.png');
-    opacity: 1;
+.entitiesList .correction:hover .icon, .entitiesList.candidates .correction.candidate:hover .icon {
+    color: @entity-correction;
 }
-.entitiesList .org > div, .entitiesList.candidates .org.candidate > div {
-    background-color: mix(desaturate(@entity-org, 30%), #fff, 50%);
+.entitiesList .correction:hover > div, .entitiesList.candidates .correction.candidate:hover > div {
+    background-color: fade(@entity-correction, 20%);
 }
-.entitiesList.candidates .org > div {
-    background-color: mix(desaturate(@entity-org, 60%), #fff, 25%);
-}
-.entitiesList.candidates .org .icon {
-    opacity: 0.5;
+.entitiesList .correction.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-correction, 20%);
 }
 
 
-.entitiesList .citation .icon, .entitiesList.candidates .citation.candidate .icon {
-    background-image: url('../../../../img/vcard.png');
-    opacity: 1;
+.entitiesList .keyword:hover .icon, .entitiesList.candidates .keyword.candidate:hover .icon {
+    color: @entity-keyword;
 }
-.entitiesList .citation > div, .entitiesList.candidates .citation.candidate > div {
-    background-color: mix(desaturate(@entity-citation, 30%), #fff, 50%);
+.entitiesList .keyword:hover > div, .entitiesList.candidates .keyword.candidate:hover > div {
+    background-color: fade(@entity-keyword, 20%);
 }
-.entitiesList.candidates .citation > div {
-    background-color: mix(desaturate(@entity-citation, 60%), #fff, 25%);
-}
-.entitiesList.candidates .citation .icon {
-    opacity: 0.5;
+.entitiesList .keyword.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-keyword, 20%);
 }
 
 
-.entitiesList .note .icon, .entitiesList.candidates .note.candidate .icon {
-    background-image: url('../../../../img/note.png');
-    opacity: 1;
+.entitiesList .link:hover .icon, .entitiesList.candidates .link.candidate:hover .icon {
+    color: @entity-link;
 }
-.entitiesList .note > div, .entitiesList.candidates .note.candidate > div {
-    background-color: mix(desaturate(@entity-note, 30%), #fff, 50%);
+.entitiesList .link:hover > div, .entitiesList.candidates .link.candidate:hover > div {
+    background-color: fade(@entity-link, 20%);
 }
-.entitiesList.candidates .note > div {
-    background-color: mix(desaturate(@entity-note, 60%), #fff, 25%);
-}
-.entitiesList.candidates .note .icon {
-    opacity: 0.5;
-}
-
-
-.entitiesList .title .icon, .entitiesList.candidates .title.candidate .icon {
-    background-image: url('../../../../img/book.png');
-    opacity: 1;
-}
-.entitiesList .title > div, .entitiesList.candidates .title.candidate > div {
-    background-color: mix(desaturate(@entity-title, 30%), #fff, 50%);
-}
-.entitiesList.candidates .title > div {
-    background-color: mix(desaturate(@entity-title, 60%), #fff, 25%);
-}
-.entitiesList.candidates .title .icon {
-    opacity: 0.5;
-}
-
-
-.entitiesList .correction .icon, .entitiesList.candidates .correction.candidate .icon {
-    background-image: url('../../../../img/error.png');
-    opacity: 1;
-}
-.entitiesList .correction > div, .entitiesList.candidates .correction.candidate > div {
-    background-color: mix(desaturate(@entity-correction, 30%), #fff, 50%);
-}
-.entitiesList.candidates .correction > div {
-    background-color: mix(desaturate(@entity-correction, 60%), #fff, 25%);
-}
-.entitiesList.candidates .correction .icon {
-    opacity: 0.5;
-}
-
-
-.entitiesList .keyword .icon, .entitiesList.candidates .keyword.candidate .icon {
-    background-image: url('../../../../img/page_key.png');
-    opacity: 1;
-}
-.entitiesList .keyword > div, .entitiesList.candidates .keyword.candidate > div {
-    background-color: mix(desaturate(@entity-keyword, 30%), #fff, 50%);
-}
-.entitiesList.candidates .keyword > div {
-    background-color: mix(desaturate(@entity-keyword, 60%), #fff, 25%);
-}
-.entitiesList.candidates .keyword .icon {
-    opacity: 0.5;
-}
-
-
-.entitiesList .link .icon, .entitiesList.candidates .link.candidate .icon {
-    background-image: url('../../../../img/link.png');
-    opacity: 1;
-}
-.entitiesList .link > div, .entitiesList.candidates .link.candidate > div {
-    background-color: mix(desaturate(@entity-link, 30%), #fff, 50%);
-}
-.entitiesList.candidates .link > div {
-    background-color: mix(desaturate(@entity-link, 60%), #fff, 25%);
-}
-.entitiesList.candidates .link .icon {
-    opacity: 0.5;
-}
-
-
-.entitiesList .rs .icon, .entitiesList.candidates .rs.candidate .icon {
-    background-image: url('../../../../img/package_green.png');
-    opacity: 1;
-}
-.entitiesList .rs > div, .entitiesList.candidates .rs.candidate > div {
-    background-color: mix(desaturate(@entity-rs, 30%), #fff, 50%);
-}
-.entitiesList.candidates .rs > div {
-    background-color: mix(desaturate(@entity-rs, 60%), #fff, 25%);
-}
-.entitiesList.candidates .rs .icon {
-    opacity: 0.5;
+.entitiesList .link.expanded > div:hover {
+    box-shadow: 0 0px 8px fade(@entity-link, 20%);
 }

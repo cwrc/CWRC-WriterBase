@@ -7,6 +7,20 @@ require('jquery-ui/ui/widgets/button');
 require('jquery-ui/ui/widgets/selectmenu');
 require('jquery-ui/ui/widgets/tooltip');
 
+const iconsMap = {
+    'person': 'user',
+    'place': 'globe',
+    'org': 'users',
+    'title': 'book',
+    'rs': 'box-open',
+    'citation': 'address-card',
+    'note': 'sticky-note',
+    'date': 'calendar-alt',
+    'correction': 'info-circle',
+    'keyword': 'key',
+    'link': 'link',
+};
+
 /**
  * @class EntitiesList
  * @fires Writer#entitiesListInitialized
@@ -292,7 +306,7 @@ function EntitiesList({writer,parentId}) {
         <li class="${entity.getType()} ${isCandidate ? 'candidate' : ''}" data-type="${entity.getType()}" data-id="${entity.getId()}">
             <div>
                 <div class="header">
-                    <span class="icon"/>
+                    <i class="fas fa-${iconsMap[entity.getType()]} icon"></i>
                     <span class="entityTitle">${entity.getContent()}</span>
                     <div class="actions">${actions}</div>
                 </div>
