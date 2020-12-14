@@ -63,8 +63,8 @@ TinymceWrapper.init = function(config) {
     var editorId = config.editorId;
     var layoutContainerId = config.layoutContainerId;
 
-    var iconType = config.iconType === undefined ? 'img' : config.iconType;
-    // const iconType = config.iconType === undefined ? 'fas' : config.iconType;
+    // var iconType = config.iconType === undefined ? 'img' : config.iconType;
+    const iconType = config.iconType === undefined ? 'fas' : config.iconType;
 
     /**
      * Init tinymce
@@ -228,7 +228,7 @@ TinymceWrapper.init = function(config) {
             }
 
             addButtonToEditor('addperson', {
-                title: 'Insert Person Annotation',
+                title: 'Add Person Annotation',
                 icon: ` ${iconType} person`,
                 entityButton: true,
                 entityType: 'person',
@@ -236,7 +236,7 @@ TinymceWrapper.init = function(config) {
             });
 
             addButtonToEditor('addplace', {
-                title: 'Insert Place Annotation',
+                title: 'Add Place Annotation',
                 icon: ` ${iconType} place`,
                 entityButton: true,
                 entityType: 'place',
@@ -244,7 +244,7 @@ TinymceWrapper.init = function(config) {
             });
 
             addButtonToEditor('addorg', {
-                title: 'Insert Organization Annotation',
+                title: 'Add Organization Annotation',
                 icon: ` ${iconType} org`,
                 entityButton: true,
                 entityType: 'org',
@@ -252,7 +252,7 @@ TinymceWrapper.init = function(config) {
             });
             
             addButtonToEditor('addtitle', {
-				title: 'Insert Title Annotation',
+				title: 'Add Title Annotation',
 				icon: ` ${iconType} title`,
 				entityButton: true,
 				entityType: 'title',
@@ -260,7 +260,7 @@ TinymceWrapper.init = function(config) {
             });
             
 			addButtonToEditor('addrs', {
-				title: 'Insert Referencing String Annotation',
+				title: 'Add Referencing String Annotation',
 				icon: ` ${iconType} rs`,
 				entityButton: true,
 				entityType: 'rs',
@@ -268,7 +268,7 @@ TinymceWrapper.init = function(config) {
             });
 
             addButtonToEditor('addcitation', {
-				title: 'Insert Citation Annotation',
+				title: 'Add Citation Annotation',
 				icon: ` ${iconType} citation`,
 				entityButton: true,
 				entityType: 'citation',
@@ -276,7 +276,7 @@ TinymceWrapper.init = function(config) {
             });
             
 			addButtonToEditor('addnote', {
-				title: 'Insert Note Annotation',
+				title: 'Add Note Annotation',
 				icon: ` ${iconType} note`,
 				entityButton: true,
 				entityType: 'note',
@@ -284,7 +284,7 @@ TinymceWrapper.init = function(config) {
             });
 
             addButtonToEditor('adddate', {
-				title: 'Insert Date Annotation',
+				title: 'Add Date Annotation',
 				icon: ` ${iconType} date`,
 				entityButton: true,
 				entityType: 'date',
@@ -292,7 +292,7 @@ TinymceWrapper.init = function(config) {
             });
             
 			addButtonToEditor('addcorrection', {
-				title: 'Insert Correction Annotation',
+				title: 'Add Correction Annotation',
 				icon: ` ${iconType} correction`,
 				entityButton: true,
 				entityType: 'correction',
@@ -300,7 +300,7 @@ TinymceWrapper.init = function(config) {
             });
             
 			addButtonToEditor('addkeyword', {
-				title: 'Insert Keyword Annotation',
+				title: 'Add Keyword Annotation',
 				icon: ` ${iconType} keyword`,
 				entityButton: true,
 				entityType: 'keyword',
@@ -308,7 +308,7 @@ TinymceWrapper.init = function(config) {
             });
             
 			addButtonToEditor('addlink ', {
-				title: 'Insert Link Annotation',
+				title: 'Add Link Annotation',
 				icon: ` ${iconType} link`,
 				entityButton: true,
 				entityType: 'link',

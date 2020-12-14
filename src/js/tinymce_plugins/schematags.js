@@ -343,7 +343,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
     editor.addButton('schematags', {
         type: 'cwrcpanelbutton',
         text: 'Tags',
-        icon: ' img tag',
+        icon: ' fas fa-tags',
         popoverAlign: ['bl-tl', 'bl-tc'],
         panel: filterPanel
     });
