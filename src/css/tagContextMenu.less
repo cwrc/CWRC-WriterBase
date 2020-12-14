@@ -1,0 +1,191 @@
+@import (less) "variables.less";
+
+@highlight-color: cornflowerblue;
+
+/* Menu List */
+
+.cwrc.context-menu-root {
+    font-family: Lato,Arial,Helvetica,sans-serif;
+    font-size: 14px;
+    z-index: 5 !important;
+    overflow: visible !important;
+    border-radius: 5px;
+}
+
+.cwrc .context-menu-list {
+    box-sizing: border-box;
+    width: 260px;
+    max-height: 400px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 10 !important;
+    background-color:white !important;
+}
+
+.cwrc .context-menu-list span {
+    margin-left: 20px !important;
+}
+
+/* Menu items */
+
+.cwrc .context-menu-separator {
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+}
+
+.cwrc .context-menu-item-new {
+    border-radius: 3px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-top: 0.2em !important;
+    margin-bottom: 0.2em !important;
+    margin-left: 0.4em !important;
+    margin-right: 0.4em !important;
+}
+
+.cwrc .context-menu-item-new:hover {
+    background-color:fade(@highlight-color, 10%);
+    color: @highlight-color;
+    font-weight: 900;
+}
+
+.cwrc .context-menu-item-new i,
+.cwrc .context-menu-item-new svg {
+    margin-top: 2px !important;
+    color: #333 !important;
+}
+
+.cwrc .context-menu-item-new:hover i, 
+.cwrc .context-menu-item-new:hover svg {
+    color: @highlight-color !important;
+}
+
+/* Sub menu */
+
+.cwrc ul.context-menu-list.context-menu-item-new {
+    margin: 0;
+    padding: 0;
+    font-weight: 500;
+    color: #333 !important;
+}
+
+.cwrc .context-menu-item .fullName {
+    color: #aaa;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.cwrc .context-menu-item-new .submenu i,
+.cwrc .context-menu-item-new .submenu svg {
+    color: #333 !important;
+}
+
+.cwrc .context-menu-item-new .submenu:hover i,
+.cwrc .context-menu-item-new .submenu:hover svg {
+    color: @highlight-color !important;
+}
+
+
+/* entities */
+
+.cwrc .context-menu-list.entities {
+    width: 160px;
+}
+
+ .cwrc .entities .context-menu-item-new .person:hover {
+    background-color:fade(@entity-person, 20%) !important;
+    color: @entity-person !important;
+}
+
+.cwrc .entities .context-menu-item-new .place:hover {
+    background-color:fade(@entity-place, 20%) !important;
+    color: @entity-place !important;
+}
+.cwrc .entities .context-menu-item-new .org:hover {
+    background-color:fade(@entity-org, 20%) !important;
+    color: @entity-org !important;
+}
+.cwrc .entities .context-menu-item-new .title:hover {
+    background-color:fade(@entity-title, 20%) !important;
+    color: @entity-title !important;
+}
+.cwrc .entities .context-menu-item-new .rs:hover {
+    background-color:fade(@entity-rs, 20%) !important;
+    color: @entity-rs !important;
+}
+.cwrc .entities .context-menu-item-new .citation:hover {
+    background-color:fade(@entity-citation, 20%) !important;
+    color: @entity-citation !important;
+}
+.cwrc .entities .context-menu-item-new .note:hover {
+    background-color:fade(@entity-note, 20%) !important;
+    color: @entity-note !important;
+}
+.cwrc .entities .context-menu-item-new .date:hover {
+    background-color:fade(@entity-date, 20%) !important;
+    color: @entity-date !important;
+}
+.cwrc .entities .context-menu-item-new .correction:hover {
+    background-color:fade(@entity-correction, 20%) !important;
+    color: @entity-correction !important;
+}
+.cwrc .entities .context-menu-item-new .keyword:hover {
+    background-color:fade(@entity-keyword, 20%) !important;
+    color: @entity-keyword !important;
+}
+.cwrc .entities .context-menu-item-new .link:hover {
+    background-color:fade(@entity-link, 20%) !important;
+    color: @entity-link !important;
+}
+
+/* -- Contextmenu search -- */
+
+.cwrc .contextmenu_search_container {
+    margin-top: -3px !important;
+    margin-bottom: 5px !important;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    padding-bottom: 0px !important;
+    background-color: #f5f5f5 !important;
+}
+
+.cwrc .contextmenu_search {
+  position: relative;
+  margin: auto;
+  width: 100%;
+  max-width: 258px;
+  height: 53px;
+}
+
+.cwrc .contextmenu_search input {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  padding-left: 35px;
+  height: 35px;
+  font-size: 1rem;
+  font-weight: 500;
+  background: none;
+  border-radius: 0;
+  transition: all 0.15s ease;
+  border-bottom:#f5f5f5 1px solid;
+}
+
+.cwrc .contextmenu_search input:focus {
+    outline: none;
+    font-weight: 800;
+    color: @highlight-color;
+    border-bottom: @highlight-color 1px solid;
+}
+
+.cwrc .context-menu-item-new .contextmenu_search input + i {
+    top: 0px !important;
+    left: 12px !important;
+    color: #333 !important;
+}
+
+.cwrc .context-menu-item-new .contextmenu_search input:focus + i {
+    color: @highlight-color !important;
+}

@@ -154,19 +154,19 @@ function getItems() {
 
 	if (this.isMultiple) {
 		items.add_tag_around = {
-			name: 'Insert Tag Around',
-			icon: 'tag_add',
+			name: 'Add Tag Around',
+			icon: 'fas fa-plus-circle',
 			tagAction: 'around',
-			items: (function() {
-				return parentTags;
-			})(),
+			className: 'context-menu-item-new',
+			items: parentTags,
 		};
 
 		items.sep0 = '---';
 
 		items.merge_tags = {
 			name: 'Merge Tags',
-			icon: 'tag_merge',
+			icon: 'fas fa-code-branch',
+			className: 'context-menu-item-new',
 			callback: () => {
 				const tags = $(`'#${this.tagId.join(',#')}`, this.w.editor.getBody());
 				this.w.tagger.mergeTags(tags);
@@ -177,14 +177,16 @@ function getItems() {
 	}
 
 	if (this.useSelection) {
+
 		items.add_tag = {
-			name: 'Insert Tag',
-			icon: 'tag_add',
+			name: 'Add Tag',
+			icon: 'fas fa-plus-circle',
 			tagAction: 'add',
-			items: (function() {
-				return childTags;
-			})(),
+			className: 'context-menu-item-new',
+			items: childTags,
 		};
+
+
 		if (this.w.schemaManager.isSchemaCustom() === false) {
 			addEntities.call(this, items);
 		}
@@ -194,39 +196,35 @@ function getItems() {
 
 	if (!this.useSelection) {
 		items.add_tag_before = {
-			name: 'Insert Tag Before',
-			icon: 'tag_add',
+			name: 'Add Tag Before',
+			icon: 'fas fa-plus-circle',
+			className: 'context-menu-item-new',
 			tagAction: 'before',
-			items: (function() {
-				return siblingTags;
-			})(),
+			items: siblingTags,
 		};
 
 		items.add_tag_after = {
-			name: 'Insert Tag After',
-			icon: 'tag_add',
+			name: 'Add Tag After',
+			icon: 'fas fa-plus-circle',
+			className: 'context-menu-item-new',
 			tagAction: 'after',
-			items: (function() {
-				return siblingTags;
-			})(),
+			items: siblingTags,
 		};
 
 		items.add_tag_around = {
-			name: 'Insert Tag Around',
-			icon: 'tag_add',
+			name: 'Add Tag Around',
+			icon: 'fas fa-plus-circle',
+			className: 'context-menu-item-new',
 			tagAction: 'around',
-			items: (function() {
-				return parentTags;
-			})(),
+			items: parentTags,
 		};
 
 		items.add_tag_inside = {
-			name: 'Insert Tag Inside',
-			icon: 'tag_add',
+			name: 'Add Tag Inside',
+			icon: 'fas fa-plus-circle',
+			className: 'context-menu-item-new',
 			tagAction: 'inside',
-			items: (function() {
-				return childTags;
-			})(),
+			items: childTags,
 		};
 
 		items.sep1 = '---';
@@ -234,7 +232,8 @@ function getItems() {
 
 	items.edit_tag = {
 		name: 'Edit Tag/Entity Annotation',
-		icon: 'tag_edit',
+		icon: 'fas fa-edit',
+		className: 'context-menu-item-new',
 		callback: () => this.w.tagger.editTagDialog(this.tagId),
 	};
 
@@ -243,7 +242,8 @@ function getItems() {
 		if (this.w.schemaManager.isTagEntity(tagName)) {
 			items.convert_tag = {
 				name: 'Convert to Entity Annotation',
-				icon: 'tag_edit',
+				icon: 'fas fa-edit',
+				className: 'context-menu-item-new',
 				callback: () => this.w.schemaManager.mapper.convertTagToEntity(tag, true),
 			};
 		}
@@ -254,23 +254,24 @@ function getItems() {
 	// That is, filter should be applied depending onf the case of use and context.
 	items.change_tag = {
 		name: 'Change Tag',
-		icon: 'tag_edit',
+		icon: 'fas fa-edit',
+		className: 'context-menu-item-new',
 		tagAction: 'change',
-		items: (function() {
-			return siblingTags;
-		})(),
+		items: siblingTags,
 	};
 
 	if (this.isEntity) {
 		items.copy_entity = {
 			name: 'Copy Entity',
-			icon: 'tag_copy',
+			icon: 'far fa-clone',
+			className: 'context-menu-item-new',
 			callback: () => this.w.tagger.copyTag(this.tagId),
 		};
 	} else {
 		items.copy_tag = {
 			name: 'Copy Tag and Contents',
-			icon: 'tag_copy',
+			icon: 'fas fa-clone',
+			className: 'context-menu-item-new',
 			callback: () => this.w.tagger.copyTag(this.tagId),
 		};
 	}
@@ -278,13 +279,15 @@ function getItems() {
 	if (this.w.editor.copiedElement.element !== null) {
 		items.paste_tag = {
 			name: 'Paste Tag',
-			icon: 'tag_paste',
+			icon: 'fas fa-clone',
+			className: 'context-menu-item-new',
 			callback: () => this.w.tagger.pasteTag(),
 		};
 	} else if (this.w.editor.copiedEntity !== null) {
 		items.paste_entity = {
 			name: 'Paste Entity',
-			icon: 'tag_paste',
+			icon: 'fas fa-clone',
+			className: 'context-menu-item-new',
 			callback: () => this.w.tagger.pasteEntity(),
 		};
 	}
@@ -292,7 +295,8 @@ function getItems() {
 	if (this.useSelection) {
 		items.split_tag = {
 			name: 'Split Tag',
-			icon: 'tag_split',
+			icon: 'fas fa-code-branch',
+			className: 'context-menu-item-new',
 			callback: () => this.w.tagger.splitTag(),
 		};
 	}
@@ -302,26 +306,30 @@ function getItems() {
 	if (this.isEntity) {
 		items.remove_entity = {
 			name: 'Remove Entity',
-			icon: 'tag_remove',
+			icon: 'fas fa-minus-circle',
+			className: 'context-menu-item-new',
 			callback: () => this.w.tagger.removeEntity(this.tagId),
 		};
 	}
 
 	items.remove_tag = {
 		name: 'Remove Tag',
-		icon: 'tag_remove',
+		icon: 'fas fa-minus-circle',
+		className: 'context-menu-item-new',
 		callback: () => this.w.tagger.removeStructureTag(this.tagId, false),
 	};
 
 	items.remove_content = {
 		name: 'Remove Content Only',
-		icon: 'tag_remove',
+		icon: 'fas fa-minus-circle',
+		className: 'context-menu-item-new',
 		callback: () => this.w.tagger.removeStructureTagContents(this.tagId),
 	};
 
 	items.remove_all = {
 		name: 'Remove All',
-		icon: 'tag_remove',
+		icon: 'fas fa-minus-circle',
+		className: 'context-menu-item-new',
 		callback: () => this.w.tagger.removeStructureTag(this.tagId, true),
 	};
 
@@ -336,15 +344,16 @@ function addEntities(items) {
 		const name = value.label ? value.label : `${key.charAt(0).toUpperCase()}${key.slice(1)}`;
 		menu[key] = {
 			name,
-			icon: key,
+			icon: `fas ${key}`,
+			className: `entities context-menu-item-new ${key}`,
 			callback: () => this.w.tagger.addEntityDialog(key),
 		};
 	});
 
 	items.add_entity = {
-		name: 'Insert Entity Annotation',
-		icon: 'tag_add',
-		className: 'entities',
+		name: 'Add Entity Annotation',
+		icon: 'fas fa-plus-circle',
+		className: 'entities context-menu-item-new',
 		items: menu,
 	};
 }
@@ -482,7 +491,8 @@ const getSubmenu = (tags) => {
 	if (tags.length === 0) {
 		submenu['no_tags'] = {
 			name: 'No Tags Available',
-			icon: 'no_tags',
+			icon: 'fas fa-times-circle',
+			className: 'context-menu-item-new submenu',
 		};
 		return submenu;
 	}
@@ -523,15 +533,16 @@ const getSubmenu = (tags) => {
 
 		submenu[name] = {
 			name: label,
-			type: 'cwrcTag',
-			icon: 'tag',
+			icon: 'fas fa-tag',
+			className: 'context-menu-item-new submenu',
 			visible: true,
 		};
 	});
 
 	submenu['noresult'] = {
 		name: 'No result',
-		icon: 'no_tags',
+		icon: 'fas fa-times-circle',
+		className: 'context-menu-item-new submenu',
 		disabled: true,
 		visible: false,
 	};
