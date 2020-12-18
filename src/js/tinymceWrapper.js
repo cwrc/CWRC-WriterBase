@@ -189,13 +189,11 @@ TinymceWrapper.init = function(config) {
             ed.on('NodeChange', onNodeChangeHandler);
             ed.on('copy', onCopyHandler);
 
-            ed.on('contextmenu', function(e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
+            ed.on('contextmenu', function(event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
         
-                if (w.isReadOnly) {
-                    return;
-                }
+                if (w.isReadOnly) return;
 
                 var editorPosition = w.utilities.getOffsetPosition(ed.getContentAreaContainer(), window.document.documentElement);
 
@@ -206,10 +204,10 @@ TinymceWrapper.init = function(config) {
                 var adjustLeft = editorPosition.left - editorScrollLeft;
                 var adjustTop = editorPosition.top - editorScrollTop;
         
-                e.pageX += adjustLeft;
-                e.pageY += adjustTop;
+                event.pageX += adjustLeft;
+                event.pageY += adjustTop;
 
-                w.tagMenu.show(e, undefined, true);
+                w.tagMenu.show({ event, useSelection: true });
             });
 
             function addButtonToEditor(buttonId, settings) {
