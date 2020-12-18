@@ -299,6 +299,12 @@ function CWRCWriter(config) {
 
 
     // INIT
+    w._settings = {
+        filterTags: {
+            useDocumentTags: true,
+            useStructuralOrder: true
+        }
+    };
 
     if (config.storageDialogs != null) {
         w.storageDialogs = config.storageDialogs

@@ -65,7 +65,9 @@ const settings = (writer, config) => {
             mode: 'xmlrdfoverlap',
             annotationMode: w.JSON,
             allowOverlap: false,
-            schemaId: ''
+            schemaId: '',
+            filterTagsUseDocumentTags: w._settings.filterTags.useDocumentTags,
+            filterTagsUseStructuralOrder: w._settings.filterTags.useStructuralOrder
         }
 
         fontSizeOptions = [
@@ -103,7 +105,9 @@ const settings = (writer, config) => {
                 showTags: config.showTags,
                 mode: editorMode.value,
                 annotationMode: w.annotationMode,
-                allowOverlap: w.allowOverlap
+                allowOverlap: w.allowOverlap,
+                filterTagsUseDocumentTags: w._settings.filterTags.useDocumentTags,
+                filterTagsUseStructuralOrder: w._settings.filterTags.useStructuralOrder
             }));
         }
 
@@ -125,6 +129,27 @@ const settings = (writer, config) => {
         toggleTags = () => {
             this.setState((prevState) => ({ showTags: !prevState.showTags }));
             $('body', w.editor.getDoc()).toggleClass('showTags');
+        }
+
+        toggleFilterTagsUseDocumentTags = () => {
+            this.setState((prevState) => ({ filterTagsUseDocumentTags: !prevState.filterTagsUseDocumentTags }));
+            w._settings.filterTags.useDocumentTags = !this.state.filterTagsUseDocumentTags;
+
+            if (this.state.filterTagsUseDocumentTags === true && this.state.filterTagsUseStructuralOrder === true) {
+                this.setState((prevState) => ({ filterTagsUseStructuralOrder: !prevState.filterTagsUseStructuralOrder }));
+                w._settings.filterTags.useStructuralOrder = !this.state.filterTagsUseStructuralOrder;
+            }
+            
+        }
+
+        toggleFilterTagsuseStructuralOrder = () => {
+            this.setState((prevState) => ({ filterTagsUseStructuralOrder: !prevState.filterTagsUseStructuralOrder }));
+            w._settings.filterTags.useStructuralOrder = !this.state.filterTagsUseStructuralOrder;
+
+            if (this.state.filterTagsUseDocumentTags === false && this.state.filterTagsUseStructuralOrder === false) {
+                this.setState((prevState) => ({ filterTagsUseDocumentTags: !prevState.filterTagsUseDocumentTags }));
+                w._settings.filterTags.useDocumentTags = !this.state.filterTagsUseDocumentTags;
+            }
         }
 
         getEditorMode = value => {
@@ -325,6 +350,8 @@ const settings = (writer, config) => {
             if (this.state.showTags === true) this.toggleTags();
             if (this.state.mode !== 'xmlrdfoverlap') this.changeEditorMode('xmlrdf');
             if (this.state.annotationMode !== w.JSON) this.changeAnnotationMode(w.JSON);
+            if (this.state.filterTagsUseDocumentTags !== true) this.toggleFilterTagsUseDocumentTags();
+            if (this.state.filterTagsUseStructuralOrder !== true) this.toggleFilterTagsuseStructuralOrder();
         }
 
         handleClose = () => $settingsDialog.dialog('close')
@@ -355,6 +382,22 @@ const settings = (writer, config) => {
                                 label: "Tags",
                                 checked: this.state.showTags,
                                 onChange: this.toggleTags,
+                            }
+                        ]}
+                    />
+                    <SettingGroup 
+                        label="Tag Availability"
+                        inputs={[{
+                                type: 'switch',
+                                label: 'Use document tags',
+                                checked: this.state.filterTagsUseDocumentTags,
+                                onChange: this.toggleFilterTagsUseDocumentTags,
+                            },
+                            {
+                                type: 'switch',
+                                label: 'Use strucutural order',
+                                checked: this.state.filterTagsUseStructuralOrder,
+                                onChange: this.toggleFilterTagsuseStructuralOrder,
                             }
                         ]}
                     />
