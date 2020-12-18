@@ -1,6 +1,6 @@
 {
   "name": "cwrc-writer-base",
-  "version": "7.0.0",
+  "version": "7.1.0-Alpha",
   "description": "intuitive document editing with xml and rdf",
   "keywords": [
     "xml",
