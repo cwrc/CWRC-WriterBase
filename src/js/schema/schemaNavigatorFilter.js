@@ -1,24 +1,24 @@
-// ! Write better documentation
-/**
- * APPLY FILTERS
- * Use filters to limit tag availability
- * If no filters, return
- * @param { Object } element Element to be filtered
- * @param { Array } filters Collection of filters
- * @returns { Array } filteredTags
- */
-export const filter = (elements, contextchildrenTagsName) => {
+import { ONE_OR_MORE, OPTIONAL, ZERO_OR_MORE } from './schemaNavigator4';
 
-	const filters = buildFilter(elements, contextchildrenTagsName)
+/**
+ * Filters tags for an element using tags already present in the document in the context of the cursor.
+ * @param {Array} tags Tags to be filtered
+ * @param {Array} presentTags Tags present in the document
+ * @returns {Array} Filtered tags
+ */
+export const filter = (tags, presentTags) => {
+	// Build filters
+	const filters = buildFilter(tags, presentTags);
 
 	//if no filter, return all
-	if (filters.length === 0) return elements;
+	if (filters.length === 0) return tags;
 
 	//Apply one filter at a time
-	let filteredTags = [...elements];
+	let filteredTags = [...tags];
 	filters.forEach((filter) => {
 		filteredTags = filteredTags.filter((tag) => {
-			if (filter.name !== tag.pattern.name) return tag; // not affected by the filter
+			// not affected by the filter
+			if (filter.name !== tag.pattern.name) return tag;
 
 			if (filter.instancesToInclude && filter.instancesToInclude.has(tag.pattern.index)) {
 				return tag;
@@ -42,31 +42,34 @@ export const filter = (elements, contextchildrenTagsName) => {
 };
 
 /**
- * BUILD FILTER
+ * Builds Filters
  *
- * @param { Object } element The element to be filtered
- * @param { Array } contextchildrenTagsName The tags already present in the document
+ * @param { Object } tags The tags to be filtered
+ * @param { Array } presentTags The tags already present in the document
  */
-const buildFilter = (elements, contextchildrenTagsName) => {
+const buildFilter = (tags, presentTags) => {
 	const filters = [];
+	// console.log(presentTags);
 
-	// Get document tags details
-	const documentTags = elements.filter((child) =>
-		contextchildrenTagsName.has(child.attributes.name)
-	);
+	const presentTagsName = new Set(presentTags.map((tag) => {
+		return tag.tagName;
+	}));
 
-	// Get patterns to process based on the element to be filtered
+	// Only use the tags present in the document to create filters.
+	const documentTags = tags.filter((child) => presentTagsName.has(child.attributes.name));
+
+	// Get patterns to process based on the elements to be filtered
 	const patternsToProcess = new Set(
-		elements.map((tag) => {
+		tags.map((tag) => {
 			if (tag?.pattern) return tag.pattern.name;
 		})
 	);
 
-	// Add filter to each available pattern
-	patternsToProcess.forEach((pattern) => {
-		const filter = addFilterPattern(
-			pattern,
-			documentTags.filter((tag) => tag.pattern.name === pattern)
+	// Create a filter to each pattern
+	patternsToProcess.forEach((patternName) => {
+		const filter = createFilterPattern(
+			patternName,
+			documentTags.filter((tag) => tag.pattern.name === patternName)
 		);
 		if (filter) filters.push(filter);
 	});
@@ -75,42 +78,41 @@ const buildFilter = (elements, contextchildrenTagsName) => {
 };
 
 /**
- * ADD FILTER SELECTOR
+ * Creates a Filter selector
  * @param { String } pattern The pattern name
  * @param { Array } tags The collection of tags that belongs to a pattern
  */
-const addFilterPattern = (pattern, tags) => {
-	if (pattern === 'oneOrMore') return filterOneOrMore(pattern, tags);
-	if (pattern === 'zeroOrMore') return filterZeroOrMore(pattern, tags);
-	if (pattern === 'optional') return filterOptional(pattern, tags);
+const createFilterPattern = (patternName, tags) => {
+	if (patternName === ONE_OR_MORE) return filterOneOrMore(patternName, tags);
+	if (patternName === OPTIONAL) return filterOptional(patternName, tags);
+	if (patternName === ZERO_OR_MORE) return filterZeroOrMore(patternName, tags);
 };
 
 /**
- * FILTER PATERN ONE OR MORE
- * A. INSTANCES: Only tags unique to an instance of this pattern can be use to filter.
- * if a tag used on the document belongs to an instance of this patter, exclude all the other instances
- * B. CHOICE: if an instance of this pattern is NOT a choice, exclude the elemetns already used on the document.
+ * Creates Filter Pattern: ONE OR MORE
+ * - A. INSTANCES: Only tags unique to an instance of this pattern can be use to filter.
+ *  - if a tag used on the document belongs to an instance of this pattern, exclude all the other instances
+ * - B. CHOICE: if an instance of this pattern is NOT a choice, exclude the elemetns already used on the document.
  *
  * @param { String } pattern The pattern name
  * @param { Array } tags The collection of tags that belongs to a pattern
- * @returns { Object } filter
+ * @returns { Object } The Filter
  */
 const filterOneOrMore = (pattern, tags) => {
 	const filter = { name: pattern };
 
 	// A. PATTERN INSTANCE
 	const patternInstancesToInclude = new Set();
-	const uniquetags = tags.filter((tag) => {
+	tags.filter((tag) => {
 		const occurrence = tags.filter((t) => t.attributes.name == tag.attributes.name);
 		if (occurrence.length > 1) return;
 		patternInstancesToInclude.add(tag.pattern.index);
 		return tag;
 	});
 
-	// store if more than one
 	if (patternInstancesToInclude.size > 0) {
-        filter.instancesToInclude = patternInstancesToInclude;
-    }
+		filter.instancesToInclude = patternInstancesToInclude;
+	}
 
 	// B. PATTERNS CHOICE
 	const elementsToExclude = new Set();
@@ -118,7 +120,6 @@ const filterOneOrMore = (pattern, tags) => {
 		if (tag.pattern.isChoice === false) elementsToExclude.add(tag);
 	});
 
-	// store if more than one
 	if (elementsToExclude.size > 0) filter.elementsToExclude = elementsToExclude;
 
 	// return null if nothing to filter
@@ -128,28 +129,27 @@ const filterOneOrMore = (pattern, tags) => {
 };
 
 /**
- * FILTER PATERN ZERO OR MORE
- * A. INSTANCES: Only tags unique to an instance of this pattern can be use to filter.
- * if a tag used on the document belongs to an instance of this patter, exclude all the other instances
- * B. CHOICE: if an instance of this pattern is NOT a choice, exclude the elemetns already used on the document.
+ * Creates Filter Pattern: ZERO OR MORE
+ *  - A. INSTANCES: Only tags unique to an instance of this pattern can be use to filter.
+ *    - if a tag used on the document belongs to an instance of this pattern, exclude all the other instances
+ *  - B. CHOICE: if an instance of this pattern is NOT a choice, exclude the elemetns already used on the document.
  *
  * @param { String } pattern The pattern name
  * @param { Array } tags The collection of tags that belongs to a pattern
- * @returns { Object } filter
+ * @returns { Object } The filter
  */
 const filterZeroOrMore = (pattern, tags) => {
 	const filter = { name: pattern };
 
 	// A. PATTERN INSTANCE
 	const patternInstancesToInclude = new Set();
-	const uniquetags = tags.filter((tag) => {
+	tags.filter((tag) => {
 		const occurrence = tags.filter((t) => t.attributes.name == tag.attributesname);
 		if (occurrence.length > 1) return;
 		patternInstancesToInclude.add(tag.pattern.index);
 		return tag;
 	});
 
-	// store if more than one
 	if (patternInstancesToInclude.size > 0) filter.instancesToInclude = patternInstancesToInclude;
 
 	// B. PATTERNS CHOICE
@@ -158,7 +158,6 @@ const filterZeroOrMore = (pattern, tags) => {
 		if (tag.pattern.isChoice === false) elementsToExclude.add(tag);
 	});
 
-	// store if more than one
 	if (elementsToExclude.size > 0) filter.elementsToExclude = elementsToExclude;
 
 	// return null if nothing to filter
@@ -168,14 +167,14 @@ const filterZeroOrMore = (pattern, tags) => {
 };
 
 /**
- * FILTER PATERN OPTIONAL
+ * Creates Filter Pattern: OPTIONAL
  * Assess CHOICE on each pattern instance.
- * If CHOICE IS PRESENT, exclude the pattern already used
- * If CHOICE IS NOT PRESENT. exlude the element already used
+ *  - If CHOICE IS PRESENT, exclude the pattern already used
+ *  - If CHOICE IS NOT PRESENT. exlude the element already used
  *
  * @param { String } pattern The pattern name
  * @param { Array } tags The collection of tags that belongs to a pattern
- * @returns { Object } filter
+ * @returns { Object } The Filter
  */
 const filterOptional = (pattern, tags) => {
 	const filter = { name: pattern };
@@ -188,7 +187,6 @@ const filterOptional = (pattern, tags) => {
 		if (!tag.pattern.isChoice) elementsToExclude.add(tag);
 	});
 
-	// store if more than one
 	if (instancesToExclude.size > 0) filter.instancesToExclude = instancesToExclude;
 	if (elementsToExclude.size > 0) filter.elementsToExclude = elementsToExclude;
 
