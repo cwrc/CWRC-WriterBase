@@ -49,6 +49,7 @@
     "jquery-ui": "^1.12.1",
     "js-cookie": "^2.2.1",
     "jstree": "^3.3.11",
+    "layout-jquery3": "^1.8.5",
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "object-path": "^0.11.5",
