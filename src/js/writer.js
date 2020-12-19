@@ -2,6 +2,13 @@
 
 var $ = require('jquery');
 
+// JQuery Hack: revert behaviour introduced in v.3.5
+// See: https://jquery.com/upgrade-guide/3.5/
+var rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([a-z][^\/\0>\x20\t\r\n\f]*)[^>]*)\/>/gi;
+$.htmlPrefilter = function( html ) {
+    return html.replace( rxhtmlTag, '<$1></$2>' );
+};
+
 var EventManager = require('./eventManager.js');
 var Utilities = require('./utilities.js');
 var SchemaManager = require('./schema/schemaManager.js');
