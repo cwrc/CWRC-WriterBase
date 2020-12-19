@@ -57,6 +57,7 @@
     "openseadragon": "^2.4.2",
     "prism-themes": "^1.5.0",
     "prismjs": "^1.22.0",
+    "rdflib": "^2.1.3",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "salve": "^9.1.2",
