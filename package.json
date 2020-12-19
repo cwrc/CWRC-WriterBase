@@ -52,9 +52,9 @@
     "openseadragon": "^2.4.2",
     "prism-themes": "^1.5.0",
     "prismjs": "^1.22.0",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0",
-    "tinymce": "4.9.8"
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "tinymce": "4.9.8",
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
