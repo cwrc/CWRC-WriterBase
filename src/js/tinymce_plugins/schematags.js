@@ -2,7 +2,6 @@
 
 var $ = require('jquery');
 var tinymce = require('tinymce');
-require('../../lib/jquery/jquery.watermark.min');
 
 
 tinymce.PluginManager.add('schematags', function(editor) {
