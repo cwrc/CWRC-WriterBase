@@ -44,7 +44,7 @@ import '../css/build.less';
  * @param {String} [config.buttons3]
  
  */
-function CWRCWriter(config) {
+function Writer(config) {
     config = config || {};
 
     /**
@@ -314,10 +314,11 @@ function CWRCWriter(config) {
     };
 
     if (config.storageDialogs != null) {
-        w.storageDialogs = config.storageDialogs
+        w.storageDialogs = config.storageDialogs.module;
     } else {
         alert('Error: you must specify a storage dialogs class in the CWRCWriter config to allow loading and saving documents.');
     }
+    
     if (config.entityLookupDialogs != null) {
         w.entityLookupDialogs = config.entityLookupDialogs;
     } else {
@@ -392,4 +393,4 @@ function CWRCWriter(config) {
     return w;
 }
 
-export default CWRCWriter;
+export default Writer;
