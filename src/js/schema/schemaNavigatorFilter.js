@@ -1,4 +1,4 @@
-import { ONE_OR_MORE, OPTIONAL, ZERO_OR_MORE } from './schemaNavigator4';
+import { ONE_OR_MORE, OPTIONAL, ZERO_OR_MORE } from './schemaNavigator2';
 
 /**
  * Filters tags for an element using tags already present in the document in the context of the cursor.

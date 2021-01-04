@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import 'jquery-contextmenu';
 import { sortBy } from 'lodash';
-import schemaNavigator from './schema/schemaNavigator4';
+import schemaNavigator from './schema/schemaNavigator2';
 
 //Search box
 $.contextMenu.types.search = function(item, opt) {

@@ -4,9 +4,7 @@ const $ = require('jquery');
 const Mapper = require('./mapper.js');
 const css = require('css');
 import SchemaNavigator from './schemaNavigator';
-// import { setSchemaJSON } from './schemaNavigator2';
-// import { setSchemaJSON } from './schemaNavigator3';
-import { setSchemaJSON } from './schemaNavigator4';
+import { setSchemaJSON } from './schemaNavigator2';
 
 /**
  * @class SchemaManager
@@ -636,21 +634,10 @@ function SchemaManager(writer, config) {
         }
         sm.navigator.setSchemaJSON(sm.schemaJSON);
 
-
         ///
-        // const schemaJSON_alt1 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'ObjTree-unchanged'});
-        // const schemaJSON_alt2 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'xml2js'});
-        // const schemaJSON_alt3 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'xml-js-compact'});
-        const schemaJSON_alt4 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'xml-js'});
-        // const schemaJSON_alt5 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'fxp'});
-        // const schemaJSON_alt6 = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'salve'});
-
-        // setSchemaJSON(schemaJSON_alt1, 'ObjTree')
-        setSchemaJSON(schemaJSON_alt4)
-        // setSchemaJSON(schemaJSON_alt3, 'xml-js-compact')
-        // setSchemaJSON(schemaJSON_alt4, 'xml-js')
-        // setSchemaJSON(schemaJSON_alt5, 'fxp')
-    }
+        const schemaJSON_alt = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'xml-js'});
+        setSchemaJSON(schemaJSON_alt);
+    };
 
     /**
      * Load a new schema.

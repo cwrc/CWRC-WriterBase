@@ -2,10 +2,7 @@
 
 var $ = require('jquery');
 var ObjTree = require('../lib/objtree/ObjTree');
-const xml2js = require('xml2js');
 const converter = require('xml-js');
-const fxp = require('fast-xml-parser');
-const salve = require("salve");
 
 /**
  * @class Utilities
@@ -49,23 +46,23 @@ function Utilities(writer) {
             if (xml === null) return null;
         }
 
-        console.time("ObjTree");
+        console.time('ObjTree');
 
         const xotree = new ObjTree();
         xotree.attr_prefix = '@';
         const json = xotree.parseDOM(xml);
-        console.log(json)
-        console.timeEnd("ObjTree");
+        console.log(json);
+        console.timeEnd('ObjTree');
 
         return json;
     };
 
-    u.xmlToJsonAlternatives = async ({xml, alt}) => {
+    u.xmlToJsonAlternatives = ({xml, alt}) => {
 
         let json = null;
 
         if (alt === 'ObjTree-unchanged') {
-            console.time("ObjTree-unchanged");
+            console.time('ObjTree-unchanged');
 
             const xotree = new ObjTree();
             xotree.attr_prefix = '@';
@@ -73,119 +70,23 @@ function Utilities(writer) {
 
             json = xotree.parseDOM(xml);
 
-            console.log(json)
+            console.log(json);
 
-            console.timeEnd("ObjTree-unchanged");
-        }
-
-        if (alt === 'xml2js') {
-            console.time("xml2js");
-
-            xml = u.xmlToString(xml);
-
-
-            const attrNameProcessors = (name) => `@${name}`;
-            // const tagNameProcessors = (name) => console.log(name);
-            // const valueProcessors = (value, name) => console.table({value, name});
-            // const valueProcessors = (value, name) => {
-            //     console.log({name});
-            //     // if (value === 'element') {s
-            //     //     console.log({value, name});
-            //     // }
-            // };
-
-            //COMPACT
-            // json = await xml2js.parseStringPromise(xml,{
-            //     explicitArray: false,
-            //     explicitRoot: false,
-            //     mergeAttrs: true,
-            //     // explicitChildren: t  rue,
-            //     // preserveChildrenOrder: true,
-            //     attrNameProcessors: [attrNameProcessors],
-            //     // tagNameProcessors: [tagNameProcessors],
-            //     // valueProcessors: [valueProcessors],
-            //     // async: true,
-            // });
-
-            // EXPAND
-            json = await xml2js.parseStringPromise(xml,{
-                // explicitArray: false,
-                explicitRoot: false,
-                // mergeAttrs: true,
-                // charsAsChildren: true,
-                explicitChildren: true,
-                preserveChildrenOrder: true,
-                attrNameProcessors: [attrNameProcessors],
-                // tagNameProcessors: [tagNameProcessors],
-                // valueProcessors: [valueProcessors],
-                // async: true,
-            });
-
-            console.log(json)
-            console.timeEnd("xml2js");
-        }
-
-        if (alt === 'xml-js-compact') {
-            console.time("xml-js-compact");
-
-            xml = u.xmlToString(xml);
-
-            json = converter.xml2js(xml, {
-                compact: true,
-                // addParent: true,
-                // spaces: 4
-            });
-
-            console.log(json)
-            console.timeEnd("xml-js-compact");
+            console.timeEnd('ObjTree-unchanged');
         }
 
         if (alt === 'xml-js') {
-            console.time("xml-js");
+            console.time('xml-js');
 
             xml = u.xmlToString(xml);
-
-            json = converter.xml2js(xml, {
-                compact: false,
-                // attributesKey: '@attr',
-                // elementsKey: '$elements',
-                // nameKey: '$name',
-                // typeKey: '$type',
-                // textKey: '_text'
-                // addParent: true,
-                // spaces: 4
-            });
-
-            console.log(json)
-            console.timeEnd("xml-js");
-        }
-
-        if (alt === 'fxp') {
-            console.time('fxp');
-
-            xml = u.xmlToString(xml);
-
-            json = fxp.parse(xml, {
-                attributeNamePrefix: '@',
-                // attrNodeName: 'attr',
-                ignoreAttributes: false
-            });
+            json = converter.xml2js(xml, { compact: false });
 
             console.log(json);
-            console.timeEnd('fxp');
-        }
-
-        if (alt === 'salve') {
-            console.time('salve');
-            const result = await salve.convertRNGToPattern('https://cwrc.ca/schemas/orlando_entry.rng');
-            console.log(result);
-            // const json = salve.writeTreeToJSON(result.simplified);
-            // console.log(json);
-            console.timeEnd('salve');
+            console.timeEnd('xml-js');
         }
 
         return new Promise((resolve) => resolve(json));
-    }
+    };
 
     /**
      * Converts HTML entities to unicode, while preserving those that must be escaped as entities.
