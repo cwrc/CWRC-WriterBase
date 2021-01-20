@@ -114,10 +114,16 @@ TinymceWrapper.init = function(config) {
 
         valid_elements: '*[*]', // allow everything
 
-        plugins: 'schematags,cwrcpath,preventdelete,paste',
+        // plugins: 'schematags,cwrcpath,preventdelete,paste',
+        plugins: [
+            'schematags',
+            // 'cwrcpath',
+            'preventdelete',
+            'paste'
+        ].join(','),
         toolbar1: config.buttons1 == undefined ? buttons1.join(',') : config.buttons1,
-        toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
-        toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
+        // toolbar2: config.buttons2 == undefined ? 'cwrcpath' : config.buttons2,
+        // toolbar3: config.buttons3 == undefined ? '' : config.buttons3,
         menubar: false,
         elementpath: false,
         statusbar: false,
