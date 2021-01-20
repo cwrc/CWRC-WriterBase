@@ -114,7 +114,6 @@ TinymceWrapper.init = function(config) {
 
         valid_elements: '*[*]', // allow everything
 
-        // plugins: 'schematags,cwrcpath,preventdelete,paste',
         plugins: [
             'schematags',
             // 'cwrcpath',
