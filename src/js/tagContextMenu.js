@@ -430,7 +430,7 @@ class TagContextMenu {
 		}
 
 		options.forEach(({ name, fullName }) => {
-			const label = fullName ? `${name} <span class="fullName">(${fullName})</span>` : name;
+			const label = fullName ? `${name}<br/><span class="fullName">${fullName}</span>` : name;
 
 			submenu[name] = {
 				name: label,
