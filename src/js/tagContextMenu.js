@@ -30,6 +30,7 @@ class TagContextMenu {
 		this.isEntity = false;
 		this.isMultiple = false;
 		this.useSelection = false;
+		this.hasContentSelection = false;
 
 		this.node = null;
 		this.element = null;
@@ -69,6 +70,9 @@ class TagContextMenu {
 
 		this.node = this.w.editor.currentBookmark.rng.commonAncestorContainer;
 		// console.log(this.w.editor.currentBookmark.rng);
+
+		const selectionLength = this.w.editor.currentBookmark.rng.endOffset - this.w.editor.currentBookmark.rng.startOffset;
+		this.hasContentSelection = selectionLength === 0 ? false : true;
 
 		this.element = this.node.nodeType === 1 ? this.node : this.node.parentElement;
 		this.tagId = this.element.id;
@@ -494,7 +498,13 @@ class TagContextMenu {
 		const localContextTags = this.#getLocalContextTags(this.node, this.element);
 		if (localContextTags.length === 0) return tags;
 
-		const filteredTags = schemaNavigator.filterByPresentTags(tags, localContextTags);
+		let filteredTags = schemaNavigator.filterByPresentTags(tags, localContextTags);
+		
+		//filter empty tags if has content selected
+		if (this.useSelection && this.hasContentSelection) {
+			filteredTags = filteredTags.filter((tag) => tag.isEmptyTag === false);
+		}
+		
 		return filteredTags;
 	}
 
