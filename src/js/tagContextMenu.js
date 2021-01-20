@@ -117,8 +117,9 @@ class TagContextMenu {
 		let parentTags = {};
 
 		if (needsChildTags) childTags = this.#getChildrenForTag(this.element);
-		if (needsSiblingTags || needsParentTags)
+		if (needsSiblingTags || needsParentTags) {
 			siblingTags = this.#getSiblingsForTag(this.element);
+		}
 		if (needsParentTags) parentTags = this.#getParentsForTag(this.element);
 
 		this.context = { childTags, siblingTags, parentTags };
@@ -265,9 +266,6 @@ class TagContextMenu {
 			}
 		}
 
-		// ! Change tag should considers the filters applied to tag availability.
-		// e.g. if the tag in question is part of a OPTIONAL CHOICE patterns, the filter would have removed other options in this patterns
-		// That is, filter should be applied depending onf the case of use and context.
 		items.change_tag = {
 			name: 'Change Tag',
 			icon: 'fas fa-edit',
@@ -525,15 +523,13 @@ class TagContextMenu {
 	}
 
 	#filterTagsAround({ parentTags, childrenForParent }) {
-		
-
 		const parentContextTags = this.#getLocalContextTags(
 			this.element,
 			this.element.parentElement
 		);
 
 		let filteredChildrenForParent = childrenForParent;
-		if (parentContextTags.length > 0  && this.w._settings.filterTags.useDocumentTags === true) {
+		if (parentContextTags.length > 0 && this.w._settings.filterTags.useDocumentTags === true) {
 			filteredChildrenForParent = schemaNavigator.filterByPresentTags(
 				childrenForParent,
 				parentContextTags
