@@ -5,13 +5,13 @@
     background-color: #fff;
     border: 1px solid #D4D0C8;
     border-radius: 4px;
-    padding: 4px !important;
+    padding: 2px !important;
 }
 
-.jstree .jstree-wholerow {
+/* .jstree .jstree-wholerow {
     border: none;
     border-bottom: 1px solid #d3d3d3;
-}
+} */
 
 .jstree .jstree-wholerow-hovered {
     background: #eeeeee !important;
@@ -40,7 +40,8 @@
 
 .jstree-default .jstree-node {
 	float: none !important;
-	width: inherit !important;
+    width: inherit !important;
+    margin-left: 16px !important;
 }
 
 /* end overrides */
