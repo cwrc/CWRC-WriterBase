@@ -1,27 +1,23 @@
-'use strict';
-
 import $ from 'jquery';
 
 // JQuery Hack: revert behaviour introduced in v.3.5
 // See: https://jquery.com/upgrade-guide/3.5/
-var rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([a-z][^\/\0>\x20\t\r\n\f]*)[^>]*)\/>/gi;
-$.htmlPrefilter = function( html ) {
-    return html.replace( rxhtmlTag, '<$1></$2>' );
-};
+// eslint-disable-next-line no-useless-escape
+const rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([a-z][^\/\0>\x20\t\r\n\f]*)[^>]*)\/>/gi;
+$.htmlPrefilter = (html) => html.replace( rxhtmlTag, '<$1></$2>' );
 
-var EventManager = require('./eventManager.js');
-var Utilities = require('./utilities.js');
-// var SchemaManager = require('./schema/schemaManager.js');
+const EventManager = require('./eventManager.js');
+const Utilities = require('./utilities.js');
 import SchemaManager from './schema/schemaManager';
 import DialogManager from './dialogManager';
-var EntitiesManager = require('./entities/entitiesManager.js');
-var Tagger = require('./tagger.js');
-var Converter = require('./conversion/converter.js');
-var AnnotationsManager = require('./entities/annotationsManager');
+const EntitiesManager = require('./entities/entitiesManager.js');
+const Tagger = require('./tagger.js');
+const Converter = require('./conversion/converter.js');
+const AnnotationsManager = require('./entities/annotationsManager');
 import { settingsDialog } from './dialogs/settings';
 import LayoutManager from './layout/layoutManager.js';
 import TagContextMenu from './tagContextMenu';
-var TinymceWrapper = require('./tinymceWrapper.js');
+const TinymceWrapper = require('./tinymceWrapper.js');
 
 import '../css/build.less';
 
@@ -50,35 +46,29 @@ function CWRCWriter(config) {
     /**
      * @lends CWRCWriter.prototype
      */
-    var w = {};
+    const w = {};
 
     w.initialConfig = config;
 
-    w.containerId;
+    //htnk container
     if (config.container === undefined) {
         alert('Error: no container supplied for CWRCWriter!');
         return;
-    } else {
-        w.containerId = config.container;
     }
-
-    w.editor = null; // reference to the tinyMCE instance we're creating, set in setup
-
-    w.triples = []; // triples store
+    
+    w.containerId = config.container;
+    w.editor = null;                    // reference to the tinyMCE instance we're creating, set in setup
+    w.triples = [];                     // triples store
 
     w.cwrcRootUrl = config.cwrcRootUrl; // the url which points to the root of the cwrcwriter location
-    if (w.cwrcRootUrl == null || w.cwrcRootUrl == '') {
-        w.cwrcRootUrl = window.location.protocol + '//' + window.location.host + '/' + window.location.pathname.split('/')[1] + '/';
+    if (w.cwrcRootUrl === null || w.cwrcRootUrl === '') {
+        w.cwrcRootUrl = `${window.location.protocol}//${window.location.host}/${window.location.pathname.split('/')[1]}/`;
         console.info('using default cwrcRootUrl', w.cwrcRootUrl);
     }
 
     w.currentDocId = null;
-
-    // is the editor initialized
-    w.isInitialized = false;
-
-    // has a doc been loaded
-    w.isDocLoaded = false;
+    w.isInitialized = false;             // is the editor initialized
+    w.isDocLoaded = false;               // has a doc been loaded
 
     // is the editor in readonly mode
     w.isReadOnly = false;
@@ -93,11 +83,10 @@ function CWRCWriter(config) {
     }
 
     // possible editor modes
-    w.XMLRDF = 0; // XML + RDF
-    w.XML = 1; // XML only
-    w.RDF = 2; // RDF only (not currently used)
-
-    w.JSON = 3; // annotation type
+    w.XMLRDF = 0;                       // XML + RDF
+    w.XML = 1;                          // XML only
+    w.RDF = 2;                          // RDF only (not currently used)
+    w.JSON = 3;                         // annotation type
 
     // editor mode
     w.mode = w.XMLRDF;
@@ -127,8 +116,8 @@ function CWRCWriter(config) {
      * @param {String} prefix The prefix to attach to the ID.
      * @returns {String} id
      */
-    w.getUniqueId = function(prefix) {
-        var id = tinymce.DOM.uniqueId(prefix);
+    w.getUniqueId = (prefix) => {
+        const id = tinymce.DOM.uniqueId(prefix);
         return id;
     };
 
@@ -137,7 +126,7 @@ function CWRCWriter(config) {
      * @fires Writer#loadingDocument
      * @param {String} docUrl An URL pointing to an XML document
      */
-    w.loadDocumentURL = function(docUrl) {
+    w.loadDocumentURL = (docUrl) => {
         w.converter.loadDocumentURL(docUrl);
     };
 
@@ -146,57 +135,44 @@ function CWRCWriter(config) {
      * @fires Writer#loadingDocument
      * @param {Document|String} docXml An XML document or a string representation of such.
      */
-    w.loadDocumentXML = function(docXml) {
-        w.converter.loadDocumentXML(docXml);
-    };
+    w.loadDocumentXML = (docXml) => w.converter.loadDocumentXML(docXml);
 
-    w.showLoadDialog = function() {
-        w.storageDialogs.load(w);
-    };
-
-    w.showSaveDialog = function() {
-        w.storageDialogs.save(w);
-    };
+    w.showLoadDialog = () => w.storageDialogs.load(w);
+    w.showSaveDialog = () => w.storageDialogs.save(w);
 
     // TODO temp github implementation
-    w.getDocumentURI = function() {
-        if (w.storageDialogs.getDocumentURI) {
-            return w.storageDialogs.getDocumentURI();
+    w.getDocumentURI = () => {
+        if (w.storageDialogs.getDocumentURI) return w.storageDialogs.getDocumentURI();
+            
+        if (w.filePathInGithub) {
+            return `https://github.com/${w.repoName}/blob/master${w.filePathInGithub}`;
         } else {
-            if (w.filePathInGithub) {
-                var uri = 'https://github.com/'+w.repoName+'/blob/master'+w.filePathInGithub;
-                return uri;
-            } else {
-                var uri = 'https://github.com/placeholder/blob/master/placeholder.xml';
-                return uri;
-            }
+            return 'https://github.com/placeholder/blob/master/placeholder.xml';
         }
     };
 
-    w.getUserInfo = function() {
+    w.getUserInfo = () => {
         if (w.storageDialogs.getUserInfo) {
-            var userInfo = w.storageDialogs.getUserInfo();
+            const userInfo = w.storageDialogs.getUserInfo();
             return {
                 id: userInfo.userUrl,
                 name: userInfo.userName,
                 nick: userInfo.userId
-            }
-        } else {
-            return {
-                id: 'http://id.cwrc.ca/user/placeholder',
-                name: 'Placeholder',
-                nick: 'plchldr'
-            }
-        }
+            };
+        } 
+
+        return {
+            id: 'http://id.cwrc.ca/user/placeholder',
+            name: 'Placeholder',
+            nick: 'plchldr'
+        };
     };
 
-    w.showSaveAsDialog = function() {
-    };
+    //Function to override
+    w.showSaveAsDialog = function() {};
+    w.saveAndExit = function() {};
 
-    w.saveAndExit = function() {
-    };
-
-    w.exit = function() {
+    w.exit = () => {
         if (w.storageDialogs.logOut) {
             w.storageDialogs.logOut(w);
         } else {
@@ -204,23 +180,23 @@ function CWRCWriter(config) {
         }
     };
 
-    w.validate = function(callback) {
+    w.validate = (callback) => {
         if (callback !== undefined) {
-            var doCallback = function(isValid) {
+            const doCallback = (isValid) => {
                 callback.call(w, isValid);
                 w.event('documentValidated').unsubscribe(doCallback);    
-            }
+            };
             w.event('documentValidated').subscribe(doCallback);
         }
         
         w.event('validationRequested').publish();
-    }
+    };
 
     /**
      * Get the document contents as XML
      * @param {Function} callback Callback is called with an XML representation of the document
      */
-    w.getDocumentXML = function(callback) {
+    w.getDocumentXML = (callback) => {
         w.converter.getDocument(false, callback);
     };
 
@@ -228,7 +204,7 @@ function CWRCWriter(config) {
      * Get the document contents as a string
      * @param {Function} callback Callback is called with a string representation of the document
      */
-    w.getDocumentString = function(callback) {
+    w.getDocumentString = (callback) => {
         w.converter.getDocument(true, callback);
     };
 
@@ -236,7 +212,7 @@ function CWRCWriter(config) {
      * Set the current document for the editor
      * @param {Document|String} document Can be one of: URL, XML document, XML string
      */
-    w.setDocument = function(document) {
+    w.setDocument = (document) => {
         w.converter.setDocument(document);
     };
 
@@ -244,28 +220,29 @@ function CWRCWriter(config) {
      * Get the raw HTML representation of the document
      * @returns {String}
      */
-    w.getDocRawContent = function() {
-        return w.editor.getContent({ format: 'raw' })
+    w.getDocRawContent = () => {
+        return w.editor.getContent({ format: 'raw' });
     };
 
     /**
      * Is the editor read only?
      * @returns {Boolean}
      */
-    w.isEditorReadOnly = function() {
+    w.isEditorReadOnly = () => {
         return w.editor.getBody().getAttribute('contenteditable') === 'false';
-    }
+    };
 
     /**
      * Destroy the CWRC-Writer
      */
-    w.destroy = function() {
+    w.destroy = () => {
         console.info('destroying', w.editor.id);
 
         try {
             // clear the editor first (large docs can cause the browser to freeze)
             $(w.editor.getBody()).empty();
         } catch (e) {
+            console.log(e);
         }
 
         window.removeEventListener('beforeunload', handleUnload);
@@ -283,10 +260,10 @@ function CWRCWriter(config) {
 
     // Unload functions
 
-    var handleUnload = function(e) {
-        if ((w.isReadOnly === false || w.isAnnotator === true) && window.location.hostname != 'localhost') {
+    const handleUnload = (e) => {
+        if ((w.isReadOnly === false || w.isAnnotator === true) && window.location.hostname !== 'localhost') {
             if (tinymce.get(editorId).isDirty()) {
-                var msg = 'You have unsaved changes.';
+                const msg = 'You have unsaved changes.';
                 (e || window.event).returnValue = msg;
                 return msg;
             }
@@ -295,12 +272,12 @@ function CWRCWriter(config) {
 
     window.addEventListener('beforeunload', handleUnload);
 
-    $(window).on('unload', function(e) {
+    $(window).on('unload', () => {
         try {
             // clear the editor first (large docs can cause the browser to freeze)
             w.utilities.getRootTag().remove();
         } catch (e) {
-
+            console.log(e);
         }
     });
 
@@ -313,12 +290,13 @@ function CWRCWriter(config) {
         }
     };
 
-    if (config.storageDialogs != null) {
-        w.storageDialogs = config.storageDialogs
+    if (config.storageDialogs !== null) {
+        w.storageDialogs = config.storageDialogs;
     } else {
         alert('Error: you must specify a storage dialogs class in the CWRCWriter config to allow loading and saving documents.');
     }
-    if (config.entityLookupDialogs != null) {
+
+    if (config.entityLookupDialogs !== null) {
         w.entityLookupDialogs = config.entityLookupDialogs;
     } else {
         alert('Error: you must specify entity lookups in the CWRCWriter config for full functionality!');
@@ -326,28 +304,24 @@ function CWRCWriter(config) {
 
     w.eventManager = new EventManager(w);
 
-    w.event('processingDocument').subscribe(function() {
+    w.event('processingDocument').subscribe(() => {
         w.triples = [];
     });
 
-    w.event('documentLoaded').subscribe(function(success) {
-        if (success) {
-            w.isDocLoaded = true;
-        } else {
-            w.isDocLoaded = false;
-        }
+    w.event('documentLoaded').subscribe((success) => {
+        w.isDocLoaded = success ? true : false;
     });
 
-    w.event('tinymceInitialized').subscribe(function() {
+    w.event('tinymceInitialized').subscribe(() => {
         // fade out loading mask and do final resizing after tinymce has loaded
-        w.layoutManager.$outerLayout.options.onresizeall_end = function() {
+        w.layoutManager.$outerLayout.options.onresizeall_end = () => {
             w.layoutManager.$outerLayout.options.onresizeall_end = null;
             w.layoutManager.$loadingMask.fadeOut(350);
         };
 
-        setTimeout(function() {
+        setTimeout(() => {
             w.layoutManager.resizeAll();
-            setTimeout(function() {
+            setTimeout(() => {
                 w.isInitialized = true;
                 w.event('writerInitialized').publish(w);
             }, 350);
@@ -356,12 +330,12 @@ function CWRCWriter(config) {
 
     w.utilities = new Utilities(w);
 
-    var editorId = w.getUniqueId('editor_');
+    const editorId = w.getUniqueId('editor_');
     w.layoutManager = new LayoutManager(w);
     w.layoutManager.init({
         editorId: editorId,
         modules: config.modules,
-        container: $('#' + w.containerId)
+        container: $(`#${w.containerId}`)
     });
 
     w.schemaManager = new SchemaManager(w, config.schema);
@@ -378,7 +352,7 @@ function CWRCWriter(config) {
 
     w.tagMenu = new TagContextMenu(w);
 
-    var layoutContainerId = w.layoutManager.getContainer().attr('id');
+    const layoutContainerId = w.layoutManager.getContainer().attr('id');
 
     TinymceWrapper.init({
         writer: w,
