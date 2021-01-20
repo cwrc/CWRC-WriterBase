@@ -521,13 +521,16 @@ class TagContextMenu {
 
 		if (!this.w._settings.filterTags.useStructuralOrder) return filteredTags;
 
-		if (action) {
-			if (action === 'change') {
-				filteredTags = this.#limitByPosition({ filteredTags, direction: 'both' });
-			} else {
-				filteredTags = this.#limitByPosition({ filteredTags, direction: action });
-			}
-		}
+		if (!action) return filteredTags;
+
+		const direction = action === 'change' ? 'both' : action;
+
+		filteredTags = schemaNavigator.limitByTagPosition({
+			tags: filteredTags,
+			direction,
+			element: this.element,
+			context: this.context,
+		});
 
 		return filteredTags;
 	}
@@ -552,7 +555,12 @@ class TagContextMenu {
 
 		if (!this.w._settings.filterTags.useStructuralOrder) return limitedTags;
 
-		limitedTags = this.#limitByPosition({ filteredTags: limitedTags, direction: 'both' });
+		limitedTags = schemaNavigator.limitByTagPosition({
+			tags: limitedTags,
+			direction: 'both',
+			element: this.element,
+			context: this.context,
+		});
 
 		return limitedTags;
 	}
@@ -576,52 +584,6 @@ class TagContextMenu {
 
 			if (filteredTags.length === 0) break;
 		}
-
-		return filteredTags;
-	}
-
-	#limitByPosition({ filteredTags, direction }) {
-		const currentTag = this.context.siblingTags.find(
-			(siblings) => siblings.attributes.name === this.element.getAttribute('_tag')
-		);
-		const nextSibling = this.context.siblingTags.find(
-			(siblings) =>
-				siblings.attributes.name === this.element.nextElementSibling?.getAttribute('_tag')
-		);
-		const previousSibling = this.context.siblingTags.find(
-			(siblings) =>
-				siblings.attributes.name ===
-				this.element.previousElementSibling?.getAttribute('_tag')
-		);
-
-		filteredTags = filteredTags.filter((tag) => {
-			//current
-			if (
-				tag.pattern.index === currentTag.pattern.index &&
-				(currentTag.pattern.name === 'oneOrMore' ||
-					currentTag.pattern.name === 'zeroOrMore')
-			)
-				return tag;
-
-			// before
-			if (
-				(direction === 'before' || direction === 'both') &&
-				tag.pattern.index < currentTag.pattern.index
-			) {
-				if (tag.pattern.index === previousSibling?.pattern.index) return tag;
-				if (!previousSibling) return tag;
-			}
-
-			// after
-			if (
-				(direction === 'after' || direction === 'both') &&
-				tag.pattern.index > currentTag.pattern.index
-			) {
-				if (tag.pattern.index === nextSibling?.pattern.index) return tag;
-				if (!nextSibling) return tag;
-			}
-		});
-
 		return filteredTags;
 	}
 

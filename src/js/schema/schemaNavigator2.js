@@ -5,7 +5,7 @@
 
 import { get as lodashGet, set as lodashSet } from 'lodash';
 import objectScan from 'object-scan';
-import { filter } from './schemaNavigatorFilter';
+import { filterByTags, limitByPosition } from './schemaNavigatorFilter';
 
 //CONSTANTS
 export const ATTRIBUTE = 'attribute';
@@ -18,14 +18,17 @@ export const ONE_OR_MORE = 'oneOrMore';
 export const OPTIONAL = 'optional';
 export const ZERO_OR_MORE = 'zeroOrMore';
 
-export const PATTERN_CODES = new Set([ONE_OR_MORE, OPTIONAL, ZERO_OR_MORE]);
+export const GROUP = 'group';
+
+export const PATTERN_CODES = new Set([ONE_OR_MORE, OPTIONAL, ZERO_OR_MORE, CHOICE]);
 
 //variables
 let schemaJSON;
 let schemaElements;
 
 export const setSchemaJSON = (json) => {
-	schemaJSON = reprocessJson(json);
+	schemaJSON = json;
+	schemaJSON = reprocessJson(schemaJSON);
 	console.log(schemaJSON);
 	return;
 };
@@ -52,11 +55,12 @@ const reprocessJson = (schema) => {
 	objectScan(['*.**.elements'], {
 		useArraySelector: false,
 		rtn: 'context',
+		// eslint-disable-next-line no-unused-vars
 		filterFn: ({ key, value, context }) => {
 			types.add(value.name); //Just add the availables types in the schema to a SET. For testing purposes.
 			if (elementTypesToProcess.has(value.name)) {
-				addMetadata(schema, key, value);
-				context.elements.push(key);
+				addMetadata(schema, key, value.name);
+				// context.elements.push(key);
 			}
 		},
 	})(schema, {
@@ -102,35 +106,12 @@ const addMetadata = (schema, path, type) => {
 			const fullNameKey = [...path, 'fullName'];
 			lodashSet(schema, fullNameKey, fullName);
 		}
-	}
-
-	// Pattern
-	const clonePath = [...path];
-	clonePath.pop(); //Remove itself
-
-	const pattern = {
-		name: null,
-		index: 0,
-		isChoice: false,
-	};
-
-	// Query Up to find the pattern information. Stop on the parent ELEMENT.
-	while (clonePath.length > 0) {
-		const parent = lodashGet(schema, clonePath);
-
-		if (element === ELEMENT || pattern.name) break;
-		if (PATTERN_CODES.has(parent.name)) {
-			pattern.name = parent.name;
-			pattern.index = clonePath[clonePath.length - 1];
-		}
-		if (parent.name === CHOICE) pattern.isChoice = true;
-		clonePath.pop();
-	}
-
-	// Store pattern
-	if (pattern.name !== null) {
-		const patternKey = [...path, 'pattern'];
-		lodashSet(schema, patternKey, pattern);
+		
+		//Is empty tag
+		const isEmptyTagKey = [...path, 'isEmptyTag'];
+		const children = getElementChildren(element);
+		const isEmptyTag = children.length === 0 ? true : false;
+		lodashSet(schema, isEmptyTagKey, isEmptyTag);
 	}
 
 	return path;
@@ -192,14 +173,35 @@ const getDefinitionByFullPath = (fullPath) => {
 };
 
 /**
- * Proxy Function: Filters tags for an element using tags already present in the document in the context of the cursor.
+ * Proxy Function: Filters tags for an element using tags already present
+ * in the document in the context of the cursor.
  * @param {Array} tags Tags to be filtered
  * @param {Array} presentTags Tags present in the document
  * @returns {Array} Filtered tags
  */
 const filterByPresentTags = (tags, presentTags) => {
-	const filteredTags = filter(tags, presentTags);
+	const filteredTags = filterByTags(tags, presentTags);
 	// console.log(filteredTags)
+	return filteredTags;
+};
+
+/**
+ * Proxy Function: Filters tags for an element using
+ * the position of the current tag in the document.
+ * @param {Object} {} Parameters
+ * @param {Array} filteredTags Tags to be filtered
+ * @param {String} direction Direction to check: before, after, or both
+ * @param {Object} element The element of reference
+ * @param {Object} context Contain the children, sibling, and parents of the element of reference
+ * @returns {Array} Filtered tags
+ */
+const limitByTagPosition = ({ tags, direction, element, context }) => {
+	const filteredTags = limitByPosition({
+		tags,
+		direction,
+		context,
+		element,
+	});
 	return filteredTags;
 };
 
@@ -210,10 +212,35 @@ const filterByPresentTags = (tags, presentTags) => {
  */
 export const getChildrenForPath = (path) => {
 	const grammarElement = getEntryForPath(path);
-	// console.log(grammarElement)
-	const childrenElements = getElementChildren(grammarElement);
-	// console.log(childrenElements)
+	// console.log(grammarElement);
+	let childrenElements = getElementChildren(grammarElement);
+	childrenElements = postProcessPattern(childrenElements);
+	// console.log(childrenElements);
+	// console.log('!!!!!!!!');
 	return childrenElements;
+	// return [];
+};
+
+const postProcessPattern = (tags) => {
+	//process pattern
+	//each pair of name and index is a pattern
+	//multiple pairs means nested patterns
+	tags = tags.map((child) => {
+		if (!child.patternPath) return child;
+
+		//reverse patternPath because it was backwarded collected (deep to root)
+		let patternPath = [...child.patternPath].reverse();
+		patternPath = patternPath.reduce(function(result, value, index, array) {
+			if (index % 2 === 0) result.push(array.slice(index, index + 2));
+			return result;
+		}, []);
+
+		child.pattern = patternPath;
+		// child.patternSet = patternSet;
+		return child;
+	});
+
+	return tags;
 };
 
 /**
@@ -261,10 +288,10 @@ const getEntryForPath = (path) => {
 			},
 		})(contextGrammar);
 
-		// TODO 
+		// TODO
 		if (matchTags.length === 0) {
 			const definition = getDefinitionByName(tag);
-			return contextGrammar = { tag: definition };
+			return (contextGrammar = { tag: definition });
 		}
 
 		// If there is more than one elment
@@ -303,43 +330,128 @@ const getEntryForPath = (path) => {
  * @param {Object} element The schema entry
  * @returns {Array} children elements
  */
-const getElementChildren = (grammarElement) => {
-	//Reduce parent data
-	const parentData = grammarElement?.tag ? grammarElement.tag : grammarElement;
-	const parent = {
-		name: parentData.name,
-		type: parentData.type,
-		fullPath: parentData.fullPath,
-		attributes: parentData.attributes,
-	};
+const getElementChildren = (grammarElement, level = 0) => {
+	// console.group(`getElementChildren: ${level}`);
+	// console.log(grammarElement);
 
 	const elementTypes = new Set([ELEMENT, REF]);
 
-	// Traverse the tree
-	const collection = objectScan(['*.**.elements'], {
-		useArraySelector: false,
-		rtn: 'context',
-		filterFn: ({ context, key, value }) => {
-			if (!elementTypes.has(value.name)) return;
+	//FILTER FUNCION WITHIN OBJECT SCAN
+	const filter = ({ key, context, value, parents }) => {
+		// console.group(`filter: ${level} - ${value.name}:${value?.attributes?.name ?? ''}`);
+		// console.log({key, value, parents});
 
-			// Get fullname if reference
-			if (value.name === REF) {
-				const definition = lodashGet(schemaJSON, value.fullPath);
-				const fullName = definition.fullName ?? '';
-				value = { ...value, fullName };
+		// * Skip if not ELEMENT OR REF
+		if (!elementTypes.has(value.name)) {
+			// console.groupEnd();
+			return;
+		}
+
+		//? SKIP FOR DEBUG PURSPUSES
+		// console.log(`---${value.name}`);
+		// if (value.attributes.name.includes('model.phrase')
+		// 	|| value.attributes.name.includes('model.global')
+		// 	// || value.attributes.name.includes('model.inter')
+		// 	|| value.attributes.name.includes('model.gLike'))
+		// {
+		// 	// console.groupEnd();
+		// 	return;
+		// }
+
+		// * Working variable
+		let item = value;
+		// console.log({value});
+
+		// * if item is REF, get and replace for DEFINITION.
+		if (value.name === REF) item = { ...getDefinitionByName(item.attributes.name) };
+		// if (value?.attributes?.name === 'anchor') console.log(item);
+
+		//* IMPORTANT: if the definition is not one of the key elements type [REF, ELEMENT],
+		//* DRILL DOWN RECURSIVELLY calling getElementChildren function until find the tag's element children
+		if (!elementTypes.has(item.name)) {
+			// console.log('DRILL DOWN');
+			item = getElementChildren(item, level + 1);
+		}
+
+		// * process Pattern
+		let patternPath = parseTagPattern(key, parents);
+		// console.log({name: item.name,patternPath});
+
+		//* Add to collection
+		const addToContextChildren = (elem) => {
+			// * Only consider 'element' (i.e., not ref or attr)
+			if (elem.name !== ELEMENT) {
+				// console.groupEnd();
+				return;
 			}
 
-			//Add to collection
-			context.children.push({
-				...value,
-				parent,
-				relativePath: key,
-			});
-		},
-		breakFn: ({ value, key }) => value.name === ELEMENT && key.length > 1,
-	})(grammarElement.tag, { children: [] });
+			// console.log({elem,patternPath});
+			// * add or append pattern path
+			if (patternPath.length > 0) {
+				elem.patternPath = elem.patternPath
+					? [...elem.patternPath, ...patternPath]
+					: patternPath;
+			}
 
+			//add
+			context.children.push(elem);
+		};
+
+		// if array add one at a time;
+		if (Array.isArray(item)) {
+			item.forEach((_item) => addToContextChildren(_item));
+		} else {
+			addToContextChildren(item);
+		}
+
+		// console.groupEnd();
+	};
+
+	// Traverse the tree
+	const collection = objectScan(['**.elements'], {
+		useArraySelector: false,
+		rtn: 'context',
+		filterFn: ({ key, context, value, parents }) => filter({ key, context, value, parents }),
+		breakFn: ({ value, key }) => value?.name === ELEMENT && key.length > 1,
+	})(grammarElement, { children: [] });
+
+	// console.log(collection.children);
+	// console.log('******');
+	// console.groupEnd();
 	return collection.children;
+};
+
+//each pair of pattern name and index is a level of pattern.
+//Multiple pairs means nested pattern
+const parseTagPattern = (key, parents) => {
+	// Pattern
+	key.reverse(); // reverse keys to follow the same direction as parents (from top to bottom)
+
+	const patternPath = [];
+
+	// patternPath.push(`--${item.attributes.name}`);
+	while (parents.length > 0) {
+		const _parent = parents[0];
+		const _key = key[0];
+
+		if (_parent.name === ELEMENT) break;
+
+		//pattenr index
+		if (PATTERN_CODES.has(patternPath[patternPath.length - 1]) && Array.isArray(_parent))
+			patternPath.push(_key);
+
+		//pattern name
+		if (PATTERN_CODES.has(_parent.name)) patternPath.push(_parent.name);
+
+		parents.shift();
+		key.shift();
+	}
+
+	//If partern group is mission, it is most probable that it is a unique group
+	//Add ggto
+	if (PATTERN_CODES.has(patternPath[patternPath.length - 1])) patternPath.push(0);
+
+	return patternPath;
 };
 
 /**
@@ -352,7 +464,10 @@ const getElementChildren = (grammarElement) => {
  * @param {Object} element The schema entry
  * @returns {Array} parent elements
  */
-const getElementParents = (grammarElement) => {
+const getElementParents = (grammarElement, level = 0) => {
+	// console.group(`getElementParents: ${level}`);
+	// console.log(grammarElement);
+
 	//Reduce child data
 	const childData = grammarElement?.tag ? grammarElement.tag : grammarElement;
 	const child = {
@@ -364,27 +479,65 @@ const getElementParents = (grammarElement) => {
 
 	const elementTypes = new Set([ELEMENT, REF]);
 
+	//FILTER FUNCION WITHIN OBJECT SCAN
+	const filter = ({ context, value, parents }) => {
+		// * Skip if not ELEMENT OR REF
+		if (!elementTypes.has(value.name)) return;
+		// console.log({ value, parents });
+
+		// // * Skip if not ELEMENT OR REF
+		// if (!elementTypes.has(value.name)) {
+		// 	console.groupEnd();
+		// 	return;
+		// }
+
+		// *focus on the specific element
+		if (value?.attributes?.name === child.attributes.name) {
+			// console.group(`filter: ${level} - ${value.name}:${value?.attributes?.name ?? ''}`);
+
+			//Find the first parent element that is and element or DEFINE it
+			let parentElement = parents.find(
+				(parent) =>
+					parent.name === ELEMENT ||
+					(parent.name === DEFINE && parent.attributes.name !== child.attributes.name)
+			);
+			// console.log(parentElement);
+
+			//* IMPORTANT: if parent DEFINEs and ELEMENT,
+			//* DRILL UP RECURSIVELLY calling getElementParents function until find the tag's element parent
+			if (parentElement?.name === DEFINE) {
+				// console.log('DRILL DOWN');
+				parentElement = getElementParents(parentElement, level + 1);
+			}
+
+			//* Add to collection
+			const addToContext = (elem) => {
+				if (elem && elem?.attributes?.name !== child.attributes.name) {
+					context.parents.push({ ...elem, child });
+				}
+			};
+
+			// if array add one at a time;
+			if (Array.isArray(parentElement)) {
+				parentElement.forEach((item) => addToContext(item));
+			} else {
+				addToContext(parentElement);
+			}
+
+			// console.groupEnd();
+		}
+	};
+
 	// Traverse the tree
-	const collection = objectScan(['*.**.elements'], {
+	const collection = objectScan(['**.elements'], {
 		useArraySelector: false,
 		rtn: 'context',
-		filterFn: ({ value, parents, context }) => {
-			if (!elementTypes.has(value.name)) return;
-
-			//focus on the specific element
-			if (value?.attributes?.name === child.attributes.name) {
-				// console.log(value)
-
-				//collect the firt element parent
-				for (const parent of parents) {
-					if (parent.name === ELEMENT) {
-						context.parents.push({ ...parent, child });
-						break;
-					}
-				}
-			}
-		},
+		filterFn: ({ key, context, value, parents }) => filter({ key, context, value, parents }),
 	})(schemaJSON, { parents: [] });
+
+	// console.log(collection.parents);
+	// console.log('******');
+	// console.groupEnd();
 
 	return collection.parents;
 };
@@ -394,6 +547,7 @@ export default {
 	getDefinitionByFullPath,
 	getParentsForPath,
 	filterByPresentTags,
+	limitByTagPosition,
 	setSchemaElements,
 	setSchemaJSON,
 };
