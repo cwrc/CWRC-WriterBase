@@ -505,7 +505,7 @@ class TagContextMenu {
 		const localContextTags = this.#getLocalContextTags(this.node, this.element);
 		if (localContextTags.length === 0) return filteredTags;
 
-		filteredTags = schemaNavigator.filterByPresentTags(tags, localContextTags);
+		filteredTags = schemaNavigator.filterByPresentTags(filteredTags, localContextTags);
 		
 		return filteredTags;
 	}
