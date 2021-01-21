@@ -495,15 +495,17 @@ class TagContextMenu {
 	#filterChildren({ tags }) {
 		if (!this.w._settings.filterTags.useDocumentTags) return tags;
 
-		const localContextTags = this.#getLocalContextTags(this.node, this.element);
-		if (localContextTags.length === 0) return tags;
+		let filteredTags = tags;
 
-		let filteredTags = schemaNavigator.filterByPresentTags(tags, localContextTags);
-		
 		//filter empty tags if has content selected
-		if (this.useSelection && this.hasContentSelection) {
+		if (this.useSelection && this.hasContentSelection > 0) {
 			filteredTags = filteredTags.filter((tag) => tag.isEmptyTag === false);
 		}
+		
+		const localContextTags = this.#getLocalContextTags(this.node, this.element);
+		if (localContextTags.length === 0) return filteredTags;
+
+		filteredTags = schemaNavigator.filterByPresentTags(tags, localContextTags);
 		
 		return filteredTags;
 	}
