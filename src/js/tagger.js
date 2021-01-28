@@ -611,45 +611,35 @@ function Tagger(writer) {
      * @param {Object} info.properties Key/value pairs of Entity properties
      * @param {Object} info.customValues Any additional custom values
      */
-    tagger.editEntity = function(id, info) {
+    tagger.editEntity = (id, info) => {
         sanitizeObject(info.attributes, true);
         sanitizeObject(info.customValues, false);
 
-        var entity = w.entitiesManager.getEntity(id);
-        var $tag = $('[name='+id+']', w.editor.getBody());
+        const entity = w.entitiesManager.getEntity(id);
+        const $tag = $(`[name=${id}]`, w.editor.getBody());
 
-        var type = info.properties.type || entity.getType();
+        const type = info.properties.type || entity.getType();
         if (type !== entity.getType()) {
             console.log('tagger.editEntity: changing entity type'); // only possible via nerve
         }
 
-        // named entity check
-        var isNamedEntity = w.schemaManager.mapper.isNamedEntity(type);
-        var uriAttribute = w.schemaManager.mapper.getAttributeForProperty(type, 'uri');
-        var removeEntity = isNamedEntity && info.attributes[uriAttribute] === undefined;
+        w.entitiesManager.editEntity(entity, info);
 
-        if (removeEntity) {
-            tagger.setAttributesForTag($tag[0], info.attributes);
-            tagger.removeEntity(id);
-        } else {
-            w.entitiesManager.editEntity(entity, info);
+        tagger.setAttributesForTag($tag[0], entity.getAttributes());
 
-            tagger.setAttributesForTag($tag[0], entity.getAttributes());
+        $tag.attr('_tag', entity.getTag());
+        $tag.attr('_type', entity.getType());
+        $tag.attr('class', `entity start end ${entity.getType()}`);
+        
+        // TODO rework the use of textTag so that this actually works
+        // if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
+        //     if (entity.isNote()) {
+        //         var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
+        //         $tag.find('[_tag='+textTag+']').text(info.properties.content);
+        //     }
+        // }
 
-            $tag.attr('_tag', entity.getTag());
-            $tag.attr('_type', entity.getType());
-            $tag.attr('class', 'entity start end '+entity.getType());
-            
-            // TODO rework the use of textTag so that this actually works
-            // if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
-            //     if (entity.isNote()) {
-            //         var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
-            //         $tag.find('[_tag='+textTag+']').text(info.properties.content);
-            //     }
-            // }
-
-            w.event('entityEdited').publish(id);
-        }
+        w.event('entityEdited').publish(id);
     };
     
     /**
