@@ -623,23 +623,33 @@ function Tagger(writer) {
             console.log('tagger.editEntity: changing entity type'); // only possible via nerve
         }
 
-        w.entitiesManager.editEntity(entity, info);
+         // named entity check
+         const isNamedEntity = w.schemaManager.mapper.isNamedEntity(type);
+         const uriAttribute = w.schemaManager.mapper.getAttributeForProperty(type, 'uri');
+         const removeEntity = isNamedEntity && info.attributes[uriAttribute] === undefined;
+ 
+         if (removeEntity) {
+             tagger.setAttributesForTag($tag[0], info.attributes);
+            //  tagger.removeEntity(id);
+         } else {
+            w.entitiesManager.editEntity(entity, info);
 
-        tagger.setAttributesForTag($tag[0], entity.getAttributes());
+            tagger.setAttributesForTag($tag[0], entity.getAttributes());
 
-        $tag.attr('_tag', entity.getTag());
-        $tag.attr('_type', entity.getType());
-        $tag.attr('class', `entity start end ${entity.getType()}`);
-        
-        // TODO rework the use of textTag so that this actually works
-        // if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
-        //     if (entity.isNote()) {
-        //         var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
-        //         $tag.find('[_tag='+textTag+']').text(info.properties.content);
-        //     }
-        // }
+            $tag.attr('_tag', entity.getTag());
+            $tag.attr('_type', entity.getType());
+            $tag.attr('class', `entity start end ${entity.getType()}`);
+            
+            // TODO rework the use of textTag so that this actually works
+            // if (info.properties.content !== undefined && info.properties.content !== entity.getContent()) {
+            //     if (entity.isNote()) {
+            //         var textTag = w.schemaManager.mapper.getTextTag(entity.getType());
+            //         $tag.find('[_tag='+textTag+']').text(info.properties.content);
+            //     }
+            // }
 
-        w.event('entityEdited').publish(id);
+            w.event('entityEdited').publish(id);
+        }
     };
     
     /**
