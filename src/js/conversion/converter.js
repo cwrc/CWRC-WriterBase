@@ -70,25 +70,44 @@ function Converter(writer) {
         converter.processDocument(docXml);
     };
 
-    converter.getDocument = function(asString, callback) {
-        converter.getDocumentContent(true, (docString) => {
-            if (asString === true) {
-                callback.call(this, docString);
-            } else {
-                var doc = null;
-                try {
-                    var parser = new DOMParser();
-                    doc = parser.parseFromString(docString, 'application/xml');
-                } catch (e) {
-                    w.dialogManager.show('message', {
-                        title: 'Error',
-                        msg: 'There was an error getting the document:' + e,
-                        type: 'error'
-                    });
-                }
-                callback.call(this, doc);
-            }
-        });
+    converter.getDocument = async function (asString, callback) {
+        const docString = await converter.getDocumentContent(true);
+        if (asString === true) return callback.call(this, docString);
+            
+        
+        let doc = null;
+        try {
+            const parser = new DOMParser();
+            doc = parser.parseFromString(docString, 'application/xml');
+        } catch (e) {
+            w.dialogManager.show('message', {
+                title: 'Error',
+                msg: `There was an error getting the document:${e}`,
+                type: 'error'
+            });
+        }
+        callback.call(this, doc);
+        
+
+
+        // converter.getDocumentContent(true, (docString) => {
+        //     if (asString === true) {
+        //         callback.call(this, docString);
+        //     } else {
+        //         var doc = null;
+        //         try {
+        //             var parser = new DOMParser();
+        //             doc = parser.parseFromString(docString, 'application/xml');
+        //         } catch (e) {
+        //             w.dialogManager.show('message', {
+        //                 title: 'Error',
+        //                 msg: 'There was an error getting the document:' + e,
+        //                 type: 'error'
+        //             });
+        //         }
+        //         callback.call(this, doc);
+        //     }
+        // });
     };
 
     converter.setDocument = function(document) {

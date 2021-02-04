@@ -6,8 +6,8 @@ require('jquery-ui/ui/widgets/tabs');
 var fscreen = require('fscreen')['default'];
 
 import StructureTree from './modules/structureTree/structureTree.js';
-var EntitiesList = require('./modules/entitiesList/entitiesList.js')
-var Validation = require('./modules/validation/validation.js');
+var EntitiesList = require('./modules/entitiesList/entitiesList.js');
+import Validation from './modules/validation/validation.js';
 var Relations = require('./modules/relations/relations.js');
 var Selection = require('./modules/selection/selection.js');
 var ImageViewer = require('./modules/imageViewer/imageViewer.js');

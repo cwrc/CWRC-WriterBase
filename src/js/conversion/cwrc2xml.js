@@ -20,21 +20,19 @@ function CWRC2XML(writer) {
      * @param {boolean} includeRDF True to include RDF in the header
      * @param {Function} callback Callback is called with the stringified document contents
      */
-    cwrc2xml.getDocumentContent = async function(includeRDF, callback) {
-        if (includeRDF && w.mode === w.XML) {
-            includeRDF = false;
-        }
+    cwrc2xml.getDocumentContent = async (includeRDF) => {
+        if (includeRDF && w.mode === w.XML) includeRDF = false;
         
         // remove highlights
         w.entitiesManager.highlightEntity();
 
-        var $body = $(w.editor.getBody()).clone(false);
+        const $body = $(w.editor.getBody()).clone(false);
         prepareText($body);
 
         // XML
         
-        var root = w.schemaManager.getRoot();
-        var $rootEl = $body.children('[_tag='+root+']');
+        const root = w.schemaManager.getRoot();
+        let $rootEl = $body.children(`[_tag=${root}]`);
         
         if ($rootEl.length == 0) {
             console.warn('converter: no root found for', root);
@@ -42,144 +40,300 @@ function CWRC2XML(writer) {
         }
         
         // remove previous namespaces
-        var rootAttributes = w.tagger.getAttributesForTag($rootEl[0]);
-        for (var attributeName in rootAttributes) {
+        const rootAttributes = w.tagger.getAttributesForTag($rootEl[0]);
+        for (const attributeName in rootAttributes) {
             if (attributeName.indexOf('xmlns') === 0) {
                 delete rootAttributes[attributeName];
             }
-        };
-        
+        }
+
         // namespaces
-        var schemaNamespace = w.schemaManager.mapper.getNamespace();
-        if (schemaNamespace !== undefined) {
-            rootAttributes['xmlns'] = schemaNamespace;
-        }
-        if (includeRDF) {
-            rootAttributes['xmlns:rdf'] = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
-        }
+        const schemaNamespace = w.schemaManager.mapper.getNamespace();
+        if (schemaNamespace !== undefined) rootAttributes['xmlns'] = schemaNamespace;
+        if (includeRDF) rootAttributes['xmlns:rdf'] = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+    
         w.tagger.setAttributesForTag($rootEl[0], rootAttributes);
 
-        var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
-        xmlString += '<?xml-model href="'+w.schemaManager.getCurrentDocumentSchemaUrl()+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
-        xmlString += '<?xml-stylesheet type="text/css" href="'+w.schemaManager.getCurrentDocumentCSSUrl()+'"?>\n';
+        let xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
+        xmlString += `<?xml-model href="${w.schemaManager.getCurrentDocumentSchemaUrl()}" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n`;
+        xmlString +=`<?xml-stylesheet type="text/css" href="${w.schemaManager.getCurrentDocumentCSSUrl()}"?>\n`;
 
-        console.time('buildXMLString');
+        // console.time('buildXMLString');
         xmlString += cwrc2xml.buildXMLString($rootEl, includeRDF);
-        console.timeEnd('buildXMLString');
+        // console.timeEnd('buildXMLString');
 
         xmlString = xmlString.replace(/&(?!amp;)/g, '&amp;');  //replace all '&' with '&amp;' allowing html/xml to validate.
 
         // RDF
+       
+        if (!includeRDF) {
+            xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
+            return xmlString;
+        }
 
-        if (includeRDF) {
-            console.time('stringToXML');
-            var xmlDoc = w.utilities.stringToXML(xmlString);
-            console.timeEnd('stringToXML');
-            if (xmlDoc === null) {
-                // parse error in document
-            } else {
-                console.time('setEntityRanges');
-                setEntityRanges(xmlDoc);
-                console.timeEnd('setEntityRanges');
+        // console.time('stringToXML');
+        const xmlDoc = w.utilities.stringToXML(xmlString);
+        // console.timeEnd('stringToXML');
 
-                console.time('cleanUp');
-                // clean up temp ids used by setEntityRanges
-                $('[cwrcTempId]', xmlDoc).each(function(index, el) {
-                    $(el).removeAttr('cwrcTempId');
-                });
-                console.timeEnd('cleanUp');
+        // parse error in document
+        if (xmlDoc === null) return null;
+        
+        // console.time('setEntityRanges');
+        setEntityRanges(xmlDoc);
+        // console.timeEnd('setEntityRanges');
 
-                var rdfmode;
-                if (w.annotationMode === w.XML) {
-                    rdfmode = 'xml';
+        // console.time('cleanUp');
+        // clean up temp ids used by setEntityRanges
+        $('[cwrcTempId]', xmlDoc).each((index, el) => (
+            $(el).removeAttr('cwrcTempId')
+        ));
+        // console.timeEnd('cleanUp');
+
+        const rdfmode = w.annotationMode === w.XML ? 'xml' : 'json';
+
+        const entities = [];
+        w.entitiesManager.eachEntity((id, ent) => entities.push(ent));
+
+        const rdfString = await w.annotationsManager.getAnnotations(entities, rdfmode);
+        // parse the selector and find the relevant node
+        const $docEl = $(xmlDoc.documentElement);
+        const selector = w.schemaManager.mapper.getRdfParentSelector();
+        const selectorTags = selector.split('/');
+        let $currNode = $docEl;
+        for (let tag of selectorTags) {
+            if (tag === '') continue;
+
+            if (tag.indexOf('::') === -1) {
+                if ($currNode[0].nodeName === tag) continue;
+            
+                const $nextNode = $currNode.children(tag).first();
+                if ($nextNode.length === 1) {
+                    $currNode = $nextNode;
                 } else {
-                    rdfmode = 'json';
-                }
-
-                var entities = [];
-                w.entitiesManager.eachEntity(function(id, ent) {
-                    entities.push(ent);
-                });
-
-                let rdfString = await w.annotationsManager.getAnnotations(entities, rdfmode);
-                // parse the selector and find the relevant node
-                var $docEl = $(xmlDoc.documentElement);
-                var selector = w.schemaManager.mapper.getRdfParentSelector();
-                var selectorTags = selector.split('/');
-                var $currNode = $docEl;
-                for (var i = 0; i < selectorTags.length; i++) {
-                    var tag = selectorTags[i];
-                    if (tag !== '') {
-                        if (tag.indexOf('::') === -1) {
-                            if ($currNode[0].nodeName === tag) {
-                                continue;
-                            } else {
-                                var $nextNode = $currNode.children(tag).first();
-                                if ($nextNode.length === 1) {
-                                    $currNode = $nextNode;
-                                } else {
-                                    // node doesn't exist so add it
-                                    var namespace = $currNode[0].namespaceURI;
-                                    var node = xmlDoc.createElementNS(namespace, tag);
-                                    var child = $currNode[0].firstElementChild;
-                                    if (child !== null) {
-                                        $currNode = $($currNode[0].insertBefore(node, child));
-                                    } else {
-                                        $currNode = $($currNode[0].appendChild(node));
-                                    }
-                                }
-                            }
-                        } else {
-                            // axis handling
-                            var parts = tag.split('::');
-                            var axis = parts[0];
-                            tag = parts[1];
-                            switch(axis) {
-                                case 'preceding-sibling':
-                                    var parent = $currNode[0].parentNode;
-                                    var namespace = parent.namespaceURI;
-                                    var node = xmlDoc.createElementNS(namespace, tag);
-                                    $currNode = $(parent.insertBefore(node, $currNode[0]));
-                                    break;
-                                case 'following-sibling':
-                                    var parent = $currNode[0].parentNode;
-                                    var namespace = parent.namespaceURI;
-                                    var node = xmlDoc.createElementNS(namespace, tag);
-                                    var sibling = $currNode[0].nextElementSibling;
-                                    if (sibling !== null) {
-                                        $currNode = $(parent.insertBefore(node, sibling));
-                                    } else {
-                                        $currNode = $(parent.appendChild(node));
-                                    }
-                                    break;
-                                default:
-                                    console.warn('cwrc2xml: axis',axis,'not supported');
-                                    break;
-                            }
-                        }
+                    // node doesn't exist so add it
+                    let namespace = $currNode[0].namespaceURI;
+                    let node = xmlDoc.createElementNS(namespace, tag);
+                    const child = $currNode[0].firstElementChild;
+                    if (child !== null) {
+                        $currNode = $($currNode[0].insertBefore(node, child));
+                    } else {
+                        $currNode = $($currNode[0].appendChild(node));
                     }
                 }
+            
+            } else {
+                // axis handling
+                const parts = tag.split('::');
+                const axis = parts[0];
+                tag = parts[1];
 
-                if ($currNode !== $docEl) {
-                    $currNode.append(rdfString);
-                } else {
-                    console.warn('cwrc2xml: couldn\'t find rdfParent for',selector);
+                let parent, namespace, node, sibling;
+
+                switch(axis) {
+                    case 'preceding-sibling':
+                        parent = $currNode[0].parentNode;
+                        namespace = parent.namespaceURI;
+                        node = xmlDoc.createElementNS(namespace, tag);
+                        $currNode = $(parent.insertBefore(node, $currNode[0]));
+                        break;
+                    case 'following-sibling':
+                        parent = $currNode[0].parentNode;
+                        namespace = parent.namespaceURI;
+                        node = xmlDoc.createElementNS(namespace, tag);
+                        sibling = $currNode[0].nextElementSibling;
+                        if (sibling !== null) {
+                            $currNode = $(parent.insertBefore(node, sibling));
+                        } else {
+                            $currNode = $(parent.appendChild(node));
+                        }
+                        break;
+                    default:
+                        console.warn('cwrc2xml: axis',axis,'not supported');
+                        break;
                 }
-                
-                console.time('xmlToString');
-                xmlString = w.utilities.xmlToString(xmlDoc);
-                console.timeEnd('xmlToString');
-
-                xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
-
-                callback.call(this, xmlString);
             }
-        } else {
-            xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
-
-            callback.call(this, xmlString);
+        
         }
+
+        if ($currNode !== $docEl) {
+            $currNode.append(rdfString);
+        } else {
+            console.warn('cwrc2xml: couldn\'t find rdfParent for',selector);
+        }
+        // console.time('xmlToString');
+        xmlString = w.utilities.xmlToString(xmlDoc);
+        // console.timeEnd('xmlToString');
+
+        xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
+
+        return xmlString;
     };
+
+    /**
+     * Gets the content of the document, converted from internal format to the schema format
+     * @param {boolean} includeRDF True to include RDF in the header
+     * @param {Function} callback Callback is called with the stringified document contents
+     */
+    // cwrc2xml.getDocumentContent = async function(includeRDF, callback) {
+    //     if (includeRDF && w.mode === w.XML) {
+    //         includeRDF = false;
+    //     }
+        
+    //     // remove highlights
+    //     w.entitiesManager.highlightEntity();
+
+    //     var $body = $(w.editor.getBody()).clone(false);
+    //     prepareText($body);
+
+    //     // XML
+        
+    //     var root = w.schemaManager.getRoot();
+    //     var $rootEl = $body.children('[_tag='+root+']');
+        
+    //     if ($rootEl.length == 0) {
+    //         console.warn('converter: no root found for', root);
+    //         $rootEl = $body.find('[_tag]:eq(0)'); // fallback
+    //     }
+        
+    //     // remove previous namespaces
+    //     var rootAttributes = w.tagger.getAttributesForTag($rootEl[0]);
+    //     for (var attributeName in rootAttributes) {
+    //         if (attributeName.indexOf('xmlns') === 0) {
+    //             delete rootAttributes[attributeName];
+    //         }
+    //     };
+        
+    //     // namespaces
+    //     var schemaNamespace = w.schemaManager.mapper.getNamespace();
+    //     if (schemaNamespace !== undefined) {
+    //         rootAttributes['xmlns'] = schemaNamespace;
+    //     }
+    //     if (includeRDF) {
+    //         rootAttributes['xmlns:rdf'] = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+    //     }
+    //     w.tagger.setAttributesForTag($rootEl[0], rootAttributes);
+
+    //     var xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    //     xmlString += '<?xml-model href="'+w.schemaManager.getCurrentDocumentSchemaUrl()+'" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>\n';
+    //     xmlString += '<?xml-stylesheet type="text/css" href="'+w.schemaManager.getCurrentDocumentCSSUrl()+'"?>\n';
+
+    //     console.time('buildXMLString');
+    //     xmlString += cwrc2xml.buildXMLString($rootEl, includeRDF);
+    //     console.timeEnd('buildXMLString');
+
+    //     xmlString = xmlString.replace(/&(?!amp;)/g, '&amp;');  //replace all '&' with '&amp;' allowing html/xml to validate.
+
+    //     // RDF
+
+    //     if (includeRDF) {
+    //         console.time('stringToXML');
+    //         var xmlDoc = w.utilities.stringToXML(xmlString);
+    //         console.timeEnd('stringToXML');
+    //         if (xmlDoc === null) {
+    //             // parse error in document
+    //         } else {
+    //             console.time('setEntityRanges');
+    //             setEntityRanges(xmlDoc);
+    //             console.timeEnd('setEntityRanges');
+
+    //             console.time('cleanUp');
+    //             // clean up temp ids used by setEntityRanges
+    //             $('[cwrcTempId]', xmlDoc).each(function(index, el) {
+    //                 $(el).removeAttr('cwrcTempId');
+    //             });
+    //             console.timeEnd('cleanUp');
+
+    //             var rdfmode;
+    //             if (w.annotationMode === w.XML) {
+    //                 rdfmode = 'xml';
+    //             } else {
+    //                 rdfmode = 'json';
+    //             }
+
+    //             var entities = [];
+    //             w.entitiesManager.eachEntity(function(id, ent) {
+    //                 entities.push(ent);
+    //             });
+
+    //             let rdfString = await w.annotationsManager.getAnnotations(entities, rdfmode);
+    //             // parse the selector and find the relevant node
+    //             var $docEl = $(xmlDoc.documentElement);
+    //             var selector = w.schemaManager.mapper.getRdfParentSelector();
+    //             var selectorTags = selector.split('/');
+    //             var $currNode = $docEl;
+    //             for (var i = 0; i < selectorTags.length; i++) {
+    //                 var tag = selectorTags[i];
+    //                 if (tag !== '') {
+    //                     if (tag.indexOf('::') === -1) {
+    //                         if ($currNode[0].nodeName === tag) {
+    //                             continue;
+    //                         } else {
+    //                             var $nextNode = $currNode.children(tag).first();
+    //                             if ($nextNode.length === 1) {
+    //                                 $currNode = $nextNode;
+    //                             } else {
+    //                                 // node doesn't exist so add it
+    //                                 var namespace = $currNode[0].namespaceURI;
+    //                                 var node = xmlDoc.createElementNS(namespace, tag);
+    //                                 var child = $currNode[0].firstElementChild;
+    //                                 if (child !== null) {
+    //                                     $currNode = $($currNode[0].insertBefore(node, child));
+    //                                 } else {
+    //                                     $currNode = $($currNode[0].appendChild(node));
+    //                                 }
+    //                             }
+    //                         }
+    //                     } else {
+    //                         // axis handling
+    //                         var parts = tag.split('::');
+    //                         var axis = parts[0];
+    //                         tag = parts[1];
+    //                         switch(axis) {
+    //                             case 'preceding-sibling':
+    //                                 var parent = $currNode[0].parentNode;
+    //                                 var namespace = parent.namespaceURI;
+    //                                 var node = xmlDoc.createElementNS(namespace, tag);
+    //                                 $currNode = $(parent.insertBefore(node, $currNode[0]));
+    //                                 break;
+    //                             case 'following-sibling':
+    //                                 var parent = $currNode[0].parentNode;
+    //                                 var namespace = parent.namespaceURI;
+    //                                 var node = xmlDoc.createElementNS(namespace, tag);
+    //                                 var sibling = $currNode[0].nextElementSibling;
+    //                                 if (sibling !== null) {
+    //                                     $currNode = $(parent.insertBefore(node, sibling));
+    //                                 } else {
+    //                                     $currNode = $(parent.appendChild(node));
+    //                                 }
+    //                                 break;
+    //                             default:
+    //                                 console.warn('cwrc2xml: axis',axis,'not supported');
+    //                                 break;
+    //                         }
+    //                     }
+    //                 }
+    //             }
+
+    //             if ($currNode !== $docEl) {
+    //                 $currNode.append(rdfString);
+    //             } else {
+    //                 console.warn('cwrc2xml: couldn\'t find rdfParent for',selector);
+    //             }
+                
+    //             console.time('xmlToString');
+    //             xmlString = w.utilities.xmlToString(xmlDoc);
+    //             console.timeEnd('xmlToString');
+
+    //             xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
+
+    //             callback.call(this, xmlString);
+    //         }
+    //     } else {
+    //         xmlString = xmlString.replace(/\uFEFF/g, ''); // remove characters inserted by node selecting
+
+    //         callback.call(this, xmlString);
+    //     }
+    // };
     
     /**
      * Process HTML entities and overlapping entities

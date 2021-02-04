@@ -50,26 +50,49 @@ function EditSource(writer, parentEl) {
         }
     });
     
-    var doOpen = function() {
+    const doOpen = () => {
         w.dialogManager.confirm({
             title: 'Edit Raw XML',
             msg: 'Editing the XML directly is only recommended for advanced users who know what they\'re doing.<br/><br/>Are you sure you wish to continue?',
             showConfirmKey: 'confirm-edit-source',
             type: 'info',
-            callback: function(yes) {
-                if (yes) {
-                    w.converter.getDocumentContent(true, (docText) => {
-                        console.time('dialog open');
-                        $edit.dialog('open');
-                        console.timeEnd('dialog open');
-                        console.time('set doc text');
-                        $('textarea', $edit).val(docText);
-                        console.timeEnd('set doc text');
-                    });
-                }
+            callback: async (yes) => {
+                if (!yes) return;
+
+                const docText = await w.converter.getDocumentContent(true);
+
+                console.time('dialog open');
+                $edit.dialog('open');
+                console.timeEnd('dialog open');
+                
+                console.time('set doc text');
+                $('textarea', $edit).val(docText);
+                console.timeEnd('set doc text');
+                
             }
         });
     };
+
+    // var doOpen = function() {
+    //     w.dialogManager.confirm({
+    //         title: 'Edit Raw XML',
+    //         msg: 'Editing the XML directly is only recommended for advanced users who know what they\'re doing.<br/><br/>Are you sure you wish to continue?',
+    //         showConfirmKey: 'confirm-edit-source',
+    //         type: 'info',
+    //         callback: function(yes) {
+    //             if (yes) {
+    //                 w.converter.getDocumentContent(true, (docText) => {
+    //                     console.time('dialog open');
+    //                     $edit.dialog('open');
+    //                     console.timeEnd('dialog open');
+    //                     console.time('set doc text');
+    //                     $('textarea', $edit).val(docText);
+    //                     console.timeEnd('set doc text');
+    //                 });
+    //             }
+    //         }
+    //     });
+    // };
     
     return {
         show: function(config) {

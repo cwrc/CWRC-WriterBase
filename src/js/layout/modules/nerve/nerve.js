@@ -604,19 +604,21 @@ function Nerve(config) {
         return html;
     }
 
-    var updateEntityView = function(entity, expand) {
-        var view = $parent.find('ul.entitiesList > li[data-id='+entity.getId()+']');
+    const updateEntityView = ({entity, expand = true}) => {
+        // console.log(entity)
+        // console.log(entity.getId())
+        const view = $parent.find(`ul.entitiesList > li[data-id=${entity.getId()}]`);
         view.data('type', entity.getType()).attr('data-type', entity.getType());
-        var alreadyExpanded = view.hasClass('expanded');
+
+        const alreadyExpanded = view.hasClass('expanded');
         view.removeClass();
         view.addClass(entity.getType());
-        if (alreadyExpanded || expand === true) {
-            view.addClass('expanded');
-        }
+        if (alreadyExpanded || expand === true) view.addClass('expanded');
+
         const title = (entity.getCustomValue('edited') === 'true' ? '&#8226; ' : '')+entity.getContent();
         view.find('.entityTitle').html(title);
         view.find('.info').html(getEntityViewInfo(entity));
-    }
+    };
 
     /**
      * Filter the view based on the specified filter.
@@ -918,12 +920,12 @@ function Nerve(config) {
             editDialog.$el.dialog('option', 'modal', false); // TODO modal dialog interferes with typing in lookups input
             editDialog.$el.on('save', (e, dialog) => {
                 const entity = w.entitiesManager.getEntity(dialog.currentId);
-                updateEntityView(entity, true);
+                updateEntityView({entity});
                 filterEntityView(getFilterValue());
             });
         }
         editDialog.show({entry: getEntryForEntityId(entityId)});
-    }
+    };
 
     var setMergeMode = function(val) {
         isMerge = val;

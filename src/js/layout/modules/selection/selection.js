@@ -87,28 +87,31 @@ function Selection(config) {
      */
     var selection = {};
     
-    var updateView = function(useDoc) {
-        if (enabled) {
-            var timestamp = new Date().getTime();
-            var timeDiff = timestamp - lastUpdate; // track to avoid double update on nodeChanged/tagSelected combo
-            if ($prismContainer.is(':visible') && timeDiff > 250) {
-                lastUpdate = new Date().getTime();
-                
-                if (useDoc || w.editor.selection.isCollapsed()) {
-                    showingFullDoc = true;
-                    var includeRdf = $includeRdf.prop('checked');
-                    w.converter.getDocumentContent(includeRdf, _showString);
-                } else {
-                    showingFullDoc = false;
-                    var range = w.editor.selection.getRng(true);
-                    var contents = range.cloneContents();
-                    $selectionContents.html(contents);
-                    var xmlString = w.converter.buildXMLString($selectionContents);
-                    _showString(xmlString);
-                }
-            }
+    const updateView = async (useDoc) => {
+        if (!enabled) return;
+
+        const timestamp = new Date().getTime();
+        const timeDiff = timestamp - lastUpdate; // track to avoid double update on nodeChanged/tagSelected combo
+        if (!$prismContainer.is(':visible') || timeDiff < 250) return;
+        // if ($prismContainer.is(':visible') && timeDiff > 250) {
+        
+        lastUpdate = new Date().getTime();
+        
+        if (useDoc || w.editor.selection.isCollapsed()) {
+            showingFullDoc = true;
+            const includeRdf = $includeRdf.prop('checked');
+            // w.converter.getDocumentContent(includeRdf, _showString);
+            const content = await w.converter.getDocumentContent(includeRdf);
+            _showString(content);
+        } else {
+            showingFullDoc = false;
+            const range = w.editor.selection.getRng(true);
+            const contents = range.cloneContents();
+            $selectionContents.html(contents);
+            const xmlString = w.converter.buildXMLString($selectionContents);
+            _showString(xmlString);
         }
-    }
+    };
 
     var _showString = function(xmlString) {
         var escapedContents = w.utilities.escapeHTMLString(xmlString);

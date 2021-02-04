@@ -346,7 +346,7 @@ DialogForm.prototype = {
             this.$el.trigger('beforeClose');
             this.$el.dialog('close');
             
-            if (this.mode === DialogForm.EDIT && this.currentData != null) {
+            if (this.mode === DialogForm.EDIT && this.currentData !== null) {
                 this.w.tagger.editEntity(this.currentId, this.currentData);
             } else {
                 this.w.tagger.finalizeEntity(this.type, this.currentData);
