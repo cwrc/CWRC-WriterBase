@@ -20,7 +20,13 @@ export const ZERO_OR_MORE = 'zeroOrMore';
 
 export const GROUP = 'group';
 
-export const PATTERN_CODES = new Set([ONE_OR_MORE, OPTIONAL, ZERO_OR_MORE, CHOICE]);
+export const PATTERN_CODES = new Set([
+	CHOICE,
+	ONE_OR_MORE,
+	OPTIONAL,
+	ZERO_OR_MORE,
+	GROUP,
+]);
 
 //variables
 let schemaJSON;
@@ -215,7 +221,7 @@ export const getChildrenForPath = (path) => {
 	// console.log(grammarElement);
 	let childrenElements = getElementChildren(grammarElement);
 	childrenElements = postProcessPattern(childrenElements);
-	// console.log(childrenElements);
+	console.log(childrenElements);
 	// console.log('!!!!!!!!');
 	return childrenElements;
 	// return [];
