@@ -3,6 +3,8 @@
 var $ = require('jquery');
 var ObjTree = require('../lib/objtree/ObjTree');
 const converter = require('xml-js');
+const salve = require('salve');
+const { Validator } = require('salve-dom');
 
 /**
  * @class Utilities
@@ -57,7 +59,7 @@ function Utilities(writer) {
         return json;
     };
 
-    u.xmlToJsonAlternatives = ({xml, alt}) => {
+    u.xmlToJsonAlternatives = async ({xml, alt}) => {
 
         let json = null;
 
@@ -83,6 +85,37 @@ function Utilities(writer) {
 
             console.log(json);
             console.timeEnd('xml-js');
+        // }
+            
+        // if (alt === 'salve') {
+
+        // ------ SALVE
+
+            console.time('salve');
+            const schemaUrl = w.schemaManager.getXMLUrl();
+            const result = await salve.convertRNGToPattern(schemaUrl);
+            // console.log(result);
+            const _json = salve.writeTreeToJSON(result.simplified, 3);
+            // console.log(_json);
+            const grammar = salve.readTreeFromJSON(_json);
+            // console.log(grammar);
+            w.grammar = grammar;
+            
+
+            // const walker = grammar.newWalker();
+            // w.walker = walker;
+            // console.log(walker);
+
+            // const validator = new Validator(grammar,  w.editor.getBody());
+            
+
+            // w.validator = validator;
+            // w.validator.start();
+            // console.log(validator);
+            
+            console.timeEnd('salve');
+
+            // ------ /// SALVE ------
         }
 
         return new Promise((resolve) => resolve(json));

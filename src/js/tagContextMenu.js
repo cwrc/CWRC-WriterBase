@@ -2,6 +2,8 @@ import $ from 'jquery';
 import 'jquery-contextmenu';
 import { sortBy } from 'lodash';
 import schemaNavigator from './schema/schemaNavigator2';
+import { Validator } from 'salve-dom';
+import { resolve } from 'tinymce';
 
 //Search box
 $.contextMenu.types.search = function(item, opt) {
@@ -56,25 +58,157 @@ class TagContextMenu {
 		});
 	}
 
+	async #getXmlDoc() {
+		console.group('convert to XML');
+		console.time('convert to XML');
+		const docText = await this.w.converter.getDocumentContent(false);
+		const parser = new DOMParser();
+		const xmlDoc = parser.parseFromString(docText,'text/xml');
+		// console.log(xmlDoc);
+		this.xmlDoc = xmlDoc;
+		console.timeEnd('convert to XML');
+		console.groupEnd();
+		return xmlDoc;
+	}
+
+	#getValidator(xmlDoc) {
+		console.group('Start Salve');
+		console.time('Start Salve');
+		const validator = new Validator(this.w.grammar, xmlDoc, {
+			prefix: 'cwrcwriter',
+			
+		});
+		// validator.start();
+		console.log(validator);
+		console.timeEnd('Start Salve');
+		console.groupEnd();
+		this.validator = validator;
+		return validator;
+	}
+
+	#speculativePossibilities = async (container, index, possibilities, content) => {
+		return new Promise((resolve) => {
+			console.time('speculative');
+			const speculativePossibility = new Set();
+			for (const tag of possibilities.values()) {
+				let elem = this.xmlDoc.createElement(tag);
+				// let elem = document.createElement(tag);
+	
+				if (content) elem.append(content);
+	
+				const speculation = this.validator.speculativelyValidate(container,index,elem);
+				// console.log(elem,speculation);
+	
+				if (!speculation) speculativePossibility.add(tag);
+			}
+			console.timeEnd('speculative');
+			resolve(speculativePossibility);
+		});
+	};
+
+	async #useSalve() {
+		const xmlDoc = await this.#getXmlDoc();
+		const validator = this.#getValidator(xmlDoc);
+		
+		const elementXpath = this.w.utilities.getElementXPath(this.element);
+		// console.log(elementXpath);
+
+		const elementContainer = this.w.utilities.evaluateXPath(xmlDoc,elementXpath);
+		// console.log(elementContainer);
+		// console.dir(elementContainer);
+
+		const elementContainerParent = elementContainer.parentNode;
+		// console.log(elementContainerParent);
+		// console.dir(elementContainerParent);
+		// console.log(elementContainer.parent);
+		// console.log(elementContainer.parentNode);
+		// console.log(elementContainer.value);
+
+		// const xElement = xpath.select(elementXpath, xmlDoc);
+		// console.log(xElement);
+		// console.dir(xElement[0])
+		// console.log(xElement.parentNode);
+
+		const possibilities = (container, index) => {
+			console.time('possible');
+			const possibleAt = validator.possibleAt(container,index);
+			// console.log(salvePossibleChildren);
+
+			let possible = new Set(); 
+			for (const event of possibleAt.values()) {
+				if (event.name !== 'enterStartTag') continue;
+				possible.add(event.namePattern.name);
+			}
+			possible = new Set([...possible].sort());
+			console.timeEnd('possible');
+			return possible;
+		};
+
+		
+
+		// ? Children
+		console.group('possibleChildren');
+		
+		const possibleChildren = possibilities(elementContainer,this.rng.startContainer);
+		// const possibleChildren = ['abbr', 'add', 'addName', 'address', 'affiliation', 'anchor', 'att', 'bibl', 'biblFull', 'bloc', 'certainty', 'choice', 'cit', 'climate', 'code', 'corr', 'country', 'date', 'del', 'desc', 'district', 'eg', 'emph', 'expan', 'figure', 'foreign', 'forename', 'formula', 'gap', 'gb', 'genName', 'geo', 'geogFeat', 'geogName', 'gi', 'gloss', 'graphic', 'hi', 'ident', 'idno', 'index', 'interp', 'interpGrp', 'label', 'lb', 'lg', 'list', 'listBibl', 'listEvent', 'listNym', 'listOrg', 'listPerson', 'listPlace', 'location', 'measureGrp', 'media', 'mentioned', 'milestone', 'name', 'nameLink', 'notatedMusic', 'note', 'num', 'offset', 'orgName', 'orig', 'pb', 'pc', 'persName', 'placeName', 'population', 'precision', 'ptr', 'q', 'quote', 'ref', 'reg', 'region', 'respons', 'roleName', 'rs', 's', 'said', 'seg', 'settlement', 'sic', 'soCalled', 'stage', 'surname', 'table', 'term', 'terrain', 'time', 'title', 'trait', 'unclear', 'val'];
+		console.log(possibleChildren);
+
+		// console.dir(this.rng)
+		// console.dir(this.rng.extractContents())
+		const content = this.rng.cloneContents();
+		const textContent = content.textContent;
+		// console.log(textContent);
+		
+		const speculativePossibleChildren = await this.#speculativePossibilities(elementContainer, this.rng.startContainer, possibleChildren, textContent);
+		console.log(speculativePossibleChildren);
+		this.speculativePossibleChildren = [...speculativePossibleChildren].map((tag) => ({ name: tag}));
+		console.groupEnd();
+		console.log(validator);
+
+		//? try to find index of siblings :const index = Array.prototype.indexOf.call(container.childNodes, body);
+
+		// ? Sibblings
+		// console.group('possibleSibblings');
+		
+		// const possibleSibblings = possibilities(elementContainerParent,0);
+		// console.log(possibleSibblings);
+
+		// const speculativePossibleSibblings = speculativePossibilities(elementContainerParent,0, possibleSibblings);
+		// console.log(speculativePossibleSibblings);
+		
+		// console.groupEnd();
+
+		
+	}
+
 	/**
 	 * Show the tag contextmenu
 	 * @param {Event} event The original contextmenu event
 	 * @param {String|Array} tagId The id of the tag. Can be undefined and will be determined by tagger.getCurrentTag. Can be an array to allow for merge action.
 	 * @param {Boolean} useSelection
 	 */
-	show({ event, tagId, useSelection }) {
+	async show({ event, tagId, useSelection }) {
 		event.preventDefault();
 		event.stopImmediatePropagation();
 
-		if (this.w.isReadOnly || this.w.isEditorReadOnly()) return;
+		this.rng = this.w.editor.currentBookmark.rng;
+		this.node = this.rng.commonAncestorContainer;
+		this.element = this.node.nodeType === 1 ? this.node : this.node.parentElement;
+		console.log(this.rng);
+		// console.dir(this.node);
+		// console.dir(this.element);
 
-		this.node = this.w.editor.currentBookmark.rng.commonAncestorContainer;
-		// console.log(this.w.editor.currentBookmark.rng);
+		//************ SALVE ----*/
+
+		await this.#useSalve();
+
+		//************ */
+		if (this.w.isReadOnly || this.w.isEditorReadOnly()) return;
 
 		const selectionLength = this.w.editor.currentBookmark.rng.endOffset - this.w.editor.currentBookmark.rng.startOffset;
 		this.hasContentSelection = selectionLength === 0 ? false : true;
 
-		this.element = this.node.nodeType === 1 ? this.node : this.node.parentElement;
+		// this.element = this.node.nodeType === 1 ? this.node : this.node.parentElement;
 		this.tagId = this.element.id;
 
 		if (tagId !== undefined && Array.isArray(tagId)) {
@@ -175,9 +309,9 @@ class TagContextMenu {
 				icon: 'fas fa-plus-circle',
 				className: 'context-menu-item-new',
 				items: (() => {
-					const filteredOptions = this.#filterChildren({ tags: childTags });
-					const options = this.#simplifyAndSortTags(filteredOptions);
-					const submenu = this.#getSubmenu({ options, action: 'add' });
+					// const filteredOptions = this.#filterChildren({ tags: childTags });
+					// const options = this.#simplifyAndSortTags(filteredOptions);
+					const submenu = this.#getSubmenu({ options: this.speculativePossibleChildren, action: 'add' });
 					return submenu;
 				})(),
 			};
