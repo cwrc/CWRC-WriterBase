@@ -1,32 +1,22 @@
 {
-    "env": {
-        "browser": true,
-        "commonjs": true,
-        "es6": true,
-        "jest": true
-    },
-    "extends": [
-        "eslint:recommended",
-        "plugin:react/recommended"
-    ],
-    "globals": {
-        "Atomics": "readonly",
-        "SharedArrayBuffer": "readonly"
-    },
-    "parser": "@babel/eslint-parser",
-    "parserOptions": {
-        "allowImportExportEverywhere": false,
-        "ecmaVersion": 2020,
-        "sourceType": "module",
-        "codeFrame": true
-    },
-    "rules": {
-        "quotes": [2, "single"],
-        "require-atomic-updates": "off",
-        "no-multi-spaces": 0,
-        "no-trailing-spaces": 0,
-        "no-unused-vars": 2,
-        "semi": ["error", "always"],
-        "require-await": ["error"]
-    }
+  "env": {
+    "browser": true,
+    "commonjs": true,
+    "es6": true,
+    "jest": true
+  },
+  "extends": ["eslint:recommended", "plugin:react/recommended", "prettier"],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "allowImportExportEverywhere": true,
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": 2
+  }
 }
