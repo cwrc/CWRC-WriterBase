@@ -25,8 +25,12 @@ config.storageDialogs = require('./mocks/storage-dialogs-mock');
 config.entityLookupDialogs = require('./mocks/entity-dialogs-mock');
 config.container = 'cwrcWriterContainer';
 config.modules = {
-    west: [{id: 'structure'}, {id: 'entities'}, {id: 'nerve', config: {nerveUrl: 'https://localhost/nerve/'}}], // TODO entities selectmenu is messing up ui-layout panel heights
-    south: [{id: 'selection'}, {id: 'validation',config: {'validationUrl': 'https://localhost/validator/validate.html'}}]
+  west: [
+    { id: 'structure' },
+    { id: 'entities' },
+    { id: 'nerve', config: { nerveUrl: 'https://localhost/nerve/' } },
+  ], // TODO entities selectmenu is messing up ui-layout panel heights
+  south: [{ id: 'selection' }, { id: 'validation' }],
 };
 
 const teiSchema = require('./mocks/tei-schema');
@@ -131,7 +135,7 @@ test('writer.setDocument convertEntities', async () => {
 });
 
 
-test('writer.validate pass', () => {
+test.skip('writer.validate pass', () => {
     expect.assertions(1);
 
     writer = getWriterInstance();
@@ -152,7 +156,7 @@ test('writer.validate pass', () => {
     })
 });
 
-test('writer.validate fail', () => {
+test.skip('writer.validate fail', () => {
     expect.assertions(1);
 
     writer = getWriterInstance()

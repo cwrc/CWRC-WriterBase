@@ -1,7 +1,6 @@
 {
   "cwrcRootUrl": "",
   "nerveUrl": "https://dh.sharcnet.ca/NerveService",
-  "validationUrl": "https://validator.services.cwrc.ca/validator/validate.html",
   "cwrcDialogs": {
     "cwrcApiUrl": "https://apps.testing.cwrc.ca/islandora/cwrc_entities/v1/",
     "repositoryBaseObjectUrl": "https://commons.cwrc.ca/",
