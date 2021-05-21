@@ -1,12 +1,10 @@
-'use strict';
+import $ from 'jquery';
+import 'jquery-ui/ui/widgets/dialog';
+import 'jquery-ui/ui/widgets/accordion';
 
-var $ = require('jquery');
+import { iso6392 } from 'iso-639-2'
+const AttributeWidget = require('./attributeWidget/attributeWidget.js');
 
-require('jquery-ui/ui/widgets/dialog');
-require('jquery-ui/ui/widgets/accordion');
-
-var iso6392 = require('iso-639-2');
-var AttributeWidget = require('./attributeWidget/attributeWidget.js');
     
 function Translation(writer, parentEl) {
     var w = writer;
@@ -62,10 +60,10 @@ function Translation(writer, parentEl) {
                 $el.dialog('close');
             }
         }],
-        open: function(e) {
-        },
-        close: function(e) {
-        }
+        // eslint-disable-next-line no-unused-vars
+        open: (e) => {},
+        // eslint-disable-next-line no-unused-vars
+        close: (e) => {}
     });
 
     var langOptions = iso6392.reduce((result, lang) => {
@@ -131,6 +129,7 @@ function Translation(writer, parentEl) {
     };
 
     return {
+        // eslint-disable-next-line no-unused-vars
         show: function(config) {
             var currTag = w.tagger.getCurrentTag().attr('_tag');
             if (currTag !== tagName) {
@@ -174,4 +173,5 @@ function Translation(writer, parentEl) {
     };
 }
 
-module.exports = Translation;
+// module.exports = Translation;
+export default Translation;
