@@ -35,7 +35,7 @@ let schemaElements;
 export const setSchemaJSON = (json) => {
 	schemaJSON = json;
 	schemaJSON = reprocessJson(schemaJSON);
-	console.log(schemaJSON);
+	// console.log(schemaJSON);
 	return;
 };
 
@@ -75,7 +75,7 @@ const reprocessJson = (schema) => {
 		attributes: [],
 	});
 
-	console.log(types);
+	// console.log(types);
 	console.timeEnd('JSON SCHEMA REPROCESS');
 
 	return schema;
@@ -221,7 +221,7 @@ export const getChildrenForPath = (path) => {
 	// console.log(grammarElement);
 	let childrenElements = getElementChildren(grammarElement);
 	childrenElements = postProcessPattern(childrenElements);
-	console.log(childrenElements);
+	// console.log(childrenElements);
 	// console.log('!!!!!!!!');
 	return childrenElements;
 	// return [];
