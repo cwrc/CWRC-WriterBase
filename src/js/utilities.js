@@ -11,18 +11,18 @@ const { Validator } = require('salve-dom');
  * @param {Writer} writer
  */
 function Utilities(writer) {
-    var w = writer;
+    const w = writer;
     
     // created in and used by convertTextForExport
-    var $entitiesConverter;
+    let $entitiesConverter;
     
     /**
      * @lends Utilities
      */
-    var u = {};
+    const u = {};
     
-    u.xmlToString = function(xmlData) {
-        var xmlString = '';
+    u.xmlToString = (xmlData) => {
+        let xmlString = '';
         try {
             xmlString = (new XMLSerializer()).serializeToString(xmlData);
         } catch (e) {
@@ -31,9 +31,9 @@ function Utilities(writer) {
         return xmlString;
     };
     
-    u.stringToXML = function(string) {
-        var doc = (new DOMParser()).parseFromString(string, "text/xml");
-        var parsererror = doc.querySelector('parsererror');
+    u.stringToXML = (string) => {
+        const doc = (new DOMParser()).parseFromString(string, 'text/xml');
+        const parsererror = doc.querySelector('parsererror');
         if (parsererror !== null) {
             console.error('utilities.stringToXML parse error:',parsererror.innerText);
             return null;
@@ -127,14 +127,14 @@ function Utilities(writer) {
      * @param {Boolean} [isAttributeValue] Is this an attribute value? Defaults to false
      * @returns {String} The converted text
      */
-    u.convertTextForExport = function(text, isAttributeValue) {
+    u.convertTextForExport = (text, isAttributeValue) => {
         isAttributeValue = isAttributeValue === undefined ? false : isAttributeValue;
 
         if ($entitiesConverter === undefined) {
             $entitiesConverter = $('<div style="display: none;"></div>').appendTo(w.layoutManager.getContainer());
         }
 
-        var newText = text;
+        let newText = text;
         if (newText != null) {
             if (newText.match(/&.+?;/gim)) { // match all entities
                 $entitiesConverter[0].innerHTML = newText;
@@ -150,32 +150,32 @@ function Utilities(writer) {
         return newText;
     }
     
-    u.addCSS = function(cssHref) {
-        var fullHref = w.cwrcRootUrl+cssHref;
-        if (document.querySelector('link[rel=stylesheet][href="'+fullHref+'"]')) {
+    u.addCSS = (cssHref) => {
+        const fullHref = w.cwrcRootUrl+cssHref;
+        if (document.querySelector(`link[rel=stylesheet][href="${fullHref}"]`)) {
             return;
         }
-        $(document.head).append('<link type="text/css" rel="stylesheet" href="'+fullHref+'" />');
+        $(document.head).append(`<link type="text/css" rel="stylesheet" href="${fullHref}" />`);
     }
     
     /**
      * @param content
      * @returns {String}
      */
-    u.getTitleFromContent = function(content) {
+    u.getTitleFromContent = (content) => {
         content = content.trim();
         if (content.length <= 34) return content;
-        var title = content.substring(0, 34) + '&#8230;';
+        const title = content.substring(0, 34) + '&#8230;';
         return title;
     };
     
-    u.getCamelCase = function(str) {
-        return str.replace(/(?:^|\s)\w/g, function(match) {
+    u.getCamelCase = (str) => {
+        return str.replace(/(?:^|\s)\w/g, (match) => {
             return match.toUpperCase();
         });
     };
     
-    u.escapeHTMLString = function(value) {
+    u.escapeHTMLString = (value) => {
         if (typeof value == 'string') {
             return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#039;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         } else {
@@ -183,7 +183,7 @@ function Utilities(writer) {
         }
     };
     
-    u.unescapeHTMLString = function(value) {
+    u.unescapeHTMLString = (value) => {
         if (typeof value == 'string') {
             return value.replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
         } else {
@@ -191,10 +191,10 @@ function Utilities(writer) {
         }
     };
     
-    u.getPreviousTextNode = function(node, skipWhitespace) {
+    u.getPreviousTextNode = (node, skipWhitespace) => {
         skipWhitespace = skipWhitespace === undefined ? false : skipWhitespace;
-        var walker = node.ownerDocument.createTreeWalker(node.ownerDocument, NodeFilter.SHOW_TEXT, {
-            acceptNode: function(node) {
+        const walker = node.ownerDocument.createTreeWalker(node.ownerDocument, NodeFilter.SHOW_TEXT, {
+            acceptNode: (node) => {
                 // whitespace match does not include \uFEFF since we use that to prevent empty tags
                 if (skipWhitespace === false || skipWhitespace && node.textContent.match(/^[\f\n\r\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]*$/) === null) {
                     return NodeFilter.FILTER_ACCEPT;
@@ -204,15 +204,15 @@ function Utilities(writer) {
             }
         });
         walker.currentNode = node;
-        var prevTextNode = walker.previousNode();
+        const prevTextNode = walker.previousNode();
 
         return prevTextNode;
     };
     
-    u.getNextTextNode = function(node, skipWhitespace) {
+    u.getNextTextNode = (node, skipWhitespace) => {
         skipWhitespace = skipWhitespace === undefined ? false : skipWhitespace;
-        var walker = node.ownerDocument.createTreeWalker(node.ownerDocument, NodeFilter.SHOW_TEXT, {
-            acceptNode: function(node) {
+        const walker = node.ownerDocument.createTreeWalker(node.ownerDocument, NodeFilter.SHOW_TEXT, {
+            acceptNode: (node) => {
                 // whitespace match does not include \uFEFF since we use that to prevent empty tags
                 if (skipWhitespace === false || skipWhitespace && node.textContent.match(/^[\f\n\r\t\v\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]*$/) === null) {
                     return NodeFilter.FILTER_ACCEPT;
@@ -222,7 +222,7 @@ function Utilities(writer) {
             }
         });
         walker.currentNode = node;
-        var nextTextNode = walker.nextNode();
+        const nextTextNode = walker.nextNode();
         
         return nextTextNode;
     };
@@ -232,24 +232,25 @@ function Utilities(writer) {
      * @param id The id of the element to select
      * @param selectContentsOnly Whether to select only the contents of the element (defaults to false)
      */
-    u.selectElementById = function(id, selectContentsOnly) {
+    u.selectElementById = (id, selectContentsOnly) => {
         selectContentsOnly = selectContentsOnly == null ? false : selectContentsOnly;
 
         w.entitiesManager.removeHighlights();
-
-        if ($.isArray(id)) {
+        
+        if (Array.isArray(id)) {
             // TODO add handling for multiple ids
             id = id[id.length - 1];
         }
 
-        var node = $('#' + id, w.editor.getBody());
-        var nodeEl = node[0];
+        const node = $('#' + id, w.editor.getBody());
+        const nodeEl = node[0];
         if (nodeEl != null) {
             // show the element if it's inside a note
             node.parents('.noteWrapper').removeClass('hide');
 
-            var rng = w.editor.dom.createRng();
+            const rng = w.editor.dom.createRng();
             if (selectContentsOnly) {
+                // eslint-disable-next-line no-undef
                 if (tinymce.isWebKit) {
                     if (nodeEl.firstChild == null) {
                         node.append('\uFEFF');
@@ -268,7 +269,7 @@ function Utilities(writer) {
             w.editor.currentBookmark = w.editor.selection.getBookmark(1);
 
             // scroll node into view
-            var nodeTop = 0;
+            let nodeTop = 0;
             if (node.is(':hidden')) {
                 node.show();
                 nodeTop = node.position().top;
@@ -276,21 +277,21 @@ function Utilities(writer) {
             } else {
                 nodeTop = node.position().top;
             }
-            var newScrollTop = nodeTop - $(w.editor.getContentAreaContainer()).height() * 0.25;
+            const newScrollTop = nodeTop - $(w.editor.getContentAreaContainer()).height() * 0.25;
             $(w.editor.getDoc()).scrollTop(newScrollTop);
 
             // using setRng triggers nodeChange event so no need to call it manually
             //            _fireNodeChange(nodeEl);
 
             // need focus to happen after timeout, otherwise it doesn't always work (in FF)
-            window.setTimeout(function() {
+            window.setTimeout(() => {
                 w.editor.focus();
                 w.event('tagSelected').publish(id, selectContentsOnly);
             }, 0);
         }
     };
     
-    u.getRootTag = function() {
+    u.getRootTag = () => {
         return $('[_tag]:first', w.editor.getBody());
     };
     
@@ -301,23 +302,23 @@ function Utilities(writer) {
      * @param {String} [tagAttribute] The name of the attribute to use as the tag
      * @returns {String|null}
      */
-    u.getElementXPath = function(element, tagAttribute) {
+    u.getElementXPath = (element, tagAttribute) => {
         if (element == null) {
             return null;
         }
-        var tagAtt = undefined;
+        let tagAtt = undefined;
         if (tagAttribute !== undefined) {
             tagAtt = tagAttribute;
         } else if (element.getAttribute('_tag') !== null) {
             tagAtt = '_tag'; // cwrc-writer format
         }
-        var paths = [];
+        const paths = [];
         
         // Use nodeName (instead of localName) so namespace prefix is included (if any).
         for (; element && element.nodeType == 1; element = element.parentNode)
         {
-            var index = 0;
-            for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling)
+            let index = 0;
+            for (let sibling = element.previousSibling; sibling; sibling = sibling.previousSibling)
             {
                 // Ignore document type declaration.
                 if (sibling.nodeType == Node.DOCUMENT_TYPE_NODE)
@@ -334,19 +335,19 @@ function Utilities(writer) {
                 }
             }
 
-            var tagName = null;
+            let tagName = null;
             if (tagAtt !== undefined) {
                 tagName = element.getAttribute(tagAtt);
             } else {
                 tagName = element.nodeName;
             }
             if (tagName != null) {
-                var pathIndex = (index ? "[" + (index+1) + "]" : "");
+                let pathIndex = (index ? `[${index + 1}]` : '');
                 paths.splice(0, 0, tagName + pathIndex);
             }
         }
 
-        return paths.length ? paths.join("/") : null;
+        return paths.length ? paths.join('/') : null;
     };
 
     /**
@@ -357,13 +358,14 @@ function Utilities(writer) {
      * @param {String} xpath
      * @returns {XPathResult|null} The result or null
      */
-    u.evaluateXPath = function(contextNode, xpath) {
+    u.evaluateXPath = (contextNode, xpath) => {
         let doc = contextNode.ownerDocument;
         if (doc === null) doc = contextNode; // then the contextNode is a doc
            
         const isCWRC = doc === w.editor.getDoc();
 
         // grouped matches: 1 separator, 2 axis, 3 namespace, 4 element name or attribute name or function, 5 predicate
+        // eslint-disable-next-line no-useless-escape
         const regex = /(\/{0,2})([\w-]+::|@)?(\w+?:)?([\w-(\.\*)]+)(\[.+?\])?/g;
 
         let nsResolver = null;
@@ -474,26 +476,26 @@ function Utilities(writer) {
     u.processArray = function(array, processFunc, refreshRate) {
         refreshRate = refreshRate === undefined ? 250 : refreshRate;
 
-        var dfd = new $.Deferred();
+        const dfd = new $.Deferred();
 
-        var li = w.dialogManager.getDialog('loadingindicator');
+        const li = w.dialogManager.getDialog('loadingindicator');
 
-        var startingLength = array.length;
-        var time1 = new Date().getTime();
+        const startingLength = array.length;
+        let time1 = new Date().getTime();
 
-        var parentFunc = function() {
+        const parentFunc = function() {
             while (array.length > 0) {
-                var entry = array.shift();
+                const entry = array.shift();
 
                 processFunc.call(this, entry);
 
-                var time2 = new Date().getTime();
+                const time2 = new Date().getTime();
                 if (time2 - time1 > refreshRate) {
                     break;
                 }
             }
 
-            var percent = Math.abs(array.length-startingLength) / startingLength * 100;
+            const percent = Math.abs(array.length-startingLength) / startingLength * 100;
             li.setValue(percent);
 
             if (array.length > 0) {
@@ -509,9 +511,9 @@ function Utilities(writer) {
         return dfd.promise();
     };
     
-    u.createGuid = function() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
+    u.createGuid = () =>{
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+            const r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
             return v.toString(16);
         });
     };
@@ -522,15 +524,15 @@ function Utilities(writer) {
      * @param {Element} [parent] The offset parent. Default is the cwrc-writer container.
      * @returns {Object} position An object container top and left properties
      */
-    u.getOffsetPosition = function(el, parent) {
+    u.getOffsetPosition = (el, parent) => {
         parent = parent === undefined ? w.layoutManager.getContainer() : $(parent);
 
-        var $el = $(el);
-        var position = $el.position();
+        const $el = $(el);
+        const position = $el.position();
         
-        var offP = $el.offsetParent();
+        let offP = $el.offsetParent();
         while(parent.find(offP).length == 1) {
-            var pos = offP.position();
+            const pos = offP.position();
             position.top += pos.top;
             position.left += pos.left;
             
@@ -547,10 +549,8 @@ function Utilities(writer) {
      * @param {Number} size The size of the element
      * @returns {Number} value The constrained value
      */
-    u.constrain = function(value, max, size) {
-        if (value < 0) {
-            return 0;
-        }
+    u.constrain = (value, max, size) => {
+        if (value < 0) return 0;
 
         if (value + size > max) {
             value = max - size;
@@ -560,7 +560,7 @@ function Utilities(writer) {
         return value;
     }
 
-    u.destroy = function() {
+    u.destroy = () => {
         if ($entitiesConverter !== undefined) {
             $entitiesConverter.remove();
         }
@@ -569,4 +569,5 @@ function Utilities(writer) {
     return u;
 };
 
-module.exports = Utilities;
+// module.exports = Utilities;
+export default Utilities;

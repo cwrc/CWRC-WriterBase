@@ -1,8 +1,6 @@
-'use strict';
-
-const $ = require('jquery');
-const Mapper = require('./mapper.js');
-const css = require('css');
+import $ from 'jquery';
+import css from 'css';
+import Mapper from './mapper';
 import SchemaNavigator from './schemaNavigator';
 import { setSchemaJSON } from './schemaNavigator2';
 
@@ -22,12 +20,8 @@ function SchemaManager(writer, config) {
 
     const BLOCK_TAG = 'div';
     const INLINE_TAG = 'span';
-    sm.getBlockTag = function() {
-        return BLOCK_TAG;
-    }
-    sm.getInlineTag = function() {
-        return INLINE_TAG;
-    }
+    sm.getBlockTag = () => BLOCK_TAG;
+    sm.getInlineTag = () => INLINE_TAG;
     
     sm.mapper = new Mapper({writer: w});
 
@@ -70,13 +64,13 @@ function SchemaManager(writer, config) {
     sm.schemaXML = null;
     
     sm._xmlUrl = null;
+
     /**
      * Get the URL for the XML for the current schema.
      * @returns {String}
      */
-    sm.getXMLUrl = function() {
-        return sm._xmlUrl;
-    };
+    sm.getXMLUrl = () => sm._xmlUrl;
+
     /**
      * A JSON version of the schema
      * @member {Object}
@@ -93,8 +87,8 @@ function SchemaManager(writer, config) {
      * Gets the schema object for the current schema.
      * @returns {Object}
      */
-    sm.getCurrentSchema = function() {
-        return sm.schemas.find( schema => schema.id === sm.schemaId);
+    sm.getCurrentSchema = () => {
+        return sm.schemas.find((schema) => schema.id === sm.schemaId);
     };
 
     /**
@@ -102,7 +96,7 @@ function SchemaManager(writer, config) {
      * @param {String} root The root name
      * @returns {String|undefined} The schemaId
      */
-    sm.getSchemaIdFromRoot = function(root) {
+    sm.getSchemaIdFromRoot = (root) => {
         for (const schemaId in sm.mapper.mappings) {
             if (sm.mapper.mappings[schemaId].root.indexOf(root) !== -1) {
                 return schemaId;
@@ -116,10 +110,8 @@ function SchemaManager(writer, config) {
      * @param {String} xmlUrl The schema url
      * @returns {String|undefined} The schemaId
      */
-    sm.getSchemaIdFromUrl = function(xmlUrl) {
-        if (xmlUrl === undefined) {
-            return undefined;
-        }
+    sm.getSchemaIdFromUrl = (xmlUrl) => {
+        if (xmlUrl === undefined) return;
 
         // remove the protocol in order to disregard http/https for improved chances of matching below
         const xmlUrlNoProtocol = xmlUrl.split(/^.*?\/\//)[1];
@@ -141,62 +133,53 @@ function SchemaManager(writer, config) {
     };
 
     sm._root = null;
+
     /**
      * Get the root tag name for the current schema.
      * @returns {String}
      */
-    sm.getRoot = function() {
-        return sm._root;
-    };
+    sm.getRoot = () => sm._root;
     
     sm._header = null;
+
     /**
      * Get the header tag name for the current schema.
      * @returns {String}
      */
-    sm.getHeader = function() {
-        return sm._header;
-    };
+    sm.getHeader = () => sm._header;
     
     sm._idName = null;
+
     /**
      * Get the name of the ID attribute for the current schema.
      * @returns {String}
      */
-    sm.getIdName = function() {
-        return sm._idName;
-    };
+    sm.getIdName = () => sm._idName;
     
     sm._cssUrl = null;
     /**
      * Get the URL for the CSS for the current schema.
      * @returns {String}
      */
-    sm.getCSSUrl = function() {
-        return sm._cssUrl;
-    };
+    sm.getCSSUrl = () => sm._cssUrl;
 
     /**
      * Is the current schema custom? I.e. is it lacking entity mappings?
      * @returns {Boolean}
      */
-    sm.isSchemaCustom = function() {
+    sm.isSchemaCustom = () => {
         return sm.getCurrentSchema().schemaMappingsId === undefined;
     };
     
     sm._currentDocumentSchemaUrl = null;
-    sm.getCurrentDocumentSchemaUrl = function() {
-        return sm._currentDocumentSchemaUrl;
-    }
-    sm.setCurrentDocumentSchemaUrl = function(url) {
+    sm.getCurrentDocumentSchemaUrl = () => sm._currentDocumentSchemaUrl;
+    sm.setCurrentDocumentSchemaUrl = (url) => {
         sm._currentDocumentSchemaUrl = url;
     }
 
     sm._currentDocumentCSSUrl = null;
-    sm.getCurrentDocumentCSSUrl = function() {
-        return sm._currentDocumentCSSUrl;
-    }
-    sm.setCurrentDocumentCSSUrl = function(url) {
+    sm.getCurrentDocumentCSSUrl = () => sm._currentDocumentCSSUrl;
+    sm.setCurrentDocumentCSSUrl = (url) => {
         sm._currentDocumentCSSUrl = url;
     }
 
@@ -205,7 +188,7 @@ function SchemaManager(writer, config) {
      * @param {string} tag The tag to check
      * @returns boolean
      */
-    sm.canTagContainText = function(tag) {
+    sm.canTagContainText = (tag) => {
         if (tag == sm.getRoot()) return false;
         
         /**
@@ -214,10 +197,8 @@ function SchemaManager(writer, config) {
          * @param level The level of recursion
          * @param status Keep track of status while recursing
          */
-        function checkForText(currEl, defHits, level, status) {
-            if (status.canContainText) {
-                return false;
-            }
+        const checkForText = () => (currEl, defHits, level, status) => {
+            if (status.canContainText) return false;
             
             // check for the text element
             const textHits = currEl.find('text');
@@ -227,7 +208,7 @@ function SchemaManager(writer, config) {
             }
             
             // now process the references
-            currEl.find('ref').each(function(index, el) {
+            currEl.find('ref').each((index, el) => {
                 const name = $(el).attr('name');
                 if ($(el).parents('element').length > 0 && level > 0) {
                     return; // ignore other elements
@@ -259,34 +240,32 @@ function SchemaManager(writer, config) {
         return status.canContainText;
     };
 
-    sm.isTagBlockLevel = function(tagName) {
+    sm.isTagBlockLevel = (tagName) => {
         if (tagName == sm.getRoot()) return true;
         return w.editor.schema.getBlockElements()[tagName] != null;
     };
     
-    sm.isTagEntity = function(tagName) {
+    sm.isTagEntity = (tagName) => {
         const type = sm.mapper.getEntityTypeForTag(tagName);
         return type !== null;
     };
     
-    sm.getTagForEditor = function(tagName) {
+    sm.getTagForEditor = (tagName) => {
         return sm.isTagBlockLevel(tagName) ? BLOCK_TAG : INLINE_TAG;
     };
 
-    sm.getDocumentationForTag = function(tag) {
+    sm.getDocumentationForTag = (tag) => {
         const element = $('element[name="'+tag+'"]', sm.schemaXML);
         const doc = $('a\\:documentation, documentation', element).first().text();
         return doc;
     };
     
-    sm.getFullNameForTag = function(tag) {
+    sm.getFullNameForTag = (tag) => {
         const element = $('element[name="'+tag+'"]', sm.schemaXML);
         const doc = $('a\\:documentation, documentation', element).first().text();
         // if the tag name is an abbreviation, we expect the full name to be at the beginning of the doc, in parentheses
         const hit = /^\((.*?)\)/.exec(doc);
-        if (hit !== null) {
-            return hit[1];
-        }
+        if (hit !== null) return hit[1];
         return '';
     };
 
@@ -295,7 +274,7 @@ function SchemaManager(writer, config) {
      * @param {String} tag The tag name.
      * @returns {Object}
      */
-    sm.getRequiredChildrenForTag = function(tag) {
+    sm.getRequiredChildrenForTag = (tag) => {
         const tags = sm.getChildrenForTag(tag);
         for (let i = tags.length-1; i > -1; i--) {
             if (tags[i].required !== true) {
@@ -310,7 +289,7 @@ function SchemaManager(writer, config) {
      * @param {string} tag The tag to check
      * @returns boolean
      */
-    sm.canTagHaveAttributes = function(tag) {
+    sm.canTagHaveAttributes = (tag) => {
         const atts = sm.getAttributesForTag(tag);
         return atts.length !== 0;
     };
@@ -321,7 +300,7 @@ function SchemaManager(writer, config) {
      * @param {String} parentName The parent tag name
      * @returns {Boolean}
      */
-    sm.isTagValidChildOfParent = function(childName, parentName) {
+    sm.isTagValidChildOfParent = (childName, parentName) => {
         const parents = sm.getParentsForTag(childName);
         for (let i = 0; i < parents.length; i++) {
             if (parents[i].name === parentName) {
@@ -337,7 +316,7 @@ function SchemaManager(writer, config) {
      * @param {String} tagName The tag name
      * @returns {Boolean}
      */
-    sm.isAttributeValidForTag = function(attributeName, tagName) {
+    sm.isAttributeValidForTag = (attributeName, tagName) => {
         const atts = sm.getAttributesForTag(tagName);
         for (let i = 0; i < atts.length; i++) {
             if (atts[i].name === attributeName) {
@@ -354,7 +333,7 @@ function SchemaManager(writer, config) {
      * @param {Boolean} removeContents Are the node contents being removed?
      * @returns {Boolean}
      */
-    sm.wouldDeleteInvalidate = function(contextNode, removeContext, removeContents) {
+    sm.wouldDeleteInvalidate = (contextNode, removeContext, removeContents) => {
         let parentEl = contextNode.parentElement;
         let parentTag = parentEl.getAttribute('_tag');
         // handling for when we're inside entityHighlight
@@ -387,9 +366,7 @@ function SchemaManager(writer, config) {
                         }
                     }
                 }
-                if (!hasRequiredSibling) {
-                    return true;
-                }
+                if (!hasRequiredSibling) return true;
             }
 
             if (!removeContents) {
@@ -401,9 +378,7 @@ function SchemaManager(writer, config) {
                     const childIsValid = validChildren.find(vc => {
                         return vc.name === childTag
                     });
-                    if (!childIsValid) {
-                        return true;
-                    }
+                    if (!childIsValid) return true;
                 }
     
                 // check if context has text and if parent can contain text
@@ -422,9 +397,7 @@ function SchemaManager(writer, config) {
                 // check if context children are required
                 const contextTag = contextNode.getAttribute('_tag');
                 const requiredChildren = sm.getRequiredChildrenForTag(contextTag);
-                if (requiredChildren.length > 0) {
-                    return true;
-                }
+                if (requiredChildren.length > 0) return true;
             }
         }
 
@@ -442,7 +415,7 @@ function SchemaManager(writer, config) {
      * @returns {String} id The id for the schema
      * 
      */
-    sm.addSchema = function(config) {
+    sm.addSchema = (config) => {
         config.id = w.getUniqueId('schema');
         if (config.xmlUrl && typeof config.xmlUrl === 'string') {
             config.xmlUrl = [config.xmlUrl]
@@ -460,7 +433,7 @@ function SchemaManager(writer, config) {
      * @param {String} schemaId The ID of the schema
      * @returns {Array|null} Collection of urls for the schema
      */
-    sm.getUrlForSchema = function(schemaId) {
+    sm.getUrlForSchema = (schemaId) => {
         const schemaEntry = sm.schemas.find( schema => schema.id === schemaId);
         if (schemaEntry !== undefined) return schemaEntry.xmlUrl;
         return null;
@@ -471,7 +444,7 @@ function SchemaManager(writer, config) {
      * @param {String} schemaId The ID of the schema
      * @returns {String} The (first) root name
      */
-    sm.getRootForSchema = async function(schemaId) {
+    sm.getRootForSchema = async (schemaId) => {
         
         if (sm.mapper.mappings[schemaId] !== undefined) {
             return sm.mapper.mappings[schemaId].root[0];
@@ -507,11 +480,10 @@ function SchemaManager(writer, config) {
      * @returns {Document} The XML
      */
     const loadXMLFile = async (xmlUrl) => {
-
         let xml;
 
         //loop through URL collection
-        for (let url of xmlUrl) {
+         for await (let url of xmlUrl) {
             let urlToFetch = url;
 
             //use the proxy if available.
@@ -535,7 +507,6 @@ function SchemaManager(writer, config) {
         }
 
         return xml;
-         
     }
 
     /**
@@ -647,7 +618,7 @@ function SchemaManager(writer, config) {
      * @param {Boolean} loadCss Whether to load the associated CSS
      * @param {Function} [callback] Callback for when the load is complete
      */
-    sm.loadSchema = async function (schemaId, loadCss, callback) {
+    sm.loadSchema = async (schemaId, loadCss, callback) => {
         const schemaEntry = sm.schemas.find( schema => schema.id === schemaId);
 
         if (schemaEntry === undefined) {
@@ -718,9 +689,6 @@ function SchemaManager(writer, config) {
         if (callback) return callback(true);
 
         return { success: true };
-
-
-
     };
 
     /*****************************
@@ -767,7 +735,7 @@ function SchemaManager(writer, config) {
      * Load the CSS and convert it to the internal format
      * @param {Array} cssURL Collection of url sources
      */
-    sm.loadSchemaCSS = async function(cssURL) {
+    sm.loadSchemaCSS = async (cssURL) => {
         $('#schemaRules', w.editor.dom.doc).remove();
         $('#schemaRules', document).remove();
          
@@ -784,9 +752,7 @@ function SchemaManager(writer, config) {
         
         const cssObj = css.parse(cssData);
         const popupCssObj = {
-            stylesheet: {
-                rules: []
-            }
+            stylesheet: { rules: [] }
         };
         
         const rules = cssObj.stylesheet.rules;
@@ -799,6 +765,7 @@ function SchemaManager(writer, config) {
                 const convertedPopupSelectors = [];
                 for (let j = 0; j < rule.selectors.length; j++) {
                     const selector = rule.selectors[j];
+                    // eslint-disable-next-line no-unused-vars
                     const newSelector = selector.replace(/(^|,|\s)(#?\w+)/g, (str, p1, p2, offset, s) => {
                         return p1+'*[_tag="'+p2+'"]';
                     });

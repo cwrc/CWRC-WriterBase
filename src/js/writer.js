@@ -262,6 +262,7 @@ function CWRCWriter(config) {
 
     const handleUnload = (e) => {
         if ((w.isReadOnly === false || w.isAnnotator === true) && window.location.hostname !== 'localhost') {
+            // eslint-disable-next-line no-undef
             if (tinymce.get(editorId).isDirty()) {
                 const msg = 'You have unsaved changes.';
                 (e || window.event).returnValue = msg;
