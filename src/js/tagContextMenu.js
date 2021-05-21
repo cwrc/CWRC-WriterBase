@@ -1,789 +1,586 @@
+import dedent from 'dedent';
 import $ from 'jquery';
 import 'jquery-contextmenu';
-import { sortBy } from 'lodash';
-import schemaNavigator from './schema/schemaNavigator2';
-import { Validator } from 'salve-dom';
-import { resolve } from 'tinymce';
+import { v4 as uuidv4 } from 'uuid';
+
+const SUBMENU_MAX_VISIBLE_OPTIONS = 7;
 
 //Search box
-$.contextMenu.types.search = function(item, opt) {
-	$(`<label for="contextmenu_search" class="contextmenu_search">
-            <input type="input" id="contextmenu_search" placeholder="Search">
-            <i class="fas fa-search contextmenu_search__icon"></i>
-		</label>`).appendTo(this);
+$.contextMenu.types.search = function (item, opt) {
+  $(
+    dedent(`
+		<label for="contextmenu_search" class="contextmenu_search">
+      <input type="input" id="contextmenu_search" placeholder="Search">
+      <i class="fas fa-search contextmenu_search__icon"></i>
+		</label>
+  `)
+  ).appendTo(this);
 
-	this.addClass('contextmenu_search_container');
-	this.on('contextmenu:focus', (event) => event.stopImmediatePropagation());
-	this.on('keyup', (e) => item.events.keyup(e, opt));
+  this.addClass('contextmenu_search_container');
+  this.on('contextmenu:focus', (event) => event.stopImmediatePropagation());
+  this.on('keyup', (e) => item.events.keyup(e, opt));
 };
 
-// eslint-disable-next-line no-unused-vars
 const logStyle =
-	'color: #333; font-weight: bold; background-color: #ededed;padding: 5px; border-radius: 5px';
-
+  'color: #333; font-weight: bold; background-color: #ededed;padding: 5px; border-radius: 5px';
 class TagContextMenu {
-	constructor(writer) {
-		this.w = writer;
-		this.container = `#${writer.containerId}`;
-		this.selector = `#${writer.layoutManager.$containerid}`; //`#${writer.containerId}`;
-
-		// these properties are set in the show method
-		this.tagId = null;
-		this.isEntity = false;
-		this.isMultiple = false;
-		this.useSelection = false;
-		this.hasContentSelection = false;
-
-		this.node = null;
-		this.element = null;
-		this.context = {};
-
-		// dynamically built context menu
-		$.contextMenu({
-			selector: this.selector,
-			trigger: 'none',
-			// eslint-disable-next-line no-unused-vars
-			build: ($trigger, event) => {
-				return {
-					appendTo: `#${this.w.layoutManager.$containerid}`,
-					className: 'tagContextMenu cwrc',
-					animation: { duration: 0, show: 'show', hide: 'hide' },
-					items: this.#getItems(),
-					callback: (key, options, event) => {
-						// general callback
-						console.log({ key, options, event });
-					},
-				};
-			},
-		});
-	}
-
-	async #getXmlDoc() {
-		console.group('convert to XML');
-		console.time('convert to XML');
-		const docText = await this.w.converter.getDocumentContent(false);
-		const parser = new DOMParser();
-		const xmlDoc = parser.parseFromString(docText,'text/xml');
-		// console.log(xmlDoc);
-		this.xmlDoc = xmlDoc;
-		console.timeEnd('convert to XML');
-		console.groupEnd();
-		return xmlDoc;
-	}
-
-	#getValidator(xmlDoc) {
-		console.group('Start Salve');
-		console.time('Start Salve');
-		const validator = new Validator(this.w.grammar, xmlDoc, {
-			prefix: 'cwrcwriter',
-			
-		});
-		// validator.start();
-		console.log(validator);
-		console.timeEnd('Start Salve');
-		console.groupEnd();
-		this.validator = validator;
-		return validator;
-	}
-
-	#speculativePossibilities = async (container, index, possibilities, content) => {
-		return new Promise((resolve) => {
-			console.time('speculative');
-			const speculativePossibility = new Set();
-			for (const tag of possibilities.values()) {
-				let elem = this.xmlDoc.createElement(tag);
-				// let elem = document.createElement(tag);
-	
-				if (content) elem.append(content);
-	
-				const speculation = this.validator.speculativelyValidate(container,index,elem);
-				// console.log(elem,speculation);
-	
-				if (!speculation) speculativePossibility.add(tag);
-			}
-			console.timeEnd('speculative');
-			resolve(speculativePossibility);
-		});
-	};
-
-	async #useSalve() {
-		const xmlDoc = await this.#getXmlDoc();
-		const validator = this.#getValidator(xmlDoc);
-		
-		const elementXpath = this.w.utilities.getElementXPath(this.element);
-		// console.log(elementXpath);
-
-		const elementContainer = this.w.utilities.evaluateXPath(xmlDoc,elementXpath);
-		// console.log(elementContainer);
-		// console.dir(elementContainer);
-
-		const elementContainerParent = elementContainer.parentNode;
-		// console.log(elementContainerParent);
-		// console.dir(elementContainerParent);
-		// console.log(elementContainer.parent);
-		// console.log(elementContainer.parentNode);
-		// console.log(elementContainer.value);
-
-		// const xElement = xpath.select(elementXpath, xmlDoc);
-		// console.log(xElement);
-		// console.dir(xElement[0])
-		// console.log(xElement.parentNode);
-
-		const possibilities = (container, index) => {
-			console.time('possible');
-			const possibleAt = validator.possibleAt(container,index);
-			// console.log(salvePossibleChildren);
-
-			let possible = new Set(); 
-			for (const event of possibleAt.values()) {
-				if (event.name !== 'enterStartTag') continue;
-				possible.add(event.namePattern.name);
-			}
-			possible = new Set([...possible].sort());
-			console.timeEnd('possible');
-			return possible;
-		};
-
-		
-
-		// ? Children
-		console.group('possibleChildren');
-		
-		const possibleChildren = possibilities(elementContainer,this.rng.startContainer);
-		// const possibleChildren = ['abbr', 'add', 'addName', 'address', 'affiliation', 'anchor', 'att', 'bibl', 'biblFull', 'bloc', 'certainty', 'choice', 'cit', 'climate', 'code', 'corr', 'country', 'date', 'del', 'desc', 'district', 'eg', 'emph', 'expan', 'figure', 'foreign', 'forename', 'formula', 'gap', 'gb', 'genName', 'geo', 'geogFeat', 'geogName', 'gi', 'gloss', 'graphic', 'hi', 'ident', 'idno', 'index', 'interp', 'interpGrp', 'label', 'lb', 'lg', 'list', 'listBibl', 'listEvent', 'listNym', 'listOrg', 'listPerson', 'listPlace', 'location', 'measureGrp', 'media', 'mentioned', 'milestone', 'name', 'nameLink', 'notatedMusic', 'note', 'num', 'offset', 'orgName', 'orig', 'pb', 'pc', 'persName', 'placeName', 'population', 'precision', 'ptr', 'q', 'quote', 'ref', 'reg', 'region', 'respons', 'roleName', 'rs', 's', 'said', 'seg', 'settlement', 'sic', 'soCalled', 'stage', 'surname', 'table', 'term', 'terrain', 'time', 'title', 'trait', 'unclear', 'val'];
-		console.log(possibleChildren);
-
-		// console.dir(this.rng)
-		// console.dir(this.rng.extractContents())
-		const content = this.rng.cloneContents();
-		const textContent = content.textContent;
-		// console.log(textContent);
-		
-		const speculativePossibleChildren = await this.#speculativePossibilities(elementContainer, this.rng.startContainer, possibleChildren, textContent);
-		console.log(speculativePossibleChildren);
-		this.speculativePossibleChildren = [...speculativePossibleChildren].map((tag) => ({ name: tag}));
-		console.groupEnd();
-		console.log(validator);
-
-		//? try to find index of siblings :const index = Array.prototype.indexOf.call(container.childNodes, body);
-
-		// ? Sibblings
-		// console.group('possibleSibblings');
-		
-		// const possibleSibblings = possibilities(elementContainerParent,0);
-		// console.log(possibleSibblings);
-
-		// const speculativePossibleSibblings = speculativePossibilities(elementContainerParent,0, possibleSibblings);
-		// console.log(speculativePossibleSibblings);
-		
-		// console.groupEnd();
-
-		
-	}
-
-	/**
-	 * Show the tag contextmenu
-	 * @param {Event} event The original contextmenu event
-	 * @param {String|Array} tagId The id of the tag. Can be undefined and will be determined by tagger.getCurrentTag. Can be an array to allow for merge action.
-	 * @param {Boolean} useSelection
-	 */
-	async show({ event, tagId, useSelection }) {
-		event.preventDefault();
-		event.stopImmediatePropagation();
-
-		this.rng = this.w.editor.currentBookmark.rng;
-		this.node = this.rng.commonAncestorContainer;
-		this.element = this.node.nodeType === 1 ? this.node : this.node.parentElement;
-		console.log(this.rng);
-		// console.dir(this.node);
-		// console.dir(this.element);
-
-		//************ SALVE ----*/
-
-		await this.#useSalve();
-
-		//************ */
-		if (this.w.isReadOnly || this.w.isEditorReadOnly()) return;
-
-		const selectionLength = this.w.editor.currentBookmark.rng.endOffset - this.w.editor.currentBookmark.rng.startOffset;
-		this.hasContentSelection = selectionLength === 0 ? false : true;
-
-		// this.element = this.node.nodeType === 1 ? this.node : this.node.parentElement;
-		this.tagId = this.element.id;
-
-		if (tagId !== undefined && Array.isArray(tagId)) {
-			this.isMultiple = true;
-			this.isEntity = false;
-			this.useSelection = false;
-		} else {
-			this.isMultiple = false;
-			let tagName = this.element.getAttribute('_tag');
-			if (
-				tagName === this.w.schemaManager.getRoot() ||
-				tagName === this.w.schemaManager.getHeader()
-			) {
-				return;
-			}
-
-			this.isEntity = this.element.getAttribute('_entity') !== null;
-			this.useSelection = useSelection === undefined ? false : useSelection;
-		}
-
-		this.#processContext();
-
-		$(this.selector).contextMenu({
-			x: event.pageX,
-			y: event.pageY,
-		});
-	}
-
-	/**
-	 * Destroy the tag contextmenu
-	 */
-	destroy() {
-		$(this.container).contextMenu('destroy');
-	}
-
-	//--- PRIVATE METHODS ---//
-	#processContext() {
-		const needsChildTags = this.isMultiple === false;
-		const needsSiblingTags = this.isMultiple === false;
-		const needsParentTags = this.isMultiple === true || this.useSelection === false;
-
-		let childTags = {};
-		let siblingTags = {};
-		let parentTags = {};
-
-		if (needsChildTags) childTags = this.#getChildrenForTag(this.element);
-		if (needsSiblingTags || needsParentTags) {
-			siblingTags = this.#getSiblingsForTag(this.element);
-		}
-		if (needsParentTags) parentTags = this.#getParentsForTag(this.element);
-
-		this.context = { childTags, siblingTags, parentTags };
-	}
-
-	#getItems() {
-		if (this.w.isAnnotator) {
-			this.#getEntitiesOptions(items);
-			return items;
-		}
-
-		const { childTags, siblingTags, parentTags } = this.context;
-		const items = {};
-
-		if (this.isMultiple) {
-			items.add_tag_around = {
-				name: 'Add Tag Around',
-				icon: 'fas fa-plus-circle',
-				className: 'context-menu-item-new',
-				items: (() => {
-					const filteredOptions = this.#filterTagsAround({
-						parentTags,
-						childrenForParent: siblingTags,
-					});
-					const options = this.#simplifyAndSortTags(filteredOptions);
-					const submenu = this.#getSubmenu({ options, action: 'around' });
-					return submenu;
-				})(),
-			};
-
-			items.sep0 = '---';
-
-			items.merge_tags = {
-				name: 'Merge Tags',
-				icon: 'fas fa-code-branch',
-				className: 'context-menu-item-new',
-				callback: () => {
-					const tags = $(`'#${this.tagId.join(',#')}`, this.w.editor.getBody());
-					this.w.tagger.mergeTags(tags);
-				},
-			};
-
-			return items;
-		}
-
-		if (this.useSelection) {
-			items.add_tag = {
-				name: 'Add Tag',
-				icon: 'fas fa-plus-circle',
-				className: 'context-menu-item-new',
-				items: (() => {
-					// const filteredOptions = this.#filterChildren({ tags: childTags });
-					// const options = this.#simplifyAndSortTags(filteredOptions);
-					const submenu = this.#getSubmenu({ options: this.speculativePossibleChildren, action: 'add' });
-					return submenu;
-				})(),
-			};
-
-			if (this.w.schemaManager.isSchemaCustom() === false) {
-				this.#getEntitiesOptions(items);
-			}
-
-			items.sep0 = '---';
-		}
-
-		if (!this.useSelection) {
-			items.add_tag_before = {
-				name: 'Add Tag Before',
-				icon: 'fas fa-plus-circle',
-				className: 'context-menu-item-new',
-				items: (() => {
-					const filteredOptions = this.#filterSiblings({
-						tags: siblingTags,
-						action: 'before',
-					});
-					const options = this.#simplifyAndSortTags(filteredOptions);
-					const submenu = this.#getSubmenu({ options, action: 'before' });
-					return submenu;
-				})(),
-			};
-
-			items.add_tag_after = {
-				name: 'Add Tag After',
-				icon: 'fas fa-plus-circle',
-				className: 'context-menu-item-new',
-				items: (() => {
-					const filteredOptions = this.#filterSiblings({
-						tags: siblingTags,
-						action: 'after',
-					});
-					const options = this.#simplifyAndSortTags(filteredOptions);
-					const submenu = this.#getSubmenu({ options, action: 'after' });
-					return submenu;
-				})(),
-			};
-
-			items.add_tag_around = {
-				name: 'Add Tag Around',
-				icon: 'fas fa-plus-circle',
-				className: 'context-menu-item-new',
-				items: (() => {
-					const filteredOptions = this.#filterTagsAround({
-						parentTags,
-						childrenForParent: siblingTags,
-					});
-					const options = this.#simplifyAndSortTags(filteredOptions);
-					const submenu = this.#getSubmenu({ options, action: 'around' });
-					return submenu;
-				})(),
-			};
-
-			items.add_tag_inside = {
-				name: 'Add Tag Inside',
-				icon: 'fas fa-plus-circle',
-				className: 'context-menu-item-new',
-				items: (() => {
-					const filteredOptions = this.#filterTagsInside({ tags: childTags });
-					const options = this.#simplifyAndSortTags(filteredOptions);
-					const submenu = this.#getSubmenu({ options, action: 'inside' });
-					return submenu;
-				})(),
-			};
-
-			items.sep1 = '---';
-		}
-
-		items.edit_tag = {
-			name: 'Edit Tag/Entity Annotation',
-			icon: 'fas fa-edit',
-			className: 'context-menu-item-new',
-			callback: () => this.w.tagger.editTagDialog(this.tagId),
-		};
-
-		if (!this.isEntity) {
-			const tagName = this.element.getAttribute('_tag');
-			if (this.w.schemaManager.isTagEntity(tagName)) {
-				items.convert_tag = {
-					name: 'Convert to Entity Annotation',
-					icon: 'fas fa-edit',
-					className: 'context-menu-item-new',
-					callback: () =>
-						this.w.schemaManager.mapper.convertTagToEntity(this.element, true),
-				};
-			}
-		}
-
-		items.change_tag = {
-			name: 'Change Tag',
-			icon: 'fas fa-edit',
-			className: 'context-menu-item-new',
-			items: (() => {
-				const filteredOptions = this.#filterSiblings({
-					tags: siblingTags,
-					action: 'change',
-				});
-				const options = this.#simplifyAndSortTags(filteredOptions);
-				const submenu = this.#getSubmenu({ options, action: 'change' });
-				return submenu;
-			})(),
-		};
-
-		if (this.isEntity) {
-			items.copy_entity = {
-				name: 'Copy Entity',
-				icon: 'far fa-clone',
-				className: 'context-menu-item-new',
-				callback: () => this.w.tagger.copyTag(this.tagId),
-			};
-		} else {
-			items.copy_tag = {
-				name: 'Copy Tag and Contents',
-				icon: 'fas fa-clone',
-				className: 'context-menu-item-new',
-				callback: () => this.w.tagger.copyTag(this.tagId),
-			};
-		}
-
-		if (this.w.editor.copiedElement.element !== null) {
-			items.paste_tag = {
-				name: 'Paste Tag',
-				icon: 'fas fa-clone',
-				className: 'context-menu-item-new',
-				callback: () => this.w.tagger.pasteTag(),
-			};
-		} else if (this.w.editor.copiedEntity !== null) {
-			items.paste_entity = {
-				name: 'Paste Entity',
-				icon: 'fas fa-clone',
-				className: 'context-menu-item-new',
-				callback: () => this.w.tagger.pasteEntity(),
-			};
-		}
-
-		if (this.useSelection) {
-			items.split_tag = {
-				name: 'Split Tag',
-				icon: 'fas fa-code-branch',
-				className: 'context-menu-item-new',
-				callback: () => this.w.tagger.splitTag(),
-			};
-		}
-
-		items.sep2 = '---';
-
-		if (this.isEntity) {
-			items.remove_entity = {
-				name: 'Remove Entity',
-				icon: 'fas fa-minus-circle',
-				className: 'context-menu-item-new',
-				callback: () => this.w.tagger.removeEntity(this.tagId),
-			};
-		}
-
-		items.remove_tag = {
-			name: 'Remove Tag',
-			icon: 'fas fa-minus-circle',
-			className: 'context-menu-item-new',
-			callback: () => this.w.tagger.removeStructureTag(this.tagId, false),
-		};
-
-		items.remove_content = {
-			name: 'Remove Content Only',
-			icon: 'fas fa-minus-circle',
-			className: 'context-menu-item-new',
-			callback: () => this.w.tagger.removeStructureTagContents(this.tagId),
-		};
-
-		items.remove_all = {
-			name: 'Remove All',
-			icon: 'fas fa-minus-circle',
-			className: 'context-menu-item-new',
-			callback: () => this.w.tagger.removeStructureTag(this.tagId, true),
-		};
-
-		return items;
-	}
-
-	#getEntitiesOptions(items) {
-		const entityMappings = this.w.schemaManager.mapper.getMappings().entities;
-		const menu = {};
-
-		Object.entries(entityMappings).forEach(([key, value]) => {
-			const name = value.label
-				? value.label
-				: `${key.charAt(0).toUpperCase()}${key.slice(1)}`;
-			menu[key] = {
-				name,
-				icon: `fas ${key}`,
-				className: `entities context-menu-item-new ${key}`,
-				callback: () => this.w.tagger.addEntityDialog(key),
-			};
-		});
-
-		items.add_entity = {
-			name: 'Add Entity Annotation',
-			icon: 'fas fa-plus-circle',
-			className: 'entities context-menu-item-new',
-			items: menu,
-		};
-	}
-
-	#getSubmenu = ({ options, action }) => {
-		const submenu = {};
-
-		if (options.length === 0) {
-			submenu['no_tags'] = {
-				name: 'No Tags Available',
-				disabled: true,
-				className: 'context-menu-item-new submenu',
-			};
-			return submenu;
-		}
-
-		const handleKeyUp = (e, opt) => {
-			const query = e.target.value;
-			const collection = Object.entries(opt.items);
-
-			const result = collection.filter(([key, itemValue]) => {
-				const { name, type, $node } = itemValue;
-				if (type === 'search' || key === 'noresult') return;
-
-				const match = query === '' || name.toLowerCase().indexOf(query.toLowerCase()) != -1;
-
-				itemValue.visible = match ? true : false;
-				itemValue.visible = match ? $node.show() : $node.hide();
-
-				return match;
-			});
-
-			// show/hide noResult
-			let noResultItem = collection.find(([key]) => key === 'noresult');
-			const [, noResultValue] = noResultItem;
-			noResultValue.visible = result.length === 0 ? true : false;
-			noResultValue.visible =
-				result.length === 0 ? noResultValue.$node.show() : noResultValue.$node.hide();
-		};
-
-		if (options.length > 7) {
-			submenu['search'] = {
-				type: 'search',
-				callback: () => false,
-				events: { keyup: handleKeyUp },
-			};
-		}
-
-		options.forEach(({ name, fullName }) => {
-			const label = fullName ? `${name}<br/><span class="fullName">${fullName}</span>` : name;
-
-			submenu[name] = {
-				name: label,
-				isHtmlName: true,
-				className: 'context-menu-item-new submenu',
-				visible: true,
-			};
-
-			if (action)
-				submenu[name].callback = (key) => {
-					this.#actionCallback({ key, action });
-				};
-		});
-
-		submenu['noresult'] = {
-			name: 'No result',
-			className: 'context-menu-item-new submenu',
-			disabled: true,
-			visible: false,
-		};
-
-		return submenu;
-	};
-
-	#actionCallback({ key, action }) {
-		// general callback used for addTagDialog and changeTagDialog
-		if (action === undefined) return;
-
-		this.w.editor.currentBookmark = this.w.editor.selection.getBookmark(1);
-
-		switch (action) {
-			case 'change':
-				this.w.tagger.changeTagDialog(key, this.tagId);
-				break;
-			default:
-				this.w.editor.currentBookmark.tagId = this.tagId;
-				this.w.tagger.addTagDialog(key, action, this.tagId);
-				break;
-		}
-	}
-
-	#getChildrenForTag(tag) {
-		// console.log('%cChildren for Tag', logStyle);
-		const path = this.w.utilities.getElementXPath(tag);
-		const children = schemaNavigator.getChildrenForPath(path);
-		// console.log('%c------', logStyle);
-		return children;
-	}
-
-	#getParentsForTag(tag) {
-		const path = this.w.utilities.getElementXPath(tag);
-		const parentsForTag = schemaNavigator.getParentsForPath(path);
-		return parentsForTag;
-	}
-
-	#getSiblingsForTag(tag) {
-		const parentPath = this.w.utilities.getElementXPath(tag.parentElement);
-		const childrenForParent = schemaNavigator.getChildrenForPath(parentPath);
-		return childrenForParent;
-	}
-
-	#filterChildren({ tags }) {
-		if (!this.w._settings.filterTags.useDocumentTags) return tags;
-
-		let filteredTags = tags;
-
-		//filter empty tags if has content selected
-		if (this.useSelection && this.hasContentSelection > 0) {
-			filteredTags = filteredTags.filter((tag) => tag.isEmptyTag === false);
-		}
-		
-		const localContextTags = this.#getLocalContextTags(this.node, this.element);
-		if (localContextTags.length === 0) return filteredTags;
-
-		filteredTags = schemaNavigator.filterByPresentTags(filteredTags, localContextTags);
-		
-		return filteredTags;
-	}
-
-	#filterSiblings({ tags, action }) {
-		if (!this.w._settings.filterTags.useDocumentTags) return tags;
-
-		const parentContextTags = this.#getLocalContextTags(
-			this.element,
-			this.element.parentElement
-		);
-		if (parentContextTags.length === 0) return tags;
-
-		let filteredTags = schemaNavigator.filterByPresentTags(tags, parentContextTags);
-
-		if (!this.w._settings.filterTags.useStructuralOrder) return filteredTags;
-
-		if (!action) return filteredTags;
-
-		const direction = action === 'change' ? 'both' : action;
-
-		filteredTags = schemaNavigator.limitByTagPosition({
-			tags: filteredTags,
-			direction,
-			element: this.element,
-			context: this.context,
-		});
-
-		return filteredTags;
-	}
-
-	#filterTagsAround({ parentTags, childrenForParent }) {
-		const parentContextTags = this.#getLocalContextTags(
-			this.element,
-			this.element.parentElement
-		);
-
-		let filteredChildrenForParent = childrenForParent;
-		if (parentContextTags.length > 0 && this.w._settings.filterTags.useDocumentTags === true) {
-			filteredChildrenForParent = schemaNavigator.filterByPresentTags(
-				childrenForParent,
-				parentContextTags
-			);
-		}
-
-		let limitedTags = filteredChildrenForParent.filter((cTag) =>
-			parentTags.find((pTag) => pTag.attributes.name === cTag.attributes.name)
-		);
-
-		if (!this.w._settings.filterTags.useStructuralOrder) return limitedTags;
-
-		limitedTags = schemaNavigator.limitByTagPosition({
-			tags: limitedTags,
-			direction: 'both',
-			element: this.element,
-			context: this.context,
-		});
-
-		return limitedTags;
-	}
-
-	#filterTagsInside({ tags }) {
-		if (!this.w._settings.filterTags.useDocumentTags) return tags;
-
-		const localContextTags = this.#getLocalContextTags(this.node, this.element);
-		if (localContextTags.length === 0) return tags;
-
-		let filteredTags = tags;
-
-		for (let i = 0; i < localContextTags.length; i++) {
-			const { node } = localContextTags[i];
-			const path = this.w.utilities.getElementXPath(node);
-			const parentsForTag = schemaNavigator.getParentsForPath(path);
-
-			filteredTags = filteredTags.filter((fTag) =>
-				parentsForTag.find((pTag) => pTag.attributes.name === fTag.attributes.name)
-			);
-
-			if (filteredTags.length === 0) break;
-		}
-		return filteredTags;
-	}
-
-	#getLocalContextTags(ref, parent) {
-		//previous and next sibling
-		const previousElementSiblingID = ref?.previousElementSibling?.id;
-		const nextElementSiblingID = ref?.nextElementSibling?.id;
-
-		//parent Children
-		const parentElementChildren = Object.entries(parent.children);
-
-		//Locate tag relative to the cursors or selection: -1 [BEFORE] | 1 [AFTER]
-		let relativePosition = previousElementSiblingID ? -1 : 1; //before cursor
-
-		//Collect children
-		// const parentChildren = Object.entries(parentElementChildren);
-		let collection = parentElementChildren.map(([, childValue]) => {
-			// get child ID & TagName
-			const childId = childValue.id;
-			const tagName = childValue.getAttribute('_tag');
-
-			//check relative position.
-			if (ref.nodeType === 1 && ref.id === childId) relativePosition = 0;
-			if (nextElementSiblingID === childId) relativePosition = 1;
-
-			return {
-				id: childId,
-				node: childValue,
-				siblingRelativeIndex: relativePosition,
-				tagName,
-			};
-		});
-
-		//absolute position
-		let before = collection.filter(({ position }) => position < 0).length;
-		let after = 1;
-
-		collection = collection.map((child) => {
-			let p = 0;
-			if (child.siblingRelativeIndex < 0) {
-				p = before * child.position;
-				before--;
-			}
-			if (child.siblingRelativeIndex > 0) {
-				p = after * child.position;
-				after++;
-			}
-			child.siblingRelativeIndex = p;
-			return child;
-		});
-
-		return collection;
-	}
-
-	#simplifyAndSortTags(tags) {
-		tags = tags.map(({ fullName = '', attributes: { name: name } }) => ({
-			name,
-			fullName,
-		}));
-
-		tags = sortBy(tags, ['name']);
-
-		return tags;
-	}
+  constructor(writer) {
+    this.w = writer;
+    this.container = `#${writer.containerId}`;
+    this.selector = `#${writer.layoutManager.$containerid}`; //`#${writer.containerId}`;
+
+    // these properties are set in the show method
+    this.id = null;
+    this.rng = null;
+    this.hasValidator = false;
+    this.tagId = null;
+    this.tagName = null;
+    this.isEntity = false;
+    this.isMultiple = false;
+    this.virtualEditorExists = false;
+    this.useSelection = false;
+    this.hasContentSelection = false;
+    this.allowsTagAround = false;
+
+    this.element = null;
+
+    // dynamically built context menu
+    $.contextMenu({
+      selector: this.selector,
+      trigger: 'none',
+      // eslint-disable-next-line no-unused-vars
+      build: ($trigger, event) => {
+        return {
+          appendTo: `#${this.w.layoutManager.$containerid}`,
+          className: 'tagContextMenu cwrc',
+          animation: { duration: 0, show: 'show', hide: 'hide' },
+          items: this.#getItems(),
+          // general callback
+          callback: (key, options, event) => {
+            this.w.editor.currentBookmark = this.w.editor.selection.getBookmark(1);
+            console.log({ key, options, event });
+          },
+        };
+      },
+    });
+  }
+
+  /**
+   * Show the tag contextmenu
+   * @param {Event} event The original contextmenu event
+   * @param {String|Array} tagId The id of the tag. Can be undefined and will be determined by tagger.getCurrentTag. Can be an array to allow for merge action.
+   * @param {Boolean} useSelection
+   */
+  async show({ event, ...rest }) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    if (this.w.isReadOnly || this.w.isEditorReadOnly()) return;
+
+    //set unique ID
+    this.id = uuidv4();
+
+    //update editor selection
+    this.w.editor.currentBookmark = this.w.editor.selection.getBookmark(1);
+
+    //store current selection range
+    this.rng = this.w.editor.currentBookmark.rng;
+
+    const procced = this.#processContext(rest);
+    if (!procced) return;
+
+    console.log(`${'%c'}Context Menu for ${this.tagName}`, logStyle);
+    this.virtualEditorExists = this.w.workerValidator.hasValidator();
+
+    $(this.selector).contextMenu({
+      x: event.pageX,
+      y: event.pageY,
+    });
+  }
+
+  /**
+   * Destroy the tag contextmenu
+   */
+  destroy() {
+    $(this.container).contextMenu('destroy');
+  }
+
+  //--- PRIVATE METHODS ---//
+  #processContext({ tagId, useSelection }) {
+    this.element =
+      this.rng.commonAncestorContainer.nodeType === 1 //element
+        ? this.rng.commonAncestorContainer
+        : this.rng.commonAncestorContainer.parentElement;
+
+    this.hasContentSelection = !this.rng.collapsed;
+    this.allowsTagAround = this.hasContentSelection ? this.#selectionOverlapNodes() : true;
+
+    this.tagId = this.element.id;
+    this.tagName = this.element.getAttribute('_tag');
+
+    if (
+      this.tagName === this.w.schemaManager.getRoot() ||
+      this.tagName === this.w.schemaManager.getHeader()
+    ) {
+      return false;
+    }
+
+    if (tagId !== undefined && Array.isArray(tagId)) {
+      this.isMultiple = true;
+      this.isEntity = false;
+      this.useSelection = false;
+    } else {
+      this.isMultiple = false;
+      this.isEntity = this.element.getAttribute('_entity') !== null;
+      this.useSelection = useSelection === undefined ? false : useSelection;
+    }
+
+    return true;
+  }
+
+  #selectionOverlapNodes() {
+    const { startContainer, endContainer } = this.rng;
+
+    if (startContainer.nodeType !== 3) return false;
+    if (endContainer.nodeType !== 3) return false;
+
+    if (startContainer.parentNode.id !== endContainer.parentNode.id) {
+      return false;
+    }
+
+    return true;
+  }
+
+  #paramsForAddTag() {
+    const xpath = this.w.utilities.getElementXPath(this.element);
+
+    const elementChildren = Array.from(this.element.childNodes);
+    const index = elementChildren.findIndex((child) => child === this.rng.startContainer);
+
+    let selection;
+    if (this.hasContentSelection) {
+      selection = {
+        type: 'span',
+        startContainerIndex: index,
+        startOffset: this.rng.startOffset,
+        endContainerIndex: elementChildren.findIndex((child) => child === this.rng.endContainer),
+        endOffset: this.rng.endOffset,
+      };
+    }
+
+    return { xpath, index, selection };
+  }
+
+  #paramsForChangeTag() {
+    const xpath = this.w.utilities.getElementXPath(this.element.parentNode);
+
+    const elementChildren = Array.from(this.element.parentNode.childNodes);
+    const index = elementChildren.findIndex((child) => child === this.element);
+    const skip = this.element.getAttribute('_tag');
+
+    const selection = {
+      type: 'change',
+      xpath: this.w.utilities.getElementXPath(this.element),
+      startContainerIndex: 0,
+      endContainerIndex: elementChildren.length,
+      skip,
+    };
+
+    return { xpath, index, selection };
+  }
+
+  #paramsForAddTagBefore() {
+    const xpath = this.w.utilities.getElementXPath(this.element.parentNode);
+    const index = 0;
+
+    const elementChildren = Array.from(this.element.parentNode.childNodes);
+    let containerIndex = elementChildren.findIndex((child) => child === this.element) - 1;
+    if (containerIndex < 0) containerIndex = 0;
+
+    const selection = {
+      type: 'before',
+      xpath,
+      containerIndex,
+    };
+
+    return { xpath, index, selection };
+  }
+
+  #paramsForAddTagAfter() {
+    const xpath = this.w.utilities.getElementXPath(this.element.parentNode);
+
+    const elementChildren = Array.from(this.element.parentNode.childNodes);
+    const index = elementChildren.findIndex((child) => child === this.element) + 1;
+
+    const selection = {
+      type: 'after',
+      xpath: xpath,
+      containerIndex: index,
+    };
+
+    return { xpath, index, selection };
+  }
+
+  #paramsForAddTagAround() {
+    const xpath = this.w.utilities.getElementXPath(this.element.parentNode);
+
+    const elementChildren = Array.from(this.element.parentNode.childNodes);
+    const index = elementChildren.findIndex((child) => child === this.element);
+
+    const selection = {
+      type: 'around',
+      xpath: this.w.utilities.getElementXPath(this.element),
+    };
+
+    return { xpath, index, selection };
+  }
+
+  #paramsForAddTagInside() {
+    const xpath = this.w.utilities.getElementXPath(this.element);
+    const index = 0;
+
+    const selection = {
+      type: 'inside',
+      xpath: this.w.utilities.getElementXPath(this.element),
+    };
+
+    return { xpath, index, selection };
+  }
+
+  async #getTagsFor(params) {
+    const response = await this.w.workerValidator.possibleAtContextMenu(params);
+    const tags = response.tags.speculative || response.tags.possible;
+    return tags;
+  }
+
+  #getItems() {
+    if (this.w.isAnnotator) {
+      this.#getEntitiesOptions(items);
+      return items;
+    }
+
+    const tagId = this.tagId;
+
+    const items = {};
+
+    if (this.virtualEditorExists && this.isMultiple) {
+      items.add_tag_around = {
+        name: 'Add Tag Around',
+        icon: 'fas fa-plus-circle',
+        className: 'context-menu-item-new',
+        items: (async () => {
+          const params = this.#paramsForAddTagAround();
+          const tags = await this.#getTagsFor(params);
+          const submenu = this.#getSubmenu({ options: tags, action: 'around' });
+          return submenu;
+        })(),
+      };
+
+      items.sep0 = '---';
+
+      items.merge_tags = {
+        name: 'Merge Tags',
+        icon: 'fas fa-code-branch',
+        className: 'context-menu-item-new',
+        callback: () => {
+          const tags = $(`'#${tagId.join(',#')}`, this.w.editor.getBody());
+          this.w.tagger.mergeTags(tags);
+        },
+      };
+
+      return items;
+    }
+
+    if (this.virtualEditorExists && this.useSelection && this.allowsTagAround) {
+      items.add_tag = {
+        name: 'Add Tag',
+        icon: 'fas fa-plus-circle',
+        className: 'context-menu-item-new',
+        items: (async () => {
+          const params = this.#paramsForAddTag();
+          const tags = await this.#getTagsFor(params);
+          const submenu = this.#getSubmenu({ options: tags, action: 'add' });
+          return submenu;
+        })(),
+      };
+
+      if (this.w.schemaManager.isSchemaCustom() === false) {
+        this.#getEntitiesOptions(items);
+      }
+
+      items.sep0 = '---';
+    }
+
+    if (this.virtualEditorExists && !this.useSelection) {
+      items.add_tag_before = {
+        name: 'Add Tag Before',
+        icon: 'fas fa-plus-circle',
+        className: 'context-menu-item-new',
+        items: (async () => {
+          const params = this.#paramsForAddTagBefore();
+          const tags = await this.#getTagsFor(params);
+          const submenu = this.#getSubmenu({ options: tags, action: 'before' });
+          return submenu;
+        })(),
+      };
+
+      items.add_tag_after = {
+        name: 'Add Tag After',
+        icon: 'fas fa-plus-circle',
+        className: 'context-menu-item-new',
+        items: (async () => {
+          const params = this.#paramsForAddTagAfter();
+          const tags = await this.#getTagsFor(params);
+          const submenu = this.#getSubmenu({ options: tags, action: 'after' });
+          return submenu;
+        })(),
+      };
+
+      items.add_tag_around = {
+        name: 'Add Tag Around',
+        icon: 'fas fa-plus-circle',
+        className: 'context-menu-item-new',
+        items: (async () => {
+          const params = this.#paramsForAddTagAround();
+          const tags = await this.#getTagsFor(params);
+          const submenu = this.#getSubmenu({ options: tags, action: 'around' });
+          return submenu;
+        })(),
+      };
+
+      items.add_tag_inside = {
+        name: 'Add Tag Inside',
+        icon: 'fas fa-plus-circle',
+        className: 'context-menu-item-new',
+        items: (async () => {
+          const params = this.#paramsForAddTagInside();
+          const tags = await this.#getTagsFor(params);
+          const submenu = this.#getSubmenu({ options: tags, action: 'inside' });
+          return submenu;
+        })(),
+      };
+
+      items.sep1 = '---';
+    }
+
+    items.edit_tag = {
+      name: 'Edit Tag/Entity Annotation',
+      icon: 'fas fa-edit',
+      className: 'context-menu-item-new',
+      callback: () => this.w.tagger.editTagDialog(tagId),
+    };
+
+    if (!this.isEntity) {
+      const tagName = this.element.getAttribute('_tag');
+      if (this.w.schemaManager.isTagEntity(tagName)) {
+        items.convert_tag = {
+          name: 'Convert to Entity Annotation',
+          icon: 'fas fa-edit',
+          className: 'context-menu-item-new',
+          callback: () => this.w.schemaManager.mapper.convertTagToEntity(this.element, true),
+        };
+      }
+    }
+
+    if (
+      (this.virtualEditorExists && !this.useSelection) ||
+      (this.useSelection && !this.hasContentSelection)
+    ) {
+      items.change_tag = {
+        name: 'Change Tag',
+        icon: 'fas fa-edit',
+        className: 'context-menu-item-new',
+        items: (async () => {
+          const params = this.#paramsForChangeTag();
+          const tags = await this.#getTagsFor(params);
+          const submenu = this.#getSubmenu({ options: tags, action: 'change' });
+          return submenu;
+        })(),
+      };
+    }
+
+    if (this.isEntity) {
+      items.copy_entity = {
+        name: 'Copy Entity',
+        icon: 'fas fa-clone',
+        className: 'context-menu-item-new',
+        callback: () => this.w.tagger.copyTag(tagId),
+      };
+    } else {
+      items.copy_tag = {
+        name: 'Copy Tag and Contents',
+        icon: 'fas fa-clone',
+        className: 'context-menu-item-new',
+        callback: () => this.w.tagger.copyTag(tagId),
+      };
+    }
+
+    if (this.w.editor.copiedElement.element !== null) {
+      items.paste_tag = {
+        name: 'Paste Tag',
+        icon: 'fas fa-clone',
+        className: 'context-menu-item-new',
+        callback: () => this.w.tagger.pasteTag(),
+      };
+    } else if (this.w.editor.copiedEntity !== null) {
+      items.paste_entity = {
+        name: 'Paste Entity',
+        icon: 'fas fa-clone',
+        className: 'context-menu-item-new',
+        callback: () => this.w.tagger.pasteEntity(),
+      };
+    }
+
+    if (this.useSelection) {
+      items.split_tag = {
+        name: 'Split Tag',
+        icon: 'fas fa-code-branch',
+        className: 'context-menu-item-new',
+        callback: () => this.w.tagger.splitTag(),
+      };
+    }
+
+    items.sep2 = '---';
+
+    if (this.isEntity) {
+      items.remove_entity = {
+        name: 'Remove Entity',
+        icon: 'fas fa-minus-circle',
+        className: 'context-menu-item-new',
+        callback: () => this.w.tagger.removeEntity(tagId),
+      };
+    }
+
+    items.remove_tag = {
+      name: 'Remove Tag',
+      icon: 'fas fa-minus-circle',
+      className: 'context-menu-item-new',
+      callback: () => this.w.tagger.removeStructureTag(tagId, false),
+    };
+
+    items.remove_content = {
+      name: 'Remove Content Only',
+      icon: 'fas fa-minus-circle',
+      className: 'context-menu-item-new',
+      callback: () => this.w.tagger.removeStructureTagContents(tagId),
+    };
+
+    items.remove_all = {
+      name: 'Remove All',
+      icon: 'fas fa-minus-circle',
+      className: 'context-menu-item-new',
+      callback: () => this.w.tagger.removeStructureTag(tagId, true),
+    };
+
+    return items;
+  }
+
+  #getEntitiesOptions(items) {
+    const entityMappings = this.w.schemaManager.mapper.getMappings().entities;
+    const menu = {};
+
+    Object.entries(entityMappings).forEach(([key, { label }]) => {
+      const name = label ? label : `${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+      menu[key] = {
+        name,
+        icon: `fas ${key}`,
+        className: `entities context-menu-item-new ${key}`,
+        callback: () => this.w.tagger.addEntityDialog(key),
+      };
+    });
+
+    items.add_entity = {
+      name: 'Add Entity Annotation',
+      icon: 'fas fa-plus-circle',
+      className: 'entities context-menu-item-new',
+      items: menu,
+    };
+  }
+
+  #getSubmenu = ({ options, action }) => {
+    const submenu = {};
+
+    if (options.length === 0) {
+      submenu['no_tags'] = {
+        name: 'No Tags Available',
+        disabled: true,
+        className: 'context-menu-item-new submenu',
+      };
+      return submenu;
+    }
+
+    const handleKeyUp = (e, opt) => {
+      const query = e.target.value;
+      const collection = Object.entries(opt.items);
+
+      const result = collection.filter(([key, itemValue]) => {
+        const { name, type, $node } = itemValue;
+        if (type === 'search' || key === 'noresult') return;
+
+        const match = query === '' || name.toLowerCase().indexOf(query.toLowerCase()) != -1;
+        itemValue.visible = match ? true : false;
+        itemValue.visible = match ? $node.show() : $node.hide();
+
+        return match;
+      });
+
+      // show/hide noResult
+      let noResultItem = collection.find(([key]) => key === 'noresult');
+      const [, noResultValue] = noResultItem;
+      // noResultValue.visible = result.length === 0 ? true : false;
+      noResultValue.visible =
+        result.length === 0 ? noResultValue.$node.show() : noResultValue.$node.hide();
+    };
+
+    if (options.length > SUBMENU_MAX_VISIBLE_OPTIONS) {
+      submenu['search'] = {
+        type: 'search',
+        callback: () => false,
+        events: { keyup: handleKeyUp },
+      };
+    }
+
+    options.forEach(({ name, fullName }) => {
+      const label = fullName ? `${name}<br/><span class="fullName">${fullName}</span>` : name;
+      submenu[name] = {
+        name: label,
+        isHtmlName: true,
+        className: 'context-menu-item-new submenu',
+        visible: true,
+        callback: action ? (key) => this.#actionCallback({ key, action }) : undefined,
+      };
+      // if (action)
+      // 	submenu[name].callback = (key) => {
+      // 		this.#actionCallback({ key, action });
+      // 	};
+    });
+
+    submenu['noresult'] = {
+      name: 'No result',
+      className: 'context-menu-item-new submenu',
+      disabled: true,
+      visible: false,
+    };
+
+    return submenu;
+  };
+
+  #actionCallback({ key, action }) {
+    // general callback used for addTagDialog and changeTagDialog
+    if (action === undefined) return;
+
+    this.w.editor.currentBookmark = this.w.editor.selection.getBookmark(1);
+
+    switch (action) {
+      case 'change':
+        this.w.tagger.changeTagDialog(key, this.tagId);
+        break;
+      default:
+        this.w.editor.currentBookmark.tagId = this.tagId;
+        this.w.tagger.addTagDialog(key, action, this.tagId);
+        break;
+    }
+  }
 }
 
 export default TagContextMenu;

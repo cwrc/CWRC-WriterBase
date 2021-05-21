@@ -7,7 +7,7 @@ const rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([a-z][^\
 $.htmlPrefilter = (html) => html.replace( rxhtmlTag, '<$1></$2>' );
 
 const EventManager = require('./eventManager.js');
-const Utilities = require('./utilities.js');
+import Utilities from './utilities';
 import SchemaManager from './schema/schemaManager';
 import DialogManager from './dialogManager';
 const EntitiesManager = require('./entities/entitiesManager.js');
@@ -18,6 +18,7 @@ import { settingsDialog } from './dialogs/settings';
 import LayoutManager from './layout/layoutManager.js';
 import TagContextMenu from './tagContextMenu';
 const TinymceWrapper = require('./tinymceWrapper.js');
+import { spawn, Worker } from 'threads'; //https://threads.js.org/
 
 import '../css/build.less';
 
@@ -38,7 +39,6 @@ import '../css/build.less';
  * @param {String} [config.buttons1]
  * @param {String} [config.buttons2]
  * @param {String} [config.buttons3]
- 
  */
 function CWRCWriter(config) {
     config = config || {};
@@ -117,6 +117,7 @@ function CWRCWriter(config) {
      * @returns {String} id
      */
     w.getUniqueId = (prefix) => {
+        // eslint-disable-next-line no-undef
         const id = tinymce.DOM.uniqueId(prefix);
         return id;
     };
@@ -313,12 +314,14 @@ function CWRCWriter(config) {
         w.isDocLoaded = success ? true : false;
     });
 
-    w.event('tinymceInitialized').subscribe(() => {
+    w.event('tinymceInitialized').subscribe(async() => {
         // fade out loading mask and do final resizing after tinymce has loaded
         w.layoutManager.$outerLayout.options.onresizeall_end = () => {
             w.layoutManager.$outerLayout.options.onresizeall_end = null;
             w.layoutManager.$loadingMask.fadeOut(350);
         };
+
+        w.workerValidator = await loadWorkerValidator();
 
         setTimeout(() => {
             w.layoutManager.resizeAll();
@@ -366,5 +369,12 @@ function CWRCWriter(config) {
 
     return w;
 }
+
+const loadWorkerValidator = async () => {
+    return await spawn(
+        new Worker('cwrc-worker-validator/src/index.js'),
+        {timeout: 30000} //high timeout due to large webworker file
+    );
+};
 
 export default CWRCWriter;

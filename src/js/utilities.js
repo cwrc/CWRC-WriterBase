@@ -1,10 +1,6 @@
-'use strict';
-
-var $ = require('jquery');
-var ObjTree = require('../lib/objtree/ObjTree');
-const converter = require('xml-js');
-const salve = require('salve');
-const { Validator } = require('salve-dom');
+import $ from 'jquery';
+import ObjTree from '../lib/objtree/ObjTree';
+// const ObjTree = require('../lib/objtree/ObjTree');
 
 /**
  * @class Utilities
@@ -41,87 +37,37 @@ function Utilities(writer) {
         return doc;
     };
     
-    u.xmlToJSON = function(xml) {
+    u.xmlToJSON = (xml) => {
         if (typeof xml === 'string') {
-        // if ($.type(xml) == 'string') {
             xml = u.stringToXML(xml);
             if (xml === null) return null;
         }
 
-        console.time('ObjTree');
-
         const xotree = new ObjTree();
         xotree.attr_prefix = '@';
         const json = xotree.parseDOM(xml);
-        console.log(json);
-        console.timeEnd('ObjTree');
 
         return json;
     };
 
-    u.xmlToJsonAlternatives = async ({xml, alt}) => {
+    //? Load schema using Salve
+    // u.loadSchema
+    u.sendSchemaToworkerValidator = async () => {
+        const id = w.schemaManager.getCurrentSchema().id;
 
-        let json = null;
+        const localData = localStorage.getItem(`schema_${id}`);
+        const url = w.schemaManager.getXMLUrl();
 
-        if (alt === 'ObjTree-unchanged') {
-            console.time('ObjTree-unchanged');
+        const { status, remoteData } = await w.workerValidator.loadSchema({ id, localData, url });
 
-            const xotree = new ObjTree();
-            xotree.attr_prefix = '@';
-            xotree.unchanged = true;
-
-            json = xotree.parseDOM(xml);
-
-            console.log(json);
-
-            console.timeEnd('ObjTree-unchanged');
+        console.log(status);
+        if (remoteData) {
+            localStorage.setItem(`schema_${id}`, JSON.stringify(remoteData));
+            console.log('Schema cached.');
         }
-
-        if (alt === 'xml-js') {
-            console.time('xml-js');
-
-            xml = u.xmlToString(xml);
-            json = converter.xml2js(xml, { compact: false });
-
-            console.log(json);
-            console.timeEnd('xml-js');
-        // }
-            
-        // if (alt === 'salve') {
-
-        // ------ SALVE
-
-            console.time('salve');
-            const schemaUrl = w.schemaManager.getXMLUrl();
-            const result = await salve.convertRNGToPattern(schemaUrl);
-            // console.log(result);
-            const _json = salve.writeTreeToJSON(result.simplified, 3);
-            // console.log(_json);
-            const grammar = salve.readTreeFromJSON(_json);
-            // console.log(grammar);
-            w.grammar = grammar;
-            
-
-            // const walker = grammar.newWalker();
-            // w.walker = walker;
-            // console.log(walker);
-
-            // const validator = new Validator(grammar,  w.editor.getBody());
-            
-
-            // w.validator = validator;
-            // w.validator.start();
-            // console.log(validator);
-            
-            console.timeEnd('salve');
-
-            // ------ /// SALVE ------
-        }
-
-        return new Promise((resolve) => resolve(json));
     };
 
-    /**
+    /**j
      * Converts HTML entities to unicode, while preserving those that must be escaped as entities.
      * @param {String} text The text to convert
      * @param {Boolean} [isAttributeValue] Is this an attribute value? Defaults to false

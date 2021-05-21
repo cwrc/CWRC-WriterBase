@@ -2,7 +2,6 @@ import $ from 'jquery';
 import css from 'css';
 import Mapper from './mapper';
 import SchemaNavigator from './schemaNavigator';
-import { setSchemaJSON } from './schemaNavigator2';
 
 /**
  * @class SchemaManager
@@ -605,9 +604,7 @@ function SchemaManager(writer, config) {
         }
         sm.navigator.setSchemaJSON(sm.schemaJSON);
 
-        ///
-        const schemaJSON_alt = await w.utilities.xmlToJsonAlternatives({xml: $('grammar', sm.schemaXML)[0], alt:'xml-js'});
-        setSchemaJSON(schemaJSON_alt);
+        await w.utilities.sendSchemaToworkerValidator();
     };
 
     /**

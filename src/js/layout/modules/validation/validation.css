@@ -5,7 +5,83 @@
 }
 
 .validationList li {
+    margin: 5px;
+    padding: 6px 10px;
+    border-radius: 5px;
     border: none !important;
-    background: none !important;
+    /* background: none !important; */
     color: #333333 !important;
+}
+
+.validationList li .moreButton {
+    width: 10px;
+    height: 10px;
+    float: right;
+    margin-right: 4px;
+    margin-top: 1px;
+}
+
+.validationList li:hover {
+    background-color: #eee;
+    cursor: pointer;
+}
+
+.validationList li.selected {
+    background-color: #f5f5f5;
+}
+
+.validationList li.selected:hover {
+    cursor: auto;
+}
+
+.validationList li #details .documentation {
+    border-left: 1px solid #000;
+    margin-left: 8px;
+}
+
+.validationList li #details .documentation .text {
+    margin-left: 12px;
+    margin-top: 8px;
+}
+
+.validationList li #details .xpath {
+    margin-left: 8px;
+    margin-top: 8px;
+}
+
+.validationList li #details .possible {
+    margin-left: 8px;
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+.validationList li .element {
+    margin-top: 4px;
+    margin-left: 2px;
+    margin-right: 2px;
+    padding-bottom: 1px;
+    padding-left: 2px;
+    padding-right: 2px;
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, .03);
+    cursor: default;
+}
+
+.validationList li [data-tooltip] {
+    position: relative;
+}
+
+.validationList li [data-tooltip]:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    width: max-content;
+    max-width: 300px;
+    top: -.1rem;
+    left: 50%;
+    padding-left: .25rem;
+    padding-right: .25rem;
+    transform: translate(-50%, -100%);
+    background-color: #222c;
+    color: white;
+    border-radius: 2px;
 }

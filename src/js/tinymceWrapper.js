@@ -422,7 +422,7 @@ TinymceWrapper.init = function(config) {
     // writer listeners
 
     w.event('contentChanged').subscribe(function() {
-        console.log('contentChanged');
+        // console.log('contentChanged');
     });
 
     w.event('documentLoaded').subscribe(function() {
@@ -596,7 +596,7 @@ TinymceWrapper.init = function(config) {
 
     function onChangeHandler(event) {
         $('br', w.editor.getBody()).remove(); // remove br tags that get added by shift+enter
-        // w.event('contentChanged').publish();
+        w.event('contentChanged').publish();
     }
 
     function onNodeChangeHandler(e) {

@@ -4,11 +4,11 @@
     padding: 0;
 }
 
-.relationsList li, .validationList li {
+.relationsList li {
     padding: 3px 5px;
 }
 
-.relationsList li:hover, .validationList li:hover {
+.relationsList li:hover {
     background-color: #eee !important;
     cursor: pointer;
 }
@@ -17,7 +17,7 @@
     background-color: #fff;
 }
 
-.relationsList li.selected, .validationList li.selected {
+.relationsList li.selected {
     background-color: #d3d3d3 !important;
 }
 

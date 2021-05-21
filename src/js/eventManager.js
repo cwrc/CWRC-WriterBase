@@ -152,6 +152,7 @@ function EventManager(writer) {
      * @event Writer#validationInitiated
      */
     w.event('validationInitiated');
+
     /**
      * A document was validated
      * @event Writer#documentValidated
@@ -160,6 +161,13 @@ function EventManager(writer) {
      * @param {String} docString The string sent to the validator
      */
     w.event('documentValidated');
+
+    /**
+     * A document is validating
+     * @event Writer#documentValidating
+     * @param {Number} partDone percentage of the document validated (0-1)
+     */
+     w.event('documentValidating');
     
     
     /**
