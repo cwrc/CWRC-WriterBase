@@ -196,7 +196,7 @@ function SchemaManager(writer, config) {
          * @param level The level of recursion
          * @param status Keep track of status while recursing
          */
-        const checkForText = () => (currEl, defHits, level, status) => {
+        function checkForText(currEl, defHits, level, status) {
             if (status.canContainText) return false;
             
             // check for the text element
