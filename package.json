@@ -39,6 +39,9 @@
     "build-dependency-graph": "depcruise --include-only \"^src\" --output-type dot src | dot -Gsplines=ortho -T svg | depcruise-wrap-stream-in-html > ./dependency-graph/dependency-graph.html"
   },
   "dependencies": {
+    "@fontsource/lato": "^4.3.0",
+    "@fontsource/material-icons": "^4.3.0",
+    "@fontsource/roboto": "^4.3.0",
     "@material-ui/core": "^4.11.4",
     "@material-ui/icons": "^4.11.2",
     "css": "^3.0.0",
