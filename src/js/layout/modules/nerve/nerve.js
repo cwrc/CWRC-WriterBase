@@ -605,8 +605,6 @@ function Nerve(config) {
     }
 
     const updateEntityView = ({entity, expand = true}) => {
-        // console.log(entity)
-        // console.log(entity.getId())
         const view = $parent.find(`ul.entitiesList > li[data-id=${entity.getId()}]`);
         view.data('type', entity.getType()).attr('data-type', entity.getType());
 
@@ -1178,7 +1176,6 @@ const NerveEditDialog = (writer, parentEl) => {
         }
 
         if (dialog.isValid) {
-            console.log(dialog.currentData)
             const sm = writer.schemaManager;
 
             const type = dialog.currentData.properties.type;
