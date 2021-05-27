@@ -378,10 +378,24 @@ function CWRCWriter(config) {
 }
 
 const loadWorkerValidator = async () => {
-    return await spawn(
-        new Worker('cwrc-worker-validator/src/index.ts'),
-        { timeout: 30000 } //high timeout due to large webworker file
-    );
+
+
+    const workerURL = `./${new URL('./worker.js', import.meta.url).href.replace(/^.*[\\\/]/,'')}`;
+  return await spawn(
+    // new Worker('cwrc-worker-validator/build/dist/index.js'),
+    new Worker(workerURL, {
+      name: 'cwrc-worker-validator',
+    }),
+    {
+      type: module,
+      timeout: 30000, //high timeout due to large webworker file
+    }
+  );
+
+  // return spawn(
+  //     new Worker('cwrc-worker-validator/src/index.ts'),
+  //     { timeout: 30000 } //high timeout due to large webworker file
+  // );
 };
 
 export default CWRCWriter;
