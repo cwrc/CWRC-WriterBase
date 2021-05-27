@@ -69,7 +69,7 @@ TinymceWrapper.init = function(config) {
     /**
      * Init tinymce
      */
-    tinymce.baseURL = w.cwrcRootUrl + '/js'; // need for skin
+    tinymce.baseURL = w.cwrcRootUrl; // need for skin
     tinymce.init({
         selector: '#' + editorId,
 
@@ -332,7 +332,7 @@ TinymceWrapper.init = function(config) {
             
 			addButtonToEditor('newbutton', {
 				title: 'New',
-				image: `${w.cwrcRootUrl}img/page_white_text.png`,
+				image: `${w.cwrcRootUrl}images/page_white_text.png`,
 				onclick: () => w.showSaveDialog()
             });
             
@@ -344,14 +344,14 @@ TinymceWrapper.init = function(config) {
             
 			addButtonToEditor('saveasbutton', {
 				title: 'Save As',
-				image: `${w.cwrcRootUrl}img/save_as.png`,
+				image: `${w.cwrcRootUrl}images/save_as.png`,
 				onclick: () => w.showSaveAsDialog()
             });
 
             addButtonToEditor('saveexitbutton', {
                 title: 'Save & Exit',
                 // icon: ` ${iconType} save-exit`,
-                image: `${w.cwrcRootUrl}img/save_exit.png`,
+                image: `${w.cwrcRootUrl}images/save_exit.png`,
                 onclick: () => w.saveAndExit()
             });
             

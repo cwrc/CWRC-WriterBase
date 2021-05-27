@@ -50,7 +50,7 @@ th {
 
 .mce-object {
     border: 1px dotted #3A3A3A;
-    background: #D5D5D5 url(img/object.gif) no-repeat center
+    background: #D5D5D5 url(images/object.gif) no-repeat center
 }
 
 .mce-preview-object {
@@ -145,7 +145,7 @@ figure.image figcaption {
     width: 9px !important;
     height: 9px !important;
     border: 1px dotted #3A3A3A;
-    background: #D5D5D5 url(img/anchor.gif) no-repeat center
+    background: #D5D5D5 url(images/anchor.gif) no-repeat center
 }
 
 .mce-nbsp,
