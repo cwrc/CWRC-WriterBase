@@ -22,7 +22,7 @@ const handleGraphics = $tag => {
 
 const mapping = {
 
-    id: 'ID',
+    id: 'xml:id',
     responsibility: 'RESP',
     rdfParentSelector: '/CWRC/CWRCHEADER',
     root: ['CWRC'],
