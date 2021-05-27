@@ -143,7 +143,7 @@ tinymce.PluginManager.add('schematags', function(editor) {
         action = action === undefined ? "add" : action;
         
         var menuItems = [];
-        var imageUrl = editor.writer.cwrcRootUrl+'img/';
+        var imageUrl = editor.writer.cwrcRootUrl+'images/';
         var schemaElements = editor.writer.schemaManager.schema.elements;
         for (var i = 0; i < schemaElements.length; i++) {
             var tag = schemaElements[i];
