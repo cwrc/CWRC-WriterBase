@@ -25,7 +25,7 @@ const handleGraphics = $tag => {
 const mapping = {
 
     namespace: 'http://www.tei-c.org/ns/1.0',
-    id: 'xml:id',
+    id: 'xml:id', //What is this for? iF it is just for tracking candidates on NERVE panel, we can called it something else, like CANDIDATE_ID
     responsibility: 'resp',
     rdfParentSelector: '/TEI/teiHeader/fileDesc/following-sibling::xenoData',
     root: ['TEI', 'teiCorpus'],
