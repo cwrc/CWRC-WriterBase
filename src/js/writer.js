@@ -382,11 +382,14 @@ function CWRCWriter(config) {
     return w;
 }
 
+
 const loadWorkerValidator = async () => {
-    return await spawn(
-        new Worker('cwrc-worker-validator/src/index.ts'),
-        { timeout: 30000 } //high timeout due to large webworker file
-    );
-};
+    const timeout = 30000; //high timeout due to large webworker file
+
+    //* uncomment the first and comment the second for local development
+    
+    // return await spawn(new Worker('cwrc-worker-validator/src/index.ts'), { timeout });
+    return await spawn(new Worker('./js/cwrc.worker.js'), { timeout });
+  };
 
 export default CWRCWriter;
