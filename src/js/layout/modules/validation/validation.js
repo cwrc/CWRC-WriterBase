@@ -99,7 +99,7 @@ function Validation({ writer, parentId }) {
       // w.layoutManager.hideModule('validation');
       return;
     }
-    
+
     w.layoutManager.showModule('validation');
 
     w.tagger.removeNoteWrappersForEntities();
