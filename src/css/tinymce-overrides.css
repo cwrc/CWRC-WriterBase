@@ -4,12 +4,12 @@
 }
 
 /* tinymce toolbar button override */
-.mce-toolbar-grp .mce-btn .mce-txt {
+/* .mce-toolbar-grp .mce-btn .mce-txt {
     line-height: 14px;
-}
+} */
 
 /* tinymce menu overrides */
-.mce-cwrc .mce-menu-item {
+/* .mce-cwrc .mce-menu-item {
     padding: 4px 2px;
 }
 
@@ -34,11 +34,15 @@ div.mce-cwrc div.mce-menu-item-sep, div.mce-cwrc div.mce-menu-item-sep:hover {
 .mce-cwrc input.mce-textbox {
     font-size: 1em;
     height: 26px;
-}
+} */
 
 
 /* tinymce overrides */
 .mce-tinymce.mce-container {
     overflow: hidden; /* needed to prevent scrollbars from jquery dialogs */
     border-width: 0px !important;
+}
+
+.tox .tox-menu.tox-collection.tox-collection--list {
+    max-height: 400px !important;
 }

@@ -550,7 +550,13 @@ function StructureTree(config) {
 
         // use setTimeout to make sure that highlight happens first
         setTimeout(() => {
-            w.tagMenu.show({ event, tagId, useSelection: false });
+            w.tagMenu.show({
+                event,
+                posX: event.pageX,
+                posY: event.pageY,
+                tagId,
+                useSelection: false
+            });
         },0);
     });
     

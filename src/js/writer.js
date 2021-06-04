@@ -12,7 +12,7 @@ const AnnotationsManager = require('./entities/annotationsManager');
 import { settingsDialog } from './dialogs/settings';
 import LayoutManager from './layout/layoutManager.js';
 import TagContextMenu from './tagContextMenu';
-const TinymceWrapper = require('./tinymceWrapper.js');
+import TinymceWrapper from './tinymceWrapper';
 import { spawn, Worker } from 'threads'; //https://threads.js.org/
 
 import "@fontsource/lato/100.css";
@@ -70,6 +70,7 @@ function CWRCWriter(config) {
     w.cwrcRootUrl = config.cwrcRootUrl; // the url which points to the root of the cwrcwriter location
     if (w.cwrcRootUrl === null || w.cwrcRootUrl === '') {
         w.cwrcRootUrl = `${window.location.protocol}//${window.location.host}/${window.location.pathname.split('/')[1]}/`;
+        if (w.cwrcRootUrl.endsWith('//')) w.cwrcRootUrl = w.cwrcRootUrl.slice(0, -1);
         console.info('using default cwrcRootUrl', w.cwrcRootUrl);
     }
 

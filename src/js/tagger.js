@@ -141,7 +141,8 @@ function Tagger(writer) {
             return;
         }
 
-        var tagId = w.editor.currentBookmark.tagId; // set by structureTree
+        // var tagId = w.editor.currentBookmark.tagId; // set by structureTree
+        const tagId = w.editor.currentBookmark?.tagId; // set by structureTree
         if (tagId == null) {
             w.editor.selection.moveToBookmark(w.editor.currentBookmark);
             

@@ -71,9 +71,13 @@ class TagContextMenu {
    * @param {String|Array} tagId The id of the tag. Can be undefined and will be determined by tagger.getCurrentTag. Can be an array to allow for merge action.
    * @param {Boolean} useSelection
    */
-  async show({ event, ...rest }) {
-    event.preventDefault();
-    event.stopImmediatePropagation();
+  async show({ event, posX, posY, source, ...rest }) {
+    if (event) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+
+    this.source = source ? source : '';
 
     if (this.w.isReadOnly || this.w.isEditorReadOnly()) return;
 
@@ -92,10 +96,7 @@ class TagContextMenu {
     console.log(`${'%c'}Context Menu for ${this.tagName}`, logStyle);
     this.virtualEditorExists = this.w.workerValidator.hasValidator();
 
-    $(this.selector).contextMenu({
-      x: event.pageX,
-      y: event.pageY,
-    });
+    $(this.selector).contextMenu({ x: posX, y: posY });
   }
 
   /**
@@ -254,6 +255,8 @@ class TagContextMenu {
   }
 
   #getItems() {
+    // if (this.source === 'ribbon') return this.#getItemsForRibbonTags();
+    
     if (this.w.isAnnotator) {
       this.#getEntitiesOptions(items);
       return items;
@@ -580,6 +583,49 @@ class TagContextMenu {
         this.w.tagger.addTagDialog(key, action, this.tagId);
         break;
     }
+  }
+
+  async #getItemsForRibbonTags() {
+    // const params = this.#paramsForAddTag();
+    // const tags = await this.#getTagsFor(params);
+    // const items = this.#getSubmenu({ options: tags, action: 'add' });
+    // console.log(items)
+    // // return items;
+
+    const items = {};
+
+    // items.add_tag = {
+    //     name: 'Add Tag',
+    //     icon: 'fas fa-plus-circle',
+    //     className: 'context-menu-item-new',
+    //     items: (async () => {
+    //       const params = this.#paramsForAddTag();
+    //       const tags = await this.#getTagsFor(params);
+    //       const submenu = this.#getSubmenu({ options: tags, action: 'add' });
+    //       return submenu;
+    //     })(),
+    //   };
+
+    items.remove_all = {
+      name: 'Remove All',
+      icon: 'fas fa-minus-circle',
+      className: 'context-menu-item-new',
+      // callback: () => this.w.tagger.removeStructureTag(tagId, true),
+    };
+
+    return items;
+
+    // return {
+    //         callback: function(key, options) {
+    //             var m = "clicked: " + key;
+    //             window.console && console.log(m) || alert(m);
+    //         },
+    //         items: {
+    //             "edit": {name: "Edit", icon: "edit"},
+    //             "cut": {name: "Cut", icon: "cut"},
+    //             "copy": {name: "Copy", icon: "copy"}
+    //         }
+    //     };
   }
 }
 

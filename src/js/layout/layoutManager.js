@@ -121,27 +121,30 @@ LayoutManager.prototype = {
         }
 
         fscreen.addEventListener('fullscreenchange', function() {
-            var fscreenButton = this.w.editor.theme.panel.find('button#fullscreen');
-            if (fscreenButton.length == 1) {
-                var $iEl = fscreenButton[0].$el.find('i');
-                if (fscreen.fullscreenElement !== null) {
-                    $iEl.removeClass('fullscreen-activate').addClass('fullscreen-deactivate');
-                } else {
-                    $iEl.removeClass('fullscreen-deactivate').addClass('fullscreen-activate');
-                }
-            }
-            if (this.w.isReadOnly || this.w.isAnnotator) {
-                var $fscreenLink = this.getHeaderButtonsParent().find('.fullscreenLink');
-                if ($fscreenLink.length == 1) {
-                    if (fscreen.fullscreenElement !== null) {
-                        $fscreenLink.removeClass('out').addClass('in');
-                        $fscreenLink.text('Exit Fullscreen');
-                    } else {
-                        $fscreenLink.removeClass('in').addClass('out');
-                        $fscreenLink.text('Fullscreen');
-                    }
-                }
-            }
+            //!deprecated
+            //! no need to change icons of full screen button anymore
+            console.warn('DEPRECATED  no need to change icons of full screen button anymore')
+            // var fscreenButton = this.w.editor.theme.panel.find('button#fullscreen');
+            // if (fscreenButton.length == 1) {
+            //     var $iEl = fscreenButton[0].$el.find('i');
+            //     if (fscreen.fullscreenElement !== null) {
+            //         $iEl.removeClass('fullscreen-activate').addClass('fullscreen-deactivate');
+            //     } else {
+            //         $iEl.removeClass('fullscreen-deactivate').addClass('fullscreen-activate');
+            //     }
+            // }
+            // if (this.w.isReadOnly || this.w.isAnnotator) {
+            //     var $fscreenLink = this.getHeaderButtonsParent().find('.fullscreenLink');
+            //     if ($fscreenLink.length == 1) {
+            //         if (fscreen.fullscreenElement !== null) {
+            //             $fscreenLink.removeClass('out').addClass('in');
+            //             $fscreenLink.text('Exit Fullscreen');
+            //         } else {
+            //             $fscreenLink.removeClass('in').addClass('out');
+            //             $fscreenLink.text('Fullscreen');
+            //         }
+            //     }
+            // }
         }.bind(this));
       
         this.resizeEditor = function() {
@@ -222,7 +225,9 @@ LayoutManager.prototype = {
             },
             center: {
                 onresize_end: function(region, pane, state, options) {
-                    this.resizeEditor();
+                    // ! DEPRECATED resizeEditor might not be necessary anymore.
+                    console.warn('DEPRECATED resizeEditor might not be necessary anymore.')
+                    // this.resizeEditor();
                 }.bind(this)
             }
         };
@@ -267,18 +272,21 @@ LayoutManager.prototype = {
         }
         
         var doHandleEntityButtons = function(isCustom) {
-            var controls = this.w.editor.theme.panel.rootControl.controlIdLookup;
-            var mappings = this.w.schemaManager.mapper.getMappings();
-            for (var controlId in controls) {
-                var control = controls[controlId];
-                if (control.settings.entityButton === true) {
-                    if (isCustom || mappings.entities[control.settings.entityType] === undefined) {
-                        control.disabled(true);
-                    } else {
-                        control.disabled(false);
-                    }
-                }
-            }
+            //? panel is not accesible from them on tinymce.
+            // ? Need to find anohter way this ckide still make sense.
+            console.warn('Deprecated: not used')
+            // var controls = this.w.editor.theme.panel.rootControl.controlIdLookup;
+            // var mappings = this.w.schemaManager.mapper.getMappings();
+            // for (var controlId in controls) {
+            //     var control = controls[controlId];
+            //     if (control.settings.entityButton === true) {
+            //         if (isCustom || mappings.entities[control.settings.entityType] === undefined) {
+            //             control.disabled(true);
+            //         } else {
+            //             control.disabled(false);
+            //         }
+            //     }
+            // }
         }.bind(this);
         
         // show/hide entity buttons based on the presence of a custom schema
@@ -372,38 +380,40 @@ LayoutManager.prototype = {
     },
 
     getButtonByName: function(name) {
-        var buttons = this.w.editor.buttons,
-            toolbarObj = this.w.editor.theme.panel.find('toolbar *');
+        //! Deprecated: not use
+        console.warn('Deprecated: not use')
+        // var buttons = this.w.editor.buttons,
+        //     toolbarObj = this.w.editor.theme.panel.find('toolbar *');
 
-        if (buttons[name] === undefined)
-            return false;
+        // if (buttons[name] === undefined)
+        //     return false;
 
-        var settings = buttons[name], result = false, length = 0;
+        // var settings = buttons[name], result = false, length = 0;
 
-        window.tinymce.each(settings, function(v, k) {
-            length++;
-        });
+        // window.tinymce.each(settings, function(v, k) {
+        //     length++;
+        // });
 
-        window.tinymce.each(toolbarObj, function(v, k) {
-            if (v.type != 'button' || v.settings === undefined)
-                return;
+        // window.tinymce.each(toolbarObj, function(v, k) {
+        //     if (v.type != 'button' || v.settings === undefined)
+        //         return;
 
-            var i = 0;
+        //     var i = 0;
 
-            window.tinymce.each(v.settings, function(v, k) {
-                if (settings[k] == v)
-                    i++;
-            });
+        //     window.tinymce.each(v.settings, function(v, k) {
+        //         if (settings[k] == v)
+        //             i++;
+        //     });
 
-            if (i != length)
-                return;
+        //     if (i != length)
+        //         return;
 
-            result = v;
+        //     result = v;
 
-            return false;
-        });
+        //     return false;
+        // });
 
-        return result;
+        // return result;
     },
 
     toggleFullScreen: function() {
