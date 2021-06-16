@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import tinymce, { TinyMCE, Editor } from 'tinymce/tinymce';
-import { Editor_CWRC } from '../@types/types'
+import { Editor_CWRC } from '../@types/types';
 
 declare global {
   interface Window {
@@ -14,8 +14,7 @@ import 'tinymce/themes/silver';
 import 'tinymce/plugins/paste';
 
 //TODO: Reassess plugins on tinymce 5.0
-import './tinymce_plugins/cwrc_path.js';
-// import './tinymce_plugins/schematags.js';
+// import './tinymce_plugins/cwrc_path.js';
 import './tinymce_plugins/treepaste.js';
 import './tinymce_plugins/prevent_delete.js';
 
@@ -86,7 +85,6 @@ TinymceWrapper.init = function ({
 
     //TODO: Reassess plugins on tinymce 5.0
     plugins: [
-      // 'schematags',   //!We might use the native menu options. If not, rework the plugin
       // 'cwrcpath',  //!This was broken before the upgrade
       'preventdelete', //TODO: need to be tested
       'paste', //TODO: need to be tested
@@ -146,10 +144,9 @@ TinymceWrapper.init = function ({
           return !!editor.schema.getBlockElements()[node_string];
         };
 
-        const settings = writer.settings.getSettings();
+        writer.overmindActions.editor.applyInitialSettings();
+
         const body = editor.getBody();
-        if (settings.showEntities) $(body).addClass('showEntities');
-        if (settings.showTags) $(body).addClass('showTags');
 
         // highlight tracking
         body.addEventListener('keydown', onKeyDownHandler);
@@ -196,7 +193,13 @@ TinymceWrapper.init = function ({
           const posX = event.pageX + adjustLeft;
           const posY = event.pageY + adjustTop;
 
-          writer.tagMenu.show({ event, posX, posY, useSelection: true });
+          writer.overmindActions.ui.showContextMenu({
+            show: true,
+            position: { posX, posY },
+            useSelection: true,
+          });
+
+          // writer.tagMenu.show({ event, posX, posY, useSelection: true });
         });
       });
 

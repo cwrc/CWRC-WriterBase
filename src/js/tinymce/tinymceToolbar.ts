@@ -1,22 +1,20 @@
 import $ from 'jquery';
 import { Editor } from 'tinymce';
-import { getSchemaTags } from './schematags';
 
 const toolbarOptions = [
-  'schema-tags',
-  // 'tags',
+  'tags',
   '|',
   'tag-person',
   'tag-place',
   'tag-organization',
   'tag-title',
-  'tag-date',
+  'tag-referencing-string',
   'tag-citation',
   'tag-note',
+  'tag-date',
   'tag-correction',
   'tag-keyword',
   'tag-link',
-  'tag-referencing-string',
   'add-translation',
   '|',
   'edit-tag',
@@ -35,19 +33,6 @@ const toolbarOptions = [
 ];
 
 const configureToolbar = (writer: any, editor: Editor) => {
-  const menuItems = [
-    {
-      text: 'Tags',
-      slug: 'schema-tags',
-      icon: 'tags',
-      tooltip: 'Schema Tags',
-      fetch: async (callback: any) => {
-        const items = await getSchemaTags(editor);
-        callback(items);
-      },
-    },
-  ];
-
   const toogleButtons = [
     {
       slug: 'toggle-tags',
@@ -70,24 +55,30 @@ const configureToolbar = (writer: any, editor: Editor) => {
   ];
 
   const buttons = [
-    // {
-    //   slug: 'tags',
-    //   icon: 'tags',
-    //   tooltip: 'Tags',
-    //   onAction: () => {
-    //     const $button = $('.tox-tbtn').filter(
-    //       (_index, element) => $(element).attr('title') === 'Tags'
-    //     );
+    {
+      text: 'Tags',
+      slug: 'tags',
+      icon: 'tags',
+      tooltip: 'Tags',
+      onAction: () => {
+        const $button = $('.tox-tbtn').filter(
+          (_index, element) => $(element).attr('title') === 'Tags'
+        );
 
-    //     const buttonOffset = $button.offset();
-    //     const buttonHeight = $button.height() ?? 0;
+        const buttonOffset = $button.offset();
+        const buttonHeight = $button.height() ?? 0;
 
-    //     const posX = buttonOffset ? buttonOffset.left : 0;
-    //     const posY = buttonOffset ? buttonOffset.top + buttonHeight : 0;
+        const posX = buttonOffset ? buttonOffset.left : 0;
+        const posY = buttonOffset ? buttonOffset.top + buttonHeight : 0;
 
-    //     writer.tagMenu.show({ source: 'ribbon', posX, posY, useSelection: true });
-    //   },
-    // },
+        writer.overmindActions.ui.showContextMenu({
+          show: true,
+          eventSource: 'ribbon',
+          position: { posX, posY },
+          useSelection: true,
+        });
+      },
+    },
     {
       slug: 'tag-person',
       icon: 'person',
@@ -259,10 +250,6 @@ const configureToolbar = (writer: any, editor: Editor) => {
       onAction: () => writer.exit(),
     },
   ];
-
-  menuItems.map((button) => {
-    editor.ui.registry.addMenuButton(button.slug, button);
-  });
 
   toogleButtons.map((button) => {
     editor.ui.registry.addToggleButton(button.slug, button);

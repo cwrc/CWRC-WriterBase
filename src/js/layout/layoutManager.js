@@ -13,8 +13,6 @@ var Selection = require('./modules/selection/selection.js');
 var ImageViewer = require('./modules/imageViewer/imageViewer.js');
 var Nerve = require('./modules/nerve/nerve.js');
 
-var pkg = require('./../../../package.json');
-
 // track modules which cannot appear in readonly mode
 var writeOnlyModules = ['nerve'];
 
@@ -57,8 +55,7 @@ LayoutManager.prototype = {
         $('<div id="'+this.w.getUniqueId('cwrc_')+'" class="cwrc cwrcWrapper"></div>').appendTo(containerClone);
         this.$container = $(containerClone).appendTo(this.$iframe.contents().find('body'));
         */
-        
-        var version = pkg.version;
+    
 
         var name = 'CWRC-Writer';
         var editorId = config.editorId;
@@ -78,13 +75,7 @@ LayoutManager.prototype = {
             }
         }
 
-        var html = `
-        <div class="cwrc cwrcHeader ui-layout-north">
-            <div class="headerParent ui-widget">
-                <a class="titleLink" href="https://cwrc.ca" target="_blank">${name}</a>
-                <div class="headerButtons"></div>
-            </div>
-        </div>`;
+        let html = '';
         
         html += addPanel(editorId, 'west', this.modulesLayout.west);
         
@@ -100,13 +91,6 @@ LayoutManager.prototype = {
             </div>`;
         
         html += addPanel(editorId, 'east', this.modulesLayout.east);
-
-        html += `
-        <div class="cwrc cwrcFooter ui-layout-south">
-            <a title="Powered by Tiny" target="_blank" href="https://www.tiny.cloud">Powered by Tiny</a>
-            <a title="GitHub Release Notes" target="_blank" href="https://github.com/cwrc/CWRC-WriterBase/releases/tag/v${version}">CWRC-Writer version ${version}</a>
-        </div>
-        `;
         
         this.$container.append(html);
         
@@ -123,7 +107,7 @@ LayoutManager.prototype = {
         fscreen.addEventListener('fullscreenchange', function() {
             //!deprecated
             //! no need to change icons of full screen button anymore
-            console.warn('DEPRECATED  no need to change icons of full screen button anymore')
+            console.warn('"fscreen" listener DEPRECATED: no need to change icons of full screen button anymore')
             // var fscreenButton = this.w.editor.theme.panel.find('button#fullscreen');
             // if (fscreenButton.length == 1) {
             //     var $iEl = fscreenButton[0].$el.find('i');
@@ -226,7 +210,7 @@ LayoutManager.prototype = {
             center: {
                 onresize_end: function(region, pane, state, options) {
                     // ! DEPRECATED resizeEditor might not be necessary anymore.
-                    console.warn('DEPRECATED resizeEditor might not be necessary anymore.')
+                    console.warn('"resizeEditor" DEPRECATED:  might not be necessary anymore.')
                     // this.resizeEditor();
                 }.bind(this)
             }
@@ -272,9 +256,9 @@ LayoutManager.prototype = {
         }
         
         var doHandleEntityButtons = function(isCustom) {
-            //? panel is not accesible from them on tinymce.
+            // ! panel is not accesible on tinymce 5.
             // ? Need to find anohter way this ckide still make sense.
-            console.warn('Deprecated: not used')
+            console.warn('"HandleEntityButtons" DEPRECATED: not used')
             // var controls = this.w.editor.theme.panel.rootControl.controlIdLookup;
             // var mappings = this.w.schemaManager.mapper.getMappings();
             // for (var controlId in controls) {

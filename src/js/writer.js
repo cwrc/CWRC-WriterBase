@@ -9,7 +9,6 @@ const EntitiesManager = require('./entities/entitiesManager.js');
 const Tagger = require('./tagger.js');
 const Converter = require('./conversion/converter.js');
 const AnnotationsManager = require('./entities/annotationsManager');
-import { settingsDialog } from './dialogs/settings';
 import LayoutManager from './layout/layoutManager.js';
 import TagContextMenu from './tagContextMenu';
 import TinymceWrapper from './tinymceWrapper';
@@ -20,15 +19,8 @@ import "@fontsource/lato/300.css";
 import "@fontsource/lato/400.css";
 import "@fontsource/lato/700.css";
 import "@fontsource/lato/900.css";
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
-import '@fontsource/material-icons/400.css';
-
 
 import '../css/build.less';
-
 
 /**
  * @class CWRCWriter
@@ -47,7 +39,7 @@ import '../css/build.less';
  * @param {String} [config.buttons2]
  * @param {String} [config.buttons3]
  */
-function CWRCWriter(config) {
+function Writer(config) {
     config = config || {};
 
     /**
@@ -56,8 +48,7 @@ function CWRCWriter(config) {
     const w = {};
 
     w.initialConfig = config;
-
-    //htnk container
+    //html container
     if (config.container === undefined) {
         alert('Error: no container supplied for CWRCWriter!');
         return;
@@ -259,7 +250,6 @@ function CWRCWriter(config) {
         w.editor.remove();
         w.editor.destroy();
 
-        w.settings.destroy();
         w.utilities.destroy();
         w.dialogManager.destroy();
         w.layoutManager.destroy();
@@ -301,7 +291,7 @@ function CWRCWriter(config) {
     };
 
     if (config.storageDialogs !== null) {
-        w.storageDialogs = config.storageDialogs;
+        w.storageDialogs = config.storageDialogs.module;
     } else {
         alert('Error: you must specify a storage dialogs class in the CWRCWriter config to allow loading and saving documents.');
     }
@@ -356,11 +346,6 @@ function CWRCWriter(config) {
     w.tagger = new Tagger(w);
     w.converter = new Converter(w);
     w.annotationsManager = new AnnotationsManager(w);
-    w.settings = settingsDialog(w, {
-        helpUrl: config.helpUrl,
-        showEntities: true,
-        showTags: false
-    });
 
     w.tagMenu = new TagContextMenu(w);
 
@@ -387,4 +372,4 @@ const loadWorkerValidator = async () => {
     return await spawn(new Worker('./js/cwrc.worker.js'), { timeout });
   };
 
-export default CWRCWriter;
+export default Writer;

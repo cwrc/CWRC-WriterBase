@@ -549,15 +549,14 @@ function StructureTree(config) {
         selectNode($target, selectContents, multiselect, false) ;
 
         // use setTimeout to make sure that highlight happens first
-        setTimeout(() => {
-            w.tagMenu.show({
-                event,
-                posX: event.pageX,
-                posY: event.pageY,
+        // setTimeout(() => {
+            w.overmindActions.ui.showContextMenu({
+                show: true,
+                position: { posX: event.pageX, posY: event.pageY },
+                useSelection: false,
                 tagId,
-                useSelection: false
             });
-        },0);
+        // },0);
     });
     
     $tree.on('select_node.jstree', _onNodeSelect);

@@ -631,6 +631,9 @@ function SchemaManager(writer, config) {
         w.event('loadingSchema').publish();
 
         sm.schemaId = schemaId;
+        
+        w.overmindActions.document.setInitialStateSchema(schemaId);
+
         const schemaMappingsId = schemaEntry.schemaMappingsId;
         sm.mapper.loadMappings(schemaMappingsId);
 

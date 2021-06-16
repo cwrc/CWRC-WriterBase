@@ -70,23 +70,6 @@
     overflow: hidden;
 }
 
-.headerButtons {
-    display: table-cell;
-    vertical-align: middle;
-    text-align: right;
-}
-
-.headerButtons > div {
-    display: inline-block;
-    margin-right: 15px;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.headerButtons > div:hover {
-    text-decoration: underline;
-}
-
 .titleLink {
     display: table-cell;
     vertical-align: middle;

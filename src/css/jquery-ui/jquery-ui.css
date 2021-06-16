@@ -736,6 +736,11 @@ button.cwrc .ui-button::-moz-focus-inner {
 	-ms-touch-action: none;
 	touch-action: none;
 }
+
+.cwrc .ui-layout-resizer {
+	z-index: 0 !important;
+}
+
 .cwrc .ui-slider .ui-slider-range {
 	position: absolute;
 	z-index: 1;
