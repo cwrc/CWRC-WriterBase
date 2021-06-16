@@ -3,7 +3,7 @@ import React, { FC, useEffect, useState } from 'react';
 import BottomBar from './components/bottombar';
 import ContextMenu from './components/contextmenu';
 import TopBar from './components/Topbar';
-import Writer from './js/Writer';
+import Writer from './js/writer';
 import { useApp } from './overmind';
 import theme from './theme';
 
