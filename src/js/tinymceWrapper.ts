@@ -198,8 +198,6 @@ TinymceWrapper.init = function ({
             position: { posX, posY },
             useSelection: true,
           });
-
-          // writer.tagMenu.show({ event, posX, posY, useSelection: true });
         });
       });
 

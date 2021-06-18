@@ -3,7 +3,6 @@
 var $ = require('jquery');
 
 require('jquery-ui/ui/widgets/button');
-require('jquery-contextmenu');
 
 /**
  * @class Relations

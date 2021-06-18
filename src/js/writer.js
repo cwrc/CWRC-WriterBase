@@ -10,7 +10,6 @@ const Tagger = require('./tagger.js');
 const Converter = require('./conversion/converter.js');
 const AnnotationsManager = require('./entities/annotationsManager');
 import LayoutManager from './layout/layoutManager.js';
-import TagContextMenu from './tagContextMenu';
 import TinymceWrapper from './tinymceWrapper';
 import { spawn, Worker } from 'threads'; //https://threads.js.org/
 
@@ -254,7 +253,6 @@ function Writer(config) {
         w.dialogManager.destroy();
         w.layoutManager.destroy();
         w.eventManager.destroy();
-        w.tagMenu.destroy();
     };
 
     // Unload functions
@@ -346,8 +344,6 @@ function Writer(config) {
     w.tagger = new Tagger(w);
     w.converter = new Converter(w);
     w.annotationsManager = new AnnotationsManager(w);
-
-    w.tagMenu = new TagContextMenu(w);
 
     const layoutContainerId = w.layoutManager.getContainer().attr('id');
 
