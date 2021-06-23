@@ -6,3 +6,4 @@ npm-debug.log
 /.nyc_output
 /dependency-graph
 /dist
+/coverage-ts

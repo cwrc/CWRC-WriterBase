@@ -35,6 +35,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "report-coverage": "cat ./coverage/coverage-final.json | codecov",
+    "ts-coverage": "typescript-coverage-report",
     "semantic-release": "semantic-release",
     "build-dependency-graph": "depcruise --include-only \"^src\" --output-type dot src | dot -Gsplines=ortho -T svg | depcruise-wrap-stream-in-html > ./dependency-graph/dependency-graph.html"
   },
@@ -105,6 +106,7 @@
     "less-watch-compiler": "^1.15.2",
     "prettier": "^2.3.1",
     "semantic-release": "^17.4.4",
-    "ts-dedent": "^2.1.1"
+    "ts-dedent": "^2.1.1",
+    "typescript-coverage-report": "^0.6.0"
   }
 }
