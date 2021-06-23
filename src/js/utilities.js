@@ -1,6 +1,5 @@
 import $ from 'jquery';
 import ObjTree from '../lib/objtree/ObjTree';
-// const ObjTree = require('../lib/objtree/ObjTree');
 
 /**
  * @class Utilities
@@ -51,7 +50,6 @@ function Utilities(writer) {
     };
 
     //? Load schema using Salve
-    // u.loadSchema
     u.sendSchemaToworkerValidator = async () => {
         const id = w.schemaManager.getCurrentSchema().id;
 
