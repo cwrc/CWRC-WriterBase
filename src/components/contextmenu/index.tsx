@@ -1,8 +1,6 @@
 import { Menu } from '@material-ui/core';
-import { EntityType } from '@src/@types/types';
 import { useApp } from '@src/overmind';
 import React, { FC, useEffect, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import Collection from './Collection';
 import Header from './Header';
 import { Item as ItemType } from './types';
@@ -14,7 +12,7 @@ interface ContextMenuProps {
 
 const ContextMenu: FC<ContextMenuProps> = ({ writer }) => {
   const { state, actions } = useApp();
-  const { collectionType, getItems, initialize, MIN_WIDTH, query, tagName, xpath } = useContextmenu(
+  const { collectionType, getItems, initialize, MIN_WIDTH, query, tagName, xpath, tagMeta } = useContextmenu(
     writer,
     state.ui.contextMenu
   );
@@ -90,7 +88,7 @@ const ContextMenu: FC<ContextMenuProps> = ({ writer }) => {
           open={show}
           PaperProps={{ elevation: 4 }}
         >
-          <Header tagName={tagName} xpath={xpath} />
+          <Header tagName={tagName} xpath={xpath} tagMeta={tagMeta}/>
 
           <Collection
             handleQuery={handleQuery}
