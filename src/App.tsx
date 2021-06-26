@@ -21,7 +21,14 @@ const App: FC<AppProps> = ({ config }) => {
   const { state, actions } = useApp();
   const [writer, setWriter] = useState<any>();
 
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const systemPreferColor = useMediaQuery('(prefers-color-scheme: dark)');
+
+  useEffect(() => {
+    if (state.ui.paletteMode === 'system') {
+      actions.ui.setDarkMode(systemPreferColor);
+    }
+    return () => {};
+  }, [systemPreferColor]);
 
   useEffect(() => {
     actions.editor.writerInitSettings(JSON.stringify(config));
@@ -53,7 +60,7 @@ const App: FC<AppProps> = ({ config }) => {
   }, [state]);
 
   return (
-    <ThemeProvider theme={theme(prefersDarkMode)}>
+    <ThemeProvider theme={theme(state.ui.darkMode)}>
       {/* <CssBaseline /> */}
       <TopBar />
       <Box

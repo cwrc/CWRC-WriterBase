@@ -1,5 +1,24 @@
-import { ContextMenuState } from '@src/@types/types';
+import { ContextMenuState, PaletteMode } from '@src/@types/types';
 import { Context } from 'overmind';
+
+export const setPaletteMode = ({ state, actions }: Context, value: PaletteMode) => {
+  state.ui.paletteMode = value;
+
+  const darkMode =
+    value === 'system'
+      ? !!window.matchMedia('(prefers-color-scheme: dark)')
+      : value === 'light'
+      ? false
+      : true;
+
+  actions.ui.setDarkMode(darkMode);
+
+  localStorage.setItem('paletteMode', value);
+};
+
+export const setDarkMode = ({ state }: Context, value: boolean) => {
+  state.ui.darkMode = value;
+};
 
 export const closeContextMenu = ({ state }: Context) => {
   state.ui.contextMenu = { show: false };
@@ -11,4 +30,8 @@ export const showContextMenu = ({ state }: Context, value: ContextMenuState) => 
 
 export const updateTitle = ({ state }: Context, title: string) => {
   state.ui.title = title;
+};
+
+export const resetPreferences = () => {
+  localStorage.removeItem('paletteMode');
 };

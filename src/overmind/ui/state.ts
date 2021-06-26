@@ -1,13 +1,15 @@
-import { ContextMenuState } from '@src/@types/types';
+import { ContextMenuState, PaletteMode } from '@src/@types/types';
 
 type State = {
-  title: string;
-  darkMode: boolean;
   contextMenu: ContextMenuState;
+  darkMode: boolean;
+  paletteMode: PaletteMode;
+  title: string;
 };
 
 export const state: State = {
-  title: 'CWRC Writer',
-  darkMode: false,
   contextMenu: { show: false },
+  darkMode: false,
+  paletteMode: 'light',
+  title: 'CWRC Writer',
 };

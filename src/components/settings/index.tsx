@@ -7,6 +7,7 @@ import FontSize from './FontSize';
 import Resets from './Resets';
 import Schema from './Schema';
 import ShowTags from './ShowTags';
+import PaletteMode from './PaletteMode';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -14,7 +15,7 @@ interface SettingsDialogProps {
 }
 
 const SettingsDialog: FC<SettingsDialogProps> = ({ open, handleClose }) => {
-  const { state, actions } = useApp();
+  const { actions } = useApp();
 
   useEffect(() => {
     if (!window.writer) return;
@@ -28,6 +29,7 @@ const SettingsDialog: FC<SettingsDialogProps> = ({ open, handleClose }) => {
       <DialogContent>
         <FontSize />
         <ShowTags />
+        <PaletteMode />
         {/* {!state.editor.isReadonly && (
           <Box>
             <Divider/>

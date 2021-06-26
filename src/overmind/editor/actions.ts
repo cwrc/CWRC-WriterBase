@@ -125,6 +125,8 @@ export const resetPreferences = ({ state, actions }: Context) => {
   if (state.editor.showEntities !== true) actions.editor.showEntities(true);
   if (state.editor.editorMode !== 'xmlrdfoverlap') actions.editor.setEditorMode('xmlrdf');
   if (state.editor.annotationMode !== 3) actions.editor.setAnnotationrMode(3);
+
+  actions.ui.resetPreferences();
 };
 
 export const getSettings = ({ state }: Context, config?: string) => {
