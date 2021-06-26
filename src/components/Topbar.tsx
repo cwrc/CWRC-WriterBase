@@ -38,8 +38,8 @@ const TopBar: FC<TopBarProps> = ({
             <img
               src={
                 theme.palette.mode === 'light'
-                  ? '/img/cwrclogo-black.png'
-                  : '/img/cwrclogo-white.png'
+                  ? '/images/cwrclogo-black.png'
+                  : '/images/cwrclogo-white.png'
               }
               alt="CWRC"
               height={32}

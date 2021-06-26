@@ -215,7 +215,7 @@ const configureToolbar = (writer: any, editor: Editor) => {
     },
     {
       slug: 'new',
-      // image: `${writer.cwrcRootUrl}img/page_white_text.png`,
+      // image: `${writer.cwrcRootUrl}images/page_white_text.png`,
       tooltip: 'New',
       onAction: () => writer.showSaveDialog(),
     },
@@ -227,13 +227,13 @@ const configureToolbar = (writer: any, editor: Editor) => {
     },
     {
       slug: 'save-as',
-      // image: `${writer.cwrcRootUrl}img/save_as.png`,
+      // image: `${writer.cwrcRootUrl}images/save_as.png`,
       tooltip: 'Save As',
       onAction: () => writer.showSaveAsDialog(),
     },
     {
       slug: 'save-exit',
-      // image: `${writer.cwrcRootUrl}img/save_exit.png`,
+      // image: `${writer.cwrcRootUrl}images/save_exit.png`,
       tooltip: 'Save & Exit',
       onAction: () => writer.saveAndExit(),
     },
