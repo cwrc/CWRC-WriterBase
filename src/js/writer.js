@@ -11,8 +11,6 @@ const Converter = require('./conversion/converter.js');
 const AnnotationsManager = require('./entities/annotationsManager');
 import LayoutManager from './layout/layoutManager.js';
 import TinymceWrapper from './tinymceWrapper';
-import { spawn, Worker } from 'threads'; //https://threads.js.org/
-
 
 import '../css/build.less';
 
@@ -312,8 +310,6 @@ function Writer(config) {
             w.layoutManager.$loadingMask.fadeOut(350);
         };
 
-        w.workerValidator = await loadWorkerValidator();
-
         setTimeout(() => {
             w.layoutManager.resizeAll();
             setTimeout(() => {
@@ -353,14 +349,5 @@ function Writer(config) {
 
     return w;
 }
-
-
-const loadWorkerValidator = async () => {
-    const timeout = 30000; //high timeout due to large webworker file
-
-    //* uncomment the first and comment the second for local development
-    // return await spawn(new Worker('cwrc-worker-validator/src/index.ts'), { timeout });
-    return await spawn(new Worker('./js/cwrc.worker.js'), { timeout });
-  };
 
 export default Writer;

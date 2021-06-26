@@ -51,18 +51,7 @@ function Utilities(writer) {
 
     //? Load schema using Salve
     u.sendSchemaToworkerValidator = async () => {
-        const id = w.schemaManager.getCurrentSchema().id;
-
-        const localData = localStorage.getItem(`schema_${id}`);
-        const url = w.schemaManager.getXMLUrl();
-
-        const { status, remoteData } = await w.workerValidator.loadSchema({ id, localData, url });
-
-        console.log(status);
-        if (remoteData) {
-            localStorage.setItem(`schema_${id}`, JSON.stringify(remoteData));
-            console.log('Schema cached.');
-        }
+        await w.overmindActions.validator.workerLoadSchema()
     };
 
     /**j

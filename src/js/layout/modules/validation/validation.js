@@ -34,7 +34,7 @@ function Validation({ writer, parentId }) {
 
   w.event('documentLoaded').subscribe(() => {
     validation.clearResult();
-    validation.validate({ newDocument: true });
+    validation.validate();
   });
 
   w.event('validationRequested').subscribe(() => {
@@ -52,7 +52,7 @@ function Validation({ writer, parentId }) {
     );
 
     w.layoutManager.showModule('validation');
-    validation.validate({ userRequest: true });
+    validation.validate();
   });
 
   w.event('documentValidated').subscribe((valid, result) => {
@@ -70,18 +70,8 @@ function Validation({ writer, parentId }) {
    */
   const validation = {};
 
-  validation.validate = async (options = {}) => {
-    const documentString = await w.converter.getDocumentContent(false);
-
-    const validator = w.workerValidator.validate(documentString, options);
-    validator.subscribe(({ partDone, state, valid, errors }) => {
-      if (state <= 2) {
-        w.event('documentValidating').publish(partDone);
-        return;
-      }
-
-      w.event('documentValidated').publish(valid, { valid, errors }, documentString);
-    });
+  validation.validate = async () => {
+    await w.overmindActions.validator.workerValidate();
   };
 
   /**
@@ -340,22 +330,12 @@ function Validation({ writer, parentId }) {
   };
 
   const getPossible = async ({ type, target, element }) => {
-    let xpath = target.xpath;
-    let index = target.index;
-
-    if (type === 'ElementNameError') xpath = element.xpath;
-
-    if (type === 'AttributeNameError') {
-      xpath = element.parentElementXpath;
-      index = element.parentElementIndex;
-    }
-
-    if (type === 'ValidationError') {
-      xpath = element.xpath;
-      index = element.index;
-    }
-
-    const response = await w.workerValidator.validatePossible(xpath, index, type);
+    const response = await w.overmindActions.validator.workerGetPossibleFromError({
+      type,
+      target,
+      element,
+    });
+    if (!response) return [];
     return response;
   };
 
