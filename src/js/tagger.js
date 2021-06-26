@@ -137,7 +137,8 @@ function Tagger(writer) {
      */
     tagger.addTagDialog = function(tagName, action, parentTagId) {
         if (tagName === w.schemaManager.getHeader()) {
-            w.dialogManager.show('header');
+            //? prevent showing haeader dialog
+            // w.dialogManager.show('header');
             return;
         }
 
@@ -206,7 +207,7 @@ function Tagger(writer) {
         } else {
             var tagName = tag.attr('_tag');
             if (tagName === w.schemaManager.getHeader()) {
-                w.dialogManager.show('header');
+                // w.dialogManager.show('header');
             } else {
                 var tagPath = w.utilities.getElementXPath(tag[0]);
                 var attributes = tagger.getAttributesForTag(tag[0]);

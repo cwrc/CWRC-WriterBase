@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ContextMenuState } from '@src/@types/types';
 import { useApp } from '@src/overmind';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,7 +18,22 @@ export const useContextmenu = (writer?: any, contextMenuState?: ContextMenuState
   const [collectionType, setCollectionType] = useState<string>();
   const [xpath, setXpath] = useState<string>();
   const [tagName, setTagName] = useState<string>();
-  
+  const [tagMeta, setTagMeta] = useState<Tag|undefined>();
+
+  useEffect(() => {
+    return () => {
+      setCollectionType('')
+      setXpath('')
+      setTagName('')
+      setTagMeta(undefined)
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      setTagMeta(undefined)
+    };
+  }, [tagMeta]);
 
   const context: ContextMenuState = contextMenuState
     ? { ...state.ui.contextMenu }
@@ -197,8 +212,8 @@ export const useContextmenu = (writer?: any, contextMenuState?: ContextMenuState
   };
 
   const getTagsFor = async (params: PossibleRequest) => {
-    const response = await writer.workerValidator.possibleAtContextMenu(params);
-    const tags: Tag[] = response.tags.speculative || response.tags.possible;
+    const tags = await actions.validator.workerPossibleAtContextMenu(params);
+    if (!tags) return [];
     return tags;
   };
 
@@ -232,6 +247,7 @@ export const useContextmenu = (writer?: any, contextMenuState?: ContextMenuState
     MIN_WIDTH: 250,
     xpath,
     tagName,
+    tagMeta,
 
     query: (list: ItemType[], searchQuery: string) => {
       if (searchQuery === '') return;
@@ -243,10 +259,17 @@ export const useContextmenu = (writer?: any, contextMenuState?: ContextMenuState
       return _visible;
     },
 
-    initialize: () => {
+    initialize: async () => {
       if (!context) return false;
 
       // writer.editor.currentBookmark = writer.editor.selection.getBookmark(1);
+
+      if ( typeof context.tagId === 'string' && context.tagId === writer.schemaManager.getHeader()) {
+        context.isHeader = true;
+        setTagName(context.tagId);
+        return true;
+      } 
+
 
       context.rng = writer.editor.currentBookmark.rng;
       if (!context.rng) return null;
@@ -262,11 +285,10 @@ export const useContextmenu = (writer?: any, contextMenuState?: ContextMenuState
       context.tagName = context.element.getAttribute('_tag');
       if (!context.tagName) return null;
 
-      if (
-        context.tagName === writer.schemaManager.getRoot() ||
-        context.tagName === writer.schemaManager.getHeader()
-      ) {
-        return false;
+      if (typeof context.tagId === 'string' && context.tagName === writer.schemaManager.getRoot()) {
+        context.isRoot = true;
+        setTagName(context.tagName);
+        return true;
       } 
 
       context.hasContentSelection = !context.rng.collapsed;
@@ -291,11 +313,41 @@ export const useContextmenu = (writer?: any, contextMenuState?: ContextMenuState
       setXpath(writer.utilities.getElementXPath(context.element));
       setTagName(context.tagName);
 
+      const parentXpath: string = writer.utilities.getElementXPath(context.element.parentElement);
+
+      const tag = await actions.validator.workerTagAt({
+        tagName: context.tagName,
+        parentXpath,
+        index: 0,
+      });
+
+      setTagMeta(tag);
+
       return true;
     },
 
     getItems: async () => {
       if (!context) return false;
+
+      if (context.isHeader) {
+        const items = [{
+          id: uuidv4(),
+          displayName: 'Edit Header',
+          icon: 'edit',
+          onClick: () => writer.dialogManager.show('header'),
+        }];
+        return items;
+      }
+
+      if (context.isRoot) {
+        const items = [{
+          id: uuidv4(),
+          displayName: 'Edit',
+          icon: 'edit',
+          onClick: () => writer.tagger.editTagDialog(context.tagId),
+        }];
+        return items;
+      }
 
       if (context.eventSource === 'ribbon') {
         setCollectionType('tags')
@@ -439,12 +491,12 @@ export const useContextmenu = (writer?: any, contextMenuState?: ContextMenuState
 
       items.push({
         id: uuidv4(),
-        displayName: 'Edit Tag/Entity Annotation',
+        displayName: context.isEntity ? 'Edit Entity Annotation' : 'Edit Tag',
         icon: 'edit',
         onClick: () => writer.tagger.editTagDialog(context.tagId),
       });
 
-      if (context.isEntity && context.element) {
+      if (!context.isEntity && context.element) {
         const tagName = context.element.getAttribute('_tag');
         if (writer.schemaManager.isTagEntity(tagName)) {
           items.push({

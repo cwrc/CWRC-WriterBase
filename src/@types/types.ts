@@ -30,6 +30,7 @@ export enum EntityType {
 }
 
 //UI
+export type PaletteMode = 'light' | 'system' | 'dark';
 export interface ContextMenuState {
   show: boolean;
   position?: {
@@ -43,6 +44,8 @@ export interface ContextMenuState {
   element?: HTMLElement | null;
   hasContentSelection?: boolean;
   isEntity?: boolean;
+  isHeader?: boolean;
+  isRoot?: boolean;
   isMultiple?: boolean;
   rng?: Range;
   tagName?: string | null;

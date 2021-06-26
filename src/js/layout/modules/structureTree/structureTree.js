@@ -263,7 +263,7 @@ function StructureTree(config) {
                 var $editorNode = $('#'+id, w.editor.getBody());
                 var isEntity = $editorNode.attr('_entity') === 'true';
                 if (!isEntity && $editorNode.attr('_tag') === w.schemaManager.getHeader()) {
-                    w.dialogManager.show('header');
+                    // w.dialogManager.show('header');
                 } else {
                     ignoreSelect = true; // set to true so tree.highlightNode code isn't run by editor's onNodeChange handler
                     w.utilities.selectElementById(tree.currentlySelectedNodes, selectContents);
@@ -538,6 +538,10 @@ function StructureTree(config) {
         const selectedIds = tree.currentlySelectedNodes; // store selected nodes before highlighting
 
         let tagId = $target.attr('name');
+        if ($target.text().trim() === w.schemaManager.getHeader()) {
+            tagId = w.schemaManager.getHeader()
+        }
+
         tree.highlightNode($(`#${tagId}`, w.editor.getBody())[0]);
         if (selectedIds.indexOf(tagId) !== -1 && selectedIds.length > 1) {
             tagId = selectedIds;
@@ -549,14 +553,14 @@ function StructureTree(config) {
         selectNode($target, selectContents, multiselect, false) ;
 
         // use setTimeout to make sure that highlight happens first
-        // setTimeout(() => {
+        setTimeout(() => {
             w.overmindActions.ui.showContextMenu({
                 show: true,
                 position: { posX: event.pageX, posY: event.pageY },
                 useSelection: false,
                 tagId,
             });
-        // },0);
+        },0);
     });
     
     $tree.on('select_node.jstree', _onNodeSelect);
