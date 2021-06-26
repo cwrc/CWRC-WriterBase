@@ -2,6 +2,10 @@ import dedent from 'dedent';
 import $ from 'jquery';
 import 'jquery-ui/ui/widgets/button';
 
+const AUTO_VALIDATE_ONCHANGE_TIMER = 10000;
+let autoValidateTimerActive = false;
+let autoValidateTimer;
+
 /**
  * @class Validation
  * @param {Object} config
@@ -28,8 +32,12 @@ function Validation({ writer, parentId }) {
   );
 
   w.event('contentChanged').subscribe(() => {
-    validation.clearResult();
-    validation.validate();
+    autoValidateTimerActive ? clearTimeout(autoValidateTimer) : (autoValidateTimerActive = true);
+
+    autoValidateTimer = setTimeout(() => {
+      validation.validate();
+      autoValidateTimerActive = false;
+    }, AUTO_VALIDATE_ONCHANGE_TIMER);
   });
 
   w.event('documentLoaded').subscribe(() => {
