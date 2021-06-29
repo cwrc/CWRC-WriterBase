@@ -1,6 +1,6 @@
 import { Box, Dialog, DialogContent, DialogTitle, Divider } from '@material-ui/core';
 import React, { FC, useEffect } from 'react';
-import { useApp } from '../../overmind';
+import { useActions } from '../../overmind';
 import AnnotationMode from './AnnotationMode';
 import EditorMode from './EditorMode';
 import FontSize from './FontSize';
@@ -15,11 +15,11 @@ interface SettingsDialogProps {
 }
 
 const SettingsDialog: FC<SettingsDialogProps> = ({ open, handleClose }) => {
-  const { actions } = useApp();
+  const { editor } = useActions();
 
   useEffect(() => {
     if (!window.writer) return;
-    if (window.writer.isReadOnly) actions.editor.toggleAdvancedSettings(false);
+    if (window.writer.isReadOnly) editor.toggleAdvancedSettings(false);
     return () => {};
   }, []);
 

@@ -1,6 +1,6 @@
 import { Box, Button, Menu, MenuItem, Tooltip, Typography } from '@material-ui/core';
 import { Notify } from '@src/@types/types';
-import { useApp } from '@src/overmind';
+import { useAppState } from '@src/overmind';
 import React, { FC, MouseEvent, useEffect, useState } from 'react';
 import Notification from '../Notification';
 import useSettings from '../settings/useSettings';
@@ -12,7 +12,7 @@ const notifyDefault: Notify = {
 };
 
 const AnnotationMode: FC = () => {
-  const { state } = useApp();
+  const { editor } = useAppState();
   const { changeAnnotationMode } = useSettings();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -38,9 +38,9 @@ const AnnotationMode: FC = () => {
 
   const handleChange = (value: number, isUndo?: boolean) => {
     handleMenuClose();
-    if (value === state.editor.annotationMode) return;
+    if (value === editor.annotationMode) return;
 
-    setPreviousValue(state.editor.annotationMode);
+    setPreviousValue(editor.annotationMode);
 
     const response = changeAnnotationMode(value, isUndo);
 
@@ -68,12 +68,12 @@ const AnnotationMode: FC = () => {
           aria-controls="annotation-mode-menu"
           aria-expanded={openMenu ? 'true' : undefined}
           aria-haspopup="true"
-          disabled={state.editor.isReadonly}
+          disabled={editor.isReadonly}
           onClick={handleButtonClick}
           size="small"
           sx={{ color: 'text.primary' }}
         >
-          {state.editor.annotationModeLabel}
+          {editor.annotationModeLabel}
         </Button>
       </Tooltip>
       <Menu
@@ -110,11 +110,11 @@ const AnnotationMode: FC = () => {
             Annotation
           </Typography>
         </Box>
-        {state.editor.annotationModes.map(({ value, label }) => (
+        {editor.annotationModes.map(({ value, label }) => (
           <MenuItem
             key={value}
             dense
-            selected={value === state.editor.annotationMode}
+            selected={value === editor.annotationMode}
             onClick={() => handleChange(value)}
             sx={{ mx: 0.5, borderRadius: 1 }}
             value={value}

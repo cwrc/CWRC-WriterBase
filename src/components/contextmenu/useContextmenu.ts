@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ContextMenuState } from '@src/@types/types';
-import { useApp } from '@src/overmind';
+import { useActions, useAppState } from '@src/overmind';
 import { v4 as uuidv4 } from 'uuid';
 import type { Item as ItemType } from './types';
 import type { Selection, PossibleRequest, Tag } from 'cwrc-worker-validator';
@@ -14,7 +14,8 @@ const logStyle = `
 `;
 
 export const useContextmenu = (writer?: any, contextMenuState?: ContextMenuState) => {
-  const { state, actions } = useApp();
+  const actions = useActions();
+  const { editor, ui } = useAppState();
   const [collectionType, setCollectionType] = useState<string>();
   const [xpath, setXpath] = useState<string>();
   const [tagName, setTagName] = useState<string>();
@@ -36,7 +37,7 @@ export const useContextmenu = (writer?: any, contextMenuState?: ContextMenuState
   }, [tagMeta]);
 
   const context: ContextMenuState = contextMenuState
-    ? { ...state.ui.contextMenu }
+    ? { ...ui.contextMenu }
     : { show: false };
 
   const selectionOverlapNodes = (_rng: Range) => {
@@ -358,8 +359,7 @@ export const useContextmenu = (writer?: any, contextMenuState?: ContextMenuState
         return items;
       }
 
-      // if (writer.isAnnotator) {
-      if (state.editor.isAnnotator) {
+      if (editor.isAnnotator) {
         const items = getEntitiesOptions();
         return items;
       }

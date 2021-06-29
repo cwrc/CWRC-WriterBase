@@ -1,9 +1,10 @@
 import { Box, MenuItem, Select, Typography } from '@material-ui/core';
 import React, { FC } from 'react';
-import { useApp } from '../../overmind';
+import { useActions, useAppState } from '../../overmind';
 
 const FontSize: FC = () => {
-  const { state, actions } = useApp();
+  const actions = useActions();
+  const { editor } = useAppState();
 
   const handleChange = (value: string) => {
     actions.editor.setFontSize(value);
@@ -16,11 +17,11 @@ const FontSize: FC = () => {
       </Box>
       <Box sx={{ flex: 2, mt: 0.5, pl: 1 }}>
         <Select
-          value={state.editor.currentFontSize}
+          value={editor.currentFontSize}
           variant="standard"
           onChange={(event) => handleChange(event.target.value)}
         >
-          {state.editor.fontSizeOptions.map((size) => (
+          {editor.fontSizeOptions.map((size) => (
             <MenuItem key={size} value={size}>
               {size}
             </MenuItem>

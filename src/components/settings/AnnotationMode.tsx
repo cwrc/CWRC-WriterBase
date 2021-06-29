@@ -1,7 +1,7 @@
 import { Box, MenuItem, Select, Typography } from '@material-ui/core';
 import { Notify } from '@src/@types/types';
 import React, { FC, useEffect, useState } from 'react';
-import { useApp } from '../../overmind';
+import { useAppState } from '../../overmind';
 import Notification from '../Notification';
 import useSettings from './useSettings';
 
@@ -12,7 +12,7 @@ const notifyDefault: Notify = {
 };
 
 const AnnotationMode: FC = () => {
-  const { state } = useApp();
+  const { editor } = useAppState();
   const { changeAnnotationMode } = useSettings();
 
   const [notify, setNotify] = useState(notifyDefault);
@@ -26,7 +26,7 @@ const AnnotationMode: FC = () => {
   }, []);
 
   const handleChange = (value: number, isUndo?: boolean) => {
-    setPreviousValue(state.editor.annotationMode);
+    setPreviousValue(editor.annotationMode);
 
     const response = changeAnnotationMode(value, isUndo);
 
@@ -49,11 +49,11 @@ const AnnotationMode: FC = () => {
       </Box>
       <Box sx={{ flex: 2, mt: 0.5, pl: 1 }}>
         <Select
-          value={state.editor.annotationMode}
+          value={editor.annotationMode}
           variant="standard"
           onChange={(event) => handleChange(event.target.value)}
         >
-          {state.editor.annotationModes.map(({ value, label }) => (
+          {editor.annotationModes.map(({ value, label }) => (
             <MenuItem key={value} value={value}>
               {label}
             </MenuItem>

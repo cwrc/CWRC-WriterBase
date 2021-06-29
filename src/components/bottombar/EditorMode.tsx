@@ -12,7 +12,7 @@ import {
   Typography,
 } from '@material-ui/core';
 import { Notify } from '@src/@types/types';
-import { useApp } from '@src/overmind';
+import { useAppState } from '@src/overmind';
 import React, { FC, MouseEvent, useEffect, useState } from 'react';
 import Notification from '../Notification';
 import useSettings from '../settings/useSettings';
@@ -24,7 +24,7 @@ const notifyDefault: Notify = {
 };
 
 const EditorMode: FC = () => {
-  const { state } = useApp();
+  const { editor } = useAppState();
   const { changeEditorMode, editorModeShouldChange } = useSettings();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -55,7 +55,7 @@ const EditorMode: FC = () => {
 
   const handleChange = (editorMode: string) => {
     handleMenuClose();
-    if (editorMode === state.editor.editorMode) return;
+    if (editorMode === editor.editorMode) return;
 
     const [shouldChange, message] = editorModeShouldChange(editorMode);
 
@@ -80,7 +80,7 @@ const EditorMode: FC = () => {
   };
 
   const applyChangeEditorMode = (editorModeValue: string, isUndo?: boolean) => {
-    setPreviousValue(state.editor.editorMode);
+    setPreviousValue(editor.editorMode);
 
     const response = changeEditorMode(editorModeValue, isUndo);
 
@@ -107,13 +107,13 @@ const EditorMode: FC = () => {
           aria-controls="editor-mode-menu"
           aria-expanded={openMenu ? 'true' : undefined}
           aria-haspopup="true"
-          disabled={state.editor.isReadonly}
+          disabled={editor.isReadonly}
           id="editor-mode-select"
           onClick={handleButtonClick}
           size="small"
           sx={{ color: 'text.primary' }}
         >
-          {state.editor.editorModeLabel}
+          {editor.editorModeLabel}
         </Button>
       </Tooltip>
       <Menu
@@ -151,16 +151,13 @@ const EditorMode: FC = () => {
             Editor Mode
           </Typography>
         </Box>
-        {state.editor.editorModes.map(({ value, label }) => (
+        {editor.editorModes.map(({ value, label }) => (
           <MenuItem
             key={value}
             dense
             onClick={() => handleChange(value)}
-            selected={value === state.editor.editorMode}
-            sx={{
-              mx: 0.5,
-              borderRadius: 1,
-            }}
+            selected={value === editor.editorMode}
+            sx={{ mx: 0.5, borderRadius: 1 }}
             value={value}
           >
             {label}

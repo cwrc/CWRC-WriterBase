@@ -4,7 +4,7 @@ import DarkModeIcon from '@material-ui/icons/DarkMode';
 import SettingsBrightnessIcon from '@material-ui/icons/SettingsBrightness';
 import { PaletteMode } from '@src/@types/types';
 import React, { FC, MouseEvent, useState } from 'react';
-import { useApp } from '../../overmind';
+import { useActions, useAppState } from '../../overmind';
 
 const options = [
   { name: 'light', Icon: Brightness7Icon },
@@ -13,14 +13,15 @@ const options = [
 ];
 
 const PaletteMode: FC = () => {
-  const { state, actions } = useApp();
-  const [mode, setMode] = useState<PaletteMode>(state.ui.paletteMode);
+  const actions = useActions();
+  const { ui } = useAppState();
+  const [mode, setMode] = useState<PaletteMode>(ui.paletteMode);
 
   const changePaletteMode = (event: MouseEvent<HTMLElement>, value: PaletteMode | null) => {
     if (!value) return;
 
     setMode(value);
-    if (value === state.ui.paletteMode) return;
+    if (value === ui.paletteMode) return;
     actions.ui.setPaletteMode(value);
   };
 

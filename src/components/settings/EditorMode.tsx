@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@material-ui/core';
 import { Notify } from '@src/@types/types';
-import { useApp } from '@src/overmind';
+import { useAppState } from '@src/overmind';
 import React, { FC, useEffect, useState } from 'react';
 import Notification from '../Notification';
 import useSettings from './useSettings';
@@ -23,7 +23,7 @@ const notifyDefault: Notify = {
 };
 
 const EditorMode: FC = () => {
-  const { state } = useApp();
+  const { editor } = useAppState();
   const { changeEditorMode, editorModeShouldChange } = useSettings();
 
   const [dialogMessage, setDialogMessage] = useState<string>();
@@ -66,7 +66,7 @@ const EditorMode: FC = () => {
   };
 
   const applyChangeEditorMode = (editorModeValue: string, isUndo?: boolean) => {
-    setPreviousValue(state.editor.editorMode);
+    setPreviousValue(editor.editorMode);
 
     const response = changeEditorMode(editorModeValue, isUndo);
 
@@ -89,11 +89,11 @@ const EditorMode: FC = () => {
       </Box>
       <Box sx={{ flex: 2, mt: 0.5, pl: 1 }}>
         <Select
-          value={state.editor.editorMode}
+          value={editor.editorMode}
           variant="standard"
           onChange={(event) => handleChange(event.target.value)}
         >
-          {state.editor.editorModes.map(({ value, label }) => (
+          {editor.editorModes.map(({ value, label }) => (
             <MenuItem key={value} value={value}>
               {label}
             </MenuItem>

@@ -1,4 +1,4 @@
-import { Context } from 'overmind';
+import { Context } from '../';
 
 export const setInitialStateSchema = ({ state }: Context, id: string) => {
   state.document.schemaId = id;

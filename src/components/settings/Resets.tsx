@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from '@material-ui/core';
 import { Notify } from '@src/@types/types';
-import { useApp } from '@src/overmind';
+import { useActions } from '@src/overmind';
 import React, { FC, useEffect, useState } from 'react';
 import Notification from '../Notification';
 
@@ -10,7 +10,7 @@ const notifyDefault: Notify = {
 };
 
 const Resets: FC = () => {
-  const { actions } = useApp();
+  const { editor } = useActions();
   const [notify, setNotify] = useState(notifyDefault);
 
   useEffect(() => {
@@ -20,14 +20,14 @@ const Resets: FC = () => {
   }, []);
 
   const handleResetWarning = () => {
-    actions.editor.resetDialogWarnings();
+    editor.resetDialogWarnings();
 
     const message = 'Confirmation dialog preferences have been reset';
     setNotify({ open: true, message });
   };
 
   const handleResetSettings = () => {
-    actions.editor.resetPreferences();
+    editor.resetPreferences();
 
     const message = 'Settings preferences have been reset to default';
     setNotify({ open: true, message });

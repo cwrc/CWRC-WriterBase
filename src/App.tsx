@@ -4,7 +4,7 @@ import BottomBar from './components/bottombar';
 import ContextMenu from './components/contextmenu';
 import TopBar from './components/Topbar';
 import Writer from './js/writer';
-import { useApp } from './overmind';
+import { useActions, useAppState } from './overmind';
 import theme from './theme';
 
 declare global {
@@ -18,15 +18,14 @@ interface AppProps {
 }
 
 const App: FC<AppProps> = ({ config }) => {
-  const { state, actions } = useApp();
+  const actions = useActions();
+  const states = useAppState();
   const [writer, setWriter] = useState<any>();
 
   const systemPreferColor = useMediaQuery('(prefers-color-scheme: dark)');
 
   useEffect(() => {
-    if (state.ui.paletteMode === 'system') {
-      actions.ui.setDarkMode(systemPreferColor);
-    }
+    if (states.ui.paletteMode === 'system') actions.ui.setDarkMode(systemPreferColor);
     return () => {};
   }, [systemPreferColor]);
 
@@ -37,7 +36,7 @@ const App: FC<AppProps> = ({ config }) => {
     const _writer = new Writer(config);
 
     //@ts-ignore
-    _writer.overmindState = state;
+    _writer.overmindState = states;
     //@ts-ignore
     _writer.overmindActions = actions;
     window.writer = _writer;
@@ -57,10 +56,10 @@ const App: FC<AppProps> = ({ config }) => {
     //@ts-ignore
     // writer.overmindState = state;
     return () => {};
-  }, [state]);
+  }, []);
 
   return (
-    <ThemeProvider theme={theme(state.ui.darkMode)}>
+    <ThemeProvider theme={theme(states.ui.darkMode)}>
       {/* <CssBaseline /> */}
       <TopBar />
       <Box

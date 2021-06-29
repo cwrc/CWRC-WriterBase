@@ -1,4 +1,5 @@
-import { derived, RootState } from 'overmind';
+import { derived } from 'overmind';
+import { Context } from '../';
 
 type State = {
   schemaId: string;
@@ -7,7 +8,7 @@ type State = {
 
 export const state: State = {
   schemaId: '',
-  schemaName: derived((state: State, rootState: RootState) => {
+  schemaName: derived((state: State, rootState: Context['state']) => {
     const schema = rootState.editor.schemas.find((sch) => sch.id === state.schemaId);
     if (!schema) return '';
     return schema.name;

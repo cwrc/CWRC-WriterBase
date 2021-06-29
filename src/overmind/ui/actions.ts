@@ -1,5 +1,12 @@
 import { ContextMenuState, PaletteMode } from '@src/@types/types';
-import { Context } from 'overmind';
+import { Context } from '../';
+
+export const onInitializeOvermind = ({ actions }: Context, overmind: any) => {
+  //DARK MODE
+  const prefPaletteMode: PaletteMode =
+    (localStorage.getItem('paletteMode') as PaletteMode) ?? 'system';
+  actions.ui.setPaletteMode(prefPaletteMode);
+};
 
 export const setPaletteMode = ({ state, actions }: Context, value: PaletteMode) => {
   state.ui.paletteMode = value;

@@ -1,12 +1,15 @@
-import { IConfig } from 'overmind';
-import { createHook } from 'overmind-react';
+import { IContext } from 'overmind';
+import {
+  createActionsHook,
+  createEffectsHook,
+  createReactionHook,
+  createStateHook,
+} from 'overmind-react';
 import { namespaced } from 'overmind/config';
 import * as document from './document';
 import * as editor from './editor';
 import * as ui from './ui';
 import * as validator from './validator';
-
-export const useApp = createHook();
 
 export const config = namespaced({
   document,
@@ -15,6 +18,9 @@ export const config = namespaced({
   validator,
 });
 
-declare module 'overmind' {
-  interface Config extends IConfig<typeof config> {}
-}
+export type Context = IContext<typeof config>;
+
+export const useAppState = createStateHook<Context>();
+export const useActions = createActionsHook<Context>();
+export const useEffects = createEffectsHook<Context>();
+export const useReaction = createReactionHook<Context>();

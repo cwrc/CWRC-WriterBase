@@ -3,7 +3,7 @@ import { alpha } from '@material-ui/core/styles';
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
 import BlockIcon from '@material-ui/icons/Block';
 import { EntityType } from '@src/@types/types';
-import { useApp } from '@src/overmind';
+import { useActions } from '@src/overmind';
 import React, { forwardRef, useEffect, useState } from 'react';
 import useUI from '../useUI';
 import NestedMenu from './NestedMenu';
@@ -38,7 +38,7 @@ const Item = forwardRef<any, itemProps>(
     ref
   ) => {
     const theme = useTheme();
-    const { actions } = useApp();
+    const { ui } = useActions();
     const { getIcon } = useUI();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [showChildren, setShowChildren] = useState(false);
@@ -99,7 +99,7 @@ const Item = forwardRef<any, itemProps>(
     const handleClick = () => {
       if (!onClick) return;
       handleCloseMenu();
-      actions.ui.closeContextMenu();
+      ui.closeContextMenu();
       onClick();
     };
 

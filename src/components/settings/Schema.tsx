@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@material-ui/core';
 import { Notify, Schema } from '@src/@types/types';
-import { useApp } from '@src/overmind';
+import { useActions, useAppState } from '@src/overmind';
 import React, { FC, useEffect, useState } from 'react';
 import Notification from '../Notification';
 import useSettings from '../settings/useSettings';
@@ -24,7 +24,8 @@ const notifyDefault: Notify = {
 };
 
 const Schema: FC = () => {
-  const { state, actions } = useApp();
+  const actions = useActions();
+  const { document, editor } = useAppState();
   const { changeSchema, schemaShouldChange } = useSettings();
 
   const [dialogMessage, setDialogMessage] = useState<string>();
@@ -36,7 +37,7 @@ const Schema: FC = () => {
   const [schemaSelected, setSchemaSelected] = useState<string>('');
 
   useEffect(() => {
-    if (state.document.schemaId === '') {
+    if (document.schemaId === '') {
       const schema = window.writer.schemaManager.getCurrentSchema();
       actions.document.setInitialStateSchema(schema.id);
     }
@@ -82,7 +83,7 @@ const Schema: FC = () => {
   };
 
   const doChangeSchema = (schemaId: string, isUndo?: boolean) => {
-    setPreviousValue(state.document.schemaId);
+    setPreviousValue(document.schemaId);
 
     const response = changeSchema(schemaId, isUndo);
 
@@ -115,11 +116,11 @@ const Schema: FC = () => {
       </Box>
       <Box sx={{ display: 'flex', columnGap: 2, flex: 2, mt: 0.5, pl: 1 }}>
         <Select
-          value={state.document.schemaId}
+          value={document.schemaId}
           variant="standard"
           onChange={(event) => handleChange(event.target.value)}
         >
-          {state.editor.schemas.map(({ id, name }) => (
+          {editor.schemas.map(({ id, name }) => (
             <MenuItem key={id} value={id}>
               {name}
             </MenuItem>

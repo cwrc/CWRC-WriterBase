@@ -10,7 +10,7 @@ import { Schema } from '@src/@types/types';
 import { Formik } from 'formik';
 import React, { FC } from 'react';
 import * as yup from 'yup';
-import { useApp } from '../../overmind';
+import { useActions } from '../../overmind';
 
 interface AddSchemaDialogProps {
   handleClose: (schema?: Schema) => void;
@@ -30,10 +30,10 @@ const formValidation = yup.object().shape({
 });
 
 const AddSchemaDialog: FC<AddSchemaDialogProps> = ({ handleClose, open }) => {
-  const { actions } = useApp();
+  const { editor } = useActions();
 
   const submit = (schema: Schema) => {
-    actions.editor.addShema(schema);
+    editor.addShema(schema);
     handleClose();
   };
 

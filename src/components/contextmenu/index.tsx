@@ -1,5 +1,5 @@
 import { Menu } from '@material-ui/core';
-import { useApp } from '@src/overmind';
+import { useActions, useAppState } from '@src/overmind';
 import React, { FC, useEffect, useState } from 'react';
 import Collection from './Collection';
 import Header from './Header';
@@ -11,10 +11,11 @@ interface ContextMenuProps {
 }
 
 const ContextMenu: FC<ContextMenuProps> = ({ writer }) => {
-  const { state, actions } = useApp();
+  const actions = useActions();
+  const { editor, ui } = useAppState();
   const { collectionType, getItems, initialize, MIN_WIDTH, query, tagName, xpath, tagMeta } = useContextmenu(
     writer,
-    state.ui.contextMenu
+    ui.contextMenu
   );
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>();
   const [options, setOptions] = useState<ItemType[]>([]);
@@ -23,8 +24,8 @@ const ContextMenu: FC<ContextMenuProps> = ({ writer }) => {
   const [visibleList, setVisibleList] = useState<ItemType[]>(options);
 
   useEffect(() => {
-    if (!state.ui.contextMenu.show) return; //setShow(false);
-    if (state.editor.isReadonly) return; //actions.ui.closeContextMenu();
+    if (!ui.contextMenu.show) return; //setShow(false);
+    if (editor.isReadonly) return; //actions.ui.closeContextMenu();
 
     setShow(true);
 
@@ -46,8 +47,8 @@ const ContextMenu: FC<ContextMenuProps> = ({ writer }) => {
     // setShow(true);
 
     setMenuPosition({
-      top: state.ui.contextMenu.position?.posY ?? 0,
-      left: state.ui.contextMenu.position?.posX ?? 0,
+      top: ui.contextMenu.position?.posY ?? 0,
+      left: ui.contextMenu.position?.posX ?? 0,
     });
 
     return () => {
@@ -57,7 +58,7 @@ const ContextMenu: FC<ContextMenuProps> = ({ writer }) => {
       setVisibleList([]);
       setShow(false);
     };
-  }, [state.ui.contextMenu]);
+  }, [ui.contextMenu]);
 
   const handleQuery = (searchQuery: string) => {
     const result = query(options, searchQuery);

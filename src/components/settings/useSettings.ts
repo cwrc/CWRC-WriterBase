@@ -1,7 +1,7 @@
-import { useApp } from '@src/overmind';
+import { useActions } from '@src/overmind';
 
 const useSettings = () => {
-  const { actions } = useApp();
+  const { document, editor } = useActions();
 
   return {
     editorModeShouldChange: (
@@ -70,7 +70,7 @@ const useSettings = () => {
     },
 
     changeEditorMode: (mode: string, isUndo?: boolean) => {
-      const editorMode = actions.editor.setEditorMode(mode);
+      const editorMode = editor.setEditorMode(mode);
 
       let message = isUndo ? 'Editor Mode restored' : 'Editor Mode has changed';
       if (editorMode) message = `${message} to ${editorMode.label}`;
@@ -79,7 +79,7 @@ const useSettings = () => {
     },
 
     changeAnnotationMode: (value: number, isUndo?: boolean) => {
-      const annotationMode = actions.editor.setAnnotationrMode(value);
+      const annotationMode = editor.setAnnotationrMode(value);
 
       let message = isUndo ? 'Annotation Mode restored' : 'Annotation Mode has changed';
       if (annotationMode) message = `${message} to ${annotationMode.label}`;
@@ -121,7 +121,7 @@ const useSettings = () => {
     },
 
     changeSchema: (schemaId: string, isUndo?: boolean) => {
-      const schema = actions.document.setSchema(schemaId);
+      const schema = document.setSchema(schemaId);
 
       let message = isUndo ? 'Schema restored' : 'Schema has changed';
       if (schema) message = `${message} to ${schema.name}`;

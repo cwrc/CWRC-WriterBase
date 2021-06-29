@@ -1,7 +1,7 @@
 import { Schema } from '@src/@types/types';
 import $ from 'jquery';
 import Cookies from 'js-cookie';
-import { Context } from 'overmind';
+import { Context } from '../';
 
 const DIALOG_PREFS_COOKIE_NAME = 'cwrc-writer-base-dialog-preferences';
 

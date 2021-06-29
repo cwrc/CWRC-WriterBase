@@ -2,7 +2,7 @@ import { AppBar, Box, IconButton, Toolbar, Tooltip, Typography, useTheme } from 
 import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import SettingsIcon from '@material-ui/icons/Settings';
 import React, { FC, MouseEvent, useState } from 'react';
-import { useApp } from '../overmind';
+// import { useAppState } from '../overmind';
 import SettingsDialog from './settings';
 
 interface TopBarProps {
@@ -14,7 +14,7 @@ const TopBar: FC<TopBarProps> = ({
   title = 'CWRC-Writer',
   helpUrl = 'https://cwrc.ca/CWRC-Writer_Documentation/',
 }) => {
-  const { state } = useApp();
+  // const { session } = useAppState();
   const theme = useTheme();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [anchorProfileEl, setAnchorProfileEl] = useState<HTMLDivElement | undefined>();
@@ -84,7 +84,7 @@ const TopBar: FC<TopBarProps> = ({
                 <HelpOutlineIcon />
               </IconButton>
             </Tooltip>
-            {/* {state.session.user && (
+            {/* {session.user && (
               <Avatar
                 sx={{
                   cursor: 'pointer',
@@ -93,11 +93,11 @@ const TopBar: FC<TopBarProps> = ({
                 }}
                 onClick={handleProfileClick}
                 src={
-                  state.session.user.avatarUrl &&
-                  `${APP_URL}/uploads/assets${state.session.user.avatarUrl}`
+                  session.user.avatarUrl &&
+                  `${APP_URL}/uploads/assets${session.user.avatarUrl}`
                 }
               >
-                {!state.session.user.avatarUrl && <AccountCircleIcon />}
+                {!session.user.avatarUrl && <AccountCircleIcon />}
               </Avatar>
             )} */}
           </Box>

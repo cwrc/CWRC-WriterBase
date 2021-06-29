@@ -15,7 +15,7 @@ import {
 } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import { Notify } from '@src/@types/types';
-import { useApp } from '@src/overmind';
+import { useAppState } from '@src/overmind';
 import React, { FC, MouseEvent, useEffect, useState } from 'react';
 import Notification from '../Notification';
 import AddSchemaDialog from '../settings/AddSchemaDialog';
@@ -28,7 +28,7 @@ const notifyDefault: Notify = {
 };
 
 const Schema: FC = () => {
-  const { state } = useApp();
+  const { document, editor } = useAppState();
   const { changeSchema, schemaShouldChange } = useSettings();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -69,7 +69,7 @@ const Schema: FC = () => {
   const handleChange = async (schemaId?: string) => {
     handleMenuClose();
     if (!schemaId) return;
-    if (schemaId === state.document.schemaId) return;
+    if (schemaId === document.schemaId) return;
 
     const [shouldChange, message] = await schemaShouldChange(schemaId);
 
@@ -101,7 +101,7 @@ const Schema: FC = () => {
   };
 
   const doChangeSchema = (schemaId: string, isUndo?: boolean) => {
-    setPreviousValue(state.document.schemaId);
+    setPreviousValue(document.schemaId);
 
     const response = changeSchema(schemaId, isUndo);
 
@@ -128,7 +128,7 @@ const Schema: FC = () => {
   };
 
   return (
-    <Grow in={state.document.schemaId !== ''}>
+    <Grow in={document.schemaId !== ''}>
       <Box>
         {/* <Stack direction="row" spacing={1} alignItems="center"> */}
         {/* <Typography variant="caption" sx={{ cursor: 'default' }}>
@@ -139,13 +139,13 @@ const Schema: FC = () => {
             aria-controls="schema-menu"
             aria-expanded={openMenu ? 'true' : undefined}
             aria-haspopup="true"
-            disabled={state.editor.isReadonly}
+            disabled={editor.isReadonly}
             id="schema-select"
             onClick={handleButtonClick}
             size="small"
             sx={{ color: 'text.primary' }}
           >
-            {state.document.schemaName}
+            {document.schemaName}
           </Button>
         </Tooltip>
         <Menu
@@ -206,12 +206,12 @@ const Schema: FC = () => {
             Add Schema
           </Button>
         </Box> */}
-          {state.editor.schemas.map(({ id, name }) => (
+          {editor.schemas.map(({ id, name }) => (
             <MenuItem
               key={id}
               dense
               onClick={() => handleChange(id)}
-              selected={id === state.document.schemaId}
+              selected={id === document.schemaId}
               sx={{
                 mx: 0.5,
                 borderRadius: 1,

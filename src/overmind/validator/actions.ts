@@ -1,13 +1,52 @@
-import { Context } from 'overmind';
 import * as Comlink from 'comlink';
+import type { CwrcWorkerValidator } from 'cwrc-worker-validator';
 import {
   PossibleRequest,
   Tag,
-  ValidationResponse,
-  ValidationNodeTarget,
-  ValidationNodeElement,
   TagRequest,
+  ValidationNodeElement,
+  ValidationNodeTarget,
+  ValidationResponse,
 } from 'cwrc-worker-validator';
+import { Context } from '../';
+
+declare global {
+  interface Window {
+    workerValidator: Comlink.Remote<CwrcWorkerValidator>;
+  }
+}
+
+export const onInitializeOvermind = async ({ state }: Context, overmind: any) => {
+  const validator = await loadWorkerValidator();
+  if (!validator) return;
+
+  window.workerValidator = validator;
+  state.validator.hasValidator = true;
+};
+
+const loadWorkerValidator = async (): Promise<Comlink.Remote<CwrcWorkerValidator>> => {
+  return await new Promise((resolve) => {
+    //@ts-ignore
+    if (WORKER_ENV === 'development') {
+      //? WORKER DEV:
+      import(/* webpackChunkName: "ValidatorWorker" */ 'cwrc-worker-validator').then((module) => {
+        console.log('DEV-WORKER');
+        //@ts-ignore
+        const ValidatorWorker = module.default;
+
+        const worker = new ValidatorWorker();
+        const validator: Comlink.Remote<CwrcWorkerValidator> = Comlink.wrap(worker);
+        resolve(validator);
+      });
+    } else {
+      // console.log('PROD-WORKER');
+      //? WORKER PRODUCTION:
+      const worker = new Worker('cwrc.worker.js');
+      const validator: Comlink.Remote<CwrcWorkerValidator> = Comlink.wrap(worker);
+      resolve(validator);
+    }
+  });
+};
 
 export const workerLoadSchema = async ({ state }: Context) => {
   if (!state.validator.hasValidator) return;
@@ -92,7 +131,7 @@ export const workerTagAt = async ({ state }: Context, params: TagRequest) => {
 
   const tag = await workerValidator.tagAt(params);
   return tag;
-}
+};
 
 export const workerAttributesForTag = async ({ state }: Context, xpath: string) => {
   if (!state.validator.hasValidator) return;
@@ -100,4 +139,4 @@ export const workerAttributesForTag = async ({ state }: Context, xpath: string) 
 
   const tagAttributes = await workerValidator.attributesForTag(xpath);
   return tagAttributes;
-}
+};

@@ -1,9 +1,10 @@
 import { Box, FormControlLabel, Switch, Typography } from '@material-ui/core';
 import React, { ChangeEvent, FC } from 'react';
-import { useApp } from '../../overmind';
+import { useActions, useAppState } from '@src/overmind';
 
 const ShowTags: FC = () => {
-  const { state, actions } = useApp();
+  const actions = useActions();
+  const { editor } = useAppState();
 
   const handleChangeShowTags = (event: ChangeEvent<HTMLInputElement>) => {
     actions.editor.showTags(event.target.checked);
@@ -30,7 +31,7 @@ const ShowTags: FC = () => {
         {/* <FormControlLabel
           control={
             <Switch
-              checked={state.editor.showTags}
+              checked={editor.showTags}
               color="primary"
               inputProps={{ 'aria-label': 'Tags' }}
               name="Tags"
@@ -44,7 +45,7 @@ const ShowTags: FC = () => {
           control={
             <Switch
               color="primary"
-              checked={state.editor.showEntities}
+              checked={editor.showEntities}
               inputProps={{ 'aria-label': 'Entities' }}
               name="Entities"
               onChange={handleChangeShowEntities}
