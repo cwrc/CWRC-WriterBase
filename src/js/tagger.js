@@ -1142,29 +1142,31 @@ function Tagger(writer) {
      * @fires Writer#tagContentsRemoved
      * @param {String} [id] The tag id
      */
-    tagger.removeStructureTagContents = function(id) {
-        var tag = tagger.getCurrentTag(id);
+    tagger.removeStructureTagContents = (id) => {
+      const tag = tagger.getCurrentTag(id);
 
-        var doRemove = function() {
-            tag.contents().each(function(i, el) {
-                tagger.processRemovedContent(el);
-            }).remove();
-    
-            tag[0].textContent = '\uFEFF'; // insert zero-width non-breaking space so that empty tag isn't cleaned up by tinymce
-            
-            w.editor.undoManager.add();
-            
-            w.event('tagContentsRemoved').publish(id);
-        }
+      const doRemove = () => {
+        tag
+          .contents()
+          .each((i, el) => tagger.processRemovedContent(el))
+          .remove();
 
-        var invalidDelete = w.schemaManager.wouldDeleteInvalidate(tag[0], false, true);
-        if (invalidDelete) {
-            showInvalidDeleteConfirm(tag[0], true, function(doIt) {
-                if (doIt) doRemove();
-            });
-        } else {
-            doRemove();
-        }
+        tag[0].textContent = '\uFEFF'; // insert zero-width non-breaking space so that empty tag isn't cleaned up by tinymce
+
+        w.editor.undoManager.add();
+        w.event('tagContentsRemoved').publish(id);
+      };
+
+      const invalidDelete = w.schemaManager.wouldDeleteInvalidate(tag[0], false, true);
+
+      if (!invalidDelete) {
+        doRemove();
+        return;
+      }
+
+      showInvalidDeleteConfirm(tag[0], true, (doIt) => {
+        if (doIt) doRemove();
+      });
     };
 
     /**
@@ -1172,50 +1174,52 @@ function Tagger(writer) {
      * @param {Element|Range} domContent
      * @param {Boolean} [processChildren] True to also process the children of domContent. Defaults to true.
      */
-    tagger.processRemovedContent = function(domContent, processChildren) {
-        processChildren = processChildren == undefined ? true : processChildren;
-
-        var processRemovedNodes = function(currNode) {
-            if (currNode.nodeType === Node.ELEMENT_NODE && currNode.hasAttribute('_tag') && currNode.hasAttribute('_entity')) {
-                var id = currNode.getAttribute('name');
-                console.log('entity will be removed', id);
-                w.entitiesManager.removeEntity(id);
-            } else {
-                // if node was inside a note, set note content after the node's been removed
-                var $noteParent = $(currNode).parents('[_type=citation],[_type=note]');
-                if ($noteParent.length > 0) {
-                    setTimeout(() => {
-                        $noteParent.each((index, el) => {
-                            var $el = $(el);
-                            var id = $el.attr('id');
-                            var entity = w.entitiesManager.getEntity(id);
-                            if (entity) {
-                                entity.setNoteContent($el.html());
-                                entity.setContent($el.text());
-                                w.event('entityEdited').publish(id);
-                            }
-                        })
-                    }, 0);
-                }
-            }
-            if (processChildren) {
-                for (var i = 0; i < currNode.childNodes.length; i++) {
-                    processRemovedNodes(currNode.childNodes[i]);
-                }
-            }
-        }
-
-        if (domContent.commonAncestorContainer !== undefined) {
-            // range
-            processChildren = false;
-            var nodes = getNodesInBetween(domContent.startContainer, domContent.endContainer);
-            nodes.forEach(function(node) {
-                processRemovedNodes(node);
-            });
+    tagger.processRemovedContent = (domContent, processChildren = true) => {
+      const processRemovedNodes = (currNode) => {
+        if (
+          currNode.nodeType === Node.ELEMENT_NODE &&
+          currNode.hasAttribute('_tag') &&
+          currNode.hasAttribute('_entity')
+        ) {
+          const id = currNode.getAttribute('name');
+          console.log('entity will be removed', id);
+          w.entitiesManager.removeEntity(id);
         } else {
-            processRemovedNodes(domContent);
+          // if node was inside a note, set note content after the node's been removed
+          const $noteParent = $(currNode).parents('[_type=citation],[_type=note]');
+          if ($noteParent.length > 0) {
+            setTimeout(() => {
+              $noteParent.each((index, el) => {
+                const $el = $(el);
+                const id = $el.attr('id');
+
+                const entity = w.entitiesManager.getEntity(id);
+                if (!entity) return;
+
+                entity.setNoteContent($el.html());
+                entity.setContent($el.text());
+                w.event('entityEdited').publish(id);
+              });
+            }, 0);
+          }
         }
-    }
+
+        if (processChildren) {
+          for (let i = 0; i < currNode.childNodes.length; i++) {
+            processRemovedNodes(currNode.childNodes[i]);
+          }
+        }
+      };
+
+      if (domContent.commonAncestorContainer !== undefined) {
+        // range
+        processChildren = false;
+        const nodes = getNodesInBetween(domContent.startContainer, domContent.endContainer);
+        nodes.forEach((node) => processRemovedNodes(node));
+      } else {
+        processRemovedNodes(domContent);
+      }
+    };
 
     var showInvalidDeleteConfirm = function(element, isContents, callback) {
         var contentsMsg = isContents ? 'contents of the' : '';
