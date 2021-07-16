@@ -280,7 +280,12 @@ function CWRC2XML(writer) {
                         openingTag += ' '+attName+'="'+attValue+'"';
                     }
 
-                    var isEmpty = currNode[0].childNodes.length === 0 || (currNode[0].childNodes.length === 1 && currNode[0].textContent === '\uFEFF');
+                    const isEmpty =
+                        currNode[0].childNodes.length === 0 ||
+                        (currNode[0].childNodes.length === 1 &&
+                            currNode[0].childNodes[0].nodeType === 3 &&
+                            currNode[0].childNodes[0].textContent === '\uFEFF');
+
                     if (isEmpty) {
                         openingTag += '/>';
                         array.push(openingTag);
