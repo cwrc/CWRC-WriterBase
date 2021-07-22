@@ -25,7 +25,6 @@ var TinymceWrapper = require('./tinymceWrapper.js');
 import '../css/build.less';
 
 
-
 /**
  * @class CWRCWriter
  * @param {Object} config
