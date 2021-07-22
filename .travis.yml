@@ -1,26 +1,28 @@
-os: linux
-dist: bionic
+dist: xenial
 language: node_js
 cache: npm
 notifications:
   email: false
 node_js:
-  - "14.15.1"
-jobs:
-  include:
-    - stage: test
-      script: npm run test
-      after_success:
-        - npm run report-coverage
-    - stage: npm release
-      if: branch = master
-      script:
-        - echo "Deploying to npm ..."
-      deploy:
-        provider: script
-        script: npx semantic-release
-        skip_cleanup: true
-        on:
-          branch: master
+  - '14.17.1'
+before_script:
+  - npm prune
+script:
+  - npm run test
+after_success:
+  - npm run report-coverage
+deploy:
+  - provider: script
+    script: npx semantic-release -r
+      https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git
+    skip_cleanup: true
+    keep_history: true
+    on:
+      branch: master
+branches:
+  only:
+  - master
 services:
   - xvfb
+install:
+  - npm install
