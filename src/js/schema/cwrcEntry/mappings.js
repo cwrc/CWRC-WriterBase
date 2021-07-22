@@ -22,7 +22,7 @@ const handleGraphics = $tag => {
 
 const mapping = {
 
-    id: 'ID',
+    id: 'xml:id', //What is this for? iF it is just for tracking candidates on NERVE panel, we can called it something else, like CANDIDATE_ID
     responsibility: 'RESP',
     rdfParentSelector: '/CWRC/CWRCHEADER',
     root: ['CWRC'],

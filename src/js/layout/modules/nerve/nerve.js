@@ -14,7 +14,7 @@ const NerveToCWRCMappings = {
     'ORGANIZATION': 'org',
     'TITLE': 'title'
 };
-
+ 
 /**
  * @class Nerve
  * @param {Object} config
@@ -773,6 +773,7 @@ function Nerve(config) {
         
         const respAttr = w.schemaManager.mapper.getResponsibilityAttributeName();
         w.tagger.removeAttributeFromTag(tag, respAttr);
+        w.tagger.removeAttributeFromTag(tag, 'xml:id');
 
         var taggedByNerve = entity.getCustomValue('nerve') !== undefined;
         var uri = entity.getURI();
@@ -784,6 +785,7 @@ function Nerve(config) {
             entity.removeCustomValue('edited');
             entity.removeAttribute(respAttr);
             entity.removeAttribute('_candidate');
+            entity.removeAttribute('xml:id');
             w.tagger.removeAttributeFromTag(tag, '_candidate');
         }
 
