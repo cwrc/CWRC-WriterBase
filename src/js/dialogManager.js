@@ -16,7 +16,7 @@ var LoadingIndicator = require('./dialogs/loadingIndicator/loadingIndicator.js')
 var Header = require('./dialogs/header.js');
 var EditSource = require('./dialogs/editSource.js');
 import Message from './dialogs/message.js';
-// var Triple = require('./dialogs/triple.js');
+var Triple = require('./dialogs/triple.js');
 var AttributesEditor = require('./dialogs/attributesEditor/attributesEditor.js');
 var Translation = require('./dialogs/translation.js');
 var CopyPaste = require('./dialogs/copyPaste.js');
@@ -241,7 +241,7 @@ function DialogManager(writer) {
         message: Message,
         popup: Popup,
         copyPaste: CopyPaste,
-        // triple: Triple,
+        triple: Triple,
         translation: Translation,
         loadingindicator: LoadingIndicator,
         addschema: AddSchema,
