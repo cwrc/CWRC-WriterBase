@@ -16,6 +16,9 @@ module.exports = {
 			statements: 50,
 		},
 	},
+	moduleNameMapper: {
+		'^rdflib$': '<rootDir>/test/mocks/rdflib.js',
+	},
 	setupFiles: ['./test/test-env.js'],
 	runner: '@jest-runner/electron',
 	testEnvironment: '@jest-runner/electron/environment',
