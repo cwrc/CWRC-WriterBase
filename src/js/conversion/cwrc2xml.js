@@ -240,81 +240,85 @@ function CWRC2XML(writer) {
      * @param {Boolean} [identifyEntities] If true, adds cwrcTempId to entity elements. Default is false.
      * @returns {String}
      */
-    cwrc2xml.buildXMLString = function(node, identifyEntities) {
+    cwrc2xml.buildXMLString = function (node, identifyEntities) {
         identifyEntities = identifyEntities === undefined ? false : identifyEntities;
-
-        var xmlString = '';
-
+  
+        let xmlString = '';
+  
         function _nodeToStringArray(currNode) {
-            var array = [];
-            
-            var tag = currNode.attr('_tag');
-            if (tag === undefined) {
-                array = ['', ''];
-            } else {
-                var id = currNode.attr('id');
-                var isEntity = currNode.attr('_entity') === 'true';
-                if (isEntity) {
-                    var entityEntry = w.entitiesManager.getEntity(id);
-                    if (entityEntry) {
-                        array = w.schemaManager.mapper.getMapping(entityEntry);
-                        if (identifyEntities) {
-                            // add temp id so we can target it later in setEntityRanges
-                            if (array[0] !== '') {
-                                array[0] = array[0].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
-                            } else {
-                                array[1] = array[1].replace(/([\s>])/, ' cwrcTempId="'+id+'"$&');
-                            }
-                        }
-                    } else {
-                        // TODO this occurs if the selection panel is open and we're finalizing an entity
-                        console.warn('cwrc2xml.buildXMLString: no entity entry for',id);
-                        array = ['', ''];
-                    }
+          const tag = currNode.attr('_tag');
+          if (tag === undefined) return ['', ''];
+  
+          let array = [];
+  
+          const id = currNode.attr('id');
+          const isEntity = currNode.attr('_entity') === 'true';
+  
+          if (isEntity) {
+            const entityEntry = w.entitiesManager.getEntity(id);
+            if (entityEntry) {
+              array = w.schemaManager.mapper.getMapping(entityEntry);
+              if (identifyEntities) {
+                // add temp id so we can target it later in setEntityRanges
+                if (array[0] !== '') {
+                  array[0] = array[0].replace(/([\s>])/, ` cwrcTempId="${id}"$&`);
                 } else {
-                    var openingTag = '<'+tag;
-                    var attributes = w.tagger.getAttributesForTag(currNode[0]);
-                    for (var attName in attributes) {
-                        var attValue = attributes[attName];
-                        // attValue = w.utilities.convertTextForExport(attValue); TODO is this necessary?
-                        openingTag += ' '+attName+'="'+attValue+'"';
-                    }
-
-                    var isEmpty = currNode[0].childNodes.length === 0 || (currNode[0].childNodes.length === 1 && currNode[0].textContent === '\uFEFF');
-                    if (isEmpty) {
-                        openingTag += '/>';
-                        array.push(openingTag);
-                    } else {
-                        openingTag += '>';
-                        array.push(openingTag);
-                        array.push('</'+tag+'>');
-                    }
+                  array[1] = array[1].replace(/([\s>])/, ` cwrcTempId="${id}"$&`);
                 }
+              }
+            } else {
+              // TODO this occurs if the selection panel is open and we're finalizing an entity
+              console.warn('cwrc2xml.buildXMLString: no entity entry for', id);
+              array = ['', ''];
             }
-    
-            return array;
+          } else {
+            let openingTag = `<${tag}`;
+            const attributes = w.tagger.getAttributesForTag(currNode[0]);
+            for (const attName in attributes) {
+              const attValue = attributes[attName];
+              // attValue = w.utilities.convertTextForExport(attValue); TODO is this necessary?
+              openingTag += ` ${attName}="${attValue}"`;
+            }
+  
+            const isEmpty =
+              currNode[0].childNodes.length === 0 ||
+              (currNode[0].childNodes.length === 1 &&
+                currNode[0].childNodes[0].nodeType === 3 &&
+                currNode[0].childNodes[0].textContent === '\uFEFF');
+  
+            if (isEmpty) {
+              openingTag += '/>';
+              array.push(openingTag);
+            } else {
+              openingTag += '>';
+              array.push(openingTag);
+              array.push(`</${tag}>`);
+            }
+          }
+  
+          return array;
         }
-
+  
         function doBuild(currentNode) {
-            var tags = _nodeToStringArray(currentNode);
-            xmlString += tags[0];
-            if (tags.length > 1) {
-                currentNode.contents().each(function(index, el) {
-                    if (el.nodeType == Node.ELEMENT_NODE) {
-                        doBuild($(el));
-                    } else if (el.nodeType == Node.TEXT_NODE) {
-                        xmlString += el.data;
-                    } else if (el.nodeType == Node.COMMENT_NODE) {
-                        xmlString += '<!--'+el.data+'-->';
-                    }
-                });
-                xmlString += tags[1];
-            }
+          const tags = _nodeToStringArray(currentNode);
+          xmlString += tags[0];
+          if (tags.length > 1) {
+            currentNode.contents().each((index, el) => {
+              if (el.nodeType === Node.ELEMENT_NODE) {
+                doBuild($(el));
+              } else if (el.nodeType === Node.TEXT_NODE) {
+                xmlString += el.data;
+              } else if (el.nodeType === Node.COMMENT_NODE) {
+                xmlString += `<!--${el.data}-->`;
+              }
+            });
+            xmlString += tags[1];
+          }
         }
-
+  
         doBuild($(node));
         return xmlString;
-    };
+      };
 
     /**
      * Determines the range that an entity spans, using xpath and character offset.
