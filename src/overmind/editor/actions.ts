@@ -13,13 +13,15 @@ export const writerInitSettings = ({ state }: Context, config: string) => {
     container,
     cwrcRootUrl,
     helpUrl,
-    schemaProxyUrl: schema.schemaProxyUrl,
     schemas: schema.schemas,
     nerveUrl: services.nerve.url,
     storageUrl: storageDialogs.setServerURL,
   };
 
   state.editor.settings = settings;
+  
+  state.editor.schemaProxyXmlEndpoint = schema.proxyXmlEndpoint;
+  state.editor.schemaProxyCssEndpoint = schema.proxyCssEndpoint;
 
   state.editor.schemas = schema.schemas;
 };

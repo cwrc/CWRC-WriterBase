@@ -33,11 +33,16 @@ function SchemaManager(writer, config) {
     sm.getParentsForPath = sm.navigator.getParentsForPath;
 
     /**
-     * The proxy URL through which the schema XML and CSS
-     * are loaeed, according to config.schemaProxyUrl
+     * The proxy endpoint through which the schema XML is loaded
      * @member {String}
      */ 
-    sm.schemaProxyUrl = config.schemaProxyUrl;
+    sm.proxyXmlEndpoint = config.proxyXmlEndpoint;
+
+    /**
+     * The proxy endpoint through which the schema CSS is loaded
+     * @member {String}
+     */ 
+     sm.proxyCssEndpoint = config.proxyCssEndpoint;
     
     /**
      * An array of schema objects. Each object should have the following properties:
@@ -479,34 +484,30 @@ function SchemaManager(writer, config) {
      * @returns {Document} The XML
      */
     const loadXMLFile = async (xmlUrl) => {
-        let xml;
+      let xml;
 
-        //loop through URL collection
-         for await (let url of xmlUrl) {
-            let urlToFetch = url;
+      //loop through URL collection
+      for await (let url of xmlUrl) {
+        //use the proxy if available.
+        const urlToFetch = sm.proxyXmlEndpoint
+          ? `${sm.proxyXmlEndpoint}${encodeURIComponent(url)}`
+          : url;
 
-            //use the proxy if available.
-            if (sm.schemaProxyUrl) {
-                urlToFetch = `${sm.schemaProxyUrl}/schema/xml?url=${url}`;
-            }
+        const response = await fetch(urlToFetch).catch((err) => {
+          console.log(err);
+        });
 
-            const response = await fetch(urlToFetch)
-                .catch( (err) => {
-                    console.log(err)
-                });
-
-            // if loaded, convert to XML, break the loop and return
-            if (response && response.status === 200) {
-                const body = await response.text();
-                xml = w.utilities.stringToXML(body);
-                sm._xmlUrl = url;
-                break;
-            }
-
+        // if loaded, convert to XML, break the loop and return
+        if (response && response.status === 200) {
+          const body = await response.text();
+          xml = w.utilities.stringToXML(body);
+          sm._xmlUrl = url;
+          break;
         }
+      }
 
-        return xml;
-    }
+      return xml;
+    };
 
     /**
      * Load an include schema.
@@ -701,35 +702,29 @@ function SchemaManager(writer, config) {
      * @returns {String} The CSS
      */
     const loadCSSFile = async (cssUrl) => {
+      let css;
 
-        let css;
+      //loop through URL collection
+      for (let url of cssUrl) {
+        //use the proxy if available.
+        const urlToFetch = sm.proxyCssEndpoint
+          ? `${sm.proxyCssEndpoint}${encodeURIComponent(url)}`
+          : url;
 
-        //loop through URL collection
-        for (let url of cssUrl) {
-            let urlToFetch = url;
+        const response = await fetch(urlToFetch).catch((err) => {
+          console.log(err);
+        });
 
-            //use the proxy if available.
-            if (sm.schemaProxyUrl) {
-                urlToFetch = `${sm.schemaProxyUrl}/schema/css?url=${url}`;
-            }
-
-            const response = await fetch(urlToFetch)
-                .catch( (err) => {
-                    console.log(err);
-                });
-
-            //if loaded, break the loop and return
-            if (response && response.status === 200) {
-                css = await response.text();
-                sm._cssUrl = url; // redefine schema manager css based on the available url
-                break;
-            }
-
+        //if loaded, break the loop and return
+        if (response && response.status === 200) {
+          css = await response.text();
+          sm._cssUrl = url; // redefine schema manager css based on the available url
+          break;
         }
+      }
 
-        return css;
-         
-    }
+      return css;
+    };
     
     /**
      * Load the CSS and convert it to the internal format

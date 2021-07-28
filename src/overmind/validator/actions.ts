@@ -54,8 +54,14 @@ export const workerLoadSchema = async ({ state }: Context) => {
   const workerValidator = window.workerValidator;
 
   const id: string = window.writer.schemaManager.getCurrentSchema().id;
-  const url: string = window.writer.schemaManager.getXMLUrl();
+  const schemaURI: string = window.writer.schemaManager.getXMLUrl();
   const localData = localStorage.getItem(`schema_${id}`) ?? undefined;
+
+  //CORS: Some of the schemas might have blocke by CORS
+  //If provide, we wrap the schema URL in a requeste to the proxy server
+  const url = state.editor.schemaProxyXmlEndpoint
+    ? `${state.editor.schemaProxyXmlEndpoint}${encodeURIComponent(schemaURI)}`
+    : schemaURI;
 
   const { status, remoteData } = await workerValidator.loadSchema({ id, localData, url });
   console.log(status);

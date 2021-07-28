@@ -23,6 +23,8 @@ type State = {
   isReadonly: boolean;
   mode: number;
   schemas: Schema[];
+  schemaProxyXmlEndpoint?: string;
+  schemaProxyCssEndpoint?: string;
   settings?: any;
   showEntities: boolean;
   showTags: boolean;
