@@ -51,7 +51,7 @@ const AnnotationMode: FC = () => {
         <Select
           value={editor.annotationMode}
           variant="standard"
-          onChange={(event) => handleChange(event.target.value)}
+          onChange={(event) => handleChange(Number(event.target.value))}
         >
           {editor.annotationModes.map(({ value, label }) => (
             <MenuItem key={value} value={value}>
