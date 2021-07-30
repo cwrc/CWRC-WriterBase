@@ -31,6 +31,8 @@
     "build-editor-css": "lessc src/css/editor.less src/css/build/editor.css",
     "build-editor-css-dev": "less-watch-compiler src/css src/css/build editor.less",
     "cm": "git-cz",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "report-coverage": "cat ./coverage/coverage-final.json | codecov",
     "ts-coverage": "typescript-coverage-report",
     "semantic-release": "semantic-release",

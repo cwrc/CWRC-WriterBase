@@ -1,3 +1,10 @@
+console.log('no test at this moment');
+
+test('sanity', () => {
+    expect.assertions(1);
+    expect(true).toBe(true);
+});
+
 // /**
 //  * @jest-environment jsdom
 //  */
