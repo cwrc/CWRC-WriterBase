@@ -36,7 +36,8 @@
     "report-coverage": "cat ./coverage/coverage-final.json | codecov",
     "ts-coverage": "typescript-coverage-report",
     "semantic-release": "semantic-release",
-    "build-dependency-graph": "depcruise --include-only \"^src\" --output-type dot src | dot -Gsplines=ortho -T svg | depcruise-wrap-stream-in-html > ./dependency-graph/dependency-graph.html"
+    "build-dependency-graph": "depcruise --include-only \"^src\" --output-type dot src | dot -Gsplines=ortho -T svg | depcruise-wrap-stream-in-html > ./dependency-graph/dependency-graph.html",
+    "prepare": ""
   },
   "dependencies": {
     "@emotion/react": "^11.4.0",
@@ -99,7 +100,7 @@
     "eslint-plugin-react": "^7.24.0",
     "fetch-mock": "^9.11.0",
     "git-cz": "^4.7.6",
-    "husky": "^4.3.8",
+    "husky": "^7.0.1",
     "jest": "^27.0.6",
     "jest-transform-stub": "^2.0.0",
     "less": "^4.1.1",
