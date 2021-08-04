@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-      - run: npm ci
+      - run: npm install
       - run: sudo apt-get install xvfb
       - run: xvfb-run --auto-servernum npm test
       - name: report coverage
