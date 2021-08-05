@@ -1,20 +1,21 @@
-import React, {Component} from 'react'
+import React from 'react'
 import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 
-const getSelectComponent = ({label, value, options, onChange}) => {
+const getSelectComponent = ({id, disabled, value, options, onChange}) => {
     return (
         <Select
-            labelId={label}
-            id={label}
+            disabled={disabled}
+            labelId={id}
+            id={id}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             >
-            {options.map(({value,label}) => (
-                <MenuItem key={value} value={value}>{label}</MenuItem>
+            {options.map(({disabled, value,label}) => (
+                <MenuItem key={value} disabled={disabled} value={value}>{label}</MenuItem>
             ))}
         </Select>
     )
