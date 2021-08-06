@@ -13,7 +13,7 @@ var Tagger = require('./tagger.js');
 var Converter = require('./conversion/converter.js');
 var AnnotationsManager = require('./entities/annotationsManager');
 import { settingsDialog } from './dialogs/settings';
-var LayoutManager = require('./layout/layoutManager.js');
+import LayoutManager from './layout/layoutManager.js';
 import TagContextMenu from './tagContextMenu.js';
 var TinymceWrapper = require('./tinymceWrapper.js');
 
