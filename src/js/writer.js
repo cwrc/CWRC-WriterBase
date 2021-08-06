@@ -1,5 +1,7 @@
 'use strict';
 
+import '../lib/jquery/jquery_3.5_workaround.js';
+
 var $ = require('jquery');
 
 var EventManager = require('./eventManager.js');
