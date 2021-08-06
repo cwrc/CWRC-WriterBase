@@ -1,43 +1,34 @@
-import React, {Component} from 'react'
-import Icon from '@material-ui/core/Icon';
-import IconButton from '@material-ui/core/IconButton';
-import { makeStyles } from '@material-ui/core/styles'
+import { Box, Icon, IconButton } from '@material-ui/core';
+import React from 'react';
 
-export default class HeaderMenuOptions extends Component {
+const HeaderMenuOptions = ({ dialog, helpUrl }) => {
+	const helpLink = helpUrl ?? 'https://cwrc.ca/Documentation/CWRC-Writer';
+	const openDialog = () => dialog.dialog('open');
 
-    useStyles = makeStyles((theme) => ({
-        root: {
-            '& > *': {
-                margin: theme.spacing(1),
-            },
-        },
-        colorPrimary: '#FFFFFF'
-    }));
+	return (
+		<Box>
+			<IconButton
+				aria-label="settings"
+				className="settingsLink"
+				onClick={openDialog}
+				size="small"
+				style={{ color: '#ffffff' }}
+			>
+				<Icon fontSize="small">settings</Icon>
+			</IconButton>
+			<IconButton
+				aria-label="help"
+				className="helpLink"
+				href={helpLink}
+				rel="noopener noreferrer"
+				size="small"
+				style={{ marginLeft: '8px', color: '#ffffff' }}
+				target="_blank"
+			>
+				<Icon fontSize="small">help</Icon>
+			</IconButton>
+		</Box>
+	);
+};
 
-    openDialog = () => this.props.dialog.dialog('open');
-
-    render() {
-        return (
-            <div className={this.useStyles.root} style={{textDecoration: "none"}}>
-                <IconButton 
-                    size="small"
-                    onClick={this.openDialog}
-                    color="inherit" 
-                    className="settingsLink"
-                    aria-label="settings">
-                    <Icon fontSize="small">settings</Icon>
-                </IconButton>
-                <IconButton 
-                    size="small"
-                    href={this.props.helpUrl || 'https://cwrc.ca/Documentation/CWRC-Writer'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    color="inherit" 
-                    className="helpLink"
-                    aria-label="help">
-                    <Icon fontSize="small">help</Icon>
-                </IconButton>
-            </div>
-        )
-    }
-}
+export default HeaderMenuOptions;
