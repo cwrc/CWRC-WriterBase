@@ -1,74 +1,71 @@
-import React, {Component} from 'react'
-import Button from '@material-ui/core/Button';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Switch from '@material-ui/core/Switch';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
+import { Button, FormControlLabel, MenuItem, Select, Switch } from '@material-ui/core';
+import React from 'react';
 
-const getSelectComponent = ({label, value, options, onChange}) => {
-    return (
-        <Select
-            labelId={label}
-            id={label}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            >
-            {options.map(({value,label}) => (
-                <MenuItem key={value} value={value}>{label}</MenuItem>
-            ))}
-        </Select>
-    )
-}
+const getSelectComponent = ({ id, disabled, value, options, onChange }) => {
+	return (
+		<Select
+      disabled={disabled}
+      id={id}
+      labelId={id}
+      onChange={(e) => onChange(e.target.value)}
+      value={value}
+    >
+			{options.map(({ disabled, value, label }) => (
+				<MenuItem key={value} disabled={disabled} value={value}>
+					{label}
+				</MenuItem>
+			))}
+		</Select>
+	);
+};
 
-const getSwitchComponent = ({checked, label, onChange}) => {
-    return (
-        <FormControlLabel
-            control={
-            <Switch
-                checked={checked}
-                onChange={onChange}
-                name={label}
-                color="primary"
-                size="small"
-                inputProps={{ 'aria-label': label }}
-            />
-            }
-            label={label}
-        />
-    )
-}
+const getSwitchComponent = ({ checked, label, onChange }) => {
+	return (
+		<FormControlLabel
+			control={
+				<Switch
+          color="primary"
+					checked={checked}
+          inputProps={{ 'aria-label': label }}
+          name={label}
+					onChange={onChange}
+					size="small"
+				/>
+			}
+			label={label}
+		/>
+	);
+};
 
-const getButtonComponent = ({id, label, onClick}) => {
-    return (
-        <Button
-            variant="outlined"
-            size="small"
-            name={id}
-            onClick={onClick}>
-            {label}
-        </Button>
-    )
-}
+const getButtonComponent = ({ id, label, onClick }) => {
+	return (
+		<Button name={id} onClick={onClick} size="small" variant="outlined" >
+			{label}
+		</Button>
+	);
+};
 
-const SettingGroup = ({label,inputs }) => (
-    <div id="fontSizeContainer" style={{display: 'flex', marginBottom: '10px'}}>
-        <div style={{flex: 1, textAlignLast: 'right', paddingRight: '10px', paddingTop: '7px'}}>
-            {label}
-        </div>
-        <div style={{flex: 2}}>
-            {inputs.length > 0 &&
-            <div stlye={{display: 'flex', flexDirection: 'colunm'}}>
-            {inputs.map( (input, i) => (
-                <div key={i} style={{marginBottom: '5px'}}>
-                    {input.type === 'select' && getSelectComponent(input)}
-                    {input.type === 'switch' && getSwitchComponent(input)}
-                    {input.type === 'button' && getButtonComponent(input)}
-                </div>
-            ))}
-            </div>
-            }
-        </div>
+const SettingGroup = ({ label, inputs }) => (
+	<div id="fontSizeContainer" style={{ display: 'flex', marginBottom: '10px' }}>
+		<div
+      style={{ flex: 1, textAlignLast: 'right', paddingRight: '10px', paddingTop: '7px' }}
+    >
+      {label}
     </div>
+		<div style={{ flex: 2 }}>
+			{inputs.length > 0 && (
+				<div stlye={{ display: 'flex', flexDirection: 'colunm' }}>
+					{inputs.map((input, i) => (
+						<div key={i} style={{ marginBottom: '5px' }}>
+							{input.type === 'select' && getSelectComponent(input)}
+							{input.type === 'switch' && getSwitchComponent(input)}
+							{input.type === 'button' && getButtonComponent(input)}
+						</div>
+					))}
+				</div>
+			)}
+		</div>
+	</div>
 );
 
 export default SettingGroup;

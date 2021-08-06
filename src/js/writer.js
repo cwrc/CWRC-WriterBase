@@ -1,5 +1,7 @@
 'use strict';
 
+import '../lib/jquery/jquery_3.5_workaround.js';
+
 var $ = require('jquery');
 
 var EventManager = require('./eventManager.js');
@@ -11,7 +13,7 @@ var Tagger = require('./tagger.js');
 var Converter = require('./conversion/converter.js');
 var AnnotationsManager = require('./entities/annotationsManager');
 import { settingsDialog } from './dialogs/settings';
-var LayoutManager = require('./layout/layoutManager.js');
+import LayoutManager from './layout/layoutManager.js';
 import TagContextMenu from './tagContextMenu.js';
 var TinymceWrapper = require('./tinymceWrapper.js');
 

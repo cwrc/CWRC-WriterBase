@@ -1,19 +1,16 @@
-'use strict';
+import fscreen from 'fscreen';
+import $ from 'jquery';
+import 'jquery-ui/ui/widgets/tabs';
+import '../../lib/jquery/jquery.layout_and_plugins';
+import EntitiesList from './modules/entitiesList/entitiesList.js';
+import ImageViewer from './modules/imageViewer/imageViewer.js';
+import Nerve from './modules/nerve/nerve.js';
+import Relations from './modules/relations/relations.js';
+import Selection from './modules/selection/selection.js';
+import StructureTree from './modules/structureTree/structureTree.js';
+import Validation from './modules/validation/validation.js';
 
-var $ = require('jquery');
-require('../../lib/jquery/jquery.layout_and_plugins');
-require('jquery-ui/ui/widgets/tabs');
-var fscreen = require('fscreen')['default'];
-
-var StructureTree = require('./modules/structureTree/structureTree.js');
-var EntitiesList = require('./modules/entitiesList/entitiesList.js')
-var Validation = require('./modules/validation/validation.js');
-var Relations = require('./modules/relations/relations.js');
-var Selection = require('./modules/selection/selection.js');
-var ImageViewer = require('./modules/imageViewer/imageViewer.js');
-var Nerve = require('./modules/nerve/nerve.js');
-
-var pkg = require('./../../../package.json');
+const pkg = require('./../../../package.json');
 
 // track modules which cannot appear in readonly mode
 var writeOnlyModules = ['nerve'];
@@ -505,28 +502,21 @@ function initModule(idPrefix, writer, module) {
     switch(module.id) {
     case 'structure':
         return new StructureTree(config);
-        break;
     case 'entities':
         return new EntitiesList(config);
-        break;
     case 'relations':
         return new Relations(config);
-        break;
     case 'validation':
         return new Validation(config);
-        break;
     case 'selection':
         return new Selection(config);
-        break;
     case 'imageViewer':
         return new ImageViewer(config);
-        break;
     case 'nerve':
         return new Nerve(config);
-        break;
     }
     
     return null;
 }
 
-module.exports = LayoutManager;
+export default LayoutManager;

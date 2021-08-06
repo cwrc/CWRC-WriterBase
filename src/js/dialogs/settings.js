@@ -89,8 +89,8 @@ const settings = (writer, config) => {
         ]
 
         annotationModes = [
-            { value: w.XML, label: 'RDF/XML'},
-            { value: w.JSON, label: 'JSON-LD'}
+            { value: w.XML, label: 'RDF/XML', disabled: true },
+            { value: w.JSON, label: 'JSON-LD' }
         ]
 
         componentDidMount = () => {
@@ -375,6 +375,7 @@ const settings = (writer, config) => {
                         <SettingGroup 
                             label="Annotation Mode"
                             inputs={[{
+                                    disabled: true,
                                     type: 'select',
                                     id: 'annotationMode',
                                     value: this.state.annotationMode,
