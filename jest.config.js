@@ -27,5 +27,8 @@ module.exports = {
 		'.+\\.(css|styl|less|sass|scss|png|jpg|ttf|woff|woff2)$': 'jest-transform-stub',
 		'^.+\\.js$': 'babel-jest',
 	},
+	transformIgnorePatterns: [
+		'node_modules/?!(iso-639-2)'
+	],
 	verbose: true,
 };

@@ -42,6 +42,7 @@
     "@material-ui/icons": "^4.11.2",
     "css": "^3.0.0",
     "fscreen": "^1.2.0",
+    "iso-639-2": "^3.0.0",
     "jquery": "^3.6.0",
     "jquery-contextmenu": "^2.9.2",
     "jquery-ui": "^1.12.1",

@@ -1,12 +1,11 @@
 'use strict';
 
-var $ = require('jquery');
+import { iso6392 } from 'iso-639-2';
+import $ from 'jquery';
+import 'jquery-ui/ui/widgets/accordion';
+import 'jquery-ui/ui/widgets/dialog';
+import AttributeWidget from './attributeWidget/attributeWidget.js';
 
-require('jquery-ui/ui/widgets/dialog');
-require('jquery-ui/ui/widgets/accordion');
-
-var iso6392 = require('iso-639-2');
-var AttributeWidget = require('./attributeWidget/attributeWidget.js');
     
 function Translation(writer, parentEl) {
     var w = writer;
@@ -174,4 +173,4 @@ function Translation(writer, parentEl) {
     };
 }
 
-module.exports = Translation;
+export default Translation;

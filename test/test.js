@@ -12,7 +12,7 @@ import { act } from "react-dom/test-utils";
 // eWin.show();
 
 const WAIT_TIME = 150;
-// jest.setTimeout(30000);
+jest.setTimeout(30000);
 
 // override alert function so it doesn't hold up tests
 window.alert = (msg) => {
@@ -475,29 +475,6 @@ test('dialogs.settings', async () => {
     });
     expect(writer.settings.getSettings().showTags).not.toBe(initShowTagSetting);
 
-});
-
-test.skip('dialogs.header', () => {
-    expect.assertions(2);
-
-    writer = getWriterInstance()
-
-    return new Promise((resolve) => {
-        initAndLoadDoc(writer, teiDoc).then(() => {
-            window.$('.editHeader', writer.layoutManager.getHeaderButtonsParent()).click();
-
-            let headerDialog = window.$('.cwrcDialogWrapper .ui-dialog:visible');
-            expect(headerDialog.find('.ui-dialog-title').text()).toBe('Edit Header');
-
-            headerDialog.find('textarea').val('<test>Test Header</test>');
-
-            dialogClickOk();
-
-            expect(window.$('[_tag="teiHeader"] > [_tag="test"]', writer.editor.getBody()).length).toBe(1);
-
-            resolve();
-        })
-    });
 });
 
 test('dialogs.message confirm', () => {
