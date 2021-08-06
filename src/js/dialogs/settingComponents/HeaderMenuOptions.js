@@ -3,7 +3,7 @@ import React from 'react';
 
 const HeaderMenuOptions = ({ dialog, helpUrl }) => {
 	const helpLink = helpUrl ?? 'https://cwrc.ca/Documentation/CWRC-Writer';
-	const openDialog = () => dialog.dialog('open');
+	const openDialog = () => dialog?.dialog('open') ?? undefined;
 
 	return (
 		<Box>
