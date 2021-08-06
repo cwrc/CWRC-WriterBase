@@ -36,7 +36,7 @@
     "report-coverage": "cat ./coverage/coverage-final.json | codecov",
     "semantic-release": "semantic-release",
     "build-dependency-graph": "depcruise --include-only \"^src\" --output-type dot src | dot -Gsplines=ortho -T svg | depcruise-wrap-stream-in-html > ./dependency-graph/dependency-graph.html",
-    "prepare": "husky install"
+    "prepare": ""
   },
   "dependencies": {
     "@material-ui/core": "^4.12.3",
