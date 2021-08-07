@@ -63,18 +63,21 @@ const AnnotationMode: FC = () => {
         Annotation
       </Typography> */}
       <Tooltip title="Annotation Mode">
-        <Button
-          id="annotation-mode-select"
-          aria-controls="annotation-mode-menu"
-          aria-expanded={openMenu ? 'true' : undefined}
-          aria-haspopup="true"
-          disabled={editor.isReadonly}
-          onClick={handleButtonClick}
-          size="small"
-          sx={{ color: 'text.primary' }}
-        >
-          {editor.annotationModeLabel}
-        </Button>
+        <span>
+          <Button
+            id="annotation-mode-select"
+            aria-controls="annotation-mode-menu"
+            aria-expanded={openMenu ? 'true' : undefined}
+            aria-haspopup="true"
+            // disabled={editor.isReadonly}
+            disabled
+            onClick={handleButtonClick}
+            size="small"
+            sx={{ color: 'text.primary' }}
+          >
+            {editor.annotationModeLabel}
+          </Button>
+        </span>
       </Tooltip>
       <Menu
         anchorEl={anchorEl}
@@ -110,12 +113,13 @@ const AnnotationMode: FC = () => {
             Annotation
           </Typography>
         </Box>
-        {editor.annotationModes.map(({ value, label }) => (
+        {editor.annotationModes.map(({ disabled, label, value }) => (
           <MenuItem
             key={value}
             dense
-            selected={value === editor.annotationMode}
+            disabled={disabled}
             onClick={() => handleChange(value)}
+            selected={value === editor.annotationMode}
             sx={{ mx: 0.5, borderRadius: 1 }}
             value={value}
           >

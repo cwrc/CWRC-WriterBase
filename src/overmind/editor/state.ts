@@ -9,6 +9,7 @@ type State = {
   annotationModes: {
     value: number;
     label: string;
+    disabled?: boolean;
   }[];
   currentFontSize: string;
   editorMode: string;
@@ -35,7 +36,7 @@ export const state: State = {
   allowOverlap: false,
   annotationMode: 3,
   annotationModes: [
-    { value: 1, label: 'RDF/XML' },
+    { value: 1, label: 'RDF/XML', disabled: true },
     { value: 3, label: 'JSON-LD' },
   ],
   annotationModeLabel: derived((state: State) => {

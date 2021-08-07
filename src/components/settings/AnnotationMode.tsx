@@ -49,12 +49,13 @@ const AnnotationMode: FC = () => {
       </Box>
       <Box sx={{ flex: 2, mt: 0.5, pl: 1 }}>
         <Select
+          disabled
+          onChange={(event) => handleChange(Number(event.target.value))}
           value={editor.annotationMode}
           variant="standard"
-          onChange={(event) => handleChange(Number(event.target.value))}
         >
-          {editor.annotationModes.map(({ value, label }) => (
-            <MenuItem key={value} value={value}>
+          {editor.annotationModes.map(({ value, label, disabled }) => (
+            <MenuItem key={value} disabled={disabled} value={value}>
               {label}
             </MenuItem>
           ))}
