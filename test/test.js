@@ -83,7 +83,7 @@ beforeEach(() => {
     resetWriter();
 })
 
-test('writer constructor', () => {
+test.only('writer constructor', () => {
     expect.assertions(1);
 
     writer = getWriterInstance();
