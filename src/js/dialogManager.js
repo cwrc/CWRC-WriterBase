@@ -215,26 +215,26 @@ function DialogManager(writer) {
         restorePreviousDialogListeners();
     };
 
-    dm.getDialogPref = function(name) {
-        var prefs = Cookies.getJSON(DIALOG_PREFS_COOKIE_NAME);
-        if (prefs !== undefined && prefs[name] !== undefined) {
-            return prefs[name];
-        } else {
-            return undefined;
-        }
+    dm.getDialogPref = (name) => {
+        const prefsCookies = Cookies.get(DIALOG_PREFS_COOKIE_NAME);
+        if (!prefsCookies) return;
+
+        let prefs = JSON.parse(prefsCookies);
+        if (prefs[name] === undefined) return;
+        
+        return prefs[name];
     };
 
-    dm.setDialogPref = function(name, value) {
-        var prefs = Cookies.getJSON(DIALOG_PREFS_COOKIE_NAME);
-        if (prefs === undefined) {
-            prefs = {};
-        }
+    dm.setDialogPref = (name, value) => {
+        const prefsCookies = Cookies.get(DIALOG_PREFS_COOKIE_NAME);
+        let prefs = prefsCookies ? JSON.parse(prefsCookies) : {};
+
         prefs[name] = value;
-        Cookies.set(DIALOG_PREFS_COOKIE_NAME, prefs, {expires: 7, path: ''});
+        Cookies.set(DIALOG_PREFS_COOKIE_NAME, JSON.stringify(prefs), { expires: 7, path: '' });
     };
 
-    dm.clearDialogPrefs = function() {
-        Cookies.remove(DIALOG_PREFS_COOKIE_NAME, {path: ''});
+    dm.clearDialogPrefs = () => {
+        Cookies.remove(DIALOG_PREFS_COOKIE_NAME, { path: '' });
     };
     
     var defaultDialogs = {
