@@ -61,7 +61,7 @@ Note that because the `load(writer)` and `save(writer)` methods are passed an in
 
 You have at least two choices here:
 
-1. You can entirely implement your own dialog for entity lookup, following the model in
+1. You can implement your own dialog for entity lookup, following the model in
    [CWRC-PublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs)
 
 2. You can use [CWRC-PublicEntityDialogs](https://github.com/cwrc/CWRC-PublicEntityDialogs) and configure it with different
